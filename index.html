@@ -1024,16 +1024,20 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .badge-tile em { display: block; font-style: normal; font-size: calc(10.5px * var(--fs)); color: var(--text-faint); font-weight: 600; margin-top: 2px; }
 
 /* Body-Heatmap */
-.body-map { display: flex; justify-content: center; gap: 4px; }
-.body-map svg { width: 50%; max-width: 230px; height: auto; }
-.body-map .base { fill: var(--surface-2); stroke: var(--border-strong); stroke-width: 1; }
-.body-map .mus { stroke: var(--bg); stroke-width: 1.2; cursor: pointer; transition: opacity .15s; }
-.body-map .mus:hover { opacity: .8; }
+:root[data-theme] { --fig: color-mix(in srgb, var(--text) 9%, var(--surface)); --fig-line: color-mix(in srgb, #000 55%, var(--bg)); --mus-off: color-mix(in srgb, var(--text) 17%, var(--surface)); --mus-hi: #ffffff; }
+:root[data-theme="light"] { --fig: color-mix(in srgb, var(--text) 13%, var(--surface)); --fig-line: color-mix(in srgb, var(--text) 55%, var(--surface)); --mus-off: color-mix(in srgb, var(--text) 6%, var(--surface)); --mus-hi: #000000; }
+.body-map { display: flex; justify-content: center; gap: 6px; }
+.body-map svg { width: 50%; max-width: 260px; height: auto; overflow: visible; }
+.body-map .base { fill: var(--fig); stroke: var(--fig-line); stroke-width: 1.4; stroke-linejoin: round; }
+.body-map .base-fill { fill: var(--fig); stroke: var(--fig); stroke-width: .6; }
+.body-map .mus { stroke: var(--fig-line); stroke-width: 1.1; stroke-linejoin: round; cursor: pointer; transition: opacity .15s, filter .15s; }
+.body-map .mus:hover { filter: brightness(1.12); }
 .body-map .mus.sel { stroke: var(--text); stroke-width: 2; }
-.body-map text { fill: var(--text-faint); font-size: calc(11px * var(--fs)); font-weight: 700; text-anchor: middle; }
+.body-map .mlines { fill: none; stroke: var(--fig-line); stroke-width: .8; stroke-linecap: round; opacity: .65; pointer-events: none; }
+.body-map text { fill: var(--text-faint); font-size: 11px; font-weight: 700; text-anchor: middle; }
 .reg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 4px 14px; }
 .reg-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; padding: 6px 2px; border: 0; background: none; color: var(--text); text-align: left; font-size: calc(13px * var(--fs)); }
-.reg-item .reg-dot { width: 12px; height: 12px; border-radius: 4px; }
+.reg-item .reg-dot { width: 12px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--fig-line); }
 .reg-item .reg-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .reg-item b { font-variant-numeric: tabular-nums; }
 .reg-item i { grid-column: 2 / -1; height: 4px; border-radius: 3px; background: linear-gradient(90deg, var(--accent) var(--w), var(--surface-3) var(--w)); }
@@ -1511,7 +1515,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'GymLog',
-  version: '1.2.0',
+  version: '1.2.1',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -6352,65 +6356,76 @@ function exRegions(ex) {
   return out;
 }
 
-/* Körper-Grafik 200×420 – linke Körperhälfte, rechts gespiegelt */
+/* Körper-Grafik 200×440 – linke Bildhälfte definiert, rechte gespiegelt */
 const BODY = {
-  base: `<ellipse cx="100" cy="34" rx="19" ry="23"/><path d="M90 54h20l3 18H87z"/>
-    <path d="M66 74c16-6 52-6 68 0l8 44-8 42-2 40 6 28H62l6-28-2-40-8-42z"/>
-    <g id="limb"><path d="M64 78c-14 4-20 20-22 44l-5 38 13 3 9-35 9-30z"/><path d="M37 162c-5 18-8 38-8 60l11 2c4-20 8-40 10-58z"/><ellipse cx="34" cy="234" rx="7" ry="11"/>
-    <path d="M64 224l36 4-2 74H72c-7-24-10-52-8-78z"/><path d="M72 304h24l-2 78H78c-6-26-8-52-6-78z"/><path d="M76 384h19l2 14H70z"/></g>`,
+  // Silhouette (linke Hälfte, Mittellinie x=100)
+  sil: 'M100 58L92 58C92 65 91 70 88 73C82 77 74 79 68 82C60 85 55 92 53 102C51 112 51 122 50 132C49 142 47 150 45 158C42 172 39 188 37 202C36 208 35 212 34 216C30 220 25 226 23 234C22 240 25 243 28 241L31 235C31 241 33 247 36 247C38 247 39 244 39 240L39 247C40 250 44 250 44 246L43 238C45 241 48 240 47 236L46 226C47 221 47 217 46 213C48 202 51 188 54 175C56 167 58 159 60 151C62 140 64 129 66 119C69 131 72 144 74 156C75 168 74 182 72 196C70 210 69 226 70 244C71 264 74 284 77 300C76 314 74 328 75 344C77 362 81 378 83 392C82 398 78 404 76 410C82 415 92 415 96 410C96 402 95 396 94 390C95 374 96 356 95 338C94 322 95 310 96 300C98 280 99 256 99 232L100 222Z',
+  head: '<ellipse cx="100" cy="36" rx="16" ry="20"/><path d="M84 38c-3 0-4 6-1 10l2 1zM116 38c3 0 4 6 1 10l-2 1z"/>',
   front: {
     single: {
-      bauch: ['M89 123h10v21h-10z', 'M101 123h10v21h-10z', 'M89 146h10v21h-10z', 'M101 146h10v21h-10z', 'M89 169h10v22c-4 4-8 3-10 0z', 'M101 169h10v22c-2 3-6 4-10 0z']
+      bauch: ['M90 124h9v16h-9z', 'M101 124h9v16h-9z', 'M90 142h9v17h-9z', 'M101 142h9v17h-9z', 'M90 161h9v16h-9z', 'M101 161h9v16h-9z',
+        'M90 179h9v34c-4-1-7-8-9-18z', 'M101 179h9v16c-2 10-5 17-9 18z']
     },
     paired: {
-      trap_o: ['M92 60C88 66 80 71 70 75L92 75Z'],
-      delt_s: ['M66 76C56 78 49 85 46 97C45 104 46 110 48 115C51 106 55 99 59 95C61 88 64 81 66 76Z'],
-      delt_v: ['M70 77C66 82 62 90 60 99C64 101 69 100 72 97C73 90 73 83 70 77Z'],
-      brust_o: ['M98 79L76 79C72 84 70 90 69 96L98 97Z'],
-      brust_u: ['M98 99L69 98C68 106 69 113 73 118C81 122 91 122 98 119Z'],
-      bizeps: ['M50 119C46 129 44 142 45 155C50 157 55 150 57 140C59 131 58 124 56 117C54 117 52 117 50 119Z'],
-      unterarm: ['M43 162C38 177 35 195 34 214L42 216C46 198 50 181 53 165C50 162 46 161 43 162Z'],
-      obliques: ['M72 122L86 125L86 192L77 186C73 166 71 144 72 122Z'],
-      hueftbeuger: ['M78 198C84 204 90 212 94 226L86 228C82 218 78 208 76 200Z'],
-      quad: ['M66 230C61 252 62 276 69 298L75 298C74 274 74 252 76 232Z', 'M78 232C76 256 77 279 81 300L89 300C91 278 91 254 89 234Z', 'M91 266C89 280 89 292 92 300L97 298C98 288 97 276 95 266Z'],
-      adduktoren: ['M89 230L99 230L98 262C95 252 92 242 89 234Z'],
-      tibialis: ['M75 312C73 330 73 350 76 372L81 372C80 350 79 330 80 312Z'],
-      waden: ['M85 314C89 330 89 352 87 372L92 372C94 352 94 330 90 312Z']
-    }
+      trap_o: ['M91 63C89 70 84 75 76 79L95 80C94 74 93 68 91 63Z'],
+      delt_s: ['M68 82C60 84 54 92 52 104C51 112 52 120 55 127C57 116 59 106 62 98C64 92 66 87 68 82Z'],
+      delt_v: ['M69 82C66 88 63 96 62 104C60 112 58 120 56 127C62 123 66 116 68 108C70 100 72 92 75 84Z'],
+      brust_o: ['M99 82L76 84C72 89 69 95 68 102L99 101Z'],
+      brust_u: ['M99 103L68 104C68 110 70 115 74 119C82 124 92 124 99 121Z'],
+      bizeps: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z'],
+      trizeps: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
+      unterarm: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
+      obliques: ['M83 123L88 125L88 193C83 190 79 187 76 183C76 169 75 157 75 147C78 137 80 129 83 123Z',
+        'M71 119L81 122L76 127Z', 'M72 128L81 131L77 136Z', 'M73 137L80 140L76 145Z'],
+      hueftbeuger: ['M77 192C83 197 89 205 93 214L89 219C84 210 79 202 75 197Z'],
+      quad: ['M73 210C70 230 70 256 74 280C76 290 78 296 80 301L83 299C80 281 78 257 79 233C79 225 77 217 73 210Z',
+        'M80 220C79 244 80 268 84 293L90 297C92 273 92 247 90 227C87 223 83 221 80 220Z',
+        'M92 262C90 274 90 286 92 297L97 301C99 291 99 279 97 266Z'],
+      adduktoren: ['M89 214L99 223L99 257C96 247 93 237 90 227Z'],
+      tibialis: ['M78 316C76 334 78 352 82 370L85 368C83 350 82 332 83 314Z'],
+      waden: ['M88 314C93 328 95 344 93 362L90 366C90 348 89 330 86 316Z']
+    },
+    // Konturen & Faserlinien (nur Linien)
+    lines: ['M84 303a5 6 0 1 0 10 0a5 6 0 1 0-10 0', 'M78 90l12 4M74 98l18 3M73 110l20 1', 'M58 92l6 10M55 102l5 10',
+      'M80 236l3 40M86 232l1 44', 'M94 64l-1 12', 'M96 214l-6-7']
   },
   back: {
     single: {
-      trap_o: ['M100 58L80 74L100 82L120 74Z'],
-      ruecken_o: ['M100 84L78 78C84 96 92 112 100 130C108 112 116 96 122 78Z'],
-      ruecken_u: ['M86 176h12v30H84z', 'M102 176h12l2 30H102z']
+      trap_o: ['M100 58L92 58C90 67 84 74 70 82C80 86 90 89 100 91C110 89 120 86 130 82C116 74 110 67 108 58Z'],
+      ruecken_o: ['M100 92C92 90 85 89 79 88C85 104 92 124 100 150C108 124 115 104 121 88C115 89 108 90 100 92Z'],
+      ruecken_u: ['M93 154C91 168 91 184 92 199L99 201V151Z', 'M107 154C109 168 109 184 108 199L101 201V151Z']
     },
     paired: {
-      delt_h: ['M66 77C56 79 48 87 46 99C46 106 47 112 49 116C54 104 61 96 71 92C70 86 68 81 66 77Z'],
-      lat: ['M72 94C67 116 69 146 79 172L94 178C94 162 95 148 97 136C88 122 80 108 72 94Z'],
-      trizeps: ['M50 119C45 131 43 145 45 157C49 159 53 152 55 143C56 134 56 126 55 118Z', 'M57 121C59 129 59 139 57 149C60 144 62 134 61 125Z'],
-      unterarm: ['M43 162C38 177 35 195 34 214L42 216C46 198 50 181 53 165C50 162 46 161 43 162Z'],
-      abduktoren: ['M66 200C63 206 63 214 66 222L76 210C74 204 70 201 66 200Z'],
-      gluteus: ['M68 214C63 226 66 240 80 245C92 249 99 240 99 228V211C88 209 78 210 68 214Z'],
-      hamstrings: ['M68 252C64 270 66 290 72 300L81 300C81 282 80 266 80 252Z', 'M83 252C84 268 86 286 86 300L94 300C96 284 96 266 94 252Z'],
-      waden: ['M72 310C66 324 68 344 76 356C80 344 82 326 82 310Z', 'M84 310C84 326 86 344 90 354C96 342 96 324 92 310Z'],
-      soleus: ['M76 358C77 366 78 374 80 380L90 380C91 372 91 364 90 356Z']
-    }
+      delt_h: ['M70 82C62 84 55 92 53 104C52 112 53 120 56 127C60 117 64 107 70 99C73 95 75 90 76 86Z'],
+      ruecken_o: ['M78 91C76 99 76 107 78 116C84 117 88 115 91 111C87 104 83 97 78 91Z'],
+      lat: ['M78 118C76 130 76 144 78 158C80 172 86 184 96 192L99 181C98 167 96 153 92 139C88 129 84 122 78 118Z'],
+      trizeps: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z', 'M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
+      unterarm: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
+      abduktoren: ['M76 192C73 198 72 206 74 214C78 208 84 203 90 199C86 195 81 193 76 192Z'],
+      gluteus: ['M74 215C72 229 76 242 86 248C94 252 99 246 99 236V203C92 203 84 207 78 211Z'],
+      hamstrings: ['M74 252C72 270 74 288 78 302L86 304C84 286 84 268 86 254Z', 'M87 254C86 272 88 290 90 304L97 302C99 286 99 270 98 254Z'],
+      waden: ['M76 314C72 328 73 344 80 356C84 344 86 328 86 314Z', 'M87 314C87 330 89 346 93 358C98 346 98 330 95 316Z'],
+      soleus: ['M80 358C81 368 83 378 85 386L93 386C94 376 94 368 93 360C90 364 86 364 80 358Z']
+    },
+    lines: ['M84 96l4 10M80 128l10 20M84 140l8 26', 'M58 96l6 8M56 104l6 10', 'M80 270l2 26M92 268l1 28', 'M80 232c4 4 10 6 16 6']
   }
 };
 function bodySvg(view, valueOf, labelOf) {
   const v = BODY[view];
   const mus = (m, d) => {
     const val = valueOf(m);
-    const name = REGIONS[m] ? REGIONS[m][0] : m;
+    const name = typeof REGIONS !== 'undefined' && REGIONS[m] ? REGIONS[m][0] : m;
     return `<path class="mus" d="${d}" fill="${val.color}" data-act="muscleTap" data-m="${esc(m)}" role="button" aria-label="${esc(name)}: ${esc(labelOf(m))}"><title>${esc(name)}: ${esc(labelOf(m))}</title></path>`;
   };
-  const paired = Object.entries(v.paired).map(([m, ds]) => ds.map(d => mus(m, d)).join('')).join('');
+  const half = Object.entries(v.paired).map(([m, ds]) => ds.map(d => mus(m, d)).join('')).join('') + `<g class="mlines">${v.lines.map(d => `<path d="${d}"/>`).join('')}</g>`;
   const single = Object.entries(v.single).map(([m, ds]) => ds.map(d => mus(m, d)).join('')).join('');
-  return `<svg viewBox="0 0 200 420" role="img" aria-label="Muskel-Heatmap ${view === 'front' ? 'vorne' : 'hinten'}">
-    <g class="base">${BODY.base}<g transform="matrix(-1 0 0 1 200 0)"><use href="#limb"/></g></g>
-    ${paired}<g transform="matrix(-1 0 0 1 200 0)">${paired}</g>${single}
-    <text x="100" y="414">${view === 'front' ? 'Vorne' : 'Hinten'}</text></svg>`;
+  return `<svg viewBox="14 0 172 440" role="img" aria-label="Muskel-Heatmap ${view === 'front' ? 'vorne' : 'hinten'}">
+    <g class="base">${BODY.head}<path d="${BODY.sil}"/><path d="${BODY.sil}" transform="matrix(-1 0 0 1 200 0)"/></g>
+    <g class="base-fill"><path d="${BODY.sil}"/><path d="${BODY.sil}" transform="matrix(-1 0 0 1 200 0)"/></g>
+    ${half}<g transform="matrix(-1 0 0 1 200 0)">${half}</g>${single}
+    <text x="100" y="434">${view === 'front' ? 'Vorne' : 'Hinten'}</text></svg>`;
 }
+
 /** Gewichtete Sätze pro Region in den Workouts eines Zeitraums */
 function regionSets(rows) {
   const out = {};
@@ -6421,7 +6436,13 @@ function regionSets(rows) {
   }
   return out;
 }
-const regionColor = pw => { const k = clamp(pw / 20, 0, 1); return k <= 0 ? 'var(--surface-3)' : `color-mix(in srgb, var(--accent) ${Math.round(18 + 82 * k)}%, var(--surface-3))`; };
+/* Farbskala: 0 = Muskel grau, wenig → zarter Akzent, Zielbereich → voller Akzent, viel → leuchtend */
+const regionColor = pw => {
+  const k = clamp(pw / 20, 0, 1);
+  if (k <= 0) return 'var(--mus-off)';
+  if (k < .6) return `color-mix(in srgb, var(--accent) ${Math.round(28 + 72 * k / .6)}%, var(--mus-off))`;
+  return `color-mix(in srgb, var(--mus-hi) ${Math.round((k - .6) / .4 * 65)}%, var(--accent))`;
+};
 
 ProgressViews.muscles = body => {
   const ix = Analytics.cur();
@@ -6457,7 +6478,7 @@ ProgressViews.muscles = body => {
       <div class="chart-card wide">
         <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn('23 Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln halb. Schrägbank trifft z. B. die obere Brust, Seitheben die seitliche Schulter, Wadenheben sitzend den Soleus. Tippe auf einen Muskel für Details.')}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
-        <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--surface-3), color-mix(in srgb, var(--accent) 50%, var(--surface-3)), var(--accent))"></span><span>20+ Sätze/Woche</span></div>
+        <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 40%, var(--mus-off)), var(--accent) 60%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
       </div>
       ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Volume Landmarks: MEV (10) = Minimum für Wachstum, MAV (15) = optimaler Bereich, MRV (20) = maximal erholbar.',
