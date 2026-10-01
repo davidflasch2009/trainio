@@ -44,8 +44,17 @@ Konfetti und Inhalte der Startseite.
 - **Meine Workouts**: Name + Übungen (Sätze, Wdh., Pause, Notiz), z. B. „Push", „Beine".
 - **Trainingsplan**: für jeden Wochentag eines deiner Workouts oder Ruhetag. Start und
   „Nächstes Training" richten sich danach; die Konsistenz zählt die geplanten Tage.
-- **Spontan trainieren**: Übungen wählen & los, oder leeres Workout. Jedes Workout lässt sich
+- **Starten** nur über den Start-Tab („Workout starten“): nächstes Plan-Workout, eines deiner
+  Workouts, Übungen wählen, leeres Workout oder letztes wiederholen. Jedes Workout lässt sich
   über ⋯ → „Als Workout speichern" unter „Meine Workouts" ablegen.
+
+## Aufwärmsätze & Scheibenrechner
+
+- **Mehr → Aufwärmsätze**: Prozent vom Arbeitsgewicht und Wdh. pro Aufwärmsatz frei
+  einstellen (bis zu 6 Stufen, Vorlagen Kurz/Standard/Kraft, optional zuerst leere Stange).
+- **Mehr → Scheiben & Stange**: verfügbare Scheiben (kg/lb) und Stangengewicht festlegen.
+- Der **Scheibenrechner** zeigt die Beladung pro Seite mit Anzahl je Scheibe, Zielgewicht mit
+  ±-Tasten und – falls nicht exakt ladbar – das nächste machbare Gewicht.
 
 ## Workout-Eingabe
 

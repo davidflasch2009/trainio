@@ -1126,7 +1126,21 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .plates-vis { display: flex; align-items: center; justify-content: center; gap: 2px; min-height: 120px; padding: 10px 0; }
 .plates-vis .bar-end { width: 40px; height: 14px; background: var(--text-faint); border-radius: calc(3px * var(--rs)); }
 .plates-vis .sleeve { width: 18px; height: 22px; background: var(--text-dim); border-radius: calc(3px * var(--rs)); }
-.plates-vis .plate { width: 14px; border-radius: calc(4px * var(--rs)); display: flex; align-items: center; justify-content: center; }
+.plates-vis .plate { width: 14px; border-radius: calc(4px * var(--rs)); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); position: relative; }
+.plates-vis .plate em { font-style: normal; font-size: 9px; font-weight: 800; color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.pl-target { display: flex; align-items: center; gap: 8px; }
+.pl-step { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); color: var(--text); }
+.pl-input { width: 100%; border: 0; background: none; text-align: center; font-size: max(16px, calc(40px * var(--fs))); font-weight: 850; color: var(--text); font-family: var(--font-num); outline: none; }
+.pl-counts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
+.pl-chip, .plate-pick .pp { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); font-size: calc(15px * var(--fs)); font-weight: 600; }
+.pl-chip i, .plate-pick .pp i { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
+.plate-pick { display: flex; flex-wrap: wrap; gap: 8px; }
+.plate-pick .pp { border: var(--bw) solid var(--border); color: var(--text-dim); min-height: 40px; opacity: .6; }
+.plate-pick .pp.on { opacity: 1; border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
+.wu-row { gap: 6px; }
+.wu-step { display: flex; align-items: center; width: auto; flex-shrink: 0; }
+.wu-step span { min-width: 44px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; font-size: calc(14px * var(--fs)); }
+.wu-step button { width: 30px; }
 
 /* Kalender */
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
@@ -1564,7 +1578,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'GymLog',
-  version: '1.3.0',
+  version: '1.4.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1615,6 +1629,10 @@ const DEFAULT_SETTINGS = {
   prefill: true,
   displayName: '',
   barKg: 20,
+  warmupSteps: [[40, 5], [60, 3], [80, 2]],
+  warmupBar: true,
+  platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
+  platesLb: [45, 35, 25, 10, 5, 2.5],
   // Darstellung
   design: 'gymlog',
   accent: '',
@@ -3982,9 +4000,8 @@ function renderPlans(el) {
         <div class="row between"><b class="ellipsis">${esc(p.name)}</b><span class="small dim">${planDaysCount(p)} Trainingstage</span></div>
         <div class="week-plan mt-12">${p.schedule.map((id, i) => {
           const t = Tpl.get(id);
-          return `<button class="wp-day ${i === td ? 'today' : ''} ${t ? 'has' : ''}" data-act="${t ? 'tplStart' : 'planEdit'}" data-id="${esc(t ? t.id : p.id)}" aria-label="${WEEKDAYS[i]}: ${t ? esc(t.name) : 'Ruhetag'}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></button>`;
+          return `<button class="wp-day ${i === td ? 'today' : ''} ${t ? 'has' : ''}" data-act="${t ? 'tplMenu' : 'planEdit'}" data-id="${esc(t ? t.id : p.id)}" aria-label="${WEEKDAYS[i]}: ${t ? esc(t.name) : 'Ruhetag'}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></button>`;
         }).join('')}</div>
-        ${next ? `<button class="btn btn-primary btn-block mt-12" data-act="tplStart" data-id="${esc(next.template.id)}">${icon('play')} ${whenLabel(next)}: ${esc(next.template.name)}</button>` : ''}
       </div>`
     : `<div class="card">${emptyState('calendar', 'Noch kein Trainingsplan',
         tpls.length ? 'Lege fest, an welchem Wochentag du welches deiner Workouts machst.' : 'Erstelle zuerst deine Workouts – danach verteilst du sie im Plan auf die Wochentage.',
@@ -3995,13 +4012,7 @@ function renderPlans(el) {
 
     <div class="section-head"><h2>Meine Workouts</h2>${tpls.length ? `<button class="link-btn" data-act="tplNew">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Neu</button>` : ''}</div>
     ${tpls.length ? `<div class="col" style="gap:10px">${tpls.map(t => tplCard(t, p)).join('')}</div>`
-      : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Ein Workout ist deine Übungsliste für einen Trainingstag – z. B. „Push", „Beine" oder „Oberkörper A".', `<button class="btn btn-primary" data-act="tplNew">${icon('plus')} Workout erstellen</button>`)}</div>`}
-
-    <div class="section-head"><h2>Spontan trainieren</h2></div>
-    <div class="grid-2">
-      <button class="btn btn-secondary" data-act="composeWorkout">${icon('list')} Übungen wählen & los</button>
-      <button class="btn btn-secondary" data-act="freeWorkout">${icon('plus')} Leeres Workout</button>
-    </div>`;
+      : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Ein Workout ist deine Übungsliste für einen Trainingstag – z. B. „Push", „Beine" oder „Oberkörper A".', `<button class="btn btn-primary" data-act="tplNew">${icon('plus')} Workout erstellen</button>`)}</div>`}`;
 }
 function tplCard(t, p) {
   const days = p ? p.schedule.map((id, i) => id === t.id ? WD_KURZ[i] : null).filter(Boolean) : [];
@@ -4012,9 +4023,8 @@ function tplCard(t, p) {
         <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ${tplSets(t)} Sätze · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
         <p class="tiny faint mt-8 tpl-ex">${(t.exercises || []).map(x => esc(Ex.name(x.exerciseId))).join(' · ')}</p>
       </div>
-      <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Menü">${icon('dots')}</button>
+      <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Optionen">${icon('dots')}</button>
     </div>
-    <button class="btn btn-secondary btn-block mt-12" data-act="tplStart" data-id="${esc(t.id)}">${icon('play')} Starten</button>
   </div>`;
 }
 Actions.tplStart = el => Workout.start({ templateId: el.dataset.id });
@@ -5134,12 +5144,13 @@ Actions.warmup = el => {
   if (en.sets.some(s => s.warmup) && en.sets.filter(s => s.warmup).every(s => !s.done)) en.sets = en.sets.filter(s => !s.warmup);
   const bar = ex && ex.equipment === 'Langhantel' ? S().barKg : 0;
   const step = fromU(S().weightSteps);
-  const scheme = bar ? [[0, 10], [0.4, 5], [0.6, 3], [0.8, 2]] : [[0.5, 8], [0.75, 4]];
+  const steps = (S().warmupSteps || []).filter(x => x[0] > 0 && x[0] < 100).sort((a, b) => a[0] - b[0]).map(([pct, r]) => [pct / 100, r]);
+  const scheme = [...(bar && S().warmupBar !== false ? [[0, 10]] : []), ...steps];
   const sets = [];
   for (const [p, r] of scheme) {
     let kg = p === 0 ? bar : Math.max(bar, Math.round(target * p / step) * step);
     if (kg >= target || sets.some(s => s.weightKg === kg)) continue;
-    if (p === 0 && target - bar < 20) continue;
+    if (p === 0 && target - bar < 10) continue;
     sets.push(Workout.newSet({ weightKg: kg, reps: r, warmup: true }));
   }
   if (!sets.length) return toast('Gewicht zu leicht für Aufwärmsätze', 'info');
@@ -5294,7 +5305,7 @@ function pickExercises({ multi = true, title = 'Übung wählen' } = {}) {
 /* ==========================================================================
    11. Tools: Scheibenrechner & 1RM-Rechner
    ========================================================================== */
-const PLATE_COLORS = { 25: '#e5484d', 20: '#3987e5', 15: '#eda100', 10: '#1baf7a', 5: '#e8e8e8', 2.5: '#3a3f4a', 1.25: '#9aa3af', 0.5: '#c3c2b7', 45: '#3987e5', 35: '#eda100' };
+const PLATE_COLORS = { 50: '#2b2f36', 2: '#5a6170', 1: '#b9bec7', 0.25: '#d9d9d9', 55: '#e5484d', 25: '#e5484d', 20: '#3987e5', 15: '#eda100', 10: '#1baf7a', 5: '#e8e8e8', 2.5: '#3a3f4a', 1.25: '#9aa3af', 0.5: '#c3c2b7', 45: '#3987e5', 35: '#eda100' };
 function platesFor(totalU, barU, plates) {
   let per = (totalU - barU) / 2;
   const out = [];
@@ -5303,33 +5314,113 @@ function platesFor(totalU, barU, plates) {
   return { out, rest: round(per * 2, 3) };
 }
 function openPlates(kg) {
-  const lb = unit() === 'lb';
-  const plates = lb ? [45, 35, 25, 10, 5, 2.5] : [25, 20, 15, 10, 5, 2.5, 1.25, 0.5];
-  let total = kg ? round(toU(kg), 2) : (lb ? 135 : 60);
+  const step = S().weightSteps || 2.5;
+  let total = kg ? round(toU(kg), 2) : (unit() === 'lb' ? 135 : 60);
   let bar = round(toU(S().barKg), 1);
   const m = Modal.open({ title: 'Scheibenrechner', size: 'sm', body: '' });
   const draw = () => {
+    const plates = availPlates();
     const { out, rest } = platesFor(total, bar, plates);
-    const maxP = plates[0];
+    const maxP = Math.max(...plates, 1);
+    const counts = {};
+    out.forEach(p => { counts[p] = (counts[p] || 0) + 1; });
+    const exact = round(total - rest, 2);
     m.setBody(`
-      <div class="form-grid">
-        <label class="field"><span>Zielgewicht (${unit()})</span><input class="input num-input" id="plT" inputmode="decimal" value="${String(total).replace('.', ',')}"></label>
-        <label class="field"><span>Stange (${unit()})</span><input class="input num-input" id="plB" inputmode="decimal" value="${String(bar).replace('.', ',')}"></label>
+      <div class="pl-target">
+        <button class="btn-icon pl-step" data-pd="-1" aria-label="Weniger">${icon('minus')}</button>
+        <div class="grow center"><input class="pl-input" id="plT" inputmode="decimal" value="${String(total).replace('.', ',')}" aria-label="Zielgewicht"><div class="tiny dim">${unit()} gesamt</div></div>
+        <button class="btn-icon pl-step" data-pd="1" aria-label="Mehr">${icon('plus')}</button>
       </div>
       <div class="plates-vis" aria-hidden="true">
         <span class="bar-end"></span><span class="sleeve"></span>
-        ${out.map(p => `<span class="plate" style="height:${40 + p / maxP * 80}px;background:${PLATE_COLORS[p] || '#888'}"></span>`).join('')}
+        ${out.map(p => `<span class="plate" style="height:${46 + p / maxP * 84}px;width:${p >= 10 ? 18 : 13}px;background:${PLATE_COLORS[p] || '#8a8f98'}"><em>${nf(p, 2)}</em></span>`).join('')}
+        <span class="sleeve" style="width:26px;height:12px;opacity:.6"></span>
       </div>
       <div class="center">
-        ${total < bar ? '<p class="warn-text">Ziel ist leichter als die Stange.</p>' : out.length ? `<p class="dim small">Pro Seite</p><h2 class="mt-8">${out.map(p => nf(p, 2)).join(' + ')}</h2>` : '<p class="dim">Nur die Stange 🙂</p>'}
-        ${rest > 0 ? `<p class="warn-text small mt-8">${nf(rest, 2)} ${unit()} lassen sich mit den Scheiben nicht exakt darstellen.</p>` : ''}
-      </div>`);
-    const t = $('#plT', m.el), b = $('#plB', m.el);
-    const upd = () => { total = parseNum(t.value) || 0; bar = parseNum(b.value) || 0; draw(); };
-    t.addEventListener('change', upd); b.addEventListener('change', upd);
+        ${total < bar ? '<p class="warn-text">Ziel ist leichter als die Stange.</p>' : out.length
+          ? `<p class="dim small">Pro Seite</p><div class="pl-counts">${Object.entries(counts).sort((a, b) => b[0] - a[0]).map(([p, n]) => `<span class="pl-chip" style="--pc:${PLATE_COLORS[p] || '#8a8f98'}"><i></i><b>${n}×</b> ${nf(+p, 2)}</span>`).join('')}</div>`
+          : '<p class="dim">Nur die Stange 🙂</p>'}
+        ${rest > 0.001 ? `<p class="warn-text small mt-8">Nicht exakt möglich – nächstes machbares Gewicht: <b>${nf(exact, 2)} ${unit()}</b></p>` : ''}
+      </div>
+      <h4 class="mt-16 mb-8">Stange</h4>
+      <div class="chips wrap">${uniq([...(unit() === 'lb' ? [45, 35, 25] : [20, 15, 10]), bar]).filter(v => v > 0).sort((a, b) => b - a).map(v => `<button class="chip sm ${bar === v ? 'active' : ''}" data-plb="${v}">${nf(v, 1)} ${unit()}</button>`).join('')}<button class="chip sm ${bar === 0 ? 'active' : ''}" data-plb="0">Ohne</button></div>
+      <button class="btn btn-ghost btn-sm mt-12" data-act="openPlatesCfg">${icon('sliders')} Verfügbare Scheiben: ${plates.map(x => nf(x, 2)).join(' · ')}</button>`);
   };
   draw();
+  m.el.addEventListener('change', e => { if (e.target.id === 'plT') { total = Math.max(0, parseNum(e.target.value) || 0); draw(); } });
+  m.el.addEventListener('click', e => {
+    const t = e.target.closest('[data-pd],[data-plb]'); if (!t) return;
+    if (t.dataset.pd) total = Math.max(0, round(total + +t.dataset.pd * step * 2, 2));
+    else bar = +t.dataset.plb;
+    vibrate(6);
+    draw();
+  });
+  // Nach Änderung der verfügbaren Scheiben neu zeichnen
+  const unsub = Store.subscribe('meta', () => { if (!m.closed) draw(); else unsub(); });
 }
+Actions.openWarmupCfg = () => {
+  let steps = JSON.parse(JSON.stringify(S().warmupSteps || []));
+  let bar = S().warmupBar !== false;
+  const PRESETS = [['Kurz', [[50, 8], [75, 3]]], ['Standard', [[40, 5], [60, 3], [80, 2]]], ['Kraft', [[40, 5], [55, 3], [70, 2], [85, 1], [92, 1]]]];
+  const m = Modal.open({ title: 'Aufwärmsätze', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
+  const ex = 100;
+  const draw = () => {
+    steps.sort((a, b) => a[0] - b[0]);
+    m.setBody(`<p class="small dim">Prozent vom <b>Arbeitsgewicht</b> und Wiederholungen je Aufwärmsatz. Gerundet auf dein Gewichts-Inkrement.</p>
+      <div class="chips mt-12">${PRESETS.map(([n, st]) => `<button class="chip" data-pre="${n}">${n}</button>`).join('')}</div>
+      <div class="list mt-12">${steps.map(([pc, r], i) => `<div class="set-line wu-row">
+          <div class="sl-main"><div class="sl-title">Satz ${i + 1}</div><div class="sl-sub">bei 100 kg → ${nf(Math.round(ex * pc / 100 / 2.5) * 2.5, 1)} kg × ${r}</div></div>
+          <div class="pe-step wu-step"><button data-wp="${i}" data-d="-5" aria-label="Weniger Prozent">${icon('minus')}</button><span>${pc} %</span><button data-wp="${i}" data-d="5" aria-label="Mehr Prozent">${icon('plus')}</button></div>
+          <div class="pe-step wu-step"><button data-wr="${i}" data-d="-1" aria-label="Weniger Wdh.">${icon('minus')}</button><span>${r}×</span><button data-wr="${i}" data-d="1" aria-label="Mehr Wdh.">${icon('plus')}</button></div>
+          <button class="btn-icon" data-wdel="${i}" aria-label="Entfernen">${icon('x')}</button>
+        </div>`).join('') || '<div class="list-item dim small">Keine Aufwärmsätze</div>'}</div>
+      <button class="btn btn-secondary btn-block mt-8" data-wadd ${steps.length >= 6 ? 'disabled' : ''}>${icon('plus')} Satz hinzufügen</button>
+      <div class="list mt-12">${setLine('Zuerst leere Stange', `Bei Langhantel: ${wNum(S().barKg)} ${unit()} × 10`, `<label class="switch"><input type="checkbox" id="wuBar" ${bar ? 'checked' : ''}><span></span></label>`)}</div>`);
+  };
+  draw();
+  m.el.addEventListener('change', e => { if (e.target.id === 'wuBar') bar = e.target.checked; });
+  m.el.addEventListener('click', e => {
+    const t = e.target.closest('[data-pre],[data-wp],[data-wr],[data-wdel],[data-wadd],[data-x]'); if (!t || t.disabled) return;
+    if (t.dataset.pre) steps = JSON.parse(JSON.stringify(PRESETS.find(x => x[0] === t.dataset.pre)[1]));
+    else if (t.dataset.wp) { const st = steps[+t.dataset.wp]; st[0] = clamp(st[0] + +t.dataset.d, 5, 95); }
+    else if (t.dataset.wr) { const st = steps[+t.dataset.wr]; st[1] = clamp(st[1] + +t.dataset.d, 1, 20); }
+    else if (t.dataset.wdel) steps.splice(+t.dataset.wdel, 1);
+    else if (t.hasAttribute('data-wadd')) { const last = steps[steps.length - 1]; steps.push([last ? Math.min(95, last[0] + 10) : 50, last ? Math.max(1, last[1] - 1) : 5]); }
+    else if (t.dataset.x === 'cancel') return m.close();
+    else if (t.dataset.x === 'ok') { Store.saveSettings({ warmupSteps: steps, warmupBar: bar }); toast('Aufwärmsätze gespeichert', 'success'); return m.close(); }
+    draw();
+  });
+};
+
+/* Scheiben & Stange: welche Scheiben es in deinem Gym gibt */
+const ALL_PLATES = { kg: [50, 25, 20, 15, 10, 5, 2.5, 2, 1.25, 1, 0.5, 0.25], lb: [55, 45, 35, 25, 10, 5, 2.5, 1.25] };
+const availPlates = () => (unit() === 'lb' ? S().platesLb : S().platesKg).slice().sort((a, b) => b - a);
+Actions.openPlatesCfg = () => {
+  const lb = unit() === 'lb';
+  let sel = new Set(availPlates());
+  let bar = round(toU(S().barKg), 1);
+  const m = Modal.open({ title: 'Scheiben & Stange', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
+  const draw = () => m.setBody(`<h4 class="mb-8">Verfügbare Scheiben (${unit()})</h4>
+      <p class="small dim mb-8">Tippe an, welche Scheiben es in deinem Gym gibt.</p>
+      <div class="plate-pick">${ALL_PLATES[lb ? 'lb' : 'kg'].map(v => `<button class="pp ${sel.has(v) ? 'on' : ''}" data-pv="${v}" style="--pc:${PLATE_COLORS[v] || '#8a8f98'}"><i></i>${nf(v, 2)}</button>`).join('')}</div>
+      <h4 class="mt-24 mb-8">Standard-Stange</h4>
+      <div class="chips wrap">${(lb ? [45, 35, 25, 15] : [20, 15, 10, 7]).map(v => `<button class="chip ${bar === v ? 'active' : ''}" data-bar="${v}">${v} ${unit()}</button>`).join('')}<button class="chip ${bar === 0 ? 'active' : ''}" data-bar="0">Ohne</button></div>
+      <label class="field mt-12"><span>Eigenes Stangengewicht</span><input class="input num-input" id="pcBar" inputmode="decimal" value="${String(bar).replace('.', ',')}"></label>`);
+  draw();
+  m.el.addEventListener('change', e => { if (e.target.id === 'pcBar') { const v = parseNum(e.target.value); if (v != null && v >= 0) bar = v; draw(); } });
+  m.el.addEventListener('click', e => {
+    const t = e.target.closest('[data-pv],[data-bar],[data-x]'); if (!t) return;
+    if (t.dataset.pv) { const v = +t.dataset.pv; sel.has(v) ? sel.delete(v) : sel.add(v); }
+    else if (t.dataset.bar != null) bar = +t.dataset.bar;
+    else if (t.dataset.x === 'cancel') return m.close();
+    else if (t.dataset.x === 'ok') {
+      if (!sel.size) return toast('Mindestens eine Scheibe auswählen', 'warn');
+      Store.saveSettings({ [lb ? 'platesLb' : 'platesKg']: [...sel].sort((a, b) => b - a), barKg: round(fromU(bar), 3) });
+      toast('Gespeichert', 'success'); return m.close();
+    }
+    draw();
+  });
+};
 Actions.plates = el => { const s = el.dataset.ei != null ? setAt(el) : null; openPlates(s ? (s.weightKg || null) : null); };
 function open1RM() {
   const m = Modal.open({ title: '1RM-Rechner', size: 'sm', body: '' });
@@ -5859,7 +5950,7 @@ Views.progress = {
     updateTopH();
     const body = $('#progBody', el);
     if (!Analytics.cur().rows.length && UI.progSub !== 'body') {
-      body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', `<div class="row" style="justify-content:center"><button class="btn btn-primary" data-act="startSheet">${icon('play')} Workout starten</button><button class="btn btn-secondary" data-act="openArrow">🏹 Import</button></div>`)}</div>`;
+      body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">🏹 Arrow-Import</button>` : '')}</div>`;
       return;
     }
     ProgressViews[progSubs().some(x => x[0] === UI.progSub) ? UI.progSub : 'overview'](body);
@@ -6881,6 +6972,7 @@ function segCtl(key, opts) {
 function selectCtl(key, opts) {
   return `<select class="select" data-ch="setSelect" data-k="${key}">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(S()[key]) === String(v) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
 }
+const navRowInline = (act, ic, title, sub = '') => `<button class="list-item" data-act="${act}"><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${esc(sub)}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
 const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item ${cls}" data-act="${act}"><span class="li-icon">${icon(ic)}</span><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${sub}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
 
 Views.more = {
@@ -6952,6 +7044,8 @@ Views.more = {
       <div class="list">
         ${setLine('Name', user ? 'Überschreibt den Google-Namen' : 'Für die Begrüßung', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
         ${setLine('Geschlecht', 'Für Wilks-Score & Richtwerte', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
+        ${navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : ''))}
+        ${navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`)}
         ${setLine('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`)}
       </div>
 
