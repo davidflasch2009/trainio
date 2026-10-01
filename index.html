@@ -340,7 +340,7 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 .list-item .li-main { flex: 1; min-width: 0; }
 .list-item .li-title { font-weight: 650; font-size: 15px; }
 .list-item .li-sub { font-size: 12.5px; color: var(--text-dim); margin-top: 1px; }
-.list-item .li-chev { color: var(--text-faint); width: 18px; height: 18px; }
+.li-chev { color: var(--text-faint); width: 18px; height: 18px; }
 .list-item.danger .li-title, .list-item.danger .li-icon { color: var(--danger); }
 
 /* Stat-Karten */
@@ -550,6 +550,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; font-vari
 
 /* Übungs-Bibliothek */
 .ex-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
+/* Grid-Kinder dürfen schrumpfen – sonst sprengt Text mit nowrap/ellipsis die Spalte */
+.ex-list > *, .charts-grid > *, .stat-grid > *, .grid-2 > *, .grid-3 > *, .pr-grid > *, .big3 > *, .form-grid > *, .measure-grid > * { min-width: 0; }
 @media (min-width: 720px) { .ex-list { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1100px) { .ex-list { grid-template-columns: repeat(3, 1fr); } }
 .ex-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); text-align: left; width: 100%; color: var(--text); min-height: 64px; }
@@ -743,9 +745,9 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'GymLog',
-  version: '1.0.0',
-  repo: 'https://github.com/davidflasch2009/gymlog',
-  contact: 'https://github.com/davidflasch2009/gymlog/issues'
+  version: '1.0.1',
+  repo: 'https://github.com/davidflasch2009/trainio',
+  contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
 
 const CDN = {
@@ -810,6 +812,8 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 const uniq = a => [...new Set(a)];
+/** Namens-Schlüssel unabhängig von Wortreihenfolge und Satzzeichen */
+const wordKey = s => norm(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').sort().join(' ');
 
 function autoId() {
   const c = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -2041,7 +2045,12 @@ const Ex = {
     const n = norm(name);
     if (!n) return null;
     const all = Store.all('exercises');
-    return all.find(e => norm(e.name) === n) || all.find(e => (e.aliases || []).some(a => norm(a) === n)) || null;
+    const exact = all.find(e => norm(e.name) === n) || all.find(e => (e.aliases || []).some(a => norm(a) === n));
+    if (exact) return exact;
+    // Fallback: gleiche Wörter in anderer Reihenfolge, Klammern/Bindestriche egal
+    // („Triceps Pushdown (Rope)" = „Triceps Rope Pushdown")
+    const k = wordKey(name);
+    return all.find(e => [e.name, ...(e.aliases || [])].some(a => wordKey(a) === k)) || null;
   }
 };
 function exMeta() {
@@ -2959,8 +2968,8 @@ function openWorkoutDetail(id) {
           </tbody></table></div></div>`;
       }).join('')}`,
     foot: `<button class="btn btn-danger-ghost" data-x="del" aria-label="Löschen" style="flex:0 0 auto">${icon('trash')}</button>
-      <button class="btn btn-secondary" data-x="share">${icon('share')} Teilen</button>
-      <button class="btn btn-secondary" data-x="edit">${icon('edit')} Bearbeiten</button>
+      <button class="btn btn-secondary" data-x="share" aria-label="Teilen" title="Teilen" style="flex:0 0 auto">${icon('share')}</button>
+      <button class="btn btn-secondary" data-x="edit" aria-label="Bearbeiten" title="Bearbeiten" style="flex:0 0 auto">${icon('edit')}</button>
       <button class="btn btn-primary" data-x="repeat">${icon('repeat')} Wiederholen</button>`
   });
   m.el.addEventListener('click', async e => {
@@ -3181,7 +3190,10 @@ Actions.step = el => {
   const prev = last && !s.warmup ? last.list[workNo - 1] : null;
   if (el.dataset.f === 'w') {
     const cur = s.weightKg != null ? toU(s.weightKg) : (prev && prev.w ? toU(prev.w) : 0);
-    const next = Math.max(0, round(cur + d * S().weightSteps, 2));
+    // Krumme Werte (z. B. aus lb umgerechnet) zuerst aufs Inkrement-Raster ziehen
+    const st = S().weightSteps, k = cur / st;
+    const onGrid = Math.abs(k - Math.round(k)) < 1e-6;
+    const next = Math.max(0, round(onGrid ? cur + d * st : (d > 0 ? Math.ceil(k) : Math.floor(k)) * st, 2));
     s.weightKg = fromU(next);
     $$(`[data-in="setW"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(i => { i.value = inputW(s.weightKg); });
   } else {
@@ -3732,7 +3744,7 @@ function openExerciseForm(ex, preset = {}) {
           <label class="field"><span>Equipment</span><select class="select" data-f="equipment">${uniq([...EQUIPMENT, d.equipment]).map(c => `<option ${d.equipment === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
         </div>
         <div class="field"><span>Erfassung</span>
-          <div class="seg">${Object.entries(UNIT_TYPES).map(([k, l]) => `<button data-u="${k}" class="${(d.defaultUnit === 'lb' ? 'kg' : d.defaultUnit) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
+          <div class="seg">${Object.entries({ kg: 'Gewicht × Wdh.', reps: 'Nur Wdh.', sec: 'Zeit' }).map(([k, l]) => `<button data-u="${k}" class="${(d.defaultUnit === 'lb' ? 'kg' : d.defaultUnit) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
         <div class="field"><span>Muskelgruppen</span>
           <div class="muscle-pick">${[...MUSCLES, 'Ausdauer'].map(mg => `<button class="chip soft ${d.muscleGroups.includes(mg) ? 'active' : ''}" data-m="${esc(mg)}">${esc(mg)}</button>`).join('')}</div></div>
         <label class="field"><span>Technik-Notiz</span><textarea class="textarea" data-f="notes" placeholder="1 Satz Technik-Tipp">${esc(d.notes || '')}</textarea></label>
@@ -3883,8 +3895,13 @@ function lineDS(label, data, color, opts = {}) {
     pointBorderColor: c.surface, pointBorderWidth: 2, borderWidth: 2, spanGaps: true, ...opts
   };
 }
+/** Achsen-Ticks mit so vielen Nachkommastellen wie die Schrittweite braucht (82,5 statt 83/83/83) */
+const yAuto = (suffix = '') => function (v, i, ticks) {
+  const step = ticks && ticks.length > 1 ? Math.abs(ticks[1].value - ticks[0].value) : 1;
+  return nf(v, step >= 1 ? 0 : step >= 0.1 ? 1 : 2) + suffix;
+};
 /** Zeitreihe mit linearer X-Achse (Tag-Nummern) – kein Datums-Adapter nötig */
-function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = v => nf(v, 0), legend = false, yMin, yMax, thresholds, xMax } = {}) {
+function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend = false, yMin, yMax, thresholds, xMax } = {}) {
   return {
     type: 'line',
     data: { datasets },
@@ -4177,6 +4194,9 @@ ProgressViews.overview = body => {
     <div class="section-head"><h2>Meilensteine</h2></div>
     ${badgesHtml(ix)}`;
   cb.mountAll();
+  // Heatmap zeigt beim Öffnen die aktuellsten Wochen (rechts), ältere per Wischen
+  const gh = $('#ghHeat', body);
+  if (gh) requestAnimationFrame(() => { gh.scrollLeft = gh.scrollWidth; });
   if (UI.moreStats) renderMoreStats($('#moreStats', body));
 };
 Actions.toggleMoreStats = () => { UI.moreStats = !UI.moreStats; saveUI(); App.renderCurrent(); };
@@ -4769,9 +4789,9 @@ ProgressViews.body = body => {
     <div class="charts-grid">
       ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge (Körper-Tab und Workouts) mit gleitendem 7-Tage-Durchschnitt. Delta = Veränderung zum Wert vor ca. einem Monat.',
         big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d) }) : '', sub: monthAgo ? 'vs. vor 4 Wochen' : '',
-        factory: () => bwR.length ? timeLine([lineDS('Gewicht', bwR.map(p => ({ x: p.dn, y: toU(p.kg) })), c.series[0], { fill: false, borderWidth: 1.5, pointRadius: bwR.length <= 60 ? 3 : 0 }), lineDS('Ø 7 Tage', ma7, c.accent, { fill: false, pointRadius: 0, borderWidth: 2.5 })], { legend: true, tooltipFmt: v => fmtW(fromU(v)), yFmt: v => nf(v, 0) }) : null })}
+        factory: () => bwR.length ? timeLine([lineDS('Gewicht', bwR.map(p => ({ x: p.dn, y: toU(p.kg) })), c.series[0], { fill: false, borderWidth: 1.5, pointRadius: bwR.length <= 60 ? 3 : 0 }), lineDS('Ø 7 Tage', ma7, c.accent, { fill: false, pointRadius: 0, borderWidth: 2.5 })], { legend: true, tooltipFmt: v => fmtW(fromU(v)) }) : null })}
       ${cb.card({ id: 'b2', title: 'Körperfett', info: 'Körperfettanteil in Prozent – falls eingetragen.', big: bf.length ? nf(bf[bf.length - 1].bodyFatPct, 1) + ' %' : '–',
-        factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %' }) : null })}
+        factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: yAuto(' %') }) : null })}
       ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie, baust du Muskeln auf.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
         factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}
       ${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Alle Körperumfänge in cm. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
@@ -4986,7 +5006,7 @@ Views.more = {
 
       <div class="section-head"><h4>Daten</h4></div>
       <button class="btn btn-arrow" data-act="openArrow">🏹 Arrow-Import</button>
-      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts)</span></button>` : ''}
+      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts)</span></button>` : ''}
       <div class="list mt-12">
         ${navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel')}
         ${navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report')}
