@@ -1,6 +1,6 @@
 {
-  "name": "GymLog",
-  "short_name": "GymLog",
+  "name": "Trainio",
+  "short_name": "Trainio",
   "description": "Workout-Tracker, Trainingsplan-Builder und Progress-Tracker",
   "id": "./",
   "start_url": "./",

@@ -1,9 +1,9 @@
 /* ==========================================================================
-   GymLog Service Worker
+   Trainio Service Worker
    WICHTIG: CACHE bei JEDEM Deploy hochzählen (gymlog-v2, gymlog-v3, …),
    sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v7';
+const CACHE = 'gymlog-v8';
 
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 const CDN_ASSETS = [

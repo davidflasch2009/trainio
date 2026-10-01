@@ -1,4 +1,4 @@
-# GymLog
+# Trainio
 
 Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als Single-File-PWA
 (`index.html` mit allem CSS + JS inline, kein Build-Step).
@@ -14,7 +14,7 @@ Unter **Mehr → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und D
 
 | Design | Look |
 | --- | --- |
-| GymLog | Neon-Grün auf Graphit – das Original |
+| Trainio | Neon-Grün auf Graphit – das Original |
 | Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
 | Lernio | Petrol & IBM Plex – passend zur Lernio-App |
 | Mono | Schwarz-Weiß, OLED-schwarz bzw. papierweiß |
@@ -62,6 +62,9 @@ Konfetti und Inhalte der Startseite.
   Notizen usw. hinter dem ⋯-Menü.
 - **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
 - Umschalten unter **Mehr → Workout-Ansicht** oder im Workout über ⋯.
+- **Nur aktuelle Übung offen** (Standard): fertige und kommende Übungen sind zugeklappt
+  (Name + Sätze bzw. Ziel). Ist eine Übung fertig, klappt sie zu und die nächste öffnet sich;
+  antippen öffnet jede Übung direkt. Abschaltbar unter **Mehr → Workout-Ansicht**.
 
 ## Funktionen ein-/ausschalten
 

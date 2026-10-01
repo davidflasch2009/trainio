@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>GymLog</title>
-<meta name="description" content="GymLog – Workout-Tracker, Trainingsplan-Builder und Progress-Tracker.">
+<title>Trainio</title>
+<meta name="description" content="Trainio – Workout-Tracker, Trainingsplan-Builder und Progress-Tracker.">
 <meta name="theme-color" content="#0b0d10">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="GymLog">
+<meta name="apple-mobile-web-app-title" content="Trainio">
 <meta name="format-detection" content="telephone=no">
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -967,6 +967,17 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exs-count { min-width: 34px; padding-top: 10px; text-align: right; font-weight: 800; font-size: calc(14px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .exs-count.ok { color: var(--accent-text); }
 .exs-count svg { width: 18px; height: 18px; }
+.exc { margin-bottom: 8px; }
+.exc-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.exc-idx { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim); font-weight: 800; font-size: calc(13px * var(--fs)); }
+.exc.complete .exc-idx { background: var(--accent); color: var(--accent-ink); }
+.exc-idx svg { width: 16px; height: 16px; }
+.exc-name { display: block; font-weight: 750; font-size: calc(15.5px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.exc-sub { display: block; margin-top: 1px; color: var(--text-faint); font-size: calc(12.5px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.exc.complete .exc-name { color: var(--text-dim); }
+.exc-cnt { flex-shrink: 0; font-weight: 800; font-size: calc(13px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exc-head > svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--text-faint); }
+.ex-card.ex-open { border-color: var(--accent-dim); }
 .exs-last { padding: 0 14px 8px; font-size: calc(12.5px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .exs .set-head, .exs .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 8px; padding: 0 12px; }
 .exs .rpe .set-head, .exs .rpe .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 64px 48px; }
@@ -1553,13 +1564,13 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 <div id="modalRoot"></div>
 <div id="toastRoot" aria-live="polite"></div>
 <div id="popover" class="popover" hidden></div>
-<noscript><div style="padding:24px">GymLog benötigt JavaScript.</div></noscript>
+<noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <script>
 
 /* ==========================================================================
    Firebase-Konfiguration – HIER die echten Werte aus der Firebase-Console eintragen
    (Projekteinstellungen → Allgemein → Deine Apps → SDK-Konfiguration).
-   Solange die Platzhalter drinstehen, läuft GymLog im lokalen Modus (ohne Sync).
+   Solange die Platzhalter drinstehen, läuft Trainio im lokalen Modus (ohne Sync).
    ========================================================================== */
 const FIREBASE_CONFIG = {
   apiKey: "DEINE_API_KEY",
@@ -1577,8 +1588,8 @@ const FIREBASE_CONFIG = {
    0. Konstanten
    ========================================================================== */
 const APP = {
-  name: 'GymLog',
-  version: '1.4.0',
+  name: 'Trainio',
+  version: '1.5.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1653,6 +1664,7 @@ const DEFAULT_SETTINGS = {
   homeRecent: 3,
   // Workout-Ansicht
   woStyle: 'simple',
+  woCollapse: true,
   simpleRPE: false,
   woView: 'list',
   woStrip: true,
@@ -2908,7 +2920,7 @@ const DESIGN_FONTS = {
 const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben) */
 const DESIGNS = [
-  { id: 'gymlog', name: 'GymLog', desc: 'Neon-Grün auf Graphit – das Original', surf: { dark: '#15181d', light: '#ffffff' } },
+  { id: 'gymlog', name: 'Trainio', desc: 'Neon-Grün auf Graphit – das Original', surf: { dark: '#15181d', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
   { id: 'lernio', name: 'Lernio', desc: 'Petrol & IBM Plex – wie deine Lernio-App', surf: { dark: '#151f1e', light: '#ffffff' } },
   { id: 'mono', name: 'Mono', desc: 'Schwarz-Weiß, OLED-schwarz & papierweiß', surf: { dark: '#0b0b0b', light: '#ffffff' } },
@@ -3009,7 +3021,7 @@ setInterval(() => { if (S().theme === 'time' && applyTheme()) App.renderCurrent(
 /* Mini-Vorschau eines Designs (liest nur dessen Tokens) */
 function designPreview(id, mode) {
   return `<div class="tp" data-design="${id}" data-theme="${mode}" aria-hidden="true">
-    <div class="tp-title">${id === 'terminal' ? '&gt; gym' : 'GymLog'}</div>
+    <div class="tp-title">${id === 'terminal' ? '&gt; trainio' : 'Trainio'}</div>
     <div class="tp-card"><div class="tp-line"></div><div class="tp-line s"></div>
       <div class="tp-row"><span class="tp-dot on"></span><span class="tp-dot"></span><span class="tp-btn"></span></div></div>
     <span class="tp-mode">${mode === 'dark' ? '☾' : '☀'}</span></div>`;
@@ -3853,23 +3865,12 @@ Views.start = {
     const volNow = Analytics.volumeBetween(cw, t);
     const volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + elapsed);
     const next = Analytics.nextPlanDay();
-    const user = Auth.user();
-    const name = (S().displayName || (user && user.name) || '').split(' ')[0];
     const w = Workout.cur();
     const goal = weeklyTarget();
-    let question;
-    if (w) question = `${w.name} läuft gerade.`;
-    else if (ix.rows.length && ix.rows[ix.rows.length - 1].date === isoDate()) question = 'Heute schon trainiert – stark! 💪';
-    else if (next) question = next.inDays === 0 ? `${next.day.name} heute?` : `Heute Ruhetag – ${whenLabel(next).toLowerCase() === 'morgen' ? 'morgen' : 'am ' + WEEKDAYS[next.dow]} ${next.day.name}.`;
-    else question = 'Bereit fürs Training?';
     const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
     el.innerHTML = `
-      <div class="hello">
-        <h1>Servus${name ? ' ' + esc(name) : ''} 👋</h1>
-        <p>${esc(question)}</p>
-      </div>
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>
@@ -4353,7 +4354,7 @@ function renderActiveWorkout(el, w) {
         <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
       </div>
       <div class="wo-body">
-        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => simpleCard(en, ei, w)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
         <button class="btn btn-secondary btn-block btn-lg mt-4" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button>
       </div>`;
     updateTopH();
@@ -4383,7 +4384,7 @@ function renderActiveWorkout(el, w) {
     </div>
     <div class="wo-body">
     ${focus ? focusView(w) : `<div id="woEntries" class="${S().showRPE ? '' : 'no-rpe'} ${S().woPrev === false ? 'no-prev' : ''}">
-      ${w.entries.length ? w.entries.map((en, ei) => exerciseCard(en, ei, w)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+      ${w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, exerciseCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
     </div>`}
     <button class="btn btn-secondary btn-block btn-lg" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button>
     ${F('f_woExtras') ? '' : '<div hidden>'}<div class="card mt-16">
@@ -4401,6 +4402,40 @@ function renderActiveWorkout(el, w) {
   const strip = $('#woStrip', el), cur = strip && $('.ws-item.cur', strip);
   if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
 }
+
+/* ---------- Zugeklappte Übungen: nur die aktuelle ist offen ---------- */
+const woCollapse = () => S().woCollapse !== false;
+/** Aktuelle (offene) Übung: manuell geöffnet, sonst die erste mit offenen Sätzen; -1 = alle fertig */
+function openIndex(w) {
+  if (Number.isInteger(w.openE) && w.entries[w.openE]) return w.openE;
+  return w.entries.findIndex(en => en.sets.some(s => !s.done));
+}
+function woCard(en, ei, w, full) {
+  if (!woCollapse() || openIndex(w) === ei) return full(en, ei, w).replace('class="ex-card', 'class="ex-card ex-open');
+  const type = Ex.type(Ex.get(en.exerciseId));
+  const ws = workSets(en), done = ws.filter(s => s.done);
+  const complete = en.sets.length > 0 && en.sets.every(s => s.done);
+  const fmt = s => type === 'sec' ? fmtClock(s.durationSec || 0) : (s.weightKg ? `${wNum(s.weightKg)}×${s.reps || 0}` : `${s.reps || 0}`);
+  const gw = goalWeight(en);
+  const sub = done.length ? done.map(fmt).join(' · ') : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  return `<div class="ex-card exc ${complete ? 'complete' : ''}" id="ex-${en.uid}">
+    <button class="exc-head" data-act="exOpen" data-ei="${ei}" aria-expanded="false" aria-label="${esc(en.exerciseName)} öffnen">
+      <span class="exc-idx">${complete ? icon('check') : ei + 1}</span>
+      <span class="grow" style="min-width:0"><span class="exc-name">${esc(en.exerciseName)}</span><span class="exc-sub">${esc(sub)}</span></span>
+      ${complete ? '' : `<span class="exc-cnt">${done.length}/${ws.length}</span>`}${icon('chevD')}
+    </button>
+  </div>`;
+}
+Actions.exOpen = el => {
+  const w = Workout.cur(); if (!w) return;
+  const ei = +el.dataset.ei, en = w.entries[ei]; if (!en) return;
+  w.openE = ei;
+  const fo = firstOpen(en);
+  w.sel = { e: ei, s: fo >= 0 ? fo : -1 };
+  Workout.save();
+  App.renderCurrent();
+  requestAnimationFrame(() => scrollToExercise(en));
+};
 
 /* ---------- Schlichte Eingabe: pro Satz nur Gewicht, Wdh., Haken ---------- */
 function simpleCard(en, ei, w) {
@@ -4712,6 +4747,7 @@ Actions.woJump = el => {
     App.renderCurrent();
     return;
   }
+  if (woCollapse()) return Actions.exOpen(el);
   if (fo >= 0) selectSet(ei, fo);
   $$('.ws-item').forEach(b => b.classList.toggle('cur', +b.dataset.ei === ei));
   const strip = $('#woStrip'), cur = strip && $('.ws-item.cur', strip);
@@ -4780,7 +4816,7 @@ Actions.woOverview = () => {
         const j = b.dataset.x === 'up' ? ei - 1 : ei + 1;
         if (j < 0 || j >= cw.entries.length) return;
         [cw.entries[ei], cw.entries[j]] = [cw.entries[j], cw.entries[ei]];
-        if (cw.focusE === ei) cw.focusE = j; else if (cw.focusE === j) cw.focusE = ei;
+        if (cw.focusE === ei) cw.focusE = j; else if (cw.focusE === j) cw.focusE = ei; if (cw.openE === ei) cw.openE = j; else if (cw.openE === j) cw.openE = ei;
         Workout.autoSelect(); Workout.save(); refresh(); break;
       }
       case 'goal': await openGoalEditor(ei); refresh(); break;
@@ -5042,6 +5078,8 @@ Actions.setDone = el => {
   const wasLast = w.entries.every(e => e.sets.every(x => x.done));
   const exDone = en.sets.every(x => x.done);
   w.sel = nextOpenAfter(w, ei, si);
+  // Übung fertig → zuklappen, nächste offene Übung aufklappen
+  if (exDone && w.openE === ei) w.openE = null;
   const focus = S().woView === 'focus';
   // Fokus: bei fertiger Übung automatisch weiter (falls gewünscht), sonst „erledigt"-Ansicht
   if (focus) w.focusE = exDone && S().autoScroll !== false && w.sel.e >= 0 ? w.sel.e : ei;
@@ -5058,7 +5096,8 @@ Actions.setDone = el => {
   else if (exDone) toast(`${en.exerciseName} geschafft 💪`, 'success');
   App.renderCurrent();
   // Liste: zur nächsten Übung scrollen, wenn diese fertig ist
-  if (!focus && exDone && w.sel.e >= 0 && w.sel.e !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[w.sel.e]));
+  const nextE = woCollapse() ? openIndex(w) : w.sel.e;
+  if (!focus && exDone && nextE >= 0 && nextE !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[nextE]));
   else if (focus && w.focusE !== ei) window.scrollTo({ top: 0, behavior: 'smooth' });
 };
 Actions.setAdd = el => {
@@ -5125,10 +5164,12 @@ Actions.exMenu = async el => {
   } else if (k === 'up' || k === 'down') {
     const j = k === 'up' ? ei - 1 : ei + 1;
     [w.entries[ei], w.entries[j]] = [w.entries[j], w.entries[ei]];
+    if (w.openE === ei) w.openE = j; else if (w.openE === j) w.openE = ei;
   } else if (k === 'info') { openExerciseDetail(en.exerciseId); return; }
   else if (k === 'del') {
     if (en.sets.some(s => s.done) && !await confirmDialog({ title: 'Übung entfernen?', text: `${en.exerciseName} hat bereits erledigte Sätze. Trotzdem entfernen?`, okLabel: 'Entfernen', danger: true })) return;
     w.entries.splice(ei, 1);
+    w.openE = null;
   }
   Workout.autoSelect();
   Workout.save();
@@ -7016,6 +7057,7 @@ Views.more = {
       <div class="list">
         ${setLine('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]))}
         ${setLine('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]))}
+        ${setLine('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'))}
         ${setLine('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'))}
         ${S().woStyle === 'detailed' ? `${setLine('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'))}
         ${setLine('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'))}` : setLine('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'))}
@@ -7319,7 +7361,7 @@ async function pdfExerciseReport(exId, from) {
 Actions.backupJSON = () => {
   const data = {};
   for (const c of COLLS) data[c] = Store.all(c);
-  download(`gymlog-backup-${isoDate()}.json`, JSON.stringify({ app: 'GymLog', version: 1, exportedAt: new Date().toISOString(), data }), 'application/json');
+  download(`trainio-backup-${isoDate()}.json`, JSON.stringify({ app: 'Trainio', version: 1, exportedAt: new Date().toISOString(), data }), 'application/json');
   toast(`Backup erstellt (${data.workouts.length} Workouts)`, 'success');
 };
 Actions.restoreJSON = () => {
@@ -7330,7 +7372,7 @@ Actions.restoreJSON = () => {
     if (!f) return;
     let json;
     try { json = JSON.parse(await readFileText(f)); } catch (e) { return toast('Datei ist kein gültiges JSON', 'error'); }
-    if (!json || json.app !== 'GymLog' || !json.data || typeof json.data !== 'object') return toast('Das ist kein GymLog-Backup', 'error');
+    if (!json || !['GymLog','Trainio'].includes(json.app) || !json.data || typeof json.data !== 'object') return toast('Das ist kein Trainio-Backup', 'error');
     const counts = COLLS.map(c => [c, Array.isArray(json.data[c]) ? json.data[c].length : 0]).filter(x => x[1]);
     const mode = await actionMenu('Backup wiederherstellen', [
       { key: 'merge', label: 'Zusammenführen', sub: 'Backup-Daten ergänzen/überschreiben gleiche IDs', icon: 'layers' },
