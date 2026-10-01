@@ -404,7 +404,7 @@ svg { flex-shrink: 0; }
 .danger-text { color: var(--danger); }
 .warn-text { color: var(--warning); }
 .mono { font-family: var(--mono); }
-.hidden { display: none !important; }
+.hidden, [hidden] { display: none !important; }
 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .row { display: flex; align-items: center; gap: 8px; }
 .row.wrap { flex-wrap: wrap; }
@@ -443,7 +443,7 @@ svg { flex-shrink: 0; }
 body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .tab { display: none; animation: fadeIn .18s ease; }
 .tab.active { display: block; }
-@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
@@ -580,7 +580,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .switch input:checked + span::after { transform: translateX(20px); }
 
 /* Chips & Segmented Control */
-.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding: 2px 0; -webkit-overflow-scrolling: touch; }
+.chips { display: flex; gap: 8px; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; padding: 4px 0; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
 .chips::-webkit-scrollbar { display: none; }
 .chips.wrap { flex-wrap: wrap; overflow: visible; }
 .chip {
@@ -589,6 +589,8 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
   display: inline-flex; align-items: center; gap: 6px; position: relative;
 }
 .chip::before { content: ''; position: absolute; inset: -4px 0; } /* größere Hitbox */
+.chips .chip::before { display: none; } /* in Scroll-Leisten nicht – verursacht Überlauf */
+.chips .chip { min-height: 40px; }
 .chip.active { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .chip.soft.active { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent-text); }
 .chip svg { width: 15px; height: 15px; }
@@ -783,6 +785,18 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .pe-step button { height: 40px; border: 0; background: transparent; color: var(--text); display: grid; place-items: center; padding: 0; }
 .pe-step button svg { width: 16px; height: 16px; }
 .pe-step .input { border: 0; background: transparent; min-height: 40px; padding: 0; font-weight: 800; }
+.week-plan { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
+.wp-day { min-width: 0; min-height: 60px; padding: 7px 2px; border: var(--bw) solid var(--border); border-radius: calc(10px * var(--rs)); background: var(--surface-2); color: var(--text-faint); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.wp-day span { font-size: calc(11.5px * var(--fs)); font-weight: 800; }
+.wp-day b { font-size: calc(10.5px * var(--fs)); font-weight: 700; max-width: 100%; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-day.has { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent-text); }
+.wp-day.has b { color: var(--text); }
+.wp-day.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
+.wp-day.today span::after { content: ' •'; }
+.tpl-ex { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; line-height: 1.4; }
+.sched-row { gap: 8px; }
+.sched-row .sl-main { flex: 0 0 auto; width: 86px; }
+.set-line.sched-row .select { flex: 1; min-width: 0; width: auto; }
 .pe-daysum { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); font-weight: 600; }
 .mini-label { font-size: calc(11px * var(--fs)); font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
 
@@ -941,6 +955,30 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ov-acts .btn-icon { width: 38px; height: 38px; }
 .ov-acts .btn-icon svg { width: 19px; height: 19px; }
 .ov-done { font-size: calc(12px * var(--fs)); color: var(--accent-text); margin-top: 3px; font-variant-numeric: tabular-nums; }
+
+.wo-simple .wo-title { font-weight: 800; font-size: calc(17px * var(--fs)); }
+.wo-simple .wo-stats { gap: 12px; }
+.wo-simple .wo-timer { font-size: calc(15px * var(--fs)); color: var(--text); }
+.wo-head .btn-icon { flex-shrink: 0; }
+.exs { padding-bottom: 0; }
+.exs-head { display: flex; align-items: flex-start; gap: 6px; padding: 12px 4px 6px 14px; }
+.exs-head .ex-name { font-size: calc(17px * var(--fs)); font-weight: 800; background: none; border: 0; padding: 0; color: var(--text); text-align: left; display: block; }
+.exs-goal { background: none; border: 0; padding: 2px 0; margin-top: 1px; color: var(--text-dim); font-size: calc(13px * var(--fs)); font-weight: 600; text-align: left; font-variant-numeric: tabular-nums; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--text-faint); }
+.exs-count { min-width: 34px; padding-top: 10px; text-align: right; font-weight: 800; font-size: calc(14px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exs-count.ok { color: var(--accent-text); }
+.exs-count svg { width: 18px; height: 18px; }
+.exs-last { padding: 0 14px 8px; font-size: calc(12.5px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exs .set-head, .exs .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 8px; padding: 0 12px; }
+.exs .rpe .set-head, .exs .rpe .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 64px 48px; }
+.exs .set-head span { text-align: center; }
+.exs .set-row { min-height: 54px; }
+.exs .set-row.sel { background: transparent; }
+.exs .set-in { height: 44px; font-size: max(16px, calc(18px * var(--fs))); }
+.exs .set-num { width: 30px; height: 30px; background: transparent; color: var(--text-faint); }
+.exs .set-check { width: 48px; height: 44px; }
+.exs-add { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; margin-top: 6px; border: 0; border-top: var(--bw) solid var(--border); background: none; color: var(--accent-text); font-weight: 700; font-size: calc(15px * var(--fs)); }
+.exs-add svg { width: 18px; height: 18px; }
+.mt-4 { margin-top: 4px; }
 
 /* Übungs-Bibliothek */
 .ex-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
@@ -1113,7 +1151,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 
 /* ---------- Liquid Glass ---------- */
 [data-design="glass"] body { background: transparent; letter-spacing: -.003em; }
-[data-design="glass"] body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background: var(--wall); }
+[data-design="glass"] body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none; background: var(--wall); }
 [data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) {
   background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), var(--glass);
   border-color: transparent;
@@ -1181,6 +1219,17 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="glass"] .hello h1 { font-size: calc(32px * var(--fs)); letter-spacing: -.025em; }
 [data-design="glass"] .topbar-title { font-size: calc(22px * var(--fs)); letter-spacing: -.02em; }
 [data-design="glass"] .wo-progress i, [data-design="glass"] .progress-track i { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 62%, #fff), var(--accent)); }
+
+@media (hover: none), (pointer: coarse) {
+  [data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card, .focus) {
+    -webkit-backdrop-filter: none; backdrop-filter: none;
+    background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), color-mix(in srgb, var(--glass) 62%, var(--bg));
+  }
+  [data-design="glass"] :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 92%, transparent); }
+  [data-design="neon"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--surface); }
+  [data-design="neon"] body::after { display: none; }
+  :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 96%, transparent); }
+}
 
 /* ---------- Lernio ---------- */
 [data-design="lernio"] h1, [data-design="lernio"] .hello h1 { font-weight: 700; letter-spacing: -.02em; }
@@ -1515,7 +1564,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'GymLog',
-  version: '1.2.1',
+  version: '1.3.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1558,7 +1607,7 @@ const DEFAULT_SETTINGS = {
   showRPE: true,
   notifyRestDone: true,
   // Eigene Ergänzungen
-  activePlanId: 'plan_ppfb4',
+  activePlanId: '',
   weeklyGoal: 4,
   sex: 'm',
   sound: true,
@@ -1585,6 +1634,8 @@ const DEFAULT_SETTINGS = {
   homeStats: true,
   homeRecent: 3,
   // Workout-Ansicht
+  woStyle: 'simple',
+  simpleRPE: false,
   woView: 'list',
   woStrip: true,
   woPrev: true,
@@ -1916,38 +1967,6 @@ const SEED_EXERCISES = [
   ['farmers_walk', 'Farmers Walk', 'Full Body', ['Unterarme', 'Trapez', 'Bauch'], 'Kurzhantel', 'sec', 'Aufrecht gehen, Schultern zurück, fester Griff.', ["Farmer's Walk", 'Farmers Carry', "Farmer's Carry"]]
 ];
 
-/* Pläne – Kurzform je Übung: [exId, Sätze, Wdh, Pause(s), Notiz] */
-const SEED_PLANS = [
-  { id: 'plan_ppfb4', name: 'Push Pull Full Body 4x', description: "David's Haupt-Split Mo/Di/Do/Fr", days: [
-    { name: 'Push Full Body A', ex: [['bankdruecken', 4, '6-8', 180], ['ohp_kh', 3, '8', 120], ['kniebeuge', 3, '6', 180], ['dips', 3, '10', 120], ['trizeps_kabel', 3, '12', 90], ['seitheben', 3, '15', 60]] },
-    { name: 'Pull Full Body A', ex: [['kreuzheben', 3, '5', 180], ['klimmzug', 4, '6-10', 150], ['lh_rudern', 3, '8', 120], ['rdl', 3, '10', 120], ['curl_kh', 3, '12', 90], ['face_pull', 3, '15', 60]] },
-    { name: 'Push Full Body B', ex: [['schraegbank_kh', 4, '8', 150], ['beinpresse', 3, '10', 120], ['military_press', 3, '8', 150], ['butterfly', 3, '12', 90], ['trizeps_seil', 3, '12', 90], ['waden_stehend', 4, '12', 60]] },
-    { name: 'Pull Full Body B', ex: [['kreuzheben', 3, '5', 150, 'light – ca. 80 % vom Arbeitsgewicht'], ['latzug', 4, '10', 120], ['tbar_rudern', 3, '10', 120], ['beincurl_liegend', 3, '12', 90], ['hammer_curl', 3, '12', 90], ['reverse_fly', 3, '15', 60]] }
-  ] },
-  { id: 'plan_ppl6', name: 'Push Pull Legs 6x', description: 'Klassischer PPL-Split, jede Muskelgruppe 2× pro Woche.', days: [
-    { name: 'Push A', ex: [['bankdruecken', 4, '5-8', 180], ['ohp_kh', 3, '8-10', 120], ['schraegbank_kh', 3, '8-12', 120], ['seitheben', 4, '12-15', 60], ['trizeps_seil', 3, '10-12', 90], ['overhead_trizeps', 3, '10-12', 90]] },
-    { name: 'Pull A', ex: [['kreuzheben', 3, '5', 180], ['klimmzug', 4, '6-10', 150], ['kabelrudern', 3, '8-12', 120], ['face_pull', 3, '15', 60], ['curl_lh', 3, '8-12', 90], ['hammer_curl', 3, '12', 60]] },
-    { name: 'Legs A', ex: [['kniebeuge', 4, '5-8', 180], ['rdl', 3, '8-10', 150], ['beinpresse', 3, '10-12', 120], ['beincurl_liegend', 3, '12', 90], ['waden_stehend', 4, '10-15', 60], ['hanging_leg_raise', 3, '12', 60]] },
-    { name: 'Push B', ex: [['military_press', 4, '5-8', 180], ['schraegbank_lh', 3, '8-10', 150], ['dips', 3, '8-12', 120], ['kabel_crossover', 3, '12-15', 60], ['seitheben', 3, '15', 60], ['trizeps_sz', 3, '10-12', 90]] },
-    { name: 'Pull B', ex: [['lh_rudern', 4, '6-8', 150], ['latzug', 3, '10-12', 120], ['kh_rudern', 3, '10', 90], ['reverse_fly', 3, '15', 60], ['preacher_curl', 3, '10-12', 60], ['shrugs', 3, '12', 60]] },
-    { name: 'Legs B', ex: [['frontkniebeuge', 4, '6-8', 180], ['hip_thrust', 3, '8-12', 120], ['bulgarian', 3, '10', 90], ['beinstrecker', 3, '12-15', 60], ['beincurl_sitzend', 3, '12', 60], ['waden_sitzend', 4, '15', 60]] }
-  ] },
-  { id: 'plan_ul4', name: 'Upper Lower 4x', description: 'Oberkörper/Unterkörper im Wechsel, 4 Tage pro Woche.', days: [
-    { name: 'Upper A', ex: [['bankdruecken', 4, '5-8', 180], ['lh_rudern', 4, '6-8', 150], ['ohp_kh', 3, '8-10', 120], ['latzug', 3, '10-12', 120], ['curl_lh', 3, '10', 90], ['trizeps_sz', 3, '10', 90]] },
-    { name: 'Lower A', ex: [['kniebeuge', 4, '5-8', 180], ['rdl', 3, '8-10', 150], ['beinpresse', 3, '12', 120], ['beincurl_liegend', 3, '12', 90], ['waden_stehend', 4, '12', 60], ['plank', 3, '60', 60]] },
-    { name: 'Upper B', ex: [['military_press', 4, '6-8', 180], ['klimmzug', 4, '6-10', 150], ['schraegbank_kh', 3, '8-12', 120], ['kabelrudern', 3, '10-12', 120], ['seitheben', 3, '15', 60], ['hammer_curl', 3, '12', 60]] },
-    { name: 'Lower B', ex: [['kreuzheben', 4, '5', 180], ['frontkniebeuge', 3, '8', 150], ['bulgarian', 3, '10', 90], ['beincurl_sitzend', 3, '12', 60], ['waden_sitzend', 4, '15', 60], ['hanging_leg_raise', 3, '12', 60]] }
-  ] },
-  { id: 'plan_fb3', name: 'Full Body 3x', description: 'Einsteiger-Ganzkörperplan, z. B. Mo/Mi/Fr.', days: [
-    { name: 'Ganzkörper A', ex: [['kniebeuge', 3, '8-10', 150], ['bankdruecken', 3, '8-10', 150], ['lh_rudern', 3, '10', 120], ['seitheben', 2, '15', 60], ['plank', 3, '45', 60]] },
-    { name: 'Ganzkörper B', ex: [['kreuzheben', 3, '5-8', 180], ['military_press', 3, '8-10', 150], ['latzug', 3, '10', 120], ['ausfall_kh', 2, '10', 90], ['curl_kh', 2, '12', 60]] },
-    { name: 'Ganzkörper C', ex: [['beinpresse', 3, '12', 120], ['kh_bankdruecken', 3, '10', 120], ['kabelrudern', 3, '12', 90], ['rdl', 3, '10', 120], ['trizeps_seil', 2, '12', 60]] }
-  ] },
-  { id: 'plan_ss', name: 'Starting Strength', description: 'Klassisch A/B im Wechsel, 3× pro Woche – jedes Training etwas mehr Gewicht.', days: [
-    { name: 'Workout A', ex: [['kniebeuge', 3, '5', 180], ['bankdruecken', 3, '5', 180], ['kreuzheben', 1, '5', 180]] },
-    { name: 'Workout B', ex: [['kniebeuge', 3, '5', 180], ['military_press', 3, '5', 180], ['lh_rudern', 3, '5', 150]] }
-  ] }
-];
 
 /* Erweiterung der Bibliothek (Seed v2) – wird bei bestehenden Konten einmalig ergänzt */
 const SEED_EXERCISES_2 = [
@@ -2077,30 +2096,46 @@ const SEED_EXERCISES_2 = [
 ];
 
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 2;
+const SEED_VERSION = 3;
 /** Neue Bibliotheks-Übungen bei bestehenden Konten einmalig ergänzen (nur fehlende IDs) */
 function ensureSeeds() {
-  if ((S().seedVersion || 1) >= SEED_VERSION) return;
-  const have = new Set(Store.all('exercises').map(e => e.id));
-  const ops = seedExerciseDocs().filter(e => !have.has(e.id)).map(e => ({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }));
+  const v = S().seedVersion || 1;
+  if (v >= SEED_VERSION) return;
+  const ops = [];
+  let added = 0;
+  if (v < 2) {
+    const have = new Set(Store.all('exercises').map(e => e.id));
+    seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
+    if (added && !have.size) added = 0;
+  }
+  let patch = { seedVersion: SEED_VERSION };
+  if (v < 3) {
+    // Vorgeschlagene Pläne entfernen, eigene Pläne in „Workouts + Wochenplan" umwandeln
+    const now = Date.now();
+    for (const p of Store.all('plans')) {
+      if (isSchedule(p)) continue;
+      if (!p.isCustom && !p.updatedAt) { ops.push({ type: 'del', coll: 'plans', id: p.id }); continue; }
+      const ids = (p.days || []).map((d, i) => {
+        const id = p.id + '_w' + i;
+        ops.push({ type: 'put', coll: 'templates', id, doc: { name: d.name || 'Workout', exercises: d.exercises || [], createdAt: now + i, updatedAt: now }, replace: true });
+        return id;
+      });
+      if (p.id === 'plan_my_workouts' || !ids.length) { ops.push({ type: 'del', coll: 'plans', id: p.id }); continue; }
+      const pattern = { 1: [0], 2: [0, 3], 3: [0, 2, 4], 4: [0, 1, 3, 4], 5: [0, 1, 2, 3, 4], 6: [0, 1, 2, 3, 4, 5], 7: [0, 1, 2, 3, 4, 5, 6] }[Math.min(7, ids.length)];
+      const schedule = Array(7).fill(null);
+      pattern.forEach((wd, i) => { schedule[wd] = ids[i]; });
+      ops.push({ type: 'put', coll: 'plans', id: p.id, doc: { name: p.name, schedule, isCustom: true, createdAt: p.createdAt || now, updatedAt: now }, replace: true });
+    }
+  }
   if (ops.length) Store.batch(ops).catch(fsError);
-  Store.saveSettings({ seedVersion: SEED_VERSION });
-  if (ops.length && have.size) toast(`📚 ${ops.length} neue Übungen in der Bibliothek`, 'success', { duration: 4000 });
+  if (v < 3) { const ap = Store.raw('plans', S().activePlanId); patch.activePlanId = isSchedule(ap) ? ap.id : ((Store.all('plans').find(isSchedule) || {}).id || ''); }
+  Store.saveSettings(patch);
+  if (added) toast(`📚 ${added} neue Übungen in der Bibliothek`, 'success', { duration: 4000 });
 }
 function seedExerciseDocs() {
   const now = Date.now();
   return [...SEED_EXERCISES, ...SEED_EXERCISES_2].map(([id, name, category, muscleGroups, equipment, defaultUnit, notes, aliases]) => ({
     id: EX_PREFIX + id, name, category, muscleGroups, equipment, isCustom: false, notes, defaultUnit, aliases: aliases || [], createdAt: now
-  }));
-}
-function seedPlanDocs() {
-  const now = Date.now();
-  return SEED_PLANS.map(p => ({
-    id: p.id, name: p.name, description: p.description, isCustom: false, createdAt: now,
-    days: p.days.map(d => ({
-      name: d.name,
-      exercises: d.ex.map(([exId, sets, reps, restSec, notes]) => ({ exerciseId: EX_PREFIX + exId, sets, reps: String(reps), restSec, notes: notes || '' }))
-    }))
   }));
 }
 /** Big 3 – mehrere Varianten zählen zusammen */
@@ -2116,7 +2151,7 @@ const BIG3 = [
    Writes landen immer sofort lokal; Firestore synchronisiert im Hintergrund
    (mit enablePersistence auch offline). Fotos liegen lokal in IndexedDB.
    ========================================================================== */
-const COLLS = ['exercises', 'plans', 'workouts', 'progress', 'prs', 'meta', 'imports', 'photos'];
+const COLLS = ['exercises', 'templates', 'plans', 'workouts', 'progress', 'prs', 'meta', 'imports', 'photos'];
 const NO_MIRROR = new Set(['photos']);  // zu groß für localStorage → IndexedDB
 const TS_KEYS = new Set(['createdAt', 'updatedAt', 'startedAt', 'endedAt', 'lastRecalc', 'importedAt', 'undoneAt']);
 
@@ -2346,8 +2381,7 @@ const Store = (() => {
   /* ---------- Seeds & Reset ---------- */
   function seedLocal() {
     if (!Object.keys(data.exercises).length) for (const e of seedExerciseDocs()) data.exercises[e.id] = e;
-    if (!Object.keys(data.plans).length) for (const p of seedPlanDocs()) data.plans[p.id] = p;
-    queueEmit('exercises'); queueEmit('plans');
+    queueEmit('exercises');
   }
   function resetData() {
     COLLS.forEach(c => { if (c === 'meta') { const s = data.meta.settings; data.meta = s ? { settings: s } : {}; } else data[c] = {}; queueEmit(c); });
@@ -2356,7 +2390,7 @@ const Store = (() => {
   }
   function hasUserData() {
     return all('workouts').length > 0 || all('progress').length > 0 ||
-      all('exercises').some(e => e.isCustom) || all('plans').some(p => p.isCustom);
+      all('exercises').some(e => e.isCustom) || all('plans').length > 0 || all('templates').length > 0;
   }
 
   /* ---------- Firebase verbinden / trennen ---------- */
@@ -2405,7 +2439,8 @@ const Store = (() => {
         const ops = [];
         for (const c of ['workouts', 'progress', 'photos', 'imports']) for (const id of Object.keys(data[c])) ops.push({ type: 'put', coll: c, id });
         all('exercises').filter(e => e.isCustom).forEach(e => ops.push({ type: 'put', coll: 'exercises', id: e.id }));
-        all('plans').filter(p => p.isCustom).forEach(p => ops.push({ type: 'put', coll: 'plans', id: p.id }));
+        all('plans').forEach(p => ops.push({ type: 'put', coll: 'plans', id: p.id }));
+        all('templates').forEach(t => ops.push({ type: 'put', coll: 'templates', id: t.id }));
         await remoteBatch(ops).catch(fsError);
         readyHooks.push(() => PR.recalcAll({ silent: true }));
       } else {
@@ -3386,19 +3421,17 @@ const Analytics = (() => {
     return { cur: curS, best, thisWeek: rows.filter(r => r.dn >= cw).length, days: thisWeekDays };
   }
   function volumeBetween(a, b) { return sum(cur().rows.filter(w => w.dn >= a && w.dn <= b).map(w => w.ton)); }
-  /** Nächster Tag im aktiven Split */
-  function nextPlanDay(planId = S().activePlanId) {
-    const plan = Store.raw('plans', planId);
-    if (!plan || !plan.days || !plan.days.length) return null;
-    const ws = Store.all('workouts').filter(w => w.planId === plan.id)
-      .sort((a, b) => b.date.localeCompare(a.date) || (b.startedAt || 0) - (a.startedAt || 0));
-    let i = 0;
-    if (ws.length) {
-      const last = ws[0];
-      let li = Number.isInteger(last.planDayIndex) ? last.planDayIndex : plan.days.findIndex(d => d.name === last.planDayName);
-      if (li >= 0) i = (li + 1) % plan.days.length;
+  /** Nächstes geplantes Workout laut Wochenplan (heute, falls noch nicht trainiert) */
+  function nextPlanDay() {
+    const p = activePlan(); if (!p) return null;
+    const t = todayDN();
+    const doneToday = cur().rows.some(r => r.dn === t);
+    for (let k = 0; k < 7; k++) {
+      const dn = t + k, dow = dowMon(dn), tpl = Tpl.get(p.schedule[dow]);
+      if (!tpl || (k === 0 && doneToday)) continue;
+      return { plan: p, template: tpl, day: { name: tpl.name, exercises: tpl.exercises }, dow, inDays: k, doneToday };
     }
-    return { plan, dayIndex: i, day: plan.days[i], doneToday: !!ws.length && ws[0].date === isoDate(), lastName: ws.length ? ws[0].planDayName : null };
+    return null;
   }
   /** Kompakter Cache für Firestore (meta/analyticsCache) */
   const persistCache = debounce(() => {
@@ -3573,13 +3606,14 @@ const Workout = (() => {
       note: '', sets, suggestion: sug
     };
   }
-  function start({ planId = null, dayIndex = null, name = 'Freies Workout', entries = [] } = {}) {
+  function start({ planId = null, dayIndex = null, templateId = null, name = 'Freies Workout', entries = [] } = {}) {
     if (w) { toast('Es läuft bereits ein Workout', 'warn'); App.go('training'); return; }
     const plan = planId ? Store.raw('plans', planId) : null;
-    const day = plan && Number.isInteger(dayIndex) ? plan.days[dayIndex] : null;
+    const tpl = templateId ? Store.raw('templates', templateId) : null;
+    const day = tpl ? { name: tpl.name, exercises: tpl.exercises || [] } : plan && plan.days && Number.isInteger(dayIndex) ? plan.days[dayIndex] : null;
     w = {
-      id: autoId(), editingId: null, name: day ? day.name : name, planId: plan ? plan.id : null,
-      planDayIndex: day ? dayIndex : null, planDayName: day ? day.name : null,
+      id: autoId(), editingId: null, name: day ? day.name : name, planId: tpl ? (S().activePlanId || null) : plan ? plan.id : null, templateId: tpl ? tpl.id : null,
+      planDayIndex: day && !tpl ? dayIndex : null, planDayName: day ? day.name : null,
       date: isoDate(), startedAt: Date.now(), bodyWeightKg: null, notes: '',
       entries: day ? day.exercises.filter(x => Ex.get(x.exerciseId)).map(x => makeEntry(x.exerciseId, x)) : entries,
       rest: null, sel: { e: 0, s: 0 }
@@ -3654,6 +3688,7 @@ const Workout = (() => {
       planId: w.planId || null,
       planDayIndex: Number.isInteger(w.planDayIndex) ? w.planDayIndex : null,
       planDayName: w.planDayName || null,
+      templateId: w.templateId || null,
       name: w.name || w.planDayName || 'Freies Workout',
       notes: w.notes || '',
       bodyWeightKg: w.bodyWeightKg ? round(+w.bodyWeightKg, 2) : null,
@@ -3803,11 +3838,11 @@ Views.start = {
     const user = Auth.user();
     const name = (S().displayName || (user && user.name) || '').split(' ')[0];
     const w = Workout.cur();
-    const goal = S().weeklyGoal || 4;
+    const goal = weeklyTarget();
     let question;
     if (w) question = `${w.name} läuft gerade.`;
     else if (ix.rows.length && ix.rows[ix.rows.length - 1].date === isoDate()) question = 'Heute schon trainiert – stark! 💪';
-    else if (next) question = `${next.day.name} heute?`;
+    else if (next) question = next.inDays === 0 ? `${next.day.name} heute?` : `Heute Ruhetag – ${whenLabel(next).toLowerCase() === 'morgen' ? 'morgen' : 'am ' + WEEKDAYS[next.dow]} ${next.day.name}.`;
     else question = 'Bereit fürs Training?';
     const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
@@ -3840,9 +3875,9 @@ Views.start = {
           <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
         </div>
         <button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
-          <div class="stat-label">${icon('calendar')} Nächster Tag</div>
+          <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
           <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
-          <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : 'Kein aktiver Plan'}</div>
+          <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>
         </button>
       </div>`}
       <div class="mt-16">
@@ -3870,20 +3905,23 @@ Actions.startNext = () => {
   if (Workout.cur()) return App.go('training');
   const n = Analytics.nextPlanDay();
   if (!n) { UI.trainSub = 'plans'; return App.go('training'); }
-  Workout.start({ planId: n.plan.id, dayIndex: n.dayIndex });
+  Workout.start({ templateId: n.template.id });
 };
 Actions.startSheet = async () => {
   if (Workout.cur()) return App.go('training');
   const n = Analytics.nextPlanDay();
   const k = await actionMenu('Workout starten', [
-    n && { key: 'next', label: `${n.day.name}`, sub: `Nächster Tag aus „${n.plan.name}"`, icon: 'play' },
-    { key: 'pick', label: 'Anderen Tag / Plan wählen', icon: 'layers' },
+    n && { key: 'next', label: `${n.day.name}`, sub: `${whenLabel(n)} laut „${n.plan.name}"`, icon: 'play' },
+    Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', sub: 'Übungen aus der Bibliothek wählen & los', icon: 'list' },
     { key: 'free', label: 'Leeres Workout', sub: 'Ohne Plan, Übungen unterwegs hinzufügen', icon: 'plus' },
     Store.all('workouts').length ? { key: 'repeat', label: 'Letztes Workout wiederholen', icon: 'repeat' } : null
   ]);
-  if (k === 'next') Workout.start({ planId: n.plan.id, dayIndex: n.dayIndex });
-  else if (k === 'pick') { UI.trainSub = 'plans'; App.go('training'); }
+  if (k === 'next') Workout.start({ templateId: n.template.id });
+  else if (k === 'pick') {
+    const t = await actionMenu('Welches Workout?', Tpl.all().map(x => ({ key: x.id, label: x.name, sub: `${(x.exercises || []).length} Übungen · ca. ${planDayMinutes(x)} min`, icon: 'dumbbell' })));
+    if (t) Workout.start({ templateId: t });
+  }
   else if (k === 'free') Workout.start({ name: 'Freies Workout' });
   else if (k === 'compose') Actions.composeWorkout();
   else if (k === 'repeat') {
@@ -3913,88 +3951,220 @@ Views.training = {
 };
 Actions.trainSub = el => { UI.trainSub = el.dataset.v; saveUI(); App.renderCurrent(); };
 
+Actions.freeWorkout = () => Workout.start({ name: 'Freies Workout' });
+/** Grobe Dauer eines Trainingstags: pro Satz ~45 s Arbeit + Pause, plus 5 min Aufwärmen */
+const planDayMinutes = d => Math.round(d.exercises.reduce((t, x) => t + (+x.sets || 0) * (45 + (+x.restSec || S().defaultRestSec)), 0) / 60) + (d.exercises.length ? 5 : 0);
+/* ---------- Meine Workouts & Trainingsplan (Wochentage) ---------- */
+const WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
+const WD_KURZ = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+const dowMon = dn => (dowOfDN(dn) + 6) % 7; // 0 = Montag
+const Tpl = {
+  all: () => Store.all('templates').sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0)),
+  get: id => (id ? Store.raw('templates', id) : null)
+};
+const isSchedule = p => !!(p && Array.isArray(p.schedule));
+const activePlan = () => { const p = Store.raw('plans', S().activePlanId); return isSchedule(p) ? p : null; };
+const planDaysCount = p => (p && p.schedule ? p.schedule.filter(id => Tpl.get(id)).length : 0);
+/** Geplante Workouts pro Woche: aus dem aktiven Plan, sonst Wochenziel */
+function weeklyTarget() { return planDaysCount(activePlan()) || S().weeklyGoal || 4; }
+const tplSets = t => sum((t.exercises || []).map(x => +x.sets || 0));
+const whenLabel = n => n.inDays === 0 ? 'Heute' : n.inDays === 1 ? 'Morgen' : WEEKDAYS[n.dow];
+
 function renderPlans(el) {
-  const plans = Store.all('plans').slice().sort((a, b) => (a.id === S().activePlanId ? -1 : b.id === S().activePlanId ? 1 : 0) || (a.isCustom === b.isCustom ? (a.createdAt || 0) - (b.createdAt || 0) : a.isCustom ? 1 : -1));
+  const tpls = Tpl.all();
+  const p = activePlan();
+  const others = Store.all('plans').filter(x => isSchedule(x) && (!p || x.id !== p.id));
+  const td = dowMon(todayDN());
   const next = Analytics.nextPlanDay();
   el.innerHTML = `
+    <div class="section-head" style="margin-top:4px"><h2>Trainingsplan</h2>${p ? `<button class="link-btn" data-act="planEdit" data-id="${esc(p.id)}">Bearbeiten</button>` : ''}</div>
+    ${p ? `<div class="card">
+        <div class="row between"><b class="ellipsis">${esc(p.name)}</b><span class="small dim">${planDaysCount(p)} Trainingstage</span></div>
+        <div class="week-plan mt-12">${p.schedule.map((id, i) => {
+          const t = Tpl.get(id);
+          return `<button class="wp-day ${i === td ? 'today' : ''} ${t ? 'has' : ''}" data-act="${t ? 'tplStart' : 'planEdit'}" data-id="${esc(t ? t.id : p.id)}" aria-label="${WEEKDAYS[i]}: ${t ? esc(t.name) : 'Ruhetag'}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></button>`;
+        }).join('')}</div>
+        ${next ? `<button class="btn btn-primary btn-block mt-12" data-act="tplStart" data-id="${esc(next.template.id)}">${icon('play')} ${whenLabel(next)}: ${esc(next.template.name)}</button>` : ''}
+      </div>`
+    : `<div class="card">${emptyState('calendar', 'Noch kein Trainingsplan',
+        tpls.length ? 'Lege fest, an welchem Wochentag du welches deiner Workouts machst.' : 'Erstelle zuerst deine Workouts – danach verteilst du sie im Plan auf die Wochentage.',
+        tpls.length ? `<button class="btn btn-primary" data-act="planNew">${icon('calendar')} Trainingsplan erstellen</button>` : `<button class="btn btn-primary" data-act="tplNew">${icon('plus')} Erstes Workout erstellen</button>`)}</div>`}
+    ${others.length ? `<div class="list mt-12">${others.map(o => `<div class="list-item"><span class="li-main"><span class="li-title">${esc(o.name)}</span><div class="li-sub">${o.schedule.map((id, i) => Tpl.get(id) ? WD_KURZ[i] : null).filter(Boolean).join(' · ') || 'keine Tage'}</div></span>
+        <button class="btn btn-secondary btn-sm" data-act="planActivate" data-id="${esc(o.id)}">Aktivieren</button><button class="btn-icon" data-act="planMenu" data-id="${esc(o.id)}" aria-label="Plan-Menü">${icon('dots')}</button></div>`).join('')}</div>` : ''}
+    ${p ? `<div class="row mt-8"><button class="btn btn-ghost btn-sm" data-act="planNew">${icon('plus')} Weiteren Plan</button><span class="grow"></span><button class="btn btn-ghost btn-sm" data-act="planMenu" data-id="${esc(p.id)}">${icon('dots')} Plan-Optionen</button></div>` : ''}
+
+    <div class="section-head"><h2>Meine Workouts</h2>${tpls.length ? `<button class="link-btn" data-act="tplNew">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Neu</button>` : ''}</div>
+    ${tpls.length ? `<div class="col" style="gap:10px">${tpls.map(t => tplCard(t, p)).join('')}</div>`
+      : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Ein Workout ist deine Übungsliste für einen Trainingstag – z. B. „Push", „Beine" oder „Oberkörper A".', `<button class="btn btn-primary" data-act="tplNew">${icon('plus')} Workout erstellen</button>`)}</div>`}
+
+    <div class="section-head"><h2>Spontan trainieren</h2></div>
     <div class="grid-2">
-      <button class="btn btn-lg btn-secondary" data-act="composeWorkout">${icon('plus')} Workout zusammenstellen</button>
-      <button class="btn btn-lg btn-secondary" data-act="planNew">${icon('layers')} Eigenen Split erstellen</button>
-    </div>
-    <div class="col mt-16" style="gap:12px">
-      ${plans.length ? plans.map(p => planCard(p, next)).join('') : emptyState('layers', 'Keine Pläne', 'Lege deinen ersten Trainingsplan an.')}
+      <button class="btn btn-secondary" data-act="composeWorkout">${icon('list')} Übungen wählen & los</button>
+      <button class="btn btn-secondary" data-act="freeWorkout">${icon('plus')} Leeres Workout</button>
     </div>`;
 }
-function planCard(p, next) {
-  const active = p.id === S().activePlanId;
-  const days = p.days || [];
-  const open = active || UI['planOpen_' + p.id];
-  return `<div class="card plan-card ${active ? 'active-plan' : ''}">
-    <div class="card-head">
-      <div class="grow">
-        <div class="row" style="gap:6px">${active ? '<span class="badge accent">Aktiver Split</span>' : ''}${p.isCustom ? '<span class="badge">Eigener Plan</span>' : ''}</div>
-        <h3 class="${active ? 'mt-8' : ''}">${esc(p.name)}</h3>
-        <p class="dim small">${esc(p.description || '')}${p.description ? ' · ' : ''}${days.length} Tage</p>
+function tplCard(t, p) {
+  const days = p ? p.schedule.map((id, i) => id === t.id ? WD_KURZ[i] : null).filter(Boolean) : [];
+  return `<div class="card tpl-card">
+    <div class="row top">
+      <div class="grow" style="min-width:0">
+        <h3 class="ellipsis">${esc(t.name)}</h3>
+        <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ${tplSets(t)} Sätze · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
+        <p class="tiny faint mt-8 tpl-ex">${(t.exercises || []).map(x => esc(Ex.name(x.exerciseId))).join(' · ')}</p>
       </div>
-      <button class="btn-icon" data-act="planMenu" data-id="${esc(p.id)}" aria-label="Plan-Menü">${icon('dots')}</button>
+      <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Menü">${icon('dots')}</button>
     </div>
-    ${open ? days.map((d, i) => {
-      const isNext = next && next.plan.id === p.id && next.dayIndex === i;
-      return `<div class="plan-day ${isNext ? 'next' : ''}">
-        <div class="pd-main"><div class="bold pd-name">${esc(d.name)}</div>
-        <div class="pd-ex">${(d.exercises || []).map(x => esc(Ex.name(x.exerciseId)) + ` ${x.sets}×${esc(x.reps)}`).join(' · ')}</div></div>
-        <button class="btn ${isNext ? 'btn-primary' : 'btn-secondary'} btn-sm" data-act="planStart" data-id="${esc(p.id)}" data-day="${i}">${icon('play')} Start</button>
-      </div>`;
-    }).join('') : `<button class="btn btn-ghost btn-sm" data-act="planToggle" data-id="${esc(p.id)}">${icon('chevD')} ${days.length} Tage anzeigen</button>`}
+    <button class="btn btn-secondary btn-block mt-12" data-act="tplStart" data-id="${esc(t.id)}">${icon('play')} Starten</button>
   </div>`;
 }
-Actions.planToggle = el => { UI['planOpen_' + el.dataset.id] = true; App.renderCurrent(); };
-Actions.freeWorkout = () => Workout.start({ name: 'Freies Workout' });
-Actions.planStart = el => Workout.start({ planId: el.dataset.id, dayIndex: +el.dataset.day });
-/* Split-Assistent: Vorlage wählen → Tage & Übungen vorbefüllt → im Editor anpassen */
-const DAY_TEMPLATES = {
-  Ganzkörper: [['kniebeuge', 3, '8-10'], ['bankdruecken', 3, '8-10'], ['lh_rudern', 3, '8-10'], ['ohp_kh', 2, '10-12'], ['rdl', 2, '10'], ['plank', 2, '45']],
-  Oberkörper: [['bankdruecken', 4, '6-8'], ['lh_rudern', 4, '6-8'], ['ohp_kh', 3, '8-10'], ['latzug', 3, '10-12'], ['seitheben', 3, '12-15'], ['curl_kh', 2, '12'], ['trizeps_seil', 2, '12']],
-  Unterkörper: [['kniebeuge', 4, '6-8'], ['rdl', 3, '8-10'], ['beinpresse', 3, '10-12'], ['beincurl_liegend', 3, '12'], ['waden_stehend', 4, '12-15'], ['hanging_leg_raise', 3, '12']],
-  Push: [['bankdruecken', 4, '6-8'], ['ohp_kh', 3, '8-10'], ['schraegbank_kh', 3, '8-12'], ['seitheben', 4, '12-15'], ['trizeps_seil', 3, '10-12'], ['overhead_trizeps', 2, '12']],
-  Pull: [['klimmzug', 4, '6-10'], ['lh_rudern', 3, '8'], ['kabelrudern', 3, '10-12'], ['face_pull', 3, '15'], ['curl_lh', 3, '8-12'], ['hammer_curl', 2, '12']],
-  Beine: [['kniebeuge', 4, '6-8'], ['rdl', 3, '8-10'], ['beinpresse', 3, '10-12'], ['beincurl_sitzend', 3, '12'], ['beinstrecker', 3, '12-15'], ['waden_sitzend', 4, '15']],
-  Brust: [['bankdruecken', 4, '6-8'], ['schraegbank_kh', 3, '8-10'], ['brustpresse', 3, '10-12'], ['kabel_crossover', 3, '12-15'], ['dips', 3, '10']],
-  Rücken: [['kreuzheben', 3, '5'], ['klimmzug', 4, '6-10'], ['lh_rudern', 3, '8'], ['latzug_eng', 3, '10-12'], ['straight_arm_pulldown', 3, '12'], ['shrugs', 3, '12']],
-  Schultern: [['military_press', 4, '6-8'], ['seitheben', 4, '12-15'], ['seitheben_kabel', 3, '15'], ['reverse_butterfly', 3, '15'], ['face_pull', 3, '15']],
-  Arme: [['enges_bankdruecken', 3, '8'], ['sz_curl', 3, '10'], ['trizeps_sz', 3, '10'], ['schraegbank_curl', 3, '12'], ['trizeps_seil', 3, '12'], ['hammer_curl', 3, '12']]
-};
-const SPLIT_TYPES = [
-  ['fb', 'Ganzkörper', '2–3× pro Woche, ideal für Einsteiger', n => Array.from({ length: n }, (_, i) => ['Ganzkörper ' + 'ABCDEFG'[i], 'Ganzkörper'])],
-  ['ul', 'Oberkörper / Unterkörper', '4× pro Woche im Wechsel', n => Array.from({ length: n }, (_, i) => [(i % 2 ? 'Unterkörper ' : 'Oberkörper ') + 'AB'[Math.floor(i / 2) % 2], i % 2 ? 'Unterkörper' : 'Oberkörper'])],
-  ['ppl', 'Push / Pull / Beine', '3× oder 6× pro Woche', n => Array.from({ length: n }, (_, i) => [['Push', 'Pull', 'Beine'][i % 3] + (n > 3 ? ' ' + 'AB'[Math.floor(i / 3) % 2] : ''), ['Push', 'Pull', 'Beine'][i % 3]])],
-  ['bro', 'Bro-Split', 'Jeder Tag eine Muskelgruppe, 5× pro Woche', n => ['Brust', 'Rücken', 'Schultern', 'Beine', 'Arme'].slice(0, n).map(d => [d, d])],
-  ['empty', 'Leer – alles selbst', 'Tage benennen, Übungen frei aus der Bibliothek', n => Array.from({ length: n }, (_, i) => ['Tag ' + 'ABCDEFG'[i], null])]
-];
+Actions.tplStart = el => Workout.start({ templateId: el.dataset.id });
+Actions.tplNew = () => openTemplateEditor(null);
 Actions.planNew = () => {
-  let type = 'ppl', days = 3;
-  const defDays = { fb: 3, ul: 4, ppl: 3, bro: 5, empty: 3 };
-  const m = Modal.open({ title: 'Eigenen Split erstellen', size: 'sm', body: '', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="go">${icon('chevR')} Weiter</button>` });
-  const draw = () => m.setBody(`
-    <p class="small dim">Wähle eine Grundlage – Tage und Übungen kannst du danach frei anpassen.</p>
-    <div class="list mt-12">${SPLIT_TYPES.map(([k, l, sub]) => `<button class="list-item ${type === k ? 'sel' : ''}" data-st="${k}"><span class="li-icon" style="${type === k ? 'background:var(--accent);color:var(--accent-ink)' : ''}">${icon(type === k ? 'check' : 'layers')}</span><span class="li-main"><span class="li-title">${l}</span><div class="li-sub">${sub}</div></span></button>`).join('')}</div>
-    <div class="look-group"><h4>Trainingstage pro Woche</h4><div class="seg">${[1, 2, 3, 4, 5, 6, 7].map(n => `<button class="${days === n ? 'active' : ''}" data-dn="${n}">${n}</button>`).join('')}</div></div>
-    ${Store.all('plans').length ? `<div class="look-group"><h4>Oder bestehenden Plan kopieren</h4><div class="chips wrap">${Store.all('plans').map(p => `<button class="chip" data-copy="${esc(p.id)}">${esc(p.name)}</button>`).join('')}</div></div>` : ''}`);
-  draw();
-  m.el.addEventListener('click', e => {
-    const t = e.target.closest('[data-st],[data-dn],[data-copy],[data-x]');
-    if (!t) return;
-    if (t.dataset.st) { type = t.dataset.st; days = defDays[type]; return draw(); }
-    if (t.dataset.dn) { days = +t.dataset.dn; return draw(); }
-    if (t.dataset.copy) { const p = Store.raw('plans', t.dataset.copy); m.close(); return openPlanEditor(null, { ...JSON.parse(JSON.stringify(p)), name: p.name + ' (eigene Version)', isCustom: true }); }
-    if (t.dataset.x === 'cancel') return m.close();
-    const def = SPLIT_TYPES.find(x => x[0] === type);
-    const draft = { name: type === 'empty' ? '' : `${def[1]} ${days}×`, description: '', isCustom: true,
-      days: def[3](days).map(([name, tpl]) => ({ name, exercises: (DAY_TEMPLATES[tpl] || []).filter(([id]) => Ex.get(EX_PREFIX + id)).map(([id, sets, reps]) => ({ exerciseId: EX_PREFIX + id, sets, reps, restSec: S().defaultRestSec, notes: '' })) })) };
-    m.close();
-    openPlanEditor(null, draft);
-  });
+  if (!Tpl.all().length) { toast('Erstelle zuerst ein Workout', 'info'); return openTemplateEditor(null); }
+  openScheduleEditor(null);
 };
+Actions.planEdit = el => openScheduleEditor(Store.raw('plans', el.dataset.id));
+Actions.planActivate = el => { Store.saveSettings({ activePlanId: el.dataset.id }); toast('Trainingsplan aktiviert', 'success'); };
+Actions.tplMenu = async el => {
+  const t = Tpl.get(el.dataset.id); if (!t) return;
+  const k = await actionMenu(t.name, [
+    { key: 'start', label: 'Starten', icon: 'play' },
+    { key: 'edit', label: 'Bearbeiten', icon: 'edit' },
+    { key: 'dup', label: 'Duplizieren', icon: 'copy' },
+    { key: 'del', label: 'Löschen', icon: 'trash', danger: true }
+  ]);
+  if (k === 'start') Workout.start({ templateId: t.id });
+  else if (k === 'edit') openTemplateEditor(t);
+  else if (k === 'dup') { const id = autoId(); Store.put('templates', id, { ...JSON.parse(JSON.stringify(t)), id: undefined, name: t.name + ' (Kopie)', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true }); toast('Workout dupliziert', 'success'); }
+  else if (k === 'del') {
+    const inPlans = Store.all('plans').filter(p => isSchedule(p) && p.schedule.includes(t.id));
+    if (!await confirmDialog({ title: 'Workout löschen?', text: `„${t.name}" wird gelöscht.${inPlans.length ? ' Die Tage im Trainingsplan werden zu Ruhetagen.' : ''} Bereits absolvierte Trainings bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
+    inPlans.forEach(p => Store.put('plans', p.id, { ...p, schedule: p.schedule.map(id => id === t.id ? null : id), updatedAt: Date.now() }, { replace: true }));
+    Store.del('templates', t.id);
+    toast('Workout gelöscht', 'success');
+  }
+};
+Actions.planMenu = async el => {
+  const p = Store.raw('plans', el.dataset.id); if (!p) return;
+  const k = await actionMenu(p.name, [
+    p.id !== S().activePlanId && { key: 'active', label: 'Als aktiven Plan setzen', icon: 'flag' },
+    { key: 'edit', label: 'Bearbeiten', icon: 'edit' },
+    { key: 'dup', label: 'Duplizieren', icon: 'copy' },
+    { key: 'del', label: 'Löschen', icon: 'trash', danger: true }
+  ]);
+  if (k === 'active') Actions.planActivate({ dataset: { id: p.id } });
+  else if (k === 'edit') openScheduleEditor(p);
+  else if (k === 'dup') { const id = autoId(); Store.put('plans', id, { ...JSON.parse(JSON.stringify(p)), id: undefined, name: p.name + ' (Kopie)', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true }); toast('Plan dupliziert', 'success'); }
+  else if (k === 'del') {
+    if (!await confirmDialog({ title: 'Plan löschen?', text: `„${p.name}" wird gelöscht. Deine Workouts und dein Verlauf bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
+    Store.del('plans', p.id);
+    if (S().activePlanId === p.id) Store.saveSettings({ activePlanId: (Store.all('plans').find(isSchedule) || {}).id || '' });
+    toast('Plan gelöscht', 'success');
+  }
+};
+
+/** Workout-Editor: Name + Übungen (Sätze, Wdh., Pause, Notiz) */
+function openTemplateEditor(tpl, { onSave = null } = {}) {
+  const draft = tpl ? JSON.parse(JSON.stringify(tpl)) : { name: '', exercises: [] };
+  let saved = null;
+  const m = Modal.open({ title: tpl ? 'Workout bearbeiten' : 'Neues Workout', size: 'full',
+    foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="save">${icon('check')} Speichern</button>`,
+    onClose: () => { if (onSave) onSave(saved); } });
+  const render = () => {
+    const xs = draft.exercises;
+    m.setBody(`
+      <label class="field"><span>Name des Workouts</span><input class="input" data-pe="name" value="${esc(draft.name)}" placeholder="z. B. Push, Beine, Oberkörper A"></label>
+      <div class="pe-daysum mt-12">${xs.length ? `${xs.length} Übungen · ${tplSets(draft)} Sätze · ca. ${planDayMinutes(draft)} min` : 'Noch keine Übungen – füge welche aus der Bibliothek hinzu.'}</div>
+      <div class="col mt-12" style="gap:8px">
+        ${xs.map((x, xi) => `
+          <div class="pe-row">
+            <div class="row"><b class="grow ellipsis">${esc(Ex.name(x.exerciseId))}</b>
+              <button class="btn-icon" data-pa="exUp" data-xi="${xi}" aria-label="Nach oben" ${xi === 0 ? 'disabled style="opacity:.3"' : ''}>${icon('chevU')}</button>
+              <button class="btn-icon" data-pa="exDel" data-xi="${xi}" aria-label="Entfernen">${icon('x')}</button></div>
+            <div class="pe-fields">
+              <div><div class="mini-label">Sätze</div><div class="pe-step"><button data-pa="setsDec" data-xi="${xi}" aria-label="Weniger Sätze">${icon('minus')}</button><input class="input" inputmode="numeric" data-pe="sets" data-xi="${xi}" value="${esc(x.sets)}" aria-label="Sätze"><button data-pa="setsInc" data-xi="${xi}" aria-label="Mehr Sätze">${icon('plus')}</button></div></div>
+              <label><div class="mini-label">${Ex.type(Ex.get(x.exerciseId)) === 'sec' ? 'Sekunden' : 'Wdh.'}</div><input class="input" data-pe="reps" data-xi="${xi}" value="${esc(x.reps)}" placeholder="8-12"></label>
+              <label><div class="mini-label">Pause</div><select class="select" data-pe="restSec" data-xi="${xi}">${uniq([30, 45, 60, 90, 120, 150, 180, 240, 300, +x.restSec || S().defaultRestSec]).sort((a, b) => a - b).map(v => `<option value="${v}" ${+x.restSec === v ? 'selected' : ''}>${fmtClock(v)}</option>`).join('')}</select></label>
+            </div>
+            <input class="input" data-pe="notes" data-xi="${xi}" value="${esc(x.notes || '')}" placeholder="Notiz (optional)" style="min-height:40px">
+          </div>`).join('')}
+      </div>
+      <button class="btn btn-secondary btn-block mt-12" data-pa="exAdd">${icon('plus')} Übungen hinzufügen</button>`);
+  };
+  render();
+  m.body.addEventListener('input', e => {
+    const t = e.target.closest('[data-pe]'); if (!t) return;
+    const k = t.dataset.pe, xi = +t.dataset.xi;
+    if (k === 'name') draft.name = t.value;
+    else if (k === 'sets' || k === 'restSec') draft.exercises[xi][k] = parseInt(t.value, 10) || 0;
+    else draft.exercises[xi][k] = t.value;
+  });
+  m.el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-pa], [data-x]'); if (!b || b.disabled) return;
+    const xi = +b.dataset.xi, a = draft.exercises;
+    switch (b.dataset.pa || b.dataset.x) {
+      case 'exUp': [a[xi - 1], a[xi]] = [a[xi], a[xi - 1]]; break;
+      case 'exDel': a.splice(xi, 1); break;
+      case 'setsDec': case 'setsInc': a[xi].sets = clamp((+a[xi].sets || 0) + (b.dataset.pa === 'setsInc' ? 1 : -1), 1, 20); break;
+      case 'exAdd': {
+        const ids = await pickExercises({ multi: true, title: 'Übungen hinzufügen' });
+        if (!ids || !ids.length) return;
+        ids.forEach(id => a.push({ exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '' }));
+        break;
+      }
+      case 'cancel': m.close(); return;
+      case 'save': {
+        if (!draft.name.trim()) { toast('Bitte einen Namen eingeben', 'warn'); $('[data-pe="name"]', m.el).focus(); return; }
+        if (!a.length) { toast('Mindestens eine Übung hinzufügen', 'warn'); return; }
+        const id = tpl ? tpl.id : autoId();
+        Store.put('templates', id, { name: draft.name.trim(), exercises: a.map(x => ({ exerciseId: x.exerciseId, sets: Math.max(1, +x.sets || 1), reps: String(x.reps || ''), restSec: +x.restSec || S().defaultRestSec, notes: x.notes || '' })), createdAt: tpl ? tpl.createdAt || Date.now() : Date.now(), updatedAt: Date.now() }, { replace: true });
+        saved = id;
+        m.close();
+        toast(`Workout „${draft.name.trim()}" gespeichert`, 'success');
+        return;
+      }
+      default: return;
+    }
+    render();
+  });
+}
+
+/** Trainingsplan-Editor: für jeden Wochentag ein Workout oder Ruhetag */
+function openScheduleEditor(plan) {
+  const draft = plan ? { name: plan.name, schedule: plan.schedule.slice() } : { name: 'Mein Trainingsplan', schedule: Array(7).fill(null) };
+  const m = Modal.open({ title: plan ? 'Trainingsplan bearbeiten' : 'Neuer Trainingsplan', size: 'lg',
+    foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="save">${icon('check')} Speichern</button>` });
+  const render = () => {
+    const tpls = Tpl.all();
+    const n = draft.schedule.filter(id => Tpl.get(id)).length;
+    m.setBody(`
+      <label class="field"><span>Name</span><input class="input" id="spName" value="${esc(draft.name)}"></label>
+      <p class="small dim mt-12">Wähle für jeden Wochentag eines deiner Workouts – oder Ruhetag. <b>${n} Trainingstage</b>${n ? `, ca. ${Math.round(sum(draft.schedule.map(id => Tpl.get(id) ? planDayMinutes(Tpl.get(id)) : 0)) / 60 * 10) / 10} h pro Woche` : ''}.</p>
+      <div class="list mt-12">${draft.schedule.map((id, i) => `
+        <div class="set-line sched-row">
+          <div class="sl-main"><div class="sl-title">${WEEKDAYS[i]}</div></div>
+          <select class="select" data-wd="${i}" aria-label="${WEEKDAYS[i]}"><option value="">Ruhetag</option>${tpls.map(t => `<option value="${esc(t.id)}" ${t.id === id ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
+          <button class="btn-icon" data-new="${i}" aria-label="Neues Workout für ${WEEKDAYS[i]}" title="Neues Workout">${icon('plus')}</button>
+        </div>`).join('')}</div>`);
+  };
+  render();
+  m.body.addEventListener('change', e => { const s = e.target.closest('[data-wd]'); if (s) { draft.schedule[+s.dataset.wd] = s.value || null; render(); } });
+  m.body.addEventListener('input', e => { if (e.target.id === 'spName') draft.name = e.target.value; });
+  m.el.addEventListener('click', e => {
+    const nb = e.target.closest('[data-new]');
+    if (nb) { const wd = +nb.dataset.new; openTemplateEditor(null, { onSave: id => { if (id) draft.schedule[wd] = id; render(); } }); return; }
+    const x = e.target.closest('[data-x]'); if (!x) return;
+    if (x.dataset.x === 'cancel') return m.close();
+    if (!draft.name.trim()) { toast('Bitte einen Namen eingeben', 'warn'); return; }
+    if (!draft.schedule.some(id => Tpl.get(id))) { toast('Mindestens einem Tag ein Workout zuweisen', 'warn'); return; }
+    const id = plan ? plan.id : autoId();
+    Store.put('plans', id, { name: draft.name.trim(), schedule: draft.schedule.map(t => Tpl.get(t) ? t : null), isCustom: true, createdAt: plan ? plan.createdAt || Date.now() : Date.now(), updatedAt: Date.now() }, { replace: true });
+    if (!plan || !activePlan()) Store.saveSettings({ activePlanId: id });
+    m.close();
+    toast('Trainingsplan gespeichert', 'success');
+  });
+}
+
 /* Eigenes Workout: Übungen aus der Bibliothek wählen → sofort starten */
 Actions.composeWorkout = async () => {
   if (Workout.cur()) return App.go('training');
@@ -4002,122 +4172,15 @@ Actions.composeWorkout = async () => {
   if (!ids || !ids.length) return;
   Workout.start({ name: 'Eigenes Workout', entries: ids.map(id => Workout.makeEntry(id, { sets: 3 })) });
 };
-/* Aktuelles/gespeichertes Workout als Vorlage in „Meine Workouts" ablegen */
+/* Aktuelles/gespeichertes Workout unter „Meine Workouts" ablegen */
 async function saveAsTemplate(entries, name) {
-  const v = await promptDialog({ title: 'Als Vorlage speichern', label: 'Name der Vorlage', value: name || 'Mein Workout', okLabel: 'Speichern' });
+  const v = await promptDialog({ title: 'Als Workout speichern', label: 'Name', value: name || 'Mein Workout', okLabel: 'Speichern' });
   if (!v || !v.trim()) return;
-  const id = 'plan_my_workouts';
-  const p = Store.raw('plans', id) || { name: 'Meine Workouts', description: 'Deine gespeicherten Workout-Vorlagen', isCustom: true, days: [], createdAt: Date.now() };
-  const day = { name: v.trim(), exercises: entries.map(en => ({ exerciseId: en.exerciseId, sets: Math.max(1, (en.sets || []).filter(s => !s.warmup).length || 3), reps: (en.target && en.target.reps) || String(((en.sets || []).find(s => s.reps) || {}).reps || '8-12'), restSec: (en.target && en.target.restSec) || S().defaultRestSec, notes: '' })) };
-  Store.put('plans', id, { ...p, days: [...(p.days || []).filter(d => d.name !== day.name), day], updatedAt: Date.now() }, { replace: true });
-  toast(`„${day.name}" unter „Meine Workouts" gespeichert`, 'success');
-}
-Actions.planMenu = async el => {
-  const p = Store.raw('plans', el.dataset.id);
-  if (!p) return;
-  const k = await actionMenu(p.name, [
-    p.id !== S().activePlanId && { key: 'active', label: 'Als aktiven Split setzen', icon: 'flag' },
-    { key: 'edit', label: 'Bearbeiten', icon: 'edit' },
-    { key: 'dup', label: 'Duplizieren', icon: 'copy' },
-    { key: 'del', label: 'Löschen', icon: 'trash', danger: true }
-  ]);
-  if (k === 'active') { await Store.saveSettings({ activePlanId: p.id }); toast(`„${p.name}" ist jetzt dein aktiver Split`, 'success'); }
-  else if (k === 'edit') openPlanEditor(p);
-  else if (k === 'dup') {
-    const id = autoId();
-    Store.put('plans', id, { ...JSON.parse(JSON.stringify(p)), name: p.name + ' (Kopie)', isCustom: true, createdAt: Date.now() }, { replace: true });
-    toast('Plan dupliziert', 'success');
-  } else if (k === 'del') {
-    if (await confirmDialog({ title: 'Plan löschen?', text: `„${p.name}" wird gelöscht. Deine Workouts bleiben erhalten.`, okLabel: 'Löschen', danger: true })) {
-      Store.del('plans', p.id);
-      toast('Plan gelöscht', 'success');
-    }
-  }
-};
-
-/* ---------- Plan-Builder ---------- */
-/** Grobe Dauer eines Trainingstags: pro Satz ~45 s Arbeit + Pause, plus 5 min Aufwärmen */
-const planDayMinutes = d => Math.round(d.exercises.reduce((t, x) => t + (+x.sets || 0) * (45 + (+x.restSec || S().defaultRestSec)), 0) / 60) + (d.exercises.length ? 5 : 0);
-function openPlanEditor(plan, preset = null) {
-  const draft = plan ? JSON.parse(JSON.stringify(plan)) : preset || { name: '', description: '', isCustom: true, days: [{ name: 'Tag A', exercises: [] }] };
-  const m = Modal.open({ title: plan ? 'Plan bearbeiten' : 'Neuer Plan', size: 'full', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="save">Speichern</button>` });
-  const render = () => {
-    m.setBody(`
-      <div class="stack">
-        <label class="field"><span>Name</span><input class="input" data-pe="name" value="${esc(draft.name)}" placeholder="z. B. Push Pull Legs"></label>
-        <label class="field"><span>Beschreibung</span><input class="input" data-pe="description" value="${esc(draft.description || '')}" placeholder="optional"></label>
-        ${draft.days.map((d, di) => `
-          <div class="card" style="background:var(--bg)">
-            <div class="row mb-8">
-              <input class="input grow" data-pe="day" data-di="${di}" value="${esc(d.name)}" style="font-weight:700">
-              <button class="btn-icon" data-pa="dayUp" data-di="${di}" aria-label="Tag nach oben" ${di === 0 ? 'disabled' : ''}>${icon('chevU')}</button>
-              <button class="btn-icon" data-pa="dayDel" data-di="${di}" aria-label="Tag löschen">${icon('trash')}</button>
-            </div>
-            <div class="pe-daysum mb-12">${d.exercises.length ? `${d.exercises.length} Übungen · ${sum(d.exercises.map(x => +x.sets || 0))} Sätze · ca. ${planDayMinutes(d)} min` : 'Noch keine Übungen'}</div>
-            <div class="col" style="gap:8px">
-              ${d.exercises.map((x, xi) => `
-                <div class="pe-row">
-                  <div class="row"><b class="grow ellipsis">${esc(Ex.name(x.exerciseId))}</b>
-                    <button class="btn-icon" data-pa="exUp" data-di="${di}" data-xi="${xi}" aria-label="Nach oben" ${xi === 0 ? 'disabled' : ''}>${icon('chevU')}</button>
-                    <button class="btn-icon" data-pa="exDel" data-di="${di}" data-xi="${xi}" aria-label="Entfernen">${icon('x')}</button></div>
-                  <div class="pe-fields">
-                    <div><div class="mini-label">Sätze</div><div class="pe-step"><button data-pa="setsDec" data-di="${di}" data-xi="${xi}" aria-label="Weniger Sätze">${icon('minus')}</button><input class="input" inputmode="numeric" data-pe="sets" data-di="${di}" data-xi="${xi}" value="${esc(x.sets)}" aria-label="Sätze"><button data-pa="setsInc" data-di="${di}" data-xi="${xi}" aria-label="Mehr Sätze">${icon('plus')}</button></div></div>
-                    <label><div class="mini-label">${Ex.type(Ex.get(x.exerciseId)) === 'sec' ? 'Sekunden' : 'Wdh.'}</div><input class="input" data-pe="reps" data-di="${di}" data-xi="${xi}" value="${esc(x.reps)}" placeholder="8-12"></label>
-                    <label><div class="mini-label">Pause</div><select class="select" data-pe="restSec" data-di="${di}" data-xi="${xi}">${uniq([30, 45, 60, 90, 120, 150, 180, 240, 300, +x.restSec || S().defaultRestSec]).sort((a, b) => a - b).map(v => `<option value="${v}" ${+x.restSec === v ? 'selected' : ''}>${fmtClock(v)}</option>`).join('')}</select></label>
-                  </div>
-                  <input class="input" data-pe="notes" data-di="${di}" data-xi="${xi}" value="${esc(x.notes || '')}" placeholder="Notiz (optional)" style="min-height:40px">
-                </div>`).join('')}
-            </div>
-            <button class="btn btn-secondary btn-block mt-12" data-pa="exAdd" data-di="${di}">${icon('plus')} Übungen hinzufügen</button>
-          </div>`).join('')}
-        <button class="btn btn-accent-ghost btn-block" data-pa="dayAdd">${icon('plus')} Trainingstag hinzufügen</button>
-      </div>`);
-  };
-  render();
-  m.body.addEventListener('input', e => {
-    const t = e.target.closest('[data-pe]');
-    if (!t) return;
-    const k = t.dataset.pe, di = +t.dataset.di, xi = +t.dataset.xi;
-    if (k === 'name' || k === 'description') draft[k] = t.value;
-    else if (k === 'day') draft.days[di].name = t.value;
-    else if (k === 'sets' || k === 'restSec') draft.days[di].exercises[xi][k] = parseInt(t.value, 10) || 0;
-    else draft.days[di].exercises[xi][k] = t.value;
-  });
-  m.el.addEventListener('click', async e => {
-    const b = e.target.closest('[data-pa], [data-x]');
-    if (!b) return;
-    const di = +b.dataset.di, xi = +b.dataset.xi;
-    switch (b.dataset.pa || b.dataset.x) {
-      case 'dayAdd': draft.days.push({ name: 'Tag ' + String.fromCharCode(65 + draft.days.length), exercises: [] }); break;
-      case 'dayDel':
-        if (draft.days[di].exercises.length && !await confirmDialog({ title: 'Tag entfernen?', text: `„${draft.days[di].name}" mit ${draft.days[di].exercises.length} Übungen entfernen?`, okLabel: 'Entfernen', danger: true })) return;
-        draft.days.splice(di, 1); break;
-      case 'dayUp': [draft.days[di - 1], draft.days[di]] = [draft.days[di], draft.days[di - 1]]; break;
-      case 'exUp': { const a = draft.days[di].exercises; [a[xi - 1], a[xi]] = [a[xi], a[xi - 1]]; break; }
-      case 'exDel': draft.days[di].exercises.splice(xi, 1); break;
-      case 'setsDec': case 'setsInc': { const x = draft.days[di].exercises[xi]; x.sets = clamp((+x.sets || 0) + (b.dataset.pa === 'setsInc' ? 1 : -1), 1, 20); break; }
-      case 'exAdd': {
-        const ids = await pickExercises({ multi: true, title: 'Übungen zum Tag hinzufügen' });
-        if (!ids || !ids.length) return;
-        ids.forEach(id => draft.days[di].exercises.push({ exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '' }));
-        break;
-      }
-      case 'cancel': m.close(); return;
-      case 'save': {
-        if (!draft.name.trim()) { toast('Bitte einen Namen eingeben', 'warn'); return; }
-        if (!draft.days.length) { toast('Mindestens ein Trainingstag nötig', 'warn'); return; }
-        const id = plan ? plan.id : autoId();
-        const doc = { name: draft.name.trim(), description: (draft.description || '').trim(), isCustom: plan ? !!plan.isCustom : true, days: draft.days.map(d => ({ name: d.name.trim() || 'Tag', exercises: d.exercises.map(x => ({ exerciseId: x.exerciseId, sets: Math.max(1, +x.sets || 1), reps: String(x.reps || ''), restSec: +x.restSec || S().defaultRestSec, notes: x.notes || '' })) })), createdAt: plan ? plan.createdAt || Date.now() : Date.now(), updatedAt: Date.now() };
-        Store.put('plans', id, doc, { replace: true });
-        m.close();
-        toast('Plan gespeichert', 'success');
-        if (!plan && !Store.raw('plans', S().activePlanId)) Store.saveSettings({ activePlanId: id });
-        return;
-      }
-      default: return;
-    }
-    render();
-  });
+  const ex = entries.map(en => ({ exerciseId: en.exerciseId, sets: Math.max(1, (en.sets || []).filter(s => !s.warmup).length || 3), reps: (en.target && en.target.reps) || String(((en.sets || []).find(s => s.reps) || {}).reps || '8-12'), restSec: (en.target && en.target.restSec) || S().defaultRestSec, notes: '' }));
+  const same = Tpl.all().find(t => norm(t.name) === norm(v));
+  const id = same ? same.id : autoId();
+  Store.put('templates', id, { name: v.trim(), exercises: ex, createdAt: same ? same.createdAt : Date.now(), updatedAt: Date.now() }, { replace: true });
+  toast(`„${v.trim()}" unter „Meine Workouts" gespeichert`, 'success');
 }
 
 /* ---------- Verlauf + Kalender ---------- */
@@ -4262,9 +4325,30 @@ function lastSessionFor(exId, w) {
   const ss = Analytics.sessionsOf(exId).filter(s => s.wid !== w.editingId && s.wid !== w.id);
   return ss.length ? ss[ss.length - 1] : null;
 }
+const woSimple = () => S().woStyle !== 'detailed';
 function renderActiveWorkout(el, w) {
   const st = liveStats(w);
   const focus = S().woView === 'focus' && F('f_focus') && w.entries.length > 0;
+  if (woSimple()) {
+    el.innerHTML = `
+      <div class="wo-head wo-simple">
+        <div class="wo-main">
+          <div class="grow" style="min-width:0">
+            <div class="wo-title ellipsis">${esc(w.name)}</div>
+            <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span>${st.done}/${st.total} Sätze</span></div>
+          </div>
+          <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
+          <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Fertig'}</button>
+        </div>
+        <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
+      </div>
+      <div class="wo-body">
+        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => simpleCard(en, ei, w)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+        <button class="btn btn-secondary btn-block btn-lg mt-4" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button>
+      </div>`;
+    updateTopH();
+    return;
+  }
   el.innerHTML = `
     <div class="wo-head">
       <div class="wo-main">
@@ -4275,6 +4359,7 @@ function renderActiveWorkout(el, w) {
             <span>${st.done}/${st.total} Sätze</span><span>${fmtTon(st.vol)}</span>
           </div>
         </div>
+        <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
         <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Beenden'}</button>
       </div>
       <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
@@ -4306,6 +4391,75 @@ function renderActiveWorkout(el, w) {
   const strip = $('#woStrip', el), cur = strip && $('.ws-item.cur', strip);
   if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
 }
+
+/* ---------- Schlichte Eingabe: pro Satz nur Gewicht, Wdh., Haken ---------- */
+function simpleCard(en, ei, w) {
+  const ex = Ex.get(en.exerciseId);
+  const type = Ex.type(ex);
+  const last = S().woPrev !== false ? lastSessionFor(en.exerciseId, w) : null;
+  const ws = workSets(en);
+  const doneN = ws.filter(s => s.done).length;
+  const complete = en.sets.length > 0 && en.sets.every(s => s.done);
+  const rpe = !!S().simpleRPE;
+  const gw = goalWeight(en);
+  const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  const fmtPrev = p => type === 'sec' ? fmtClock(p.sec || 0) : (p.w ? `${wNum(p.w)}×${p.r}` : `${p.r}`);
+  let no = 0;
+  const rows = en.sets.map((s, si) => {
+    const num = s.warmup ? 'W' : ++no;
+    const prev = last && !s.warmup ? last.list[num - 1] || null : null;
+    const d = `data-ei="${ei}" data-si="${si}"`;
+    const bVal = type === 'sec' ? s.durationSec : s.reps;
+    const wPh = prev && prev.w ? inputW(prev.w) : (type === 'kg' ? unit() : '+' + unit());
+    const bPh = prev && (type === 'sec' ? prev.sec : prev.r) ? String(type === 'sec' ? prev.sec : prev.r) : (type === 'sec' ? 'Sek.' : 'Wdh.');
+    return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
+      ${setNumHtml(s, num, d)}
+      <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
+      <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}" enterkeyhint="done">
+      ${rpe ? `<select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">RPE</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>` : ''}
+      <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
+    </div>`;
+  }).join('');
+  return `<div class="ex-card exs ${complete ? 'complete' : ''}" id="ex-${en.uid}">
+    <div class="exs-head">
+      <div class="grow" style="min-width:0">
+        <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
+        <button class="exs-goal" data-act="goalEdit" data-ei="${ei}" aria-label="Ziel bearbeiten">${esc(goal)}</button>
+      </div>
+      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `${doneN}/${ws.length}`}</span>
+      <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
+    </div>
+    ${last ? `<div class="exs-last">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</div>` : ''}
+    <div class="exs-sets ${rpe ? 'rpe' : ''}">
+      <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span><span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>${rpe ? '<span>RPE</span>' : ''}<span></span></div>
+      ${rows}
+    </div>
+    <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
+  </div>`;
+}
+Actions.woMore = async () => {
+  const w = Workout.cur(); if (!w) return;
+  const focus = S().woView === 'focus';
+  const k = await actionMenu(w.name, [
+    w.entries.length && { key: 'ov', label: 'Übersicht aller Übungen', sub: 'Reihenfolge & Ziele ändern', icon: 'layers' },
+    F('f_focus') && w.entries.length && { key: 'view', label: focus ? 'Listen-Ansicht' : 'Fokus-Ansicht', sub: focus ? 'Alle Übungen untereinander' : 'Eine Übung groß – wischen zum Wechseln', icon: focus ? 'list' : 'target' },
+    { key: 'rename', label: 'Umbenennen', icon: 'edit' },
+    F('f_woExtras') && woSimple() && { key: 'notes', label: 'Notiz, Datum & Körpergewicht', icon: 'note' },
+    w.entries.length && { key: 'tpl', label: 'Als Workout speichern', sub: 'Unter „Meine Workouts"', icon: 'copy' },
+    { key: 'style', label: woSimple() ? 'Ausführliche Eingabe' : 'Schlichte Eingabe', sub: woSimple() ? 'Mehr Spalten, Stepper & Leisten' : 'Nur Gewicht, Wdh. & Haken', icon: 'sliders' },
+    { key: 'cancel', label: w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen', icon: 'x', danger: true }
+  ]);
+  if (k === 'ov') Actions.woOverview();
+  else if (k === 'view') Actions.woView({ dataset: { v: focus ? 'list' : 'focus' } });
+  else if (k === 'rename') Actions.woRename();
+  else if (k === 'notes') Modal.open({ title: 'Notiz & Details', size: 'sm', body: `<div class="form-grid">
+      <label class="field"><span>Körpergewicht (${unit()})</span><input class="input" inputmode="decimal" data-in="woBw" value="${inputW(w.bodyWeightKg)}" placeholder="optional"></label>
+      <label class="field"><span>Datum</span><input class="input" type="date" data-ch="woDate" value="${esc(w.date)}" max="${isoDate()}"></label>
+      <label class="field full"><span>Notizen</span><textarea class="textarea" data-in="woNotes" placeholder="Wie lief's? Schlaf, Energie, Technik …">${esc(w.notes || '')}</textarea></label></div>` });
+  else if (k === 'tpl') saveAsTemplate(w.entries, w.name);
+  else if (k === 'style') { Store.saveSettings({ woStyle: woSimple() ? 'detailed' : 'simple' }); App.renderCurrent(); }
+  else if (k === 'cancel') Actions.woCancel();
+};
 
 /* ---------- Bausteine: Ziel, Fortschritt, Satz-Typen ---------- */
 const workSets = en => en.sets.filter(s => !s.warmup);
@@ -4472,9 +4626,9 @@ function focusView(w) {
           <input class="fc-in" inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}">
           <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
       </div>
-      ${S().showRPE ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
+      ${(woSimple() ? S().simpleRPE : S().showRPE) ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
       <button class="btn ${s.done ? 'btn-secondary' : 'btn-primary'} btn-lg btn-block" data-act="setDone" ${d}>${icon(s.done ? 'undo' : 'check')} ${s.done ? 'Rückgängig' : 'Satz erledigt'}</button>
-      <div class="row">
+      <div class="row" ${woSimple() ? 'hidden' : ''}>
         ${type === 'kg' && F('f_plates') ? `<button class="btn btn-ghost btn-sm" data-act="plates" ${d}>${icon('plate')} Scheiben</button>` : ''}
         <span class="grow"></span>
         <button class="btn btn-ghost btn-sm" data-act="setMenu" ${d}>${icon('dots')} Satz-Optionen</button>
@@ -4494,8 +4648,8 @@ function focusView(w) {
         <div class="fc-title"><div class="fc-of">Übung ${ei + 1} von ${w.entries.length}</div><button class="fc-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button></div>
         <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Menü">${icon('dots')}</button>
       </div>
-      ${goalBar(en, ei, type)}
-      <div class="ex-hints">
+      ${woSimple() ? `<div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(`${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${goalWeight(en) ? ' · ' + fmtW(goalWeight(en)) : ''}`)}</button></div>` : goalBar(en, ei, type)}
+      <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
         ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
         ${en.target && en.target.notes ? `<span class="hint-chip note">${esc(en.target.notes)}</span>` : ''}
         ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
@@ -4503,7 +4657,7 @@ function focusView(w) {
       <div class="fc-sets">${pills}<button class="fc-pill add" data-act="setAdd" data-ei="${ei}" aria-label="Satz hinzufügen">${icon('plus')}</button></div>
       ${cur}
       ${exSummary(en, w, type)}
-      <div class="fc-foot">${type === 'kg' && F('f_warmup') ? `<button class="btn btn-ghost btn-sm" data-act="warmup" data-ei="${ei}">${icon('flame')} Aufwärmsätze</button>` : ''}</div>
+      <div class="fc-foot" ${woSimple() ? 'hidden' : ''}>${type === 'kg' && F('f_warmup') ? `<button class="btn btn-ghost btn-sm" data-act="warmup" data-ei="${ei}">${icon('flame')} Aufwärmsätze</button>` : ''}</div>
     </div>
     <div class="fc-nav">
       <button class="btn btn-secondary" data-act="focusNav" data-d="-1" ${nPrev ? '' : 'disabled'}>${icon('chevL')}<span>${nPrev ? esc(shortName(nPrev.exerciseName)) : 'Anfang'}</span></button>
@@ -4792,6 +4946,7 @@ function selectSet(ei, si, { rerender = false } = {}) {
   const row = $(`.set-row[data-ei="${ei}"][data-si="${si}"]`);
   if (!row) return;
   row.classList.add('sel');
+  if (woSimple()) return;
   const en = w.entries[ei];
   row.insertAdjacentHTML('afterend', setPanel(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId))));
 }
@@ -4931,6 +5086,9 @@ Actions.setMenu = async el => {
 Actions.exMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
   const k = await actionMenu(en.exerciseName, [
+    { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
+    F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
+    F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
     { key: 'note', label: en.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen', icon: 'note' },
     { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
@@ -4940,6 +5098,9 @@ Actions.exMenu = async el => {
     { key: 'del', label: 'Übung entfernen', icon: 'trash', danger: true }
   ]);
   if (!k) return;
+  if (k === 'goal') return openGoalEditor(ei);
+  if (k === 'warm') return Actions.warmup({ dataset: { ei } });
+  if (k === 'plates') return openPlates(goalWeight(en));
   if (k === 'note') {
     const v = await promptDialog({ title: 'Notiz', label: en.exerciseName, value: en.note || '', placeholder: 'z. B. Sitzhöhe 4, enger Griff' });
     if (v != null) en.note = v.trim();
@@ -5059,7 +5220,7 @@ function showSummary({ id, doc, prs }) {
       </div>
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
-    foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Vorlage</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
+    foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
   m.el.addEventListener('click', e => {
     const b = e.target.closest('[data-x]');
@@ -5328,14 +5489,14 @@ function openExerciseDetail(id) {
       App.go('training');
       toast(`${ex.name} hinzugefügt`, 'success');
     } else if (x === 'del') {
-      const usedPlans = Store.all('plans').filter(p => (p.days || []).some(d => (d.exercises || []).some(y => y.exerciseId === id)));
+      const usedPlans = Store.all('templates').filter(t => (t.exercises || []).some(y => y.exerciseId === id));
       const ok = await confirmDialog({
         title: 'Übung löschen?',
-        text: `„${ex.name}" wird aus der Bibliothek entfernt.${ss.length ? ` Sie kommt in ${ss.length} Workouts vor – der Verlauf bleibt mit Namen erhalten.` : ''}${usedPlans.length ? ` Sie wird aus ${usedPlans.length} Plan/Plänen entfernt.` : ''}`,
+        text: `„${ex.name}" wird aus der Bibliothek entfernt.${ss.length ? ` Sie kommt in ${ss.length} Workouts vor – der Verlauf bleibt mit Namen erhalten.` : ''}${usedPlans.length ? ` Sie wird aus ${usedPlans.length} deiner Workouts entfernt.` : ''}`,
         okLabel: 'Löschen', danger: true
       });
       if (!ok) return;
-      usedPlans.forEach(p => Store.put('plans', p.id, { ...p, days: p.days.map(d => ({ ...d, exercises: d.exercises.filter(y => y.exerciseId !== id) })) }, { replace: true }));
+      usedPlans.forEach(t => Store.put('templates', t.id, { ...t, exercises: t.exercises.filter(y => y.exerciseId !== id), updatedAt: Date.now() }, { replace: true }));
       Store.del('exercises', id);
       m.close();
       toast('Übung gelöscht', 'success');
@@ -5761,7 +5922,7 @@ ProgressViews.overview = body => {
   const monthFrac = now.getDate() / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const expected = avg6 * monthFrac;
   // Konsistenz
-  const goal = S().weeklyGoal || 4;
+  const goal = weeklyTarget();
   const last28 = ix.rows.filter(r => r.dn > t - 28).length;
   const consistency = Math.min(100, last28 / (goal * 4) * 100);
   // Big 3
@@ -6750,11 +6911,10 @@ Views.more = {
 
       <div class="section-head"><h4>Training</h4></div>
       <div class="list">
-        ${setLine('Aktiver Split', 'Für „Nächster Tag" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.map(p => [p.id, p.name])]))}
-        ${setLine('Wochenziel', 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])))}
+        ${setLine('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]))}
+        ${setLine('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])))}
         ${setLine('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])))}
         ${setLine('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]))}
-        ${setLine('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'))}
         ${setLine('Werte vorausfüllen', 'Letztes Mal + Progressions-Vorschlag', toggleCtl('prefill'))}
         ${setLine('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'))}
         ${setLine('Ton bei Pausenende', '', toggleCtl('sound'))}
@@ -6762,9 +6922,11 @@ Views.more = {
       </div>
       <div class="section-head"><h4>Workout-Ansicht</h4></div>
       <div class="list">
+        ${setLine('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]))}
         ${setLine('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]))}
-        ${setLine('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'))}
-        ${setLine('Spalte „Letztes Mal"', 'Werte vom letzten Training neben jedem Satz', toggleCtl('woPrev'))}
+        ${setLine('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'))}
+        ${S().woStyle === 'detailed' ? `${setLine('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'))}
+        ${setLine('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'))}` : setLine('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'))}
         ${setLine('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'))}
         ${setLine('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'))}
       </div>
@@ -7100,12 +7262,13 @@ Actions.deleteAll = async () => {
   for (const c of COLLS) for (const d of Store.all(c)) ops.push({ type: 'del', coll: c, id: d.id });
   Workout.discard();
   await Store.batch(ops);
-  const seeds = [...seedExerciseDocs().map(e => ({ type: 'put', coll: 'exercises', id: e.id, doc: e })), ...seedPlanDocs().map(p => ({ type: 'put', coll: 'plans', id: p.id, doc: p }))];
+  const seeds = [...seedExerciseDocs().map(e => ({ type: 'put', coll: 'exercises', id: e.id, doc: e }))];
+  Store.saveSettings({ activePlanId: '', seedVersion: SEED_VERSION });
   await Store.batch(seeds);
   try { localStorage.removeItem(LS.ui); } catch (e) {}
   applyTheme();
   App.go('start');
-  toast('Alle Daten gelöscht – Bibliothek & Pläne neu angelegt', 'success');
+  toast('Alle Daten gelöscht – Übungs-Bibliothek neu angelegt', 'success');
 };
 Actions.undoImport = async () => {
   const imp = Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
@@ -7115,7 +7278,7 @@ Actions.undoImport = async () => {
   const pIds = (ids.progress || []).filter(id => Store.raw('progress', id));
   const wSet = new Set(wIds);
   const usedElsewhere = new Set(Store.all('workouts').filter(w => !wSet.has(w.id)).flatMap(w => (w.entries || []).map(e => e.exerciseId)));
-  const usedInPlans = new Set(Store.all('plans').flatMap(p => (p.days || []).flatMap(d => (d.exercises || []).map(x => x.exerciseId))));
+  const usedInPlans = new Set(Store.all('templates').flatMap(t => (t.exercises || []).map(x => x.exerciseId)));
   const eIds = (ids.exercises || []).filter(id => Store.raw('exercises', id) && !usedElsewhere.has(id) && !usedInPlans.has(id));
   if (!await confirmDialog({ title: 'Import rückgängig machen?', text: `Entfernt ${wIds.length} Workouts, ${eIds.length} neu angelegte Übungen und ${pIds.length} Körper-Einträge aus dem Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}.`, okLabel: 'Rückgängig machen', danger: true })) return;
   const ops = [

@@ -29,7 +29,7 @@ angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, 
 Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
 Konfetti und Inhalte der Startseite.
 
-## Workout-Ansicht
+## Workout-Ansicht (ausführlich)
 
 - **Übersichtsleiste** oben: alle Übungen mit Fortschrittsring – antippen springt hin.
 - **Ziel-Leiste** pro Übung (Sätze × Wdh. · Gewicht · Pause) – antippen öffnet den Ziel-Editor
@@ -38,14 +38,21 @@ Konfetti und Inhalte der Startseite.
 - **Übersicht**: alle Übungen mit Ziel & erledigten Sätzen, umsortieren, Ziele ändern.
 - **Satz-Typen**: Aufwärmen (W), Drop-Satz (D), bis Muskelversagen (F).
 
-## Eigene Splits & Workouts
+## Meine Workouts & Trainingsplan
 
-- **Training → Eigenen Split erstellen**: Assistent mit Vorlage (Ganzkörper, Ober-/Unterkörper,
-  Push/Pull/Beine, Bro-Split oder leer) und 1–7 Tagen – Übungen sind vorbefüllt und frei änderbar.
-  Bestehende Pläne lassen sich als Grundlage kopieren.
-- **Workout zusammenstellen**: Übungen aus der Bibliothek wählen und sofort starten.
-- **Als Vorlage speichern** (nach dem Workout oder in der Workout-Übersicht) → landet im Plan
-  „Meine Workouts".
+- Es gibt keine vorgegebenen Pläne – alles erstellst du selbst unter **Training**.
+- **Meine Workouts**: Name + Übungen (Sätze, Wdh., Pause, Notiz), z. B. „Push", „Beine".
+- **Trainingsplan**: für jeden Wochentag eines deiner Workouts oder Ruhetag. Start und
+  „Nächstes Training" richten sich danach; die Konsistenz zählt die geplanten Tage.
+- **Spontan trainieren**: Übungen wählen & los, oder leeres Workout. Jedes Workout lässt sich
+  über ⋯ → „Als Workout speichern" unter „Meine Workouts" ablegen.
+
+## Workout-Eingabe
+
+- **Schlicht** (Standard): pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben,
+  Notizen usw. hinter dem ⋯-Menü.
+- **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
+- Umschalten unter **Mehr → Workout-Ansicht** oder im Workout über ⋯.
 
 ## Funktionen ein-/ausschalten
 
