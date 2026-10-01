@@ -38,6 +38,28 @@ Konfetti und Inhalte der Startseite.
 - **Übersicht**: alle Übungen mit Ziel & erledigten Sätzen, umsortieren, Ziele ändern.
 - **Satz-Typen**: Aufwärmen (W), Drop-Satz (D), bis Muskelversagen (F).
 
+## Eigene Splits & Workouts
+
+- **Training → Eigenen Split erstellen**: Assistent mit Vorlage (Ganzkörper, Ober-/Unterkörper,
+  Push/Pull/Beine, Bro-Split oder leer) und 1–7 Tagen – Übungen sind vorbefüllt und frei änderbar.
+  Bestehende Pläne lassen sich als Grundlage kopieren.
+- **Workout zusammenstellen**: Übungen aus der Bibliothek wählen und sofort starten.
+- **Als Vorlage speichern** (nach dem Workout oder in der Workout-Übersicht) → landet im Plan
+  „Meine Workouts".
+
+## Funktionen ein-/ausschalten
+
+**Mehr → Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen, Pausen-Timer,
+Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
+Workout-Notizen, Arrow-Import und Tools – alles einzeln abschaltbar.
+
+## Übungen & Muskel-Diagramm
+
+- ~190 Übungen inkl. Maschinen, Kabel, Kettlebell, Core & Cardio. Bestehende Konten bekommen
+  neue Übungen automatisch ergänzt.
+- Body-Heatmap mit 23 Muskelregionen (z. B. obere/untere Brust, vordere/seitliche/hintere
+  Schulter, Latissimus, Rhomboiden, Adduktoren, Soleus) plus sortierte Regionen-Liste.
+
 ## Dateien
 
 | Datei | Zweck |
