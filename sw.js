@@ -3,7 +3,7 @@
    WICHTIG: CACHE bei JEDEM Deploy hochzählen (gymlog-v2, gymlog-v3, …),
    sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v2';
+const CACHE = 'gymlog-v3';
 
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
 const CDN_ASSETS = [
@@ -13,7 +13,8 @@ const CDN_ASSETS = [
   'https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js',
   'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
 ];
-const CDN_HOSTS = ['www.gstatic.com', 'cdn.jsdelivr.net'];
+// Design-Schriften (Google Fonts) ebenfalls cache-first → Designs funktionieren offline
+const CDN_HOSTS = ['www.gstatic.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
 // Firestore-, Auth- und Google-API-Requests NIE cachen
 const BYPASS = /(firestore\.googleapis\.com|googleapis\.com|identitytoolkit|securetoken|firebaseinstallations|accounts\.google\.com|apis\.google\.com|\/__\/auth\/)/;
 

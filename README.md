@@ -7,6 +7,37 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als Single-File-PWA
 - Mit Firebase: Google-Login + Sync zwischen iPhone und Laptop (Firestore, offline-fähig).
 - Diagramme: Chart.js 4 · PDF-Export: jsPDF 2 · beide lazy per CDN geladen.
 
+## Designs & Darstellung
+
+Unter **Mehr → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
+(oder automatisch nach System / Uhrzeit):
+
+| Design | Look |
+| --- | --- |
+| GymLog | Neon-Grün auf Graphit – das Original |
+| Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
+| Lernio | Petrol & IBM Plex – passend zur Lernio-App |
+| Mono | Schwarz-Weiß, OLED-schwarz bzw. papierweiß |
+| Brutal | Neo-Brutalismus: dicke Kanten, harte Schatten, Sticker-Farben |
+| Soft | Weiche Schatten, alles rund |
+| Iron | Industrial-Gym: Stahl, Orange, Condensed-Schrift |
+| Neon | Synthwave mit Glow & Raster |
+| Terminal | Monospace, Phosphor-Grün / Papier |
+
+Dazu einstellbar: Akzentfarbe (12 Vorgaben oder eigene Farbe – Kontrast wird automatisch
+angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, hoher Kontrast,
+Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
+Konfetti und Inhalte der Startseite.
+
+## Workout-Ansicht
+
+- **Übersichtsleiste** oben: alle Übungen mit Fortschrittsring – antippen springt hin.
+- **Ziel-Leiste** pro Übung (Sätze × Wdh. · Gewicht · Pause) – antippen öffnet den Ziel-Editor
+  (Satzanzahl, Wdh.-Bereich, Gewicht, Pause, Notiz – optional auf alle offenen Sätze übertragen).
+- **Liste** (alle Übungen) oder **Fokus** (eine Übung, große Eingaben, vor/zurück).
+- **Übersicht**: alle Übungen mit Ziel & erledigten Sätzen, umsortieren, Ziele ändern.
+- **Satz-Typen**: Aufwärmen (W), Drop-Satz (D), bis Muskelversagen (F).
+
 ## Dateien
 
 | Datei | Zweck |
