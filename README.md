@@ -1,5 +1,7 @@
 # Trainio
 
+link: https://davidflasch2009.github.io/trainio/
+
 Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als Single-File-PWA
 (`index.html` mit allem CSS + JS inline, kein Build-Step).
 
