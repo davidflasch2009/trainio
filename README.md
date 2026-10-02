@@ -62,9 +62,19 @@ Konfetti und Inhalte der Startseite.
   Notizen usw. hinter dem ⋯-Menü.
 - **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
 - Umschalten unter **Mehr → Workout-Ansicht** oder im Workout über ⋯.
+- **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
+  gibt es dann ein Feld für links und eins für rechts – rechts leer lassen = wie links. Einstellbar im
+  Workout über ⋯ → „Einseitig", in „Meine Workouts" über den L/R-Schalter und beim Bearbeiten einer Übung.
+  Volumen zählt beide Seiten, Kraftwerte (e1RM, PRs) die schwächere Seite.
 - **Nur aktuelle Übung offen** (Standard): fertige und kommende Übungen sind zugeklappt
   (Name + Sätze bzw. Ziel). Ist eine Übung fertig, klappt sie zu und die nächste öffnet sich;
   antippen öffnet jede Übung direkt. Abschaltbar unter **Mehr → Workout-Ansicht**.
+
+## Tabs ein-/ausblenden
+
+**Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
+einen eigenen Knopf). Ist der Übungen-Tab aus, bleibt die Bibliothek unter **Mehr → Übungs-Bibliothek**
+und beim Hinzufügen von Übungen erreichbar.
 
 ## Funktionen ein-/ausschalten
 

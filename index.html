@@ -435,6 +435,7 @@ svg { flex-shrink: 0; }
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
 .topbar-title { font-size: calc(20px * var(--fs)); font-weight: 800; flex: 1; min-width: 0; letter-spacing: -.02em; }
+.topbar-back { margin-left: -10px; flex-shrink: 0; }
 .topbar-title small { display: block; font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--text-dim); letter-spacing: 0; }
 .view {
   width: 100%; max-width: 1120px; margin: 0 auto;
@@ -982,6 +983,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exs .set-head, .exs .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 8px; padding: 0 12px; }
 .exs .rpe .set-head, .exs .rpe .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 64px 48px; }
 .exs .set-head span { text-align: center; }
+/* Einseitig: zweites Wdh.-Feld für rechts */
+.exs .uni .set-head, .exs .uni .set-row { grid-template-columns: 30px minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 6px; }
+.exs .uni.rpe .set-head, .exs .uni.rpe .set-row { grid-template-columns: 30px minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) 56px 46px; gap: 5px; }
+.ex-card.uni .set-head, .ex-card.uni .set-row { grid-template-columns: 34px 0 minmax(0, 1.2fr) minmax(0, 1fr) minmax(0, 1fr) var(--rpe-col, 46px) 44px; gap: 5px; }
+.ex-card.uni .set-prev, .ex-card.uni .set-head span:nth-child(2) { visibility: hidden; overflow: hidden; }
+.set-panel.uni > div:first-child, .fc-steppers.uni > .fc-big:first-child { grid-column: 1 / -1; }
+.uni-chip { display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 0 10px; border-radius: 999px; border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text-dim); font: inherit; font-weight: 750; font-size: calc(12px * var(--fs)); flex-shrink: 0; cursor: pointer; }
+.uni-chip svg { width: 14px; height: 14px; }
+.uni-chip.on { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
 .exs .set-row { min-height: 54px; }
 .exs .set-row.sel { background: transparent; }
 .exs .set-in { height: 44px; font-size: max(16px, calc(18px * var(--fs))); }
@@ -1589,7 +1599,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.5.1',
+  version: '1.6.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1838,6 +1848,7 @@ const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
   dumbbell: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+  eyeOff: '<path d="M9.9 5.1A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.9 3.9M6.6 6.6C3.7 8.5 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/>',
   chart: '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
   plus: '<path d="M12 5v14M5 12h14"/>',
@@ -2236,6 +2247,7 @@ const Store = (() => {
   const syncListeners = new Set();
   let owner = 'local';         // 'local' (Gast) oder Firebase-UID
   let cloudInit = false;       // Erst-Sync für diese UID erledigt?
+  let mergePending = false;    // Gast-Daten warten noch auf den Upload ins Konto
   let queue = [];              // Offline-Ops, falls Firebase-SDK nicht geladen werden konnte
   let uid = null, db = null;
   let unsubs = [];
@@ -2256,6 +2268,7 @@ const Store = (() => {
         const o = JSON.parse(raw);
         owner = o.owner || 'local';
         cloudInit = !!o.cloudInit;
+        mergePending = !!o.mergePending;
         queue = Array.isArray(o.queue) ? o.queue : [];
         for (const c of COLLS) if (o.colls && o.colls[c]) data[c] = o.colls[c];
       }
@@ -2270,7 +2283,7 @@ const Store = (() => {
     try {
       const colls = {};
       for (const c of COLLS) if (!NO_MIRROR.has(c)) colls[c] = data[c];
-      localStorage.setItem(LS.data, JSON.stringify({ owner, cloudInit, queue, savedAt: Date.now(), colls }));
+      localStorage.setItem(LS.data, JSON.stringify({ owner, cloudInit, mergePending, queue, savedAt: Date.now(), colls }));
       if (data.meta.settings) localStorage.setItem(LS.settings, JSON.stringify(data.meta.settings));
     } catch (e) {
       console.error(e);
@@ -2295,8 +2308,14 @@ const Store = (() => {
 
   /* ---------- Firestore-Helfer ---------- */
   const ref = c => db.collection('users').doc(uid).collection(c);
+  /* Firestore erlaubt keine Arrays in Arrays (z. B. warmupSteps) → als { _arr: […] } speichern */
+  const encArr = v => Array.isArray(v) ? v.map(x => Array.isArray(x) ? { _arr: encArr(x) } : encArr(x))
+    : v && typeof v === 'object' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, encArr(x)])) : v;
+  const isArrBox = x => x && typeof x === 'object' && Array.isArray(x._arr) && Object.keys(x).length === 1;
+  const decArr = v => Array.isArray(v) ? v.map(x => isArrBox(x) ? decArr(x._arr) : decArr(x))
+    : v && typeof v === 'object' && typeof v.toMillis !== 'function' ? Object.fromEntries(Object.entries(v).map(([k, x]) => [k, decArr(x)])) : v;
   function toRemote(doc) {
-    const o = JSON.parse(JSON.stringify(doc)); // entfernt undefined (Firestore mag das nicht)
+    const o = encArr(JSON.parse(JSON.stringify(doc))); // JSON entfernt undefined (Firestore mag das nicht)
     delete o.id;
     for (const k of Object.keys(o)) {
       if (TS_KEYS.has(k) && typeof o[k] === 'number') o[k] = firebase.firestore.Timestamp.fromMillis(o[k]);
@@ -2304,7 +2323,7 @@ const Store = (() => {
     return o;
   }
   function fromRemote(id, d) {
-    const o = { ...d, id };
+    const o = { ...decArr(d), id };
     for (const k of Object.keys(o)) if (o[k] && typeof o[k].toMillis === 'function') o[k] = o[k].toMillis();
     return o;
   }
@@ -2332,7 +2351,7 @@ const Store = (() => {
     data[coll][id] = next;
     if (coll === 'photos') PhotoDB.put(id, next);
     queueEmit(coll);
-    if (online()) track(ref(coll).doc(id).set(toRemote(next), { merge: !opts.replace }));
+    if (online()) { try { track(ref(coll).doc(id).set(toRemote(next), { merge: !opts.replace })); } catch (e) { fsError(e); } }
     else enqueue({ t: 'put', c: coll, id });
     return Promise.resolve(next);
   }
@@ -2340,7 +2359,7 @@ const Store = (() => {
     delete data[coll][id];
     if (coll === 'photos') PhotoDB.del(id);
     queueEmit(coll);
-    if (online()) track(ref(coll).doc(id).delete());
+    if (online()) { try { track(ref(coll).doc(id).delete()); } catch (e) { fsError(e); } }
     else enqueue({ t: 'del', c: coll, id });
     return Promise.resolve();
   }
@@ -2364,22 +2383,42 @@ const Store = (() => {
     }
     await remoteBatch(ops.map(op => ({ type: op.type, coll: op.coll, id: op.id, replace: op.replace })), onProgress);
   }
-  async function remoteBatch(ops, onProgress) {
-    for (let i = 0; i < ops.length; i += 500) {
-      const b = db.batch();
-      for (const op of ops.slice(i, i + 500)) {
-        const r = ref(op.coll).doc(op.id);
+  /** Ops in Firestore-Batches schreiben (max. 450 Ops bzw. ~3 MB je Batch). Liefert false, wenn etwas schiefging. */
+  async function remoteBatch(ops, onProgress, { wait = 5000 } = {}) {
+    let ok = true;
+    const chunks = [];
+    let cur = [], size = 0;
+    for (const op of ops) {
+      let payload = null;
+      if (op.type === 'put') {
         const doc = data[op.coll][op.id];
-        if (op.type === 'put' && doc) b.set(r, toRemote(doc), { merge: !op.replace });
-        else if (op.type !== 'put') b.delete(r);
+        if (!doc) continue;
+        payload = toRemote(doc);
+        if (JSON.stringify(payload).length > 1000000) { console.warn('Dokument zu groß für Firestore', op.coll, op.id); ok = false; continue; }
+      }
+      const sz = payload ? JSON.stringify(payload).length : 100;
+      if (cur.length && (cur.length >= 450 || size + sz > 3000000)) { chunks.push(cur); cur = []; size = 0; }
+      cur.push([op, payload]); size += sz;
+    }
+    if (cur.length) chunks.push(cur);
+    let done = 0;
+    for (const chunk of chunks) {
+      const b = db.batch();
+      for (const [op, payload] of chunk) {
+        const r = ref(op.coll).doc(op.id);
+        try { if (payload) b.set(r, payload, { merge: !op.replace }); else b.delete(r); }
+        catch (e) { console.error('[Firestore] übersprungen', op.coll, op.id, e); ok = false; }
       }
       const p = b.commit();
       track(p);
+      p.catch(() => { ok = false; });
       // Offline resolved commit() erst nach Server-Ack → nicht ewig blockieren
-      if (navigator.onLine) await Promise.race([p.catch(() => {}), sleep(5000)]);
-      onProgress && onProgress(Math.min(i + 500, ops.length), ops.length);
+      if (navigator.onLine) await Promise.race([p.catch(() => {}), sleep(wait)]);
+      done += chunk.length;
+      onProgress && onProgress(done, ops.length);
       await sleep(0);
     }
+    return ok;
   }
   const all = coll => Object.values(data[coll]);
   const raw = (coll, id) => data[coll][id] || null;
@@ -2424,16 +2463,18 @@ const Store = (() => {
   }
 
   /* ---------- Firebase verbinden / trennen ---------- */
+  let askMergeFn = null;
   async function attach(userId, { askMerge } = {}) {
     detachListeners();
-    const guest = owner === 'local';
-    if (!guest && owner !== userId) { resetData(); cloudInit = false; }
-    if (guest) cloudInit = false;
+    askMergeFn = askMerge || null;
+    const guest = owner === 'local' || (owner === userId && mergePending);
+    if (owner !== 'local' && owner !== userId) { resetData(); cloudInit = false; mergePending = false; }
+    if (owner === 'local') cloudInit = false;
     uid = userId;
     db = firebase.firestore();
     serverSeen = {};
     // Offline gesammelte Ops nachholen (nur wenn der Cache diesem Konto gehört)
-    if (owner === userId && queue.length) {
+    if (owner === userId && queue.length && cloudInit) {
       const ops = queue.map(q => ({ type: q.t === 'put' ? 'put' : 'del', coll: q.c, id: q.id }));
       queue = [];
       await remoteBatch(ops).catch(fsError);
@@ -2441,11 +2482,14 @@ const Store = (() => {
     if (!cloudInit) await initialSync(guest, askMerge);
     owner = userId;
     saveLocal();
-    for (const c of COLLS) {
-      unsubs.push(ref(c).onSnapshot(snap => onSnap(c, snap), err => fsError(err)));
-    }
+    if (cloudInit) subscribeAll();
     emitSync();
   }
+  function subscribeAll() {
+    detachListeners();
+    for (const c of COLLS) unsubs.push(ref(c).onSnapshot(snap => onSnap(c, snap), err => fsError(err)));
+  }
+  /** Erster Abgleich mit dem Konto. Lokale Daten werden erst ersetzt, wenn der Upload sicher geklappt hat. */
   async function initialSync(guest, askMerge) {
     let cloudEmpty;
     try {
@@ -2453,16 +2497,22 @@ const Store = (() => {
       cloudEmpty = snaps.every(s => s.empty);
     } catch (e) {
       console.warn('Server nicht erreichbar – Erst-Sync folgt, sobald online', e);
+      if (e && e.code === 'permission-denied') fsError(e);
       pendingInit = true;
+      mergePending = guest;
       return;
     }
-    pendingInit = false;
+    const failed = () => {
+      pendingInit = true;
+      mergePending = guest;
+      toast('Hochladen ins Konto hat nicht geklappt – deine Daten bleiben auf diesem Gerät, neuer Versuch beim nächsten Start.', 'error', { duration: 6000 });
+    };
     if (cloudEmpty) {
       // Erster Login: Bibliothek + Pläne (und ggf. Gast-Daten) ins Konto hochladen
       seedLocal();
       const ops = [];
       for (const c of COLLS) for (const id of Object.keys(data[c])) ops.push({ type: 'put', coll: c, id });
-      await remoteBatch(ops).catch(fsError);
+      if (!await remoteBatch(ops, null, { wait: 20000 })) return failed();
     } else if (guest) {
       if (hasUserData() && askMerge && await askMerge()) {
         // Gast-Daten ins bestehende Konto übernehmen (Seeds haben feste IDs → keine Duplikate)
@@ -2471,20 +2521,28 @@ const Store = (() => {
         all('exercises').filter(e => e.isCustom).forEach(e => ops.push({ type: 'put', coll: 'exercises', id: e.id }));
         all('plans').forEach(p => ops.push({ type: 'put', coll: 'plans', id: p.id }));
         all('templates').forEach(t => ops.push({ type: 'put', coll: 'templates', id: t.id }));
-        await remoteBatch(ops).catch(fsError);
+        if (!await remoteBatch(ops, null, { wait: 20000 })) return failed();
         readyHooks.push(() => PR.recalcAll({ silent: true }));
       } else {
         resetData();
       }
     }
+    pendingInit = false;
+    mergePending = false;
     cloudInit = true;
   }
   function onSnap(c, snap) {
     // Leerer Cache-Snapshot beim allerersten Start würde lokale Daten kurz löschen → ignorieren
     if (snap.metadata.fromCache && snap.empty && !serverSeen[c] && Object.keys(data[c]).length) return;
+    const firstServer = !snap.metadata.fromCache && !serverSeen[c];
     if (!snap.metadata.fromCache) serverSeen[c] = true;
     const next = {};
     snap.forEach(d => { next[d.id] = fromRemote(d.id, d.data()); });
+    // Konto hat (noch) keine Einstellungen → die lokalen behalten und hochladen statt auf Standard zurückzufallen
+    if (c === 'meta' && firstServer && !next.settings && data.meta.settings) {
+      next.settings = data.meta.settings;
+      setTimeout(() => put('meta', 'settings', data.meta.settings), 0);
+    }
     data[c] = next;
     if (c === 'photos') { PhotoDB.clear().then(() => Object.entries(next).forEach(([id, v]) => PhotoDB.put(id, v))); }
     queueEmit(c);
@@ -2500,14 +2558,17 @@ const Store = (() => {
   function detachListeners() { unsubs.forEach(u => { try { u(); } catch (e) {} }); unsubs = []; }
   function detach() {
     detachListeners();
-    uid = null; db = null; owner = 'local'; cloudInit = false;
+    uid = null; db = null; owner = 'local'; cloudInit = false; mergePending = false; pendingInit = false;
     resetData();
     seedLocal();
     saveLocal();
     emitSync();
   }
   async function retryInit() {
-    if (online() && pendingInit) { await initialSync(false, null); saveLocal(); }
+    if (!online() || !pendingInit) return;
+    await initialSync(mergePending, askMergeFn);
+    saveLocal();
+    if (cloudInit) { subscribeAll(); emitSync(); }
   }
 
   async function boot() {
@@ -3161,8 +3222,10 @@ const Views = {};
 
 const App = {
   tab: TABS.some(t => t[0] === UI.tab) ? UI.tab : 'start',
+  peek: null,   // ausgeblendeter Tab, der gerade über „Mehr" geöffnet ist
   go(tab) {
     if (!Views[tab]) return;
+    if (tab !== this.peek) this.peek = null;
     const changed = tab !== this.tab;
     this.tab = tab;
     UI.tab = tab;
@@ -3175,7 +3238,7 @@ const App = {
     this.renderCurrent();
   },
   renderCurrent() {
-    if (!visibleTabs().some(t => t[0] === this.tab)) { this.tab = 'start'; UI.tab = 'start'; }
+    if (!visibleTabs().some(t => t[0] === this.tab) && this.peek !== this.tab) { this.tab = 'start'; UI.tab = 'start'; }
     renderNav();
     renderTopbar();
     renderBanner();
@@ -3189,6 +3252,21 @@ const App = {
   }
 };
 Actions.go = el => App.go(el.dataset.tab);
+/** Übungs-Bibliothek – als Tab oder (wenn ausgeblendet) über „Mehr" */
+Actions.openLibrary = () => { if (!F('f_exercises')) App.peek = 'exercises'; App.go('exercises'); };
+Actions.exTabToggle = async () => {
+  if (F('f_exercises')) {
+    if (!await confirmDialog({ title: 'Übungen-Tab ausblenden?', text: 'Die Bibliothek bleibt erreichbar: beim Hinzufügen von Übungen und unter Mehr → Übungs-Bibliothek.', okLabel: 'Ausblenden' })) return;
+    Store.saveSettings({ f_exercises: false });
+    App.go('more');
+    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs', 'success', { duration: 4500 });
+  } else {
+    Store.saveSettings({ f_exercises: true });
+    App.peek = null;
+    App.renderCurrent();
+    toast('Übungen-Tab wieder eingeblendet', 'success');
+  }
+};
 
 /* Re-Render bei Datenänderungen – aber nicht, während jemand tippt */
 let renderTimer = null, renderPending = false;
@@ -3213,11 +3291,12 @@ const visibleTabs = () => TABS.filter(([k]) => (k !== 'exercises' || F('f_exerci
 function renderNav() {
   const live = !!Workout.cur();
   const tabs = visibleTabs();
+  const act = App.peek === App.tab ? 'more' : App.tab;
   $('#bottomNav').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
   $('#bottomNav').innerHTML = tabs.map(([k, l, ic]) =>
-    `<button class="nav-btn ${App.tab === k ? 'active' : ''}" data-act="go" data-tab="${k}" aria-label="${l}" ${App.tab === k ? 'aria-current="page"' : ''}>${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('');
+    `<button class="nav-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}" aria-label="${l}" ${act === k ? 'aria-current="page"' : ''}>${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('');
   $('#sidebar').innerHTML = `<div class="brand"><img src="icon-192.png" alt="">${APP.name}</div>` +
-    tabs.map(([k, l, ic]) => `<button class="side-btn ${App.tab === k ? 'active' : ''}" data-act="go" data-tab="${k}">${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('') +
+    tabs.map(([k, l, ic]) => `<button class="side-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}">${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('') +
     `<div class="side-foot">${APP.name} v${APP.version}</div>`;
 }
 const SYNC_LABEL = { local: 'Lokal', synced: 'Synchron', pending: 'Sync …', offline: 'Offline' };
@@ -3228,7 +3307,8 @@ function syncPill() {
 function renderTopbar() {
   const titles = { start: APP.name, training: Workout.cur() ? 'Workout' : 'Training', exercises: 'Übungen', progress: 'Fortschritt', more: 'Mehr' };
   const sub = App.tab === 'start' ? `<small>${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</small>` : '';
-  $('#topbar').innerHTML = `<div class="topbar-title">${esc(titles[App.tab])}${sub}</div>${syncPill()}`;
+  const back = App.peek === App.tab ? `<button class="btn-icon topbar-back" data-act="go" data-tab="more" aria-label="Zurück zu Mehr">${icon('chevL')}</button>` : '';
+  $('#topbar').innerHTML = `${back}<div class="topbar-title">${esc(titles[App.tab])}${sub}</div>${syncPill()}`;
 }
 function renderBanner() {
   const w = Workout.cur();
@@ -3267,12 +3347,30 @@ const catShort = c => ({ Push: 'PU', Pull: 'PL', Legs: 'LG', Core: 'CO', Cardio:
    ========================================================================== */
 const e1rm = (w, r) => (w > 0 && r >= 1) ? w * (1 + r / 30) : 0;  // Epley
 
+/* ---------- Einseitig (unilateral): reps/durationSec = links, repsR/durationSecR = rechts ---------- */
+const UNI_DEFAULT = new Set(['kh_rudern', 'konzentrations_curl', 'bulgarian', 'side_plank', 'landmine_press', 'trizeps_einarmig', 'meadows_row',
+  'latzug_einarmig', 'beinpresse_einbeinig', 'reverse_lunge', 'step_up', 'pistol_squat', 'rdl_einbeinig', 'beincurl_stehend', 'kabel_kickback',
+  'copenhagen_plank', 'waden_einbeinig', 'sandbag_carry'].map(x => EX_PREFIX + x));
+/** Wdh. für Kraftwerte (e1RM, PR): bei einseitigen Sätzen zählt die schwächere Seite */
+const repsOf = s => s.repsR != null ? Math.min(+s.reps || 0, +s.repsR || 0) : +s.reps || 0;
+/** Wdh. für Volumen: beide Seiten */
+const repsSum = s => (+s.reps || 0) + (s.repsR != null ? +s.repsR || 0 : 0);
+const setVol = s => repsSum(s) * (+s.weightKg || 0);
+/** „10" bzw. „10/8" (links/rechts) – für gespeicherte Sätze */
+const repsTxt = s => s.repsR != null ? `${s.reps ?? 0}/${s.repsR}` : `${s.reps ?? '–'}`;
+const secTxt = s => s.durationSecR != null ? `${fmtClock(s.durationSec || 0)}/${fmtClock(s.durationSecR)}` : fmtClock(s.durationSec || 0);
+/** dasselbe für Einträge aus dem Analytics-Index ({ r, sec, u: [L, R], us: [L, R] }) */
+const prevR = p => p.u ? p.u.join('/') : p.r;
+const prevSec = p => p.us ? `${fmtClock(p.us[0])}/${fmtClock(p.us[1])}` : fmtClock(p.sec || 0);
+
 const Ex = {
   get: id => Store.raw('exercises', id),
   name: id => (Store.raw('exercises', id) || {}).name || (Store.raw('prs', id) || {}).exerciseName || 'Unbekannte Übung',
   /** Name für einen Workout-Eintrag: aktueller Bibliotheksname, sonst Snapshot */
   entryName: en => (Store.raw('exercises', en.exerciseId) || {}).name || en.exerciseName || 'Übung',
   type: ex => !ex ? 'kg' : ex.defaultUnit === 'sec' ? 'sec' : ex.defaultUnit === 'reps' ? 'reps' : 'kg',
+  /** Standard: einseitig (links/rechts getrennt)? */
+  isUni: ex => !!ex && (ex.unilateral != null ? !!ex.unilateral : UNI_DEFAULT.has(ex.id)),
   sorted: () => Store.all('exercises').slice().sort((a, b) => a.name.localeCompare(b.name, 'de')),
   /** Case-insensitiver Lookup auf Name + Aliase */
   findByName(name) {
@@ -3323,9 +3421,14 @@ function buildIndex(W, EX) {
         row.planned++;
         if (s.done === false) continue;
         row.done++;
-        const r = +s.reps || 0, wt = +s.weightKg || 0, sec = +s.durationSec || 0;
-        n++; reps += r; secs += sec;
-        const v = r * wt;
+        // Einseitige Sätze: Kraftwerte mit der schwächeren Seite, Volumen mit beiden Seiten
+        const uniS = s.repsR != null || s.durationSecR != null;
+        const rL = +s.reps || 0, rR = s.repsR != null ? +s.repsR || 0 : rL;
+        const sL = +s.durationSec || 0, sR = s.durationSecR != null ? +s.durationSecR || 0 : sL;
+        const r = uniS ? Math.min(rL, rR) : rL, rT = uniS ? rL + rR : rL;
+        const wt = +s.weightKg || 0, sec = uniS ? Math.min(sL, sR) : sL;
+        n++; reps += rT; secs += uniS ? sL + sR : sL;
+        const v = rT * wt;
         vol += v;
         if (s.rpe) { row.rpeSum += +s.rpe; row.rpeN++; row.rpeVol += v * (+s.rpe) / 10; }
         if (s.doneAt) times.push(s.doneAt);
@@ -3339,7 +3442,7 @@ function buildIndex(W, EX) {
         for (const m of (meta.muscleGroups || [])) row.muscles[m] = (row.muscles[m] || 0) + 1;
         const cat = meta.category || 'Full Body';
         row.cats[cat] = (row.cats[cat] || 0) + 1;
-        list.push({ r, w: wt, rpe: s.rpe || null, sec });
+        list.push(uniS ? { r, w: wt, rpe: s.rpe || null, sec, u: [rL, rR], us: [sL, sR] } : { r, w: wt, rpe: s.rpe || null, sec });
       }
       if (!n) continue;
       row.sets += n; row.reps += reps; row.ton += vol;
@@ -3498,8 +3601,8 @@ const PR = {
     let bestW = 0, best1 = 0, vol = 0, bestR = 0, bestSet = null, heavy = null;
     for (const s of entry.sets || []) {
       if (!s || s.warmup || s.done === false) continue;
-      const r = +s.reps || 0, w = +s.weightKg || 0;
-      vol += r * w;
+      const r = repsOf(s), w = +s.weightKg || 0;
+      vol += setVol(s);
       const e = e1rm(w, r);
       if (e > best1) { best1 = e; bestSet = { w, r }; }
       if (r >= 1 && (w > bestW || (w === bestW && r > bestR))) { bestW = w; bestR = r; heavy = { w, r }; }
@@ -3608,7 +3711,7 @@ const Workout = (() => {
   const save = () => { try { if (w) localStorage.setItem(LS.active, JSON.stringify(w)); else localStorage.removeItem(LS.active); } catch (e) {} };
 
   function newSet(src = {}) {
-    return { reps: src.reps ?? null, weightKg: src.weightKg ?? null, durationSec: src.durationSec ?? null, rpe: src.rpe ?? null, done: false, warmup: !!src.warmup, kind: src.kind || null, doneAt: null };
+    return { reps: src.reps ?? null, repsR: src.repsR ?? null, weightKg: src.weightKg ?? null, durationSec: src.durationSec ?? null, durationSecR: src.durationSecR ?? null, rpe: src.rpe ?? null, done: false, warmup: !!src.warmup, kind: src.kind || null, doneAt: null };
   }
   /** Übung als Eintrag anlegen – mit Werten vom letzten Mal bzw. Progressions-Vorschlag */
   function makeEntry(exId, target = {}) {
@@ -3618,20 +3721,25 @@ const Workout = (() => {
     const last = ss.length ? ss[ss.length - 1] : null;
     const sug = target.reps && F('f_suggest') ? suggestFor(exId, target) : null;
     const [lo] = parseRange(target.reps);
+    const uni = target.uni != null ? !!target.uni : Ex.isUni(ex);
     const sets = [];
     for (let i = 0; i < nSets; i++) {
       const prev = last ? (last.list[i] || last.list[last.list.length - 1]) : null;
       const s = newSet();
       if (S().prefill) {
-        if (Ex.type(ex) === 'sec') { s.durationSec = prev ? prev.sec || null : (lo || null); s.weightKg = prev && prev.w ? prev.w : null; }
+        if (Ex.type(ex) === 'sec') {
+          s.durationSec = prev ? (prev.us ? prev.us[0] : prev.sec) || null : (lo || null);
+          if (uni && prev && prev.us) s.durationSecR = prev.us[1] || null;
+          s.weightKg = prev && prev.w ? prev.w : null;
+        }
         else if (sug && sug.type === 'up') { s.weightKg = sug.weightKg; s.reps = sug.reps; }
-        else if (prev) { s.weightKg = prev.w || null; s.reps = prev.r || lo || null; }
+        else if (prev) { s.weightKg = prev.w || null; s.reps = (prev.u ? prev.u[0] : prev.r) || lo || null; if (uni && prev.u) s.repsR = prev.u[1] || null; }
         else if (lo) s.reps = lo;
       }
       sets.push(s);
     }
     return {
-      uid: autoId().slice(0, 8), exerciseId: exId, exerciseName: ex ? ex.name : 'Übung',
+      uid: autoId().slice(0, 8), exerciseId: exId, exerciseName: ex ? ex.name : 'Übung', uni,
       target: { sets: nSets, reps: target.reps ? String(target.reps) : '', restSec: target.restSec || S().defaultRestSec, notes: target.notes || '' },
       note: '', sets, suggestion: sug
     };
@@ -3663,6 +3771,7 @@ const Workout = (() => {
       const ex = Ex.get(en.exerciseId);
       return {
         uid: autoId().slice(0, 8), exerciseId: en.exerciseId, exerciseName: ex ? ex.name : en.exerciseName,
+        uni: !!en.uni || (en.sets || []).some(x => x.repsR != null || x.durationSecR != null),
         target: { sets: (en.sets || []).length, reps: '', restSec: S().defaultRestSec, notes: '' }, note: en.note || '',
         sets: (en.sets || []).map(s => edit ? { ...newSet(s), done: s.done !== false, doneAt: s.doneAt || null } : newSet({ ...s, rpe: null })),
         suggestion: null
@@ -3698,10 +3807,16 @@ const Workout = (() => {
       exerciseId: en.exerciseId,
       exerciseName: en.exerciseName,
       ...(en.note ? { note: en.note } : {}),
+      ...(en.uni ? { uni: true } : {}),
       sets: en.sets
-        .filter(s => s.done || s.reps != null || s.weightKg != null || s.durationSec != null)
+        .filter(s => s.done || s.reps != null || s.repsR != null || s.weightKg != null || s.durationSec != null)
         .map(s => {
           const o = { reps: s.reps != null ? +s.reps : 0, weightKg: s.weightKg != null ? round(+s.weightKg, 3) : 0, rpe: s.rpe != null ? +s.rpe : null, done: !!s.done };
+          if (en.uni) {
+            // Rechts leer = wie links
+            o.repsR = s.repsR != null ? +s.repsR : o.reps;
+            if (s.durationSec != null) o.durationSecR = s.durationSecR != null ? +s.durationSecR : +s.durationSec;
+          }
           if (s.warmup) o.warmup = true;
           else if (s.kind) o.kind = s.kind;
           if (s.durationSec != null) o.durationSec = +s.durationSec;
@@ -4075,6 +4190,8 @@ Actions.planMenu = async el => {
 };
 
 /** Workout-Editor: Name + Übungen (Sätze, Wdh., Pause, Notiz) */
+/** Vorlagen-Übung einseitig? Ohne eigene Angabe gilt der Standard der Übung */
+const tplUni = x => x.uni != null ? !!x.uni : Ex.isUni(Ex.get(x.exerciseId));
 function openTemplateEditor(tpl, { onSave = null } = {}) {
   const draft = tpl ? JSON.parse(JSON.stringify(tpl)) : { name: '', exercises: [] };
   let saved = null;
@@ -4090,11 +4207,12 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
         ${xs.map((x, xi) => `
           <div class="pe-row">
             <div class="row"><b class="grow ellipsis">${esc(Ex.name(x.exerciseId))}</b>
+              <button class="uni-chip ${tplUni(x) ? 'on' : ''}" data-pa="uni" data-xi="${xi}" aria-pressed="${tplUni(x)}" title="Einseitig: links und rechts getrennt erfassen">${icon('swap')} L/R</button>
               <button class="btn-icon" data-pa="exUp" data-xi="${xi}" aria-label="Nach oben" ${xi === 0 ? 'disabled style="opacity:.3"' : ''}>${icon('chevU')}</button>
               <button class="btn-icon" data-pa="exDel" data-xi="${xi}" aria-label="Entfernen">${icon('x')}</button></div>
             <div class="pe-fields">
               <div><div class="mini-label">Sätze</div><div class="pe-step"><button data-pa="setsDec" data-xi="${xi}" aria-label="Weniger Sätze">${icon('minus')}</button><input class="input" inputmode="numeric" data-pe="sets" data-xi="${xi}" value="${esc(x.sets)}" aria-label="Sätze"><button data-pa="setsInc" data-xi="${xi}" aria-label="Mehr Sätze">${icon('plus')}</button></div></div>
-              <label><div class="mini-label">${Ex.type(Ex.get(x.exerciseId)) === 'sec' ? 'Sekunden' : 'Wdh.'}</div><input class="input" data-pe="reps" data-xi="${xi}" value="${esc(x.reps)}" placeholder="8-12"></label>
+              <label><div class="mini-label">${Ex.type(Ex.get(x.exerciseId)) === 'sec' ? 'Sekunden' : 'Wdh.'}${tplUni(x) ? ' je Seite' : ''}</div><input class="input" data-pe="reps" data-xi="${xi}" value="${esc(x.reps)}" placeholder="8-12"></label>
               <label><div class="mini-label">Pause</div><select class="select" data-pe="restSec" data-xi="${xi}">${uniq([30, 45, 60, 90, 120, 150, 180, 240, 300, +x.restSec || S().defaultRestSec]).sort((a, b) => a - b).map(v => `<option value="${v}" ${+x.restSec === v ? 'selected' : ''}>${fmtClock(v)}</option>`).join('')}</select></label>
             </div>
             <input class="input" data-pe="notes" data-xi="${xi}" value="${esc(x.notes || '')}" placeholder="Notiz (optional)" style="min-height:40px">
@@ -4117,10 +4235,11 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
       case 'exUp': [a[xi - 1], a[xi]] = [a[xi], a[xi - 1]]; break;
       case 'exDel': a.splice(xi, 1); break;
       case 'setsDec': case 'setsInc': a[xi].sets = clamp((+a[xi].sets || 0) + (b.dataset.pa === 'setsInc' ? 1 : -1), 1, 20); break;
+      case 'uni': a[xi].uni = !tplUni(a[xi]); break;
       case 'exAdd': {
         const ids = await pickExercises({ multi: true, title: 'Übungen hinzufügen' });
         if (!ids || !ids.length) return;
-        ids.forEach(id => a.push({ exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '' }));
+        ids.forEach(id => a.push({ exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '', uni: Ex.isUni(Ex.get(id)) }));
         break;
       }
       case 'cancel': m.close(); return;
@@ -4128,7 +4247,7 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
         if (!draft.name.trim()) { toast('Bitte einen Namen eingeben', 'warn'); $('[data-pe="name"]', m.el).focus(); return; }
         if (!a.length) { toast('Mindestens eine Übung hinzufügen', 'warn'); return; }
         const id = tpl ? tpl.id : autoId();
-        Store.put('templates', id, { name: draft.name.trim(), exercises: a.map(x => ({ exerciseId: x.exerciseId, sets: Math.max(1, +x.sets || 1), reps: String(x.reps || ''), restSec: +x.restSec || S().defaultRestSec, notes: x.notes || '' })), createdAt: tpl ? tpl.createdAt || Date.now() : Date.now(), updatedAt: Date.now() }, { replace: true });
+        Store.put('templates', id, { name: draft.name.trim(), exercises: a.map(x => ({ exerciseId: x.exerciseId, sets: Math.max(1, +x.sets || 1), reps: String(x.reps || ''), restSec: +x.restSec || S().defaultRestSec, notes: x.notes || '', uni: tplUni(x) })), createdAt: tpl ? tpl.createdAt || Date.now() : Date.now(), updatedAt: Date.now() }, { replace: true });
         saved = id;
         m.close();
         toast(`Workout „${draft.name.trim()}" gespeichert`, 'success');
@@ -4187,7 +4306,7 @@ Actions.composeWorkout = async () => {
 async function saveAsTemplate(entries, name) {
   const v = await promptDialog({ title: 'Als Workout speichern', label: 'Name', value: name || 'Mein Workout', okLabel: 'Speichern' });
   if (!v || !v.trim()) return;
-  const ex = entries.map(en => ({ exerciseId: en.exerciseId, sets: Math.max(1, (en.sets || []).filter(s => !s.warmup).length || 3), reps: (en.target && en.target.reps) || String(((en.sets || []).find(s => s.reps) || {}).reps || '8-12'), restSec: (en.target && en.target.restSec) || S().defaultRestSec, notes: '' }));
+  const ex = entries.map(en => ({ exerciseId: en.exerciseId, sets: Math.max(1, (en.sets || []).filter(s => !s.warmup).length || 3), reps: (en.target && en.target.reps) || String(((en.sets || []).find(s => s.reps) || {}).reps || '8-12'), restSec: (en.target && en.target.restSec) || S().defaultRestSec, notes: '', uni: !!en.uni }));
   const same = Tpl.all().find(t => norm(t.name) === norm(v));
   const id = same ? same.id : autoId();
   Store.put('templates', id, { name: v.trim(), exercises: ex, createdAt: same ? same.createdAt : Date.now(), updatedAt: Date.now() }, { replace: true });
@@ -4270,12 +4389,12 @@ function openWorkoutDetail(id) {
         const ex = Ex.get(en.exerciseId);
         const isSec = Ex.type(ex) === 'sec';
         return `<div class="mt-16">
-          <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b></button>
-          <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(s => (s.reps || 0) * (s.weightKg || 0))))}</span></div>
-          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? 'Zeit' : unit()}</th><th class="r">${isSec ? '' : 'Wdh.'}</th><th class="r">RPE</th><th class="r">e1RM</th></tr></thead><tbody>
+          <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}</button>
+          <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th><th class="r">RPE</th><th class="r">e1RM</th></tr></thead><tbody>
           ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}</td>
-            <td class="r">${isSec ? fmtClock(s.durationSec || 0) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : (s.reps ?? '–')}</td><td class="r">${s.rpe ?? '–'}</td>
-            <td class="r dim">${!isSec && e1rm(s.weightKg, s.reps) ? wNum(e1rm(s.weightKg, s.reps)) : '–'}</td></tr>`).join('')}
+            <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td><td class="r">${s.rpe ?? '–'}</td>
+            <td class="r dim">${!isSec && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td></tr>`).join('')}
           </tbody></table></div></div>`;
       }).join('')}`,
     foot: `<button class="btn btn-danger-ghost" data-x="del" aria-label="Löschen" style="flex:0 0 auto">${icon('trash')}</button>
@@ -4304,9 +4423,9 @@ function workoutText(wo) {
   for (const en of wo.entries || []) {
     const done = (en.sets || []).filter(s => s.done !== false && !s.warmup);
     if (!done.length) continue;
-    ton += sum(done.map(s => (s.reps || 0) * (s.weightKg || 0)));
+    ton += sum(done.map(setVol));
     const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
-    lines.push(`• ${Ex.entryName(en)}: ${done.map(s => isSec ? fmtClock(s.durationSec || 0) : (s.weightKg ? `${wNum(s.weightKg)}×${s.reps}` : `${s.reps}`)).join(', ')}`);
+    lines.push(`• ${Ex.entryName(en)}${en.uni ? ' (L/R)' : ''}: ${done.map(s => isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))).join(', ')}`);
   }
   lines.splice(2, 0, `📊 ${fmtTon(ton)} Volumen`);
   lines.push('', `– getrackt mit ${APP.name}`);
@@ -4328,7 +4447,7 @@ function liveStats(w) {
   for (const en of w.entries) for (const s of en.sets) {
     if (s.warmup) continue;
     total++;
-    if (s.done) { done++; vol += (+s.reps || 0) * (+s.weightKg || 0); }
+    if (s.done) { done++; vol += setVol(s); }
   }
   return { total, done, vol };
 }
@@ -4415,9 +4534,9 @@ function woCard(en, ei, w, full) {
   const type = Ex.type(Ex.get(en.exerciseId));
   const ws = workSets(en), done = ws.filter(s => s.done);
   const complete = en.sets.length > 0 && en.sets.every(s => s.done);
-  const fmt = s => type === 'sec' ? fmtClock(s.durationSec || 0) : (s.weightKg ? `${wNum(s.weightKg)}×${s.reps || 0}` : `${s.reps || 0}`);
+  const fmt = s => type === 'sec' ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s));
   const gw = goalWeight(en);
-  const sub = done.length ? done.map(fmt).join(' · ') : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  const sub = done.length ? done.map(fmt).join(' · ') : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
   return `<div class="ex-card exc ${complete ? 'complete' : ''}" id="ex-${en.uid}">
     <button class="exc-head" data-act="exOpen" data-ei="${ei}" aria-expanded="false" aria-label="${esc(en.exerciseName)} öffnen">
       <span class="exc-idx">${complete ? icon('check') : ei + 1}</span>
@@ -4437,6 +4556,20 @@ Actions.exOpen = el => {
   requestAnimationFrame(() => scrollToExercise(en));
 };
 
+/* ---------- Einseitige Übungen: zweites Feld für rechts ---------- */
+/** Platzhalter: links = letztes Mal; rechts = aktueller linker Wert, sonst letztes Mal */
+function sidePh(s, prev, type) {
+  const k = type === 'sec' ? 'durationSec' : 'reps';
+  const side = i => prev ? (type === 'sec' ? (prev.us ? prev.us[i] : prev.sec) : (prev.u ? prev.u[i] : prev.r)) : null;
+  const l = side(0), r = side(1);
+  const r0 = r ? String(r) : l ? String(l) : '';
+  return { l: l ? String(l) : '', r0, r: s[k] != null ? String(s[k]) : r0 };
+}
+function rInput(s, d, type, ph, generic = '', cls = 'set-in') {
+  const v = type === 'sec' ? s.durationSecR : s.repsR;
+  return `<input class="${cls}" inputmode="numeric" data-in="setBR" ${d} value="${v ?? ''}" placeholder="${esc(ph.r || generic)}" data-ph0="${esc(ph.r0 || generic)}" aria-label="${type === 'sec' ? 'Sekunden rechts' : 'Wiederholungen rechts'}" enterkeyhint="done">`;
+}
+
 /* ---------- Schlichte Eingabe: pro Satz nur Gewicht, Wdh., Haken ---------- */
 function simpleCard(en, ei, w) {
   const ex = Ex.get(en.exerciseId);
@@ -4447,8 +4580,10 @@ function simpleCard(en, ei, w) {
   const complete = en.sets.length > 0 && en.sets.every(s => s.done);
   const rpe = !!S().simpleRPE;
   const gw = goalWeight(en);
-  const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
-  const fmtPrev = p => type === 'sec' ? fmtClock(p.sec || 0) : (p.w ? `${wNum(p.w)}×${p.r}` : `${p.r}`);
+  const uni = !!en.uni;
+  const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  const fmtPrev = p => type === 'sec' ? prevSec(p) : (p.w ? `${wNum(p.w)}×${prevR(p)}` : `${prevR(p)}`);
+  const generic = type === 'sec' ? 'Sek.' : 'Wdh.';
   let no = 0;
   const rows = en.sets.map((s, si) => {
     const num = s.warmup ? 'W' : ++no;
@@ -4456,11 +4591,13 @@ function simpleCard(en, ei, w) {
     const d = `data-ei="${ei}" data-si="${si}"`;
     const bVal = type === 'sec' ? s.durationSec : s.reps;
     const wPh = prev && prev.w ? inputW(prev.w) : (type === 'kg' ? unit() : '+' + unit());
-    const bPh = prev && (type === 'sec' ? prev.sec : prev.r) ? String(type === 'sec' ? prev.sec : prev.r) : (type === 'sec' ? 'Sek.' : 'Wdh.');
+    const ph = sidePh(s, prev, type);
+    const bPh = ph.l || generic;
     return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
       ${setNumHtml(s, num, d)}
       <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
-      <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}" enterkeyhint="done">
+      <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
+      ${uni ? rInput(s, d, type, ph, generic) : ''}
       ${rpe ? `<select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">RPE</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>` : ''}
       <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
     </div>`;
@@ -4475,8 +4612,8 @@ function simpleCard(en, ei, w) {
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${last ? `<div class="exs-last">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</div>` : ''}
-    <div class="exs-sets ${rpe ? 'rpe' : ''}">
-      <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span><span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>${rpe ? '<span>RPE</span>' : ''}<span></span></div>
+    <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''}">
+      <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}<span></span></div>
       ${rows}
     </div>
     <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
@@ -4539,14 +4676,14 @@ function exSummary(en, w, type) {
   const dots = `<span class="dots">${ws.map(s => `<i class="${s.done ? 'on' : ''}"></i>`).join('')}</span>`;
   if (!done.length) return `<div class="ex-sum">${dots}<span>${ws.length} ${ws.length === 1 ? 'Satz' : 'Sätze'} geplant</span></div>`;
   let txt;
-  if (type === 'sec') txt = `${fmtClock(sum(done.map(s => +s.durationSec || 0)))} gesamt`;
+  if (type === 'sec') txt = `${fmtClock(sum(done.map(s => (+s.durationSec || 0) + (s.durationSecR != null ? +s.durationSecR || 0 : 0))))} gesamt`;
   else {
-    const vol = sum(done.map(s => (+s.reps || 0) * (+s.weightKg || 0)));
-    const top = done.reduce((b, s) => (+s.weightKg || 0) > (+b.weightKg || 0) || ((+s.weightKg || 0) === (+b.weightKg || 0) && (+s.reps || 0) > (+b.reps || 0)) ? s : b, done[0]);
+    const vol = sum(done.map(setVol));
+    const top = done.reduce((b, s) => (+s.weightKg || 0) > (+b.weightKg || 0) || ((+s.weightKg || 0) === (+b.weightKg || 0) && repsOf(s) > repsOf(b)) ? s : b, done[0]);
     const last = lastSessionFor(en.exerciseId, w);
-    const lastVol = last ? sum(last.list.slice(0, done.length).map(p => (p.w || 0) * (p.r || 0))) : 0;
+    const lastVol = last ? sum(last.list.slice(0, done.length).map(p => (p.w || 0) * (p.u ? p.u[0] + p.u[1] : p.r || 0))) : 0;
     const d = lastVol && vol ? (vol - lastVol) / lastVol : null;
-    txt = `${vol ? `<b>${fmtTon(vol)}</b>` : `<b>${sum(done.map(s => +s.reps || 0))} Wdh.</b>`} · Top ${top.weightKg ? wNum(top.weightKg) + '×' : ''}${top.reps}${d != null && Math.abs(d) >= .005 ? ` <span class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${nf(Math.abs(d) * 100, 0)} %</span>` : ''}`;
+    txt = `${vol ? `<b>${fmtTon(vol)}</b>` : `<b>${sum(done.map(repsSum))} Wdh.</b>`} · Top ${top.weightKg ? wNum(top.weightKg) + '×' : ''}${repsTxt(top)}${d != null && Math.abs(d) >= .005 ? ` <span class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${nf(Math.abs(d) * 100, 0)} %</span>` : ''}`;
   }
   return `<div class="ex-sum">${dots}<span>${done.length}/${ws.length}</span><span>${txt}</span></div>`;
 }
@@ -4565,18 +4702,19 @@ function exerciseCard(en, ei, w) {
   const ws = workSets(en);
   const complete = ws.length > 0 && ws.every(s => s.done) && en.sets.every(s => s.done);
   const t = en.target || {};
-  const fmtPrev = s => !s ? '–' : type === 'sec' ? fmtClock(s.sec || 0) + (s.w ? ` +${wNum(s.w)}` : '') : (s.w ? `${wNum(s.w)}×${s.r}` : `${s.r}`);
+  const fmtPrev = s => !s ? '–' : type === 'sec' ? prevSec(s) + (s.w ? ` +${wNum(s.w)}` : '') : (s.w ? `${wNum(s.w)}×${prevR(s)}` : `${prevR(s)}`);
   const lastTxt = last ? `Letztes Mal ${fmtDateShort(last.date)}: ${last.list.map(fmtPrev).join(' · ')}` : '';
+  const uni = !!en.uni;
   let workNo = 0;
   const rows = en.sets.map((s, si) => {
     const num = s.warmup ? 'W' : ++workNo;
     const prev = last && !s.warmup ? (last.list[num - 1] || null) : null;
     const sel = w.sel.e === ei && w.sel.s === si;
-    const isPR = F('f_prs') && s.done && !s.warmup && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, +s.reps) > (pr.best1RM || 0) + 0.05);
-    return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev) + (sel ? setPanel(ei, si, s, type) : '');
+    const isPR = F('f_prs') && s.done && !s.warmup && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, repsOf(s)) > (pr.best1RM || 0) + 0.05);
+    return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni) + (sel ? setPanel(ei, si, s, type, uni) : '');
   }).join('');
   const meta = ex ? [ex.equipment, (ex.muscleGroups || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') : '';
-  return `<div class="ex-card ${complete ? 'complete' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(var(--top-h, 56px) + var(--wo-head-h, 120px))">
+  return `<div class="ex-card ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(var(--top-h, 56px) + var(--wo-head-h, 120px))">
     <div class="ex-card-head">
       <span class="ex-idx ${catCls(ex && ex.category)}">${complete ? icon('check').replace('<svg', '<svg width="16" height="16"') : ei + 1}</span>
       <div class="grow" style="min-width:0">
@@ -4592,7 +4730,7 @@ function exerciseCard(en, ei, w) {
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
       ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
     </div>
-    <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span><span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span><span class="rpe-h">RPE</span><span></span></div>
+    <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
     ${rows}
     ${exSummary(en, w, type)}
     <div class="ex-foot">
@@ -4601,16 +4739,18 @@ function exerciseCard(en, ei, w) {
     </div>
   </div>`;
 }
-function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev) {
+function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni = false) {
   const bVal = type === 'sec' ? s.durationSec : s.reps;
   const wPh = prev && prev.w ? inputW(prev.w) : '';
-  const bPh = prev ? (type === 'sec' ? (prev.sec || '') : (prev.r || '')) : '';
+  const ph = sidePh(s, prev, type);
+  const bPh = ph.l;
   const d = `data-ei="${ei}" data-si="${si}"`;
   return `<div class="set-row ${s.done ? 'done' : ''} ${sel ? 'sel' : ''}" ${d}>
     ${setNumHtml(s, num, d)}
     <span class="set-prev" data-act="setSel" ${d}>${isPR ? '<span class="accent bold">🏆 PR</span>' : fmtPrev(prev)}</span>
     <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
-    <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}" enterkeyhint="done">
+    <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
+    ${uni ? rInput(s, d, type, ph) : ''}
     <select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">–</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>
     <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
   </div>`;
@@ -4643,12 +4783,13 @@ function focusView(w) {
   const last = lastSessionFor(en.exerciseId, w);
   const si = w.sel.e === ei && en.sets[w.sel.s] ? w.sel.s : firstOpen(en);
   const s = si >= 0 ? en.sets[si] : null;
-  const fmtPrev = p => !p ? '–' : type === 'sec' ? fmtClock(p.sec || 0) + (p.w ? ` +${wNum(p.w)}` : '') : (p.w ? `${wNum(p.w)} ${unit()} × ${p.r}` : `${p.r} Wdh.`);
+  const fmtPrev = p => !p ? '–' : type === 'sec' ? prevSec(p) + (p.w ? ` +${wNum(p.w)}` : '') : (p.w ? `${wNum(p.w)} ${unit()} × ${prevR(p)}` : `${prevR(p)} Wdh.`);
   const ws = workSets(en);
+  const uni = !!en.uni;
   let workNo = 0;
   const pills = en.sets.map((x, i) => {
     const label = x.warmup ? 'W' : ++workNo;
-    const val = type === 'sec' ? (x.durationSec ? x.durationSec + ' s' : '–') : (x.reps != null || x.weightKg != null ? `${x.weightKg ? wNum(x.weightKg) : '0'}×${x.reps ?? '?'}` : '–');
+    const val = type === 'sec' ? (x.durationSec ? x.durationSec + (x.durationSecR != null ? '/' + x.durationSecR : '') + ' s' : '–') : (x.reps != null || x.weightKg != null ? `${x.weightKg ? wNum(x.weightKg) : '0'}×${x.reps ?? '?'}${x.repsR != null ? '/' + x.repsR : ''}` : '–');
     return `<button class="fc-pill ${x.done ? 'done' : ''} ${i === si ? 'cur' : ''} ${x.warmup ? 'warm' : ''}" data-act="setSel" data-ei="${ei}" data-si="${i}"><b>${label}${!x.warmup && KIND_LABEL[x.kind] ? KIND_LABEL[x.kind] : ''}</b><small>${val}</small></button>`;
   }).join('');
   const nPrev = ei > 0 ? w.entries[ei - 1] : null, nNext = ei < w.entries.length - 1 ? w.entries[ei + 1] : null;
@@ -4658,18 +4799,24 @@ function focusView(w) {
     const prev = last && !s.warmup ? last.list[no - 1] || null : null;
     const d = `data-ei="${ei}" data-si="${si}"`;
     const wPh = prev && prev.w ? inputW(prev.w) : '';
-    const bPh = prev ? (type === 'sec' ? (prev.sec || '') : (prev.r || '')) : '';
+    const ph = sidePh(s, prev, type);
+    const bPh = ph.l;
+    const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
     cur = `<div class="fc-cur">
       <div class="fc-label"><b>${s.warmup ? 'Aufwärmsatz' : `Satz ${no} von ${ws.length}`}${s.done ? ' <span class="badge accent">erledigt</span>' : ''}</b>${prev ? `<span>Letztes Mal: ${esc(fmtPrev(prev))}</span>` : ''}</div>
-      <div class="fc-steppers">
+      <div class="fc-steppers ${uni ? 'uni' : ''}">
         <div class="fc-big"><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
           <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
           <input class="fc-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht">
           <button data-act="step" data-f="w" data-d="1" ${d} aria-label="Mehr Gewicht">${icon('plus')}</button></div></div>
-        <div class="fc-big"><div class="stepper-label">${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}</div>
+        <div class="fc-big"><div class="stepper-label">${uni ? bShort + ' links' : bLabel}</div>
           <div class="stepper"><button data-act="step" data-f="b" data-d="-1" ${d} aria-label="Weniger">${icon('minus')}</button>
-          <input class="fc-in" inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}">
+          <input class="fc-in" inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(bPh)}" aria-label="${bLabel}${uni ? ' links' : ''}">
           <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
+        ${uni ? `<div class="fc-big"><div class="stepper-label">${bShort} rechts</div>
+          <div class="stepper"><button data-act="step" data-f="bR" data-d="-1" ${d} aria-label="Weniger rechts">${icon('minus')}</button>
+          ${rInput(s, d, type, ph, '', 'fc-in')}
+          <button data-act="step" data-f="bR" data-d="1" ${d} aria-label="Mehr rechts">${icon('plus')}</button></div></div>` : ''}
       </div>
       ${(woSimple() ? S().simpleRPE : S().showRPE) ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
       <button class="btn ${s.done ? 'btn-secondary' : 'btn-primary'} btn-lg btn-block" data-act="setDone" ${d}>${icon(s.done ? 'undo' : 'check')} ${s.done ? 'Rückgängig' : 'Satz erledigt'}</button>
@@ -4787,8 +4934,8 @@ function overviewHtml(w) {
       const ex = Ex.get(en.exerciseId), type = Ex.type(ex);
       const ws = workSets(en), done = ws.filter(s => s.done);
       const gw = goalWeight(en);
-      const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${gw ? ' · ' + fmtW(gw) : ''} · Pause ${fmtClock((en.target && en.target.restSec) || S().defaultRestSec)}`;
-      const doneTxt = done.map(s => type === 'sec' ? `${s.durationSec}s` : `${s.weightKg ? wNum(s.weightKg) + '×' : ''}${s.reps}`).join(' · ');
+      const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''} · Pause ${fmtClock((en.target && en.target.restSec) || S().defaultRestSec)}`;
+      const doneTxt = done.map(s => type === 'sec' ? secTxt(s) : `${s.weightKg ? wNum(s.weightKg) + '×' : ''}${repsTxt(s)}`).join(' · ');
       return `<div class="list-item ov-item">
         <span class="ex-idx ${catCls(ex && ex.category)}">${ws.length && done.length === ws.length ? icon('check').replace('<svg', '<svg width="16" height="16"') : ei + 1}</span>
         <div class="li-main"><div class="li-title">${esc(en.exerciseName)} <span class="small dim">${done.length}/${ws.length}</span></div>
@@ -4898,7 +5045,7 @@ function openGoalEditor(ei) {
       const cur = workSets(ce);
       if (st.sets > cur.length) {
         const tpl = cur[cur.length - 1] || {};
-        for (let i = cur.length; i < st.sets; i++) ce.sets.push(Workout.newSet({ reps: tpl.reps, weightKg: tpl.weightKg, durationSec: tpl.durationSec }));
+        for (let i = cur.length; i < st.sets; i++) ce.sets.push(Workout.newSet({ reps: tpl.reps, repsR: tpl.repsR, weightKg: tpl.weightKg, durationSec: tpl.durationSec, durationSecR: tpl.durationSecR }));
       } else if (st.sets < cur.length) {
         let remove = cur.length - st.sets;
         for (let i = ce.sets.length - 1; i >= 0 && remove > 0; i--) if (!ce.sets[i].warmup && !ce.sets[i].done) { ce.sets.splice(i, 1); remove--; }
@@ -4908,7 +5055,7 @@ function openGoalEditor(ei) {
       if (st.apply) ce.sets.forEach(s => {
         if (s.done || s.warmup) return;
         if (st.w != null) s.weightKg = fromU(st.w);
-        if (st.lo) { if (type === 'sec') s.durationSec = st.lo; else s.reps = st.lo; }
+        if (st.lo) { if (type === 'sec') s.durationSec = st.lo; else s.reps = st.lo; if (ce.uni) { if (type === 'sec') s.durationSecR = st.lo; else s.repsR = st.lo; } }
       });
       Workout.autoSelect();
       Workout.save();
@@ -4929,17 +5076,22 @@ function openGoalEditor(ei) {
 }
 Actions.goalEdit = el => openGoalEditor(+el.dataset.ei);
 
-function setPanel(ei, si, s, type) {
+function setPanel(ei, si, s, type, uni = false) {
   const d = `data-ei="${ei}" data-si="${si}"`;
-  return `<div class="set-panel" ${d}>
+  const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
+  return `<div class="set-panel ${uni ? 'uni' : ''}" ${d}>
     <div><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
       <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
       <input inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="0" aria-label="Gewicht">
       <button data-act="step" data-f="w" data-d="1" ${d} aria-label="Mehr Gewicht">${icon('plus')}</button></div></div>
-    <div><div class="stepper-label">${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}</div>
+    <div><div class="stepper-label">${uni ? bShort + ' links' : bLabel}</div>
       <div class="stepper"><button data-act="step" data-f="b" data-d="-1" ${d} aria-label="Weniger">${icon('minus')}</button>
-      <input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="0" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}">
+      <input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="0" aria-label="${bLabel}${uni ? ' links' : ''}">
       <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
+    ${uni ? `<div><div class="stepper-label">${bShort} rechts</div>
+      <div class="stepper"><button data-act="step" data-f="bR" data-d="-1" ${d} aria-label="Weniger rechts">${icon('minus')}</button>
+      ${rInput(s, d, type, { r: (type === 'sec' ? s.durationSec : s.reps) != null ? String(type === 'sec' ? s.durationSec : s.reps) : '0', r0: '0' }, '0', '')}
+      <button data-act="step" data-f="bR" data-d="1" ${d} aria-label="Mehr rechts">${icon('plus')}</button></div></div>` : ''}
     ${S().showRPE ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
     <div class="panel-actions">
       ${type === 'kg' && F('f_plates') ? `<button class="btn btn-ghost btn-sm" data-act="plates" ${d}>${icon('plate')} Scheiben</button>` : ''}
@@ -4974,6 +5126,19 @@ Inputs.setB = el => {
   if (Ex.type(Ex.get(en.exerciseId)) === 'sec') s.durationSec = val; else s.reps = val;
   Workout.save();
   syncInputs(el, 'setB', el.value);
+  if (en.uni) syncRightPh(el.dataset.ei, el.dataset.si, val);
+};
+/** Rechtes Feld zeigt als Vorschlag den linken Wert (leer lassen = wie links) */
+function syncRightPh(ei, si, val) {
+  $$(`[data-in="setBR"][data-ei="${ei}"][data-si="${si}"]`).forEach(i => { i.placeholder = val != null ? String(val) : (i.dataset.ph0 || ''); });
+}
+Inputs.setBR = el => {
+  const s = setAt(el); const en = entryAt(el); if (!s) return;
+  const v = parseNum(el.value);
+  const val = v == null ? null : Math.max(0, Math.round(v));
+  if (Ex.type(Ex.get(en.exerciseId)) === 'sec') s.durationSecR = val; else s.repsR = val;
+  Workout.save();
+  syncInputs(el, 'setBR', el.value);
 };
 Changes.setRpe = el => { const s = setAt(el); if (!s) return; s.rpe = el.value ? +el.value : null; Workout.save(); };
 Inputs.woBw = el => Workout.set(w => { const v = parseNum(el.value); w.bodyWeightKg = v ? fromU(v) : null; });
@@ -4994,7 +5159,7 @@ function selectSet(ei, si, { rerender = false } = {}) {
   row.classList.add('sel');
   if (woSimple()) return;
   const en = w.entries[ei];
-  row.insertAdjacentHTML('afterend', setPanel(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId))));
+  row.insertAdjacentHTML('afterend', setPanel(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId)), !!en.uni));
 }
 Actions.setSel = el => {
   const w = Workout.cur();
@@ -5022,11 +5187,16 @@ Actions.step = el => {
     s.weightKg = fromU(next);
     $$(`[data-in="setW"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(i => { i.value = inputW(s.weightKg); });
   } else {
-    const key = type === 'sec' ? 'durationSec' : 'reps';
+    const right = el.dataset.f === 'bR';
+    const base = type === 'sec' ? 'durationSec' : 'reps';
+    const key = base + (right ? 'R' : '');
     const step = type === 'sec' ? 5 : 1;
-    const cur = s[key] != null ? s[key] : (prev ? (type === 'sec' ? prev.sec : prev.r) || 0 : 0);
+    const side = i => prev ? (type === 'sec' ? (prev.us ? prev.us[i] : prev.sec) : (prev.u ? prev.u[i] : prev.r)) || 0 : 0;
+    // Rechts startet beim linken Wert
+    const cur = s[key] != null ? s[key] : right && s[base] != null ? s[base] : side(right ? 1 : 0);
     s[key] = Math.max(0, cur + d * step);
-    $$(`[data-in="setB"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(i => { i.value = s[key]; });
+    $$(`[data-in="setB${right ? 'R' : ''}"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(i => { i.value = s[key]; });
+    if (!right && en.uni) syncRightPh(el.dataset.ei, el.dataset.si, s[key]);
   }
   vibrate(8);
   Workout.save();
@@ -5057,6 +5227,11 @@ Actions.setDone = el => {
   if (s.weightKg == null && wi && wi.placeholder) s.weightKg = fromU(parseNum(wi.placeholder));
   if (type === 'sec') { if (s.durationSec == null && bi && bi.placeholder) s.durationSec = parseNum(bi.placeholder); }
   else if (s.reps == null && bi && bi.placeholder) s.reps = parseNum(bi.placeholder);
+  if (en.uni) {
+    const kR = type === 'sec' ? 'durationSecR' : 'repsR', kL = type === 'sec' ? 'durationSec' : 'reps';
+    const ri = pick('setBR');
+    if (s[kR] == null) s[kR] = (ri && ri.value === '' && parseNum(ri.placeholder) != null ? parseNum(ri.placeholder) : null) ?? s[kL];
+  }
   if (type === 'kg' && s.weightKg == null) {
     toast('Bitte Gewicht eintragen (0 für ohne Gewicht)', 'warn');
     selectSet(ei, si);
@@ -5103,7 +5278,7 @@ Actions.setDone = el => {
 Actions.setAdd = el => {
   const w = Workout.cur(); const en = w.entries[+el.dataset.ei];
   const lastSet = [...en.sets].reverse().find(s => !s.warmup);
-  const ns = Workout.newSet(lastSet ? { reps: lastSet.reps, weightKg: lastSet.weightKg, durationSec: lastSet.durationSec } : {});
+  const ns = Workout.newSet(lastSet ? { reps: lastSet.reps, repsR: lastSet.repsR, weightKg: lastSet.weightKg, durationSec: lastSet.durationSec, durationSecR: lastSet.durationSecR } : {});
   en.sets.push(ns);
   w.sel = { e: +el.dataset.ei, s: en.sets.length - 1 };
   w.focusE = +el.dataset.ei;
@@ -5138,6 +5313,7 @@ Actions.exMenu = async el => {
     { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
+    { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
     { key: 'note', label: en.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen', icon: 'note' },
     { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
@@ -5150,7 +5326,14 @@ Actions.exMenu = async el => {
   if (k === 'goal') return openGoalEditor(ei);
   if (k === 'warm') return Actions.warmup({ dataset: { ei } });
   if (k === 'plates') return openPlates(goalWeight(en));
-  if (k === 'note') {
+  if (k === 'uni') {
+    en.uni = !en.uni;
+    if (!en.uni) en.sets.forEach(x => { x.repsR = null; x.durationSecR = null; });
+    // als Standard der Übung merken – beim nächsten Mal wieder so
+    const ex = Ex.get(en.exerciseId);
+    if (ex && Ex.isUni(ex) !== en.uni) Store.put('exercises', ex.id, { unilateral: en.uni, updatedAt: Date.now() });
+    toast(en.uni ? `${en.exerciseName}: links & rechts getrennt` : `${en.exerciseName}: beidseitig`, 'success');
+  } else if (k === 'note') {
     const v = await promptDialog({ title: 'Notiz', label: en.exerciseName, value: en.note || '', placeholder: 'z. B. Sitzhöhe 4, enger Griff' });
     if (v != null) en.note = v.trim();
   } else if (k === 'rest') {
@@ -5251,7 +5434,7 @@ Actions.woFinish = async () => {
 /* ---------- Session-Zusammenfassung ---------- */
 function showSummary({ id, doc, prs }) {
   const done = doc.entries.flatMap(e => e.sets.filter(s => s.done && !s.warmup));
-  const vol = sum(done.map(s => s.reps * s.weightKg));
+  const vol = sum(done.map(setVol));
   const rpes = done.filter(s => s.rpe).map(s => s.rpe);
   const real = F('f_prs') ? prs.filter(p => !p.first) : [];
   const firsts = F('f_prs') ? prs.filter(p => p.first) : [];
@@ -5501,7 +5684,8 @@ Views.exercises = {
           ${[['az', 'A–Z'], ['recent', 'Zuletzt trainiert'], ['freq', 'Am häufigsten'], ['strong', 'Stärkstes e1RM']].map(([k, l]) => `<option value="${k}" ${UI.exSort === k ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
       </div>
-      <div class="ex-list mt-8" id="exList"></div>`;
+      <div class="ex-list mt-8" id="exList"></div>
+      <button class="btn btn-ghost btn-block mt-16 dim" data-act="exTabToggle">${icon(F('f_exercises') ? 'eyeOff' : 'plus')} ${F('f_exercises') ? 'Übungen-Tab ausblenden' : 'Als Tab in der Leiste anzeigen'}</button>`;
     renderExList();
   }
 };
@@ -5593,7 +5777,7 @@ function openExerciseDetail(id) {
         ${shown.map(s => `<div class="card tight mb-8" style="background:var(--surface-2)">
             <div class="row between"><button class="link-btn" style="padding:0;min-height:30px" data-x="wo" data-id="${esc(s.wid)}">${esc(fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))}</button>
             <span class="tiny dim">${t === 'kg' ? `e1RM ${fmtW(s.best)} · ${fmtTon(s.vol)}` : `${s.sets} Sätze`}</span></div>
-            <div class="small num">${s.list.map(x => t === 'sec' ? fmtClock(x.sec) + (x.w ? ` +${wNum(x.w)}` : '') : (x.w ? `${wNum(x.w)} × ${x.r}` : `${x.r} Wdh.`) + (x.rpe ? ` <span class="faint">@${nf(x.rpe, 1)}</span>` : '')).join(' &nbsp;·&nbsp; ')}</div>
+            <div class="small num">${s.list.map(x => t === 'sec' ? prevSec(x) + (x.w ? ` +${wNum(x.w)}` : '') : (x.w ? `${wNum(x.w)} × ${prevR(x)}` : `${prevR(x)} Wdh.`) + (x.rpe ? ` <span class="faint">@${nf(x.rpe, 1)}</span>` : '')).join(' &nbsp;·&nbsp; ')}</div>
           </div>`).join('')}
         ${sessions.length > 8 && !showAll ? `<button class="btn btn-secondary btn-block" data-x="all">Alle ${sessions.length} Sessions anzeigen</button>` : ''}
       ` : `<div class="mt-16">${emptyState('chart', 'Noch keine Daten', 'Sobald du diese Übung trainierst, siehst du hier Verlauf, PRs und alle Sätze.')}</div>`}
@@ -5677,6 +5861,8 @@ function openExerciseForm(ex, preset = {}) {
         </div>
         <div class="field"><span>Erfassung</span>
           <div class="seg">${Object.entries({ kg: 'Gewicht × Wdh.', reps: 'Nur Wdh.', sec: 'Zeit' }).map(([k, l]) => `<button data-u="${k}" class="${(d.defaultUnit === 'lb' ? 'kg' : d.defaultUnit) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
+        <div class="list"><div class="set-line"><div class="sl-main"><div class="sl-title">Einseitig (links & rechts)</div><div class="sl-sub">Wdh. für jede Seite getrennt erfassen – z. B. Bulgarian Split Squat, einarmiges Rudern</div></div>
+          <label class="switch"><input type="checkbox" data-uni ${Ex.isUni(d) ? 'checked' : ''} aria-label="Einseitig"><span></span></label></div></div>
         <div class="field"><span>Muskelgruppen</span>
           <div class="muscle-pick">${[...MUSCLES, 'Ausdauer'].map(mg => `<button class="chip soft ${d.muscleGroups.includes(mg) ? 'active' : ''}" data-m="${esc(mg)}">${esc(mg)}</button>`).join('')}</div></div>
         <label class="field"><span>Technik-Notiz</span><textarea class="textarea" data-f="notes" placeholder="1 Satz Technik-Tipp">${esc(d.notes || '')}</textarea></label>
@@ -5689,7 +5875,7 @@ function openExerciseForm(ex, preset = {}) {
       if (f === 'aliases') d.aliases = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
       else d[f] = e.target.value;
     });
-    m.body.addEventListener('change', e => { const f = e.target.dataset.f; if (f) d[f] = e.target.value; });
+    m.body.addEventListener('change', e => { if (e.target.matches('[data-uni]')) { d.unilateral = e.target.checked; return; } const f = e.target.dataset.f; if (f) d[f] = e.target.value; });
     m.el.addEventListener('click', e => {
       const u = e.target.closest('[data-u]');
       if (u) { d.defaultUnit = u.dataset.u; $$('[data-u]', m.el).forEach(b => b.classList.toggle('active', b === u)); return; }
@@ -5710,7 +5896,7 @@ function openExerciseForm(ex, preset = {}) {
       const id = ex ? ex.id : autoId();
       Store.put('exercises', id, {
         name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg',
-        notes: (d.notes || '').trim(), aliases: d.aliases || [], isCustom: ex ? !!ex.isCustom : true,
+        notes: (d.notes || '').trim(), aliases: d.aliases || [], isCustom: ex ? !!ex.isCustom : true, unilateral: Ex.isUni(d),
         createdAt: ex ? ex.createdAt || Date.now() : Date.now(), updatedAt: Date.now()
       }, { replace: true });
       result = id;
@@ -5756,8 +5942,8 @@ const Charts = (() => {
     Object.assign(C.defaults.elements.point, { radius: 0, hoverRadius: 6, hitRadius: 14 });
     C.defaults.elements.line.borderWidth = 2;
     C.defaults.elements.bar.borderRadius = 4;
-    // Re-Theme laufender Charts
-    for (const [id, x] of inst) if (x.chart) mount(id, x.factory);
+    // Re-Theme laufender Charts (Kopie der Liste – mount() entfernt und ergänzt Einträge, sonst Endlosschleife)
+    for (const [id, x] of [...inst]) if (x.chart) mount(id, x.factory);
   }
   function mount(id, factory) {
     const cv = document.getElementById('cv-' + id);
@@ -7065,6 +7251,13 @@ Views.more = {
         ${setLine('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'))}
       </div>
 
+      <div class="section-head"><h4>Tabs</h4></div>
+      <div class="list">
+        ${setLine('Übungen-Tab', 'Bibliothek als eigener Tab', toggleCtl('f_exercises'))}
+        ${setLine('Fortschritt-Tab', 'Statistiken & Diagramme', toggleCtl('f_progress'))}
+        ${F('f_exercises') ? '' : navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten')}
+      </div>
+
       <div class="section-head"><h4>Funktionen</h4></div>
       <div class="list">${navRow('openFeatures', 'sliders', 'Funktionen ein-/ausschalten', `${FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length || 'Keine'} ausgeblendet · Tabs, Timer, PRs, Auswertungen …`)}</div>
 
@@ -7084,7 +7277,7 @@ Views.more = {
 
       <div class="section-head"><h4>Profil</h4></div>
       <div class="list">
-        ${setLine('Name', user ? 'Überschreibt den Google-Namen' : 'Für die Begrüßung', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
+        ${setLine('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
         ${setLine('Geschlecht', 'Für Wilks-Score & Richtwerte', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
         ${navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : ''))}
         ${navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`)}
@@ -7177,12 +7370,12 @@ Actions.exportCSV = () => {
   if (!W.length) return toast('Noch keine Workouts zum Exportieren', 'info');
   const q = v => { const s = v == null ? '' : String(v); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const dec = v => v == null || v === '' ? '' : String(round(+v, 3)).replace('.', ',');
-  const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec'];
+  const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight'];
   const lines = [head];
   for (const w of W) for (const en of w.entries || []) (en.sets || []).forEach((s, i) => {
-    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '']);
+    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '']);
   });
-  download(`gymlog-workouts-${isoDate()}.csv`, '﻿' + lines.map(r => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
+  download(`trainio-workouts-${isoDate()}.csv`, '﻿' + lines.map(r => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
   toast(`${lines.length - 1} Sätze exportiert`, 'success');
 };
 
@@ -7285,7 +7478,7 @@ async function pdfWorkoutLog(from) {
       const sets = (en.sets || []).filter(s => s.done !== false);
       if (!sets.length) continue;
       const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
-      const txt = sets.map(s => (s.warmup ? 'W ' : '') + (isSec ? fmtClock(s.durationSec || 0) : (s.weightKg ? `${wNum(s.weightKg)}×${s.reps}` : `${s.reps}`)) + (s.rpe ? ` @${nf(s.rpe, 1)}` : '')).join('   ');
+      const txt = sets.map(s => (s.warmup ? 'W ' : '') + (isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))) + (s.rpe ? ` @${nf(s.rpe, 1)}` : '')).join('   ');
       d.setFontSize(9.5);
       const lines = d.splitTextToSize(pdfSafe(txt), 120);
       st.need(lines.length * 4.5 + 2);
@@ -7296,7 +7489,7 @@ async function pdfWorkoutLog(from) {
     st.y += 5;
   }
   footer(st);
-  d.save(`gymlog-protokoll-${isoDate()}.pdf`);
+  d.save(`trainio-protokoll-${isoDate()}.pdf`);
   toast('PDF erstellt', 'success');
 }
 async function pdfExerciseReport(exId, from) {
@@ -7343,7 +7536,7 @@ async function pdfExerciseReport(exId, from) {
   d.setFont('helvetica', 'normal');
   st.y += 5;
   for (const s of [...ss].reverse()) {
-    const lines = d.splitTextToSize(pdfSafe(s.list.map(x => x.w ? `${wNum(x.w)}×${x.r}` : `${x.r}`).join('  ')), 94);
+    const lines = d.splitTextToSize(pdfSafe(s.list.map(x => x.w ? `${wNum(x.w)}×${prevR(x)}` : `${prevR(x)}`).join('  ')), 94);
     st.need(lines.length * 4.2 + 1.5);
     st.text(fmtDate(s.date), 15, st.y);
     d.text(lines, 42, st.y);
@@ -7353,7 +7546,7 @@ async function pdfExerciseReport(exId, from) {
     st.y += lines.length * 4.2 + 1.5;
   }
   footer(st);
-  d.save(`gymlog-${slug(Ex.name(exId))}-${isoDate()}.pdf`);
+  d.save(`trainio-${slug(Ex.name(exId))}-${isoDate()}.pdf`);
   toast('PDF erstellt', 'success');
 }
 
