@@ -616,6 +616,19 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 
 /* Listen */
 .list { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--card-shadow); }
+.phase-chips .chip.phase i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ph); margin-right: 2px; }
+.phase-chips .chip.phase.active { background: color-mix(in srgb, var(--ph) 22%, var(--surface)); border-color: var(--ph); color: var(--text); }
+.chip.ghost { background: transparent; border-style: dashed; }
+.goal-item { display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; background: none; border: 0; padding: 10px 0; color: inherit; font: inherit; border-bottom: var(--bw) solid var(--border); }
+.goal-item:last-child { border-bottom: 0; }
+.goal-top { display: flex; align-items: baseline; gap: 8px; }
+.goal-top b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.goal-top span { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-dim); font-size: calc(13px * var(--fs)); }
+.goal-bar { height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
+.goal-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); width: var(--p); transition: width .6s var(--ease-out, ease); }
+.goal-item.reached .goal-bar i { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff)); }
+.goal-sub { font-size: calc(12px * var(--fs)); color: var(--text-faint); }
+.goal-item.reached .goal-sub { color: var(--accent-text); font-weight: 700; }
 .list-item.am-featured { border: 2px solid var(--accent) !important; border-radius: calc(16px * var(--rs)); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); min-height: 72px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }
 .list-item.am-featured .li-icon { background: var(--accent); color: var(--accent-ink); }
 .am-featured .li-title { font-size: calc(17px * var(--fs)); }
@@ -3767,6 +3780,8 @@ const Analytics = (() => {
     const t = todayDN();
     const days = { '4w': 28, '3m': 91, '6m': 182, '1y': 365 }[UI.period];
     if (days) return { from: t - days + 1, to: t, len: days };
+    const ph = String(UI.period || '').startsWith('ph:') ? phaseById(UI.period.slice(3)) : null;
+    if (ph) { const a = dayNum(ph.from), b = Math.min(t, ph.to ? dayNum(ph.to) : t); return { from: a, to: Math.max(a, b), len: Math.max(a, b) - a + 1, phase: ph }; }
     if (UI.period === 'custom' && isISO(UI.customFrom) && isISO(UI.customTo)) {
       const a = dayNum(UI.customFrom), b = dayNum(UI.customTo);
       return { from: Math.min(a, b), to: Math.max(a, b), len: Math.abs(b - a) + 1, custom: true };
@@ -4308,6 +4323,7 @@ Views.start = {
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
         <button class="btn btn-secondary btn-block mt-8" data-act="startCardio">${icon('heart')} ${w ? 'Cardio hinzufügen' : 'Cardio starten'}</button>
       </div>
+      ${goalsCard()}
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
       ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
         : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History im Mehr-Tab.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">🏹 Arrow-Import</button>` : '')}</div>`}` : ''}
@@ -4383,6 +4399,68 @@ Actions.startCardio = async () => {
     setTimeout(() => { const c = $('#ex-' + en.uid); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
   } else Workout.start({ name: Ex.name(id), entries: [Workout.makeEntry(id)] });
 };
+/* ---------- Ziele: 1RM-Ziel pro Übung (Epley: Gewicht × (1 + Wdh./30)) ---------- */
+const goalsList = () => S().goals || [];
+/** Bestes geschätztes 1RM einer Übung aus allen gespeicherten Workouts */
+const best1RM = exId => maxOf(Analytics.sessionsOf(exId).filter(x => !x.cardio), x => x.best) || 0;
+function goalsCard() {
+  const gs = goalsList();
+  const rows = gs.map(g => {
+    const cur = best1RM(g.exId), p = g.kg ? Math.min(1, cur / g.kg) : 0, ok = !!g.reachedAt || cur >= g.kg - 1e-6;
+    const ss = Analytics.sessionsOf(g.exId).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
+    return `<button class="goal-item ${ok ? 'reached' : ''}" data-act="kgoalMenu" data-id="${esc(g.id)}">
+      <div class="goal-top"><b>${ok ? '🏆 ' : ''}${esc(Ex.name(g.exId))}</b><span>${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM</span></div>
+      <div class="goal-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
+      <div class="goal-sub">${ok ? `Erreicht${g.reachedAt ? ' am ' + fmtDate(isoDate(new Date(g.reachedAt))) : ''}${top ? ` · bester Satz ${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : ''}` : cur ? `Noch ${fmtW(g.kg - cur, 1)} · bester Satz ${top ? `${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : '–'} · ${nf(p * 100, 0)} %` : 'Noch keine Sätze für diese Übung'}</div>
+    </button>`;
+  }).join('');
+  return `<div class="section-head"><h2>Ziele</h2><button class="link-btn" data-act="kgoalEdit">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Ziel</button></div>
+    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div><div class="small dim mt-4">z. B. Bankdrücken 100 kg 1RM – gerechnet mit der 1RM-Formel aus deinen Sätzen (80 kg × 11 ≈ 109 kg).</div></button>`}`;
+}
+Actions.kgoalEdit = async el => {
+  const old = el && el.dataset && el.dataset.id ? goalsList().find(g => g.id === el.dataset.id) : null;
+  let exId = old ? old.exId : null;
+  if (!exId) {
+    const ids = await pickExercises({ multi: false, title: 'Übung für das Ziel' });
+    if (!ids || !ids[0]) return;
+    exId = ids[0];
+    if (Ex.type(Ex.get(exId)) !== 'kg') return toast('1RM-Ziele gehen nur bei Übungen mit Gewicht × Wdh.', 'warn');
+  }
+  const cur = best1RM(exId);
+  const sug = old ? toU(old.kg) : cur ? Math.ceil(toU(cur * 1.1) / 5) * 5 : '';
+  const v = await promptDialog({ title: old ? 'Ziel ändern' : 'Neues Ziel', label: `${Ex.name(exId)} – Ziel-1RM in ${unit()}${cur ? ` (aktuell ${fmtW(cur, 1)})` : ''}`, value: String(sug), inputmode: 'decimal' });
+  const n = parseNum(v);
+  if (v == null) return;
+  if (!n || n <= 0) return toast('Bitte ein Gewicht eingeben', 'warn');
+  const kg = fromU(n);
+  const g = { id: old ? old.id : autoId().slice(0, 8), exId, kg, createdAt: old ? old.createdAt : Date.now(), reachedAt: cur >= kg - 1e-6 ? (old && old.reachedAt) || Date.now() : null };
+  Store.saveSettings({ goals: [...goalsList().filter(x => x.id !== g.id), g] });
+  toast(g.reachedAt ? `Ziel schon erreicht – aktuell ${fmtW(cur, 1)} 💪` : `Ziel gesetzt: ${Ex.name(exId)} ${fmtW(kg)} 1RM`, 'success');
+};
+Actions.kgoalMenu = async el => {
+  const g = goalsList().find(x => x.id === el.dataset.id); if (!g) return;
+  const k = await actionMenu(`${Ex.name(g.exId)} · ${fmtW(g.kg)} 1RM`, [
+    { key: 'edit', label: 'Ziel ändern', icon: 'edit' },
+    { key: 'info', label: 'Übungs-Verlauf', icon: 'chart' },
+    { key: 'del', label: 'Ziel löschen', icon: 'trash', danger: true }
+  ]);
+  if (k === 'edit') Actions.kgoalEdit({ dataset: { id: g.id } });
+  else if (k === 'info') openExerciseDetail(g.exId);
+  else if (k === 'del') Store.saveSettings({ goals: goalsList().filter(x => x.id !== g.id) });
+};
+/** Nach dem Workout: neu erreichte Ziele markieren und zurückgeben */
+function checkGoals(doc) {
+  const hit = [];
+  const goals = goalsList().map(g => {
+    if (g.reachedAt) return g;
+    const best = maxOf((doc.entries || []).filter(en => en.exerciseId === g.exId).flatMap(en => en.sets || []).filter(s => s.done !== false && !s.warmup), s => e1rm(+s.weightKg || 0, repsOf(s))) || 0;
+    if (best >= g.kg - 1e-6) { hit.push({ ...g, best }); return { ...g, reachedAt: Date.now() }; }
+    return g;
+  });
+  if (hit.length) Store.saveSettings({ goals });
+  return hit;
+}
+
 Actions.showHistory = () => { UI.trainSub = 'history'; App.go('training'); };
 
 /* ==========================================================================
@@ -5955,6 +6033,7 @@ Actions.woFinish = async () => {
 
 /* ---------- Session-Zusammenfassung ---------- */
 function showSummary({ id, doc, prs }) {
+  const goalsHit = checkGoals(doc);
   const isC = e => Ex.type(Ex.get(e.exerciseId)) === 'cardio';
   const done = doc.entries.filter(e => !isC(e)).flatMap(e => e.sets.filter(s => s.done && !s.warmup));
   const ct = cardioTotals(doc.entries.filter(isC).flatMap(e => e.sets));
@@ -5979,6 +6058,7 @@ function showSummary({ id, doc, prs }) {
         ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
       </div>
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
+      ${goalsHit.length ? `<h4 class="mt-24 mb-8">🎯 Ziel erreicht!</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${fmtW(g.kg)} 1RM</span><div class="li-sub">Geschätztes 1RM heute: ${fmtW(g.best, 1)}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
@@ -5989,8 +6069,12 @@ function showSummary({ id, doc, prs }) {
     else if (b.dataset.x === 'tpl') saveAsTemplate(doc.entries, doc.planDayName || doc.name);
     else m.close();
   });
-  if (real.length) {
+  if (goalsHit.length) {
     confetti();
+    goalsHit.forEach((g, i) => setTimeout(() => toast(`🎯 Ziel erreicht: ${Ex.name(g.exId)} ${fmtW(g.kg)} 1RM!`, 'pr'), 300 + i * 900));
+  }
+  if (real.length) {
+    if (!goalsHit.length) confetti();
     real.slice(0, 4).forEach((p, i) => setTimeout(() => toast(`🏆 Neuer PR: ${PR.label(p)}!`, 'pr'), 500 + i * 900));
   }
 }
@@ -6731,6 +6815,8 @@ Views.progress = {
           <div class="chips grow">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}</div>
           <div class="seg sm" style="flex:0 0 auto" aria-label="Einheit"><button class="${unit() === 'kg' ? 'active' : ''}" data-act="unitSet" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-act="unitSet" data-v="lb">lb</button></div>
         </div>
+        <div class="chips mt-8 phase-chips">${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
+        ${r.phase ? `<div class="tiny dim mt-8">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
       </div>
       <div id="progBody"></div>`;
     updateTopH();
@@ -6772,6 +6858,50 @@ Actions.period = async el => {
   App.renderCurrent();
 };
 Actions.unitSet = el => { Store.saveSettings({ unit: el.dataset.v }); };
+
+/* ---------- Phasen: benannte Zeiträume (Bulk, Cut, Erhalt …) ---------- */
+const PHASE_TYPES = { bulk: ['Bulk', '#22c55e'], cut: ['Cut', '#f97316'], maintain: ['Erhalt', '#3b82f6'], other: ['Sonstiges', '#a855f7'] };
+const phases = () => (S().phases || []).slice().sort((a, b) => b.from.localeCompare(a.from));
+const phaseById = id => (S().phases || []).find(p => p.id === id) || null;
+Actions.phaseEdit = el => {
+  const old = el.dataset.id ? phaseById(el.dataset.id) : null;
+  const d = old ? { ...old } : { id: autoId().slice(0, 8), name: '', type: 'bulk', from: dnToISO(todayDN() - 30), to: '' };
+  const m = Modal.open({
+    title: old ? 'Phase bearbeiten' : 'Neue Phase', size: 'sm',
+    body: `<div class="stack">
+      <div class="seg" id="phType">${Object.entries(PHASE_TYPES).map(([k, [l]]) => `<button data-t="${k}" class="${d.type === k ? 'active' : ''}">${l}</button>`).join('')}</div>
+      <label class="field"><span>Name</span><input class="input" id="phName" value="${esc(d.name)}" placeholder="z. B. Bulk 2026" autocomplete="off"></label>
+      <div class="form-grid">
+        <label class="field"><span>Start</span><input class="input" type="date" id="phFrom" value="${esc(d.from)}"></label>
+        <label class="field"><span>Ende (leer = läuft noch)</span><input class="input" type="date" id="phTo" value="${esc(d.to || '')}"></label>
+      </div>
+      <p class="tiny dim">Die Phase erscheint im Fortschritt als eigener Zeitraum – alle Auswertungen gelten dann nur für diese Zeit.</p></div>`,
+    foot: `${old ? `<button class="btn btn-danger-ghost" data-x="del" style="flex:0 0 auto" aria-label="Löschen">${icon('trash')}</button>` : ''}<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
+  });
+  m.el.addEventListener('click', async e => {
+    const t = e.target.closest('[data-t]');
+    if (t) { d.type = t.dataset.t; $$('#phType button', m.el).forEach(b => b.classList.toggle('active', b === t)); if (!$('#phName', m.el).value.trim() || Object.values(PHASE_TYPES).some(([l]) => $('#phName', m.el).value.startsWith(l))) $('#phName', m.el).value = `${PHASE_TYPES[d.type][0]} ${new Date().getFullYear()}`; return; }
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    const list = (S().phases || []).filter(p => p.id !== d.id);
+    if (b.dataset.x === 'del') {
+      if (!await confirmDialog({ title: 'Phase löschen?', text: `„${d.name}" wird entfernt. Deine Workouts bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
+      Store.saveSettings({ phases: list });
+      if (UI.period === 'ph:' + d.id) { UI.period = '3m'; saveUI(); }
+      m.close(); return;
+    }
+    if (b.dataset.x === 'ok') {
+      d.name = $('#phName', m.el).value.trim() || `${PHASE_TYPES[d.type][0]} ${new Date().getFullYear()}`;
+      d.from = $('#phFrom', m.el).value; d.to = $('#phTo', m.el).value || '';
+      if (!isISO(d.from)) return toast('Bitte ein Startdatum wählen', 'warn');
+      if (d.to && d.to < d.from) return toast('Ende liegt vor dem Start', 'warn');
+      Store.saveSettings({ phases: [...list, d] });
+      UI.period = 'ph:' + d.id; saveUI();
+      toast(old ? 'Phase gespeichert' : `Phase „${d.name}" angelegt`, 'success');
+    }
+    m.close();
+    App.renderCurrent();
+  });
+};
 
 const ProgressViews = {};
 const rangeLabel = r => r.all ? 'gesamt' : `${fmtDN(r.from, { day: '2-digit', month: '2-digit', year: '2-digit' })} – ${fmtDN(r.to, { day: '2-digit', month: '2-digit', year: '2-digit' })}`;

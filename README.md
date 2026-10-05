@@ -98,6 +98,15 @@ Konfetti und Inhalte der Startseite.
 - **Getrennt von Kraft**: Cardio zählt nicht in Volumen, Satzanzahl, Muskel-Heatmap oder Push/Pull.
   Reine Cardio-Tage zählen nicht für Streak, Wochenziel und Konsistenz.
 
+## Phasen & Ziele
+
+- **Phasen** (Fortschritt → „+ Phase“): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
+  Jede Phase ist ein eigener Zeitraum-Chip – alle Auswertungen gelten dann genau für diese Zeit
+  (z. B. „Bulk 2026“ seit 1. Juli). Bearbeiten über den Stift neben der aktiven Phase.
+- **Kraftziele** (Start → „+ Ziel“): Ziel-1RM pro Übung, z. B. Bankdrücken 100 kg. Gerechnet wird mit der
+  1RM-Formel (Epley: Gewicht × (1 + Wdh./30)) aus allen gespeicherten Sätzen – 80 kg × 11 ≈ 109 kg zählt also
+  als erreicht. Fortschrittsbalken auf dem Start-Tab; erreichte Ziele werden nach dem Workout mit Konfetti gefeiert.
+
 ## Tabs ein-/ausblenden
 
 **Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
