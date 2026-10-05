@@ -435,6 +435,11 @@ svg { flex-shrink: 0; }
   border-bottom: 1px solid transparent; transition: border-color .2s;
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
+/* Hinter der iPhone-Statusleiste: nur beim Scrollen eine ruhige Fläche, damit Inhalt nicht unter der Uhr durchläuft */
+#sbShade { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); z-index: 29; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .2s; }
+body.is-scrolled #sbShade { opacity: 1; }
+[data-design="glass"] .wo-head { background: color-mix(in srgb, var(--bg) 70%, var(--glass-bar)) !important; }
+[data-design="glass"] #sbShade { background: var(--glass-bar); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%); backdrop-filter: blur(var(--glass-blur)) saturate(180%); }
 .topbar.empty { position: relative; min-height: 0; height: env(safe-area-inset-top); padding: 0; border-bottom: 0 !important; background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
 .topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
 .start-date { margin-top: 18px; color: var(--text-dim); font-weight: 700; font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
@@ -827,8 +832,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .mini-label { font-size: calc(11px * var(--fs)); font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
 
 /* Aktives Workout */
-.wo-head { position: sticky; top: var(--top-h, 56px); z-index: 30; margin: 0 -16px 12px; padding: 10px 16px; background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); display: flex; align-items: center; gap: 10px; }
-@media (min-width: 900px) { .wo-head { margin: 0 -28px 12px; padding: 10px 28px; } }
+.wo-head { position: sticky; top: 0; z-index: 30; margin: calc(-16px - env(safe-area-inset-top)) -16px 12px; padding: calc(env(safe-area-inset-top) + 10px) 16px 10px; background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); display: flex; align-items: center; gap: 10px; }
+@media (min-width: 900px) { .wo-head { margin: calc(-16px - env(safe-area-inset-top)) -28px 12px; padding: calc(env(safe-area-inset-top) + 10px) 28px 10px; } }
 .wo-timer { font-size: calc(24px * var(--fs)); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .wo-progress { height: 4px; border-radius: calc(4px * var(--rs)); background: var(--surface-3); overflow: hidden; margin-top: 6px; }
 .wo-progress i { display: block; height: 100%; background: var(--accent); border-radius: calc(4px * var(--rs)); transition: width .3s; }
@@ -1077,7 +1082,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .muscle-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* Fortschritt */
-.prog-controls { position: sticky; top: calc(var(--top-h, 0px) + 8px); z-index: 30; margin: 0; padding: 8px; border-radius: calc(18px * var(--rs)); border: var(--bw) solid var(--border) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
+.prog-controls { position: sticky; top: calc(env(safe-area-inset-top) + 8px); z-index: 30; margin: 0; padding: 8px; border-radius: calc(18px * var(--rs)); border: var(--bw) solid var(--border) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
 @media (min-width: 900px) { .prog-controls { padding: 10px; } }
 .prog-controls .seg.tabs { background: transparent; border: 0; padding: 0; }
 .pc-row { margin-top: 8px; gap: 8px; align-items: center; }
@@ -1665,6 +1670,7 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
   <aside class="sidebar" id="sidebar" aria-label="Navigation"></aside>
   <div class="main-col">
     <header class="topbar" id="topbar"></header>
+    <div id="sbShade" aria-hidden="true"></div>
     <div id="banner"></div>
     <main class="view" id="view">
       <section class="tab" id="tab-start"></section>
@@ -3514,7 +3520,7 @@ function renderFab() {
   const root = $('#fabRoot');
   root.innerHTML = App.tab === 'exercises' ? `<button class="fab" data-act="exNew" aria-label="Neue Übung">${icon('plus')}</button>` : '';
 }
-window.addEventListener('scroll', () => { $('#topbar').classList.toggle('scrolled', scrollY > 4); }, { passive: true });
+window.addEventListener('scroll', () => { $('#topbar').classList.toggle('scrolled', scrollY > 4); document.body.classList.toggle('is-scrolled', scrollY > 4); }, { passive: true });
 
 /* Gemeinsame Bausteine */
 function emptyState(ic, title, text, btn = '') {
@@ -5310,7 +5316,7 @@ function exerciseCard(en, ei, w) {
     return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni, lo) + (sel ? setPanel(ei, si, s, type, uni) : '');
   }).join('');
   const meta = ex ? [ex.equipment, (ex.muscleGroups || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') : '';
-  return `<div class="ex-card ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(var(--top-h, 56px) + var(--wo-head-h, 120px))">
+  return `<div class="ex-card ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(env(safe-area-inset-top) + var(--wo-head-h, 120px))">
     <div class="ex-card-head">
       <span class="ex-idx ${catCls(ex && ex.category)}">${complete ? icon('check').replace('<svg', '<svg width="16" height="16"') : ei + 1}</span>
       <div class="grow" style="min-width:0">
