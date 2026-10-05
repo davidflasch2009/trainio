@@ -3,9 +3,9 @@
    WICHTIG: CACHE bei JEDEM Deploy hochzählen (gymlog-v2, gymlog-v3, …),
    sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v12';
+const CACHE = 'gymlog-v13';
 
-const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png'];
+const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './icon.svg'];
 const CDN_ASSETS = [
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
   'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
