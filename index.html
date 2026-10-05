@@ -986,6 +986,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exs .rpe.fill .set-head, .exs .rpe.fill .set-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 58px 34px 46px; gap: 5px; }
 .exs .uni.fill .set-head, .exs .uni.fill .set-row { grid-template-columns: 28px minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) 34px 46px; gap: 5px; }
 .exs .uni.rpe.fill .set-head, .exs .uni.rpe.fill .set-row { grid-template-columns: 26px minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) 50px 32px 44px; gap: 4px; }
+.exs .cd-sets .set-head, .exs .cd-sets .set-row { grid-template-columns: var(--cd-cols); gap: 6px; }
+.cd-bests { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 4px; }
+.cd-best { background: var(--surface-2); border-radius: calc(10px * var(--rs)); padding: 6px 8px; display: flex; flex-direction: column; min-width: 0; }
+.cd-best span { font-size: calc(11px * var(--fs)); color: var(--text-faint); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.cd-best b { font-size: calc(15px * var(--fs)); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cd-best small { font-size: calc(11px * var(--fs)); color: var(--text-faint); }
+.cd-sum { padding: 6px 14px 2px; font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.focus .fc-cardio { margin: 8px 0 0; border: 0; box-shadow: none; background: transparent; }
 .set-fill { width: 100%; height: 40px; border: 0; border-radius: calc(10px * var(--rs)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-text); display: flex; align-items: center; justify-content: center; padding: 0; }
 .set-fill svg { width: 18px; height: 18px; }
 .set-fill:active { transform: scale(.92); }
@@ -1638,7 +1646,7 @@ const CATEGORIES = ['Push', 'Pull', 'Legs', 'Core', 'Cardio', 'Full Body'];
 const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Kettlebell', 'Maschine', 'Kabel', 'Körpergewicht', 'Band'];
 const MUSCLES = ['Brust', 'Schulter', 'Hintere Schulter', 'Trizeps', 'Bizeps', 'Unterarme', 'Rücken', 'Trapez',
   'Unterer Rücken', 'Bauch', 'Quadrizeps', 'Beinbeuger', 'Gesäß', 'Adduktoren', 'Abduktoren', 'Waden'];
-const UNIT_TYPES = { kg: 'Gewicht × Wdh.', reps: 'Körpergewicht (Wdh.)', sec: 'Zeit (Sek.)' };
+const UNIT_TYPES = { kg: 'Gewicht × Wdh.', reps: 'Körpergewicht (Wdh.)', sec: 'Zeit (Sek.)', cardio: 'Cardio' };
 const RPE_VALUES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const MEASURES = [
   ['chestCm', 'Brust'], ['waistCm', 'Taille'], ['hipCm', 'Hüfte'], ['armCm', 'Arm'],
@@ -1892,6 +1900,7 @@ const ICONS = {
   camera: '<path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/>',
   arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   arrowDown: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  heart: '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/><path d="M5.5 12.5h3l1.5-2.5 2 4 1.5-2h5"/>',
   fillIn: '<path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
   bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
@@ -2148,9 +2157,47 @@ const SEED_EXERCISES_2 = [
   ['bear_crawl', 'Bear Crawl', 'Full Body', ['Schulter', 'Bauch', 'Quadrizeps'], 'Körpergewicht', 'sec', 'Knie knapp über dem Boden, Rücken flach.', ['Bear Crawls']],
   ['sandbag_carry', 'Suitcase Carry', 'Full Body', ['Unterarme', 'Bauch', 'Trapez'], 'Kurzhantel', 'sec', 'Einseitig tragen, Oberkörper bleibt gerade.', ['Suitcase Carry', 'Single Arm Farmer Carry']]
 ];
+/* Cardio-Bibliothek (Seed v4): Dauer + Distanz bzw. Dauer + Stufe, siehe CARDIO_CFG */
+const SEED_CARDIO = [
+  ['laufband', 'Laufband (Joggen)', 'Cardio', ['Ausdauer'], 'Maschine', 'cardio', 'Lockerer Laufstil, nicht an den Griffen festhalten.', ['Treadmill Run', 'Treadmill Running', 'Laufband Laufen']],
+  ['laufen_draussen', 'Laufen draußen', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Locker anfangen, Tempo erst nach 10 Minuten steigern.', ['Outdoor Run', 'Run Outdoor', 'Joggen draußen']],
+  ['sprints', 'Sprint-Intervalle', 'Cardio', ['Ausdauer', 'Quadrizeps'], 'Körpergewicht', 'cardio', 'Gut aufwärmen, Sprints kurz und maximal, Gehpausen dazwischen.', ['Sprints', 'Sprint Intervals']],
+  ['wandern', 'Wandern', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Gleichmäßiges Tempo, bergauf kleine Schritte.', ['Hiking', 'Hike']],
+  ['nordic_walking', 'Nordic Walking', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Stöcke diagonal zum Schritt einsetzen, Arme aktiv.', ['Nordic Walk']],
+  ['rucking', 'Rucking (Gehen mit Rucksack)', 'Cardio', ['Ausdauer', 'Trapez'], 'Körpergewicht', 'cardio', 'Rucksack eng am Rücken, aufrecht gehen.', ['Rucking', 'Ruck']],
+  ['radfahren', 'Radfahren draußen', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Trittfrequenz eher hoch, Gänge früh schalten.', ['Outdoor Cycling', 'Road Bike', 'Rennrad', 'Fahrradfahren']],
+  ['mountainbike', 'Mountainbike', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Gewicht bergab nach hinten, bergauf gleichmäßig treten.', ['MTB', 'Mountain Biking']],
+  ['spinning', 'Spinning / Indoor Cycling', 'Cardio', ['Ausdauer'], 'Maschine', 'cardio', 'Widerstand so wählen, dass die Trittfrequenz kontrolliert bleibt.', ['Indoor Cycling', 'Spin Bike', 'Spin Class']],
+  ['liegeergometer', 'Liegeergometer', 'Cardio', ['Ausdauer'], 'Maschine', 'cardio', 'Rücken an der Lehne, Knie unten fast gestreckt.', ['Recumbent Bike', 'Liegerad']],
+  ['skierg', 'SkiErg', 'Cardio', ['Ausdauer', 'Rücken'], 'Maschine', 'cardio', 'Aus der Hüfte beugen, Arme ziehen bis zur Hüfte.', ['Ski Erg', 'Ski Ergometer']],
+  ['rudern_boot', 'Rudern (Boot)', 'Cardio', ['Ausdauer', 'Rücken'], 'Körpergewicht', 'cardio', 'Beine – Rücken – Arme, ruhiger Rhythmus.', ['Rowing Boat', 'Rudern Wasser']],
+  ['kajak', 'Kajak / Paddeln', 'Cardio', ['Ausdauer', 'Rücken'], 'Körpergewicht', 'cardio', 'Kraft aus dem Rumpf, nicht nur aus den Armen.', ['Kayaking', 'Paddling', 'Kanu']],
+  ['sup', 'Stand-up-Paddling', 'Cardio', ['Ausdauer', 'Bauch'], 'Körpergewicht', 'cardio', 'Knie leicht gebeugt, Paddel weit vorne eintauchen.', ['SUP', 'Stand Up Paddle']],
+  ['inlineskaten', 'Inlineskaten', 'Cardio', ['Ausdauer', 'Gesäß'], 'Körpergewicht', 'cardio', 'Tiefe Position, lange Abstöße zur Seite.', ['Inline Skating', 'Rollerblading']],
+  ['skilanglauf', 'Skilanglauf', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Gewicht über dem Gleitski, Arme schieben aktiv.', ['Cross-Country Skiing', 'Langlauf']],
+  ['aquajogging', 'Aquajogging', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Aufrecht im Wasser laufen, Gürtel trägt.', ['Aqua Jogging', 'Water Running']],
+  ['treppensteigen', 'Treppensteigen', 'Cardio', ['Ausdauer', 'Gesäß'], 'Körpergewicht', 'cardio', 'Ganze Fußsohle aufsetzen, nicht am Geländer ziehen.', ['Stairs', 'Stair Climbing', 'Treppenlauf']],
+  ['step_aerobic', 'Step-Aerobic', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Ganzer Fuß auf den Step, leise aufsetzen.', ['Step Aerobics']],
+  ['trampolin', 'Trampolin', 'Cardio', ['Ausdauer', 'Waden'], 'Körpergewicht', 'cardio', 'Mittig springen, Rumpf fest.', ['Trampoline', 'Rebounding']],
+  ['tabata', 'Tabata', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', '8 Runden: 20 s maximal, 10 s Pause.', ['Tabata Intervals']],
+  ['zirkeltraining', 'Zirkeltraining', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Stationen zügig wechseln, Puls oben halten.', ['Circuit Training', 'Circuit', 'Metcon']],
+  ['boxsack', 'Boxsack', 'Cardio', ['Ausdauer', 'Schulter'], 'Körpergewicht', 'cardio', 'Aus der Hüfte schlagen, Deckung oben.', ['Heavy Bag', 'Punching Bag', 'Sandsack']],
+  ['schattenboxen', 'Schattenboxen', 'Cardio', ['Ausdauer', 'Schulter'], 'Körpergewicht', 'cardio', 'Locker auf den Fußballen, Kombinationen sauber.', ['Shadow Boxing']],
+  ['kampfsport', 'Kampfsport', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Training im Verein oder Gym – Dauer eintragen.', ['Martial Arts', 'Kickboxen', 'MMA', 'Judo', 'Karate', 'BJJ']],
+  ['tanzen', 'Tanzen / Zumba', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spaß zählt – Dauer eintragen.', ['Dancing', 'Zumba', 'Dance']],
+  ['klettern', 'Klettern / Bouldern', 'Cardio', ['Ausdauer', 'Unterarme', 'Rücken'], 'Körpergewicht', 'cardio', 'Aus den Beinen drücken, Arme lang lassen.', ['Climbing', 'Bouldering']],
+  ['fussball', 'Fußball', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Football', 'Soccer', 'Fussball']],
+  ['basketball', 'Basketball', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Basketball']],
+  ['handball', 'Handball', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Handball']],
+  ['volleyball', 'Volleyball', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Volleyball', 'Beachvolleyball']],
+  ['tennis', 'Tennis', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Tennis']],
+  ['badminton', 'Badminton', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Federball']],
+  ['squash', 'Squash', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Squash']],
+  ['tischtennis', 'Tischtennis', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Table Tennis', 'Ping Pong']]
+];
 
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 3;
+const SEED_VERSION = 4;
 /** Neue Bibliotheks-Übungen bei bestehenden Konten einmalig ergänzen (nur fehlende IDs) */
 function ensureSeeds() {
   const v = S().seedVersion || 1;
@@ -2161,6 +2208,11 @@ function ensureSeeds() {
     const have = new Set(Store.all('exercises').map(e => e.id));
     seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
     if (added && !have.size) added = 0;
+  }
+  if (v >= 2 && v < 4) {
+    // Cardio-Bibliothek ergänzen
+    const have = new Set(Store.all('exercises').map(e => e.id));
+    seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
   }
   let patch = { seedVersion: SEED_VERSION };
   if (v < 3) {
@@ -2188,7 +2240,7 @@ function ensureSeeds() {
 }
 function seedExerciseDocs() {
   const now = Date.now();
-  return [...SEED_EXERCISES, ...SEED_EXERCISES_2].map(([id, name, category, muscleGroups, equipment, defaultUnit, notes, aliases]) => ({
+  return [...SEED_EXERCISES, ...SEED_EXERCISES_2, ...SEED_CARDIO].map(([id, name, category, muscleGroups, equipment, defaultUnit, notes, aliases]) => ({
     id: EX_PREFIX + id, name, category, muscleGroups, equipment, isCustom: false, notes, defaultUnit, aliases: aliases || [], createdAt: now
   }));
 }
@@ -3372,6 +3424,79 @@ const setVol = s => repsSum(s) * (+s.weightKg || 0);
 /** „10" bzw. „10/8" (links/rechts) – für gespeicherte Sätze */
 const repsTxt = s => s.repsR != null ? `${s.reps ?? 0}/${s.repsR}` : `${s.reps ?? '–'}`;
 const secTxt = s => s.durationSecR != null ? `${fmtClock(s.durationSec || 0)}/${fmtClock(s.durationSecR)}` : fmtClock(s.durationSec || 0);
+
+/* ---------- Cardio: Dauer + Distanz (km/h berechnet) bzw. Dauer + Stufe ---------- */
+/* Modus je Art: dist = Dauer + Distanz (+ optional Stufe/Steigung), level = Dauer + Stufe, time = nur Dauer */
+const CARDIO_CFG = {
+  laufen: ['dist', 'Steigung'], laufband: ['dist', 'Steigung'], laufband_steigung: ['dist', 'Steigung'],
+  laufen_draussen: ['dist'], sprints: ['dist'], spazieren: ['dist'], wandern: ['dist'], nordic_walking: ['dist'], rucking: ['dist'],
+  fahrrad: ['dist', 'Stufe'], spinning: ['dist', 'Stufe'], liegeergometer: ['dist', 'Stufe'], radfahren: ['dist'], mountainbike: ['dist'],
+  rudergeraet: ['dist', 'Stufe'], skierg: ['dist', 'Stufe'], crosstrainer: ['dist', 'Stufe'], assault_bike: ['dist'],
+  rudern_boot: ['dist'], kajak: ['dist'], sup: ['dist'], schwimmen: ['dist'], inlineskaten: ['dist'], skilanglauf: ['dist'],
+  stepper: ['level', 'Stufe'], treppensteigen: ['level', 'Etagen'], jump_rope: ['level', 'Stufe'], hiit: ['level', 'Stufe'],
+  tabata: ['level', 'Stufe'], zirkeltraining: ['level', 'Stufe'], battle_ropes: ['level', 'Stufe'], sled_push: ['level', 'Gewicht'],
+  step_aerobic: ['level', 'Stufe'], trampolin: ['level', 'Stufe'], boxsack: ['level', 'Stufe'], schattenboxen: ['level', 'Stufe'],
+  aquajogging: ['time'], kampfsport: ['time'], tanzen: ['time'], klettern: ['time'], fussball: ['time'], basketball: ['time'],
+  handball: ['time'], volleyball: ['time'], tennis: ['time'], badminton: ['time'], squash: ['time'], tischtennis: ['time']
+};
+/** { mode, lvl } – lvl = Bezeichnung des Stufen-Felds oder null (kein Feld) */
+function cardioInfo(ex) {
+  if (!ex) return { mode: 'level', lvl: 'Stufe' };
+  const base = cardioBase(ex);
+  if (ex.cardioMode && ex.cardioMode !== base.mode) return { mode: ex.cardioMode, lvl: ex.cardioMode === 'time' ? null : base.lvl || 'Stufe' };
+  return base;
+}
+function cardioBase(ex) {
+  const c = CARDIO_CFG[String(ex.id || '').replace(/^ex_/, '')];
+  if (c) return { mode: c[0], lvl: c[1] || null };
+  const n = norm([ex.name, ...(ex.aliases || [])].join(' '));
+  if (/(fußball|fussball|soccer|basketball|handball|volleyball|tennis|badminton|squash|klettern|boulder|tanz|dance|zumba|kampf|boxen|yoga|golf|hockey)/.test(n)) return { mode: 'time', lvl: null };
+  if (/(laufband|treadmill)/.test(n)) return { mode: 'dist', lvl: 'Steigung' };
+  if (/(ergometer|bike|rad|cycl|spinning|ruder|row|ski|crosstrainer|elliptical)/.test(n)) return { mode: 'dist', lvl: 'Stufe' };
+  if (/(lauf|run|jog|geh|walk|wander|hike|schwimm|swim|skat|paddel|kajak|kanu)/.test(n)) return { mode: 'dist', lvl: null };
+  return { mode: 'level', lvl: 'Stufe' };
+}
+const lvlUnit = lvl => lvl === 'Steigung' ? ' %' : lvl === 'Gewicht' ? ' kg' : '';
+const fmtKm = km => nf(km, km < 100 ? 2 : 1) + ' km';
+const fmtKmh = v => nf(v, 1) + ' km/h';
+/** km/h nur bei sinnvoller Strecke & Dauer werten (keine Ausreißer aus Tippfehlern) */
+const cardioKmhValid = (km, sec) => km >= 0.1 && sec >= 60 && km / (sec / 3600) < 80;
+/** Dauer-Eingabe: „30" = 30 min, „30,5" = 30:30, „30:15" = 30 min 15 s, „1:05:00" = 1 h 5 min */
+function parseDur(v) {
+  const t = String(v ?? '').trim();
+  if (!t) return null;
+  if (t.includes(':')) {
+    const p = t.split(':').map(x => parseInt(x, 10) || 0);
+    const sec = p.length === 3 ? p[0] * 3600 + p[1] * 60 + p[2] : p[0] * 60 + (p[1] || 0);
+    return sec > 0 ? sec : null;
+  }
+  const n = parseNum(t);
+  return n != null && n > 0 ? Math.round(n * 60) : null;
+}
+/** Dauer fürs Eingabefeld: ganze Minuten als „30", sonst „30:15" */
+const durIn = sec => sec == null ? '' : sec % 60 ? fmtClock(sec) : String(Math.round(sec / 60));
+function cardioTotals(sets) {
+  let sec = 0, km = 0, secT = 0, kmT = 0, n = 0, lvl = null;
+  for (const s of sets || []) {
+    if (!s || s.warmup || s.done === false) continue;
+    const a = +s.durationSec || 0, b = +s.distKm || 0;
+    if (!a && !b) continue;
+    n++; sec += a; km += b;
+    if (a && b) { secT += a; kmT += b; }
+    if (s.level != null && (lvl == null || +s.level > lvl)) lvl = +s.level;
+  }
+  return { sec, km, secT, kmT, n, lvl, kmh: cardioKmhValid(kmT, secT) ? kmT / (secT / 3600) : 0 };
+}
+/** Kurztext einer Cardio-Einheit/eines Abschnitts: „30 min · 3,20 km · 6,4 km/h · St. 8" */
+function cardioTxt(x, info) {
+  const sec = x.sec ?? x.durationSec, km = x.km ?? x.distKm, lv = x.lvl !== undefined ? x.lvl : x.level;
+  const parts = [];
+  if (sec) parts.push(sec % 60 ? fmtClock(sec) + ' min' : fmtDur(sec));
+  if (km) parts.push(fmtKm(+km));
+  if (km && sec && cardioKmhValid(+km, +sec)) parts.push(fmtKmh(km / (sec / 3600)));
+  if (lv != null && info && info.lvl) parts.push(`${info.lvl} ${nf(+lv, 1)}${lvlUnit(info.lvl)}`);
+  return parts.join(' · ') || '–';
+}
 /** dasselbe für Einträge aus dem Analytics-Index ({ r, sec, u: [L, R], us: [L, R] }) */
 const prevR = p => p.u ? p.u.join('/') : p.r;
 const prevSec = p => p.us ? `${fmtClock(p.us[0])}/${fmtClock(p.us[1])}` : fmtClock(p.sec || 0);
@@ -3381,7 +3506,7 @@ const Ex = {
   name: id => (Store.raw('exercises', id) || {}).name || (Store.raw('prs', id) || {}).exerciseName || 'Unbekannte Übung',
   /** Name für einen Workout-Eintrag: aktueller Bibliotheksname, sonst Snapshot */
   entryName: en => (Store.raw('exercises', en.exerciseId) || {}).name || en.exerciseName || 'Übung',
-  type: ex => !ex ? 'kg' : ex.defaultUnit === 'sec' ? 'sec' : ex.defaultUnit === 'reps' ? 'reps' : 'kg',
+  type: ex => !ex ? 'kg' : ex.defaultUnit === 'cardio' || (ex.category === 'Cardio' && ex.defaultUnit === 'sec') ? 'cardio' : ex.defaultUnit === 'sec' ? 'sec' : ex.defaultUnit === 'reps' ? 'reps' : 'kg',
   /** Standard: einseitig (links/rechts getrennt)? */
   isUni: ex => !!ex && (ex.unilateral != null ? !!ex.unilateral : UNI_DEFAULT.has(ex.id)),
   sorted: () => Store.all('exercises').slice().sort((a, b) => a.name.localeCompare(b.name, 'de')),
@@ -3400,7 +3525,7 @@ const Ex = {
 };
 function exMeta() {
   const m = {};
-  for (const e of Store.all('exercises')) m[e.id] = { category: e.category, muscleGroups: e.muscleGroups || [], defaultUnit: e.defaultUnit };
+  for (const e of Store.all('exercises')) m[e.id] = { category: e.category, muscleGroups: e.muscleGroups || [], defaultUnit: e.defaultUnit, cardio: Ex.type(e) === 'cardio' };
   return m;
 }
 
@@ -3419,6 +3544,7 @@ function buildIndex(W, EX) {
     const row = {
       id: w.id, date: w.date, dn, name: w.planDayName || w.name || 'Freies Workout', startedAt: w.startedAt || null,
       dur: w.durationSec || 0, ton: 0, sets: 0, reps: 0, rpeSum: 0, rpeN: 0, rpeVol: 0, planned: 0, done: 0,
+      cSec: 0, cKm: 0, cBy: {}, cardioOnly: false,
       muscles: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exReps: {}, imp: !!w.importId,
       bw: w.bodyWeightKg || null, planId: w.planId || null, estDur: !!w.durationEstimated
     };
@@ -3427,6 +3553,28 @@ function buildIndex(W, EX) {
       const exId = en && en.exerciseId;
       if (!exId) continue;
       const meta = EX[exId] || {};
+      // Cardio: eigene Kennzahlen (Dauer, Distanz, km/h) – zählt nicht in Kraft-Statistiken
+      if (meta.cardio) {
+        let cs = 0, ck = 0, ckT = 0, cn = 0, lvl = 0;
+        const cl = [];
+        for (const s of (en.sets || [])) {
+          if (!s || s.done === false) continue;
+          const sec = +s.durationSec || 0, km = +s.distKm || 0;
+          if (!sec && !km) continue;
+          cn++; cs += sec; ck += km; if (km && sec) ckT += sec;
+          if (+s.level > lvl) lvl = +s.level;
+          if (s.doneAt) times.push(s.doneAt);
+          cl.push({ sec, km, lvl: s.level != null ? +s.level : null });
+        }
+        if (!cn) continue;
+        row.cSec += cs; row.cKm += ck;
+        const cb = row.cBy[exId] || (row.cBy[exId] = { sec: 0, km: 0 });
+        cb.sec += cs; cb.km += ck;
+        const kmTimed = cl.filter(x => x.km && x.sec).reduce((a, x) => a + x.km, 0);
+        const sess = { wid: w.id, date: w.date, dn, cardio: true, secs: cs, km: ck, kmh: ckT ? kmTimed / (ckT / 3600) : 0, lvl, list: cl, best: 0, bestSet: null, maxW: 0, repsAtMax: 0, vol: 0, sets: cn, reps: 0 };
+        (sessions[exId] || (sessions[exId] = [])).push(sess);
+        continue;
+      }
       let best = 0, bestSet = null, maxW = 0, repsAtMax = 0, vol = 0, n = 0, reps = 0, secs = 0;
       const list = [];
       for (const s of (en.sets || [])) {
@@ -3478,6 +3626,7 @@ function buildIndex(W, EX) {
     for (let i = 1; i < times.length; i++) { const g = (times[i] - times[i - 1]) / 1000; if (g >= 15 && g <= 600) gaps.push(g); }
     if (gaps.length) row.restAvg = gaps.reduce((a, b) => a + b, 0) / gaps.length;
     row.avgRpe = row.rpeN ? row.rpeSum / row.rpeN : null;
+    row.cardioOnly = !row.done && (row.cSec > 0 || row.cKm > 0);
     rows.push(row);
   }
   return { rows, sessions, prEvents, builtAt: Date.now() };
@@ -3555,7 +3704,7 @@ const Analytics = (() => {
   }
   /** Wochen-Streak: aufeinanderfolgende Wochen mit ≥ 1 Workout */
   function streak() {
-    const rows = cur().rows;
+    const rows = cur().rows.filter(r => !r.cardioOnly);
     const weeks = new Set(rows.map(w => weekStartDN(w.dn)));
     const cw = weekStartDN(todayDN());
     let curS = 0;
@@ -3604,6 +3753,11 @@ const PR = {
   compute(exId, ix) {
     const ss = ix.sessions[exId];
     if (!ss || !ss.length) return null;
+    if (ss[0].cardio) {
+      const c = { durSec: 0, km: 0, kmh: 0 };
+      for (const x of ss) { c.durSec = Math.max(c.durSec, x.secs); c.km = Math.max(c.km, x.km); if (cardioKmhValid(x.km, x.secs)) c.kmh = Math.max(c.kmh, x.kmh); }
+      return { exerciseId: exId, exerciseName: Ex.name(exId), cardio: true, bestDurSec: c.durSec, bestKm: round(c.km, 3), bestKmh: round(c.kmh, 2), updatedAt: Date.now() };
+    }
     let bestW = 0, best1 = 0, bestV = 0, bestR = 0;
     for (const s of ss) { best1 = Math.max(best1, s.best); bestV = Math.max(bestV, s.vol); bestW = Math.max(bestW, s.maxW); }
     for (const s of ss) for (const x of s.list) if (x.r >= 1 && x.w === bestW && x.r > bestR) bestR = x.r;
@@ -3631,6 +3785,24 @@ const PR = {
       if (!en.exerciseId || seen.has(en.exerciseId)) continue;
       seen.add(en.exerciseId);
       const merged = { ...en, sets: workout.entries.filter(e => e.exerciseId === en.exerciseId).flatMap(e => e.sets || []) };
+      if (Ex.type(Ex.get(en.exerciseId)) === 'cardio') {
+        const c = cardioTotals(merged.sets);
+        if (!c.sec && !c.km) continue;
+        const old = Store.raw('prs', en.exerciseId);
+        const name = en.exerciseName || Ex.name(en.exerciseId);
+        const kmh = cardioKmhValid(c.kmT, c.secT) ? c.kmT / (c.secT / 3600) : 0;
+        const cur = { durSec: c.sec, km: c.km, kmh };
+        if (!old || !old.cardio) {
+          ops.push({ type: 'put', coll: 'prs', id: en.exerciseId, doc: { exerciseId: en.exerciseId, exerciseName: name, cardio: true, bestDurSec: c.sec, bestKm: round(c.km, 3), bestKmh: round(kmh, 2), updatedAt: Date.now() }, replace: true });
+          results.push({ exId: en.exerciseId, name, first: true, cardio: cur });
+          continue;
+        }
+        const imp = { dur: c.sec > (old.bestDurSec || 0) + 0.5, km: c.km > (old.bestKm || 0) + 1e-4, kmh: kmh > (old.bestKmh || 0) + 0.005 };
+        if (!imp.dur && !imp.km && !imp.kmh) continue;
+        ops.push({ type: 'put', coll: 'prs', id: en.exerciseId, doc: { ...old, exerciseName: name, bestDurSec: imp.dur ? c.sec : old.bestDurSec, bestKm: imp.km ? round(c.km, 3) : old.bestKm, bestKmh: imp.kmh ? round(kmh, 2) : old.bestKmh, updatedAt: Date.now() }, replace: true });
+        results.push({ exId: en.exerciseId, name, imp, cardio: cur, old });
+        continue;
+      }
       const s = PR.ofEntry(merged);
       if (!s.bestR && !s.vol) continue;
       const old = Store.raw('prs', en.exerciseId);
@@ -3665,6 +3837,10 @@ const PR = {
   /** Text für den PR-Toast */
   label(res) {
     const ex = Ex.get(res.exId);
+    if (res.cardio) {
+      const c = res.cardio, i = res.imp || {};
+      return `${res.name} ${i.kmh ? fmtKmh(c.kmh) : i.km ? fmtKm(c.km) : fmtDur(c.durSec)}`;
+    }
     if (res.imp.weight && res.s.heavy) return `${res.name} ${fmtW(res.s.heavy.w)} × ${res.s.heavy.r}`;
     if (res.imp.e1rm && res.s.bestSet) return `${res.name} e1RM ${fmtW(res.s.best1)} (${fmtW(res.s.bestSet.w)} × ${res.s.bestSet.r})`;
     if (res.imp.reps) return `${res.name} ${Ex.type(ex) === 'reps' && !res.s.bestW ? '' : fmtW(res.s.bestW) + ' × '}${res.s.bestR} Wdh.`;
@@ -3724,11 +3900,26 @@ const Workout = (() => {
   const save = () => { try { if (w) localStorage.setItem(LS.active, JSON.stringify(w)); else localStorage.removeItem(LS.active); } catch (e) {} };
 
   function newSet(src = {}) {
-    return { reps: src.reps ?? null, repsR: src.repsR ?? null, weightKg: src.weightKg ?? null, durationSec: src.durationSec ?? null, durationSecR: src.durationSecR ?? null, rpe: src.rpe ?? null, done: false, warmup: !!src.warmup, kind: src.kind || null, doneAt: null };
+    return { reps: src.reps ?? null, repsR: src.repsR ?? null, weightKg: src.weightKg ?? null, durationSec: src.durationSec ?? null, durationSecR: src.durationSecR ?? null, distKm: src.distKm ?? null, level: src.level ?? null, rpe: src.rpe ?? null, done: false, warmup: !!src.warmup, kind: src.kind || null, doneAt: null };
   }
   /** Übung als Eintrag anlegen – mit Werten vom letzten Mal bzw. Progressions-Vorschlag */
   function makeEntry(exId, target = {}) {
     const ex = Ex.get(exId);
+    if (Ex.type(ex) === 'cardio') {
+      const ss = Analytics.sessionsOf(exId), last = ss.length ? ss[ss.length - 1] : null;
+      const n = last ? Math.max(1, last.list.length) : 1;
+      const sets = [];
+      for (let i = 0; i < n; i++) {
+        const s = newSet(), prev = last && last.list[i];
+        if (S().prefillText && prev) { s.durationSec = prev.sec || null; s.distKm = prev.km || null; s.level = prev.lvl ?? null; }
+        sets.push(s);
+      }
+      return {
+        uid: autoId().slice(0, 8), exerciseId: exId, exerciseName: ex ? ex.name : 'Cardio', uni: false,
+        target: { sets: n, reps: target.reps ? String(target.reps) : '', restSec: 0, notes: target.notes || '' },
+        note: '', sets, suggestion: null
+      };
+    }
     const nSets = target.sets || 3;
     const ss = Analytics.sessionsOf(exId);
     const last = ss.length ? ss[ss.length - 1] : null;
@@ -3822,7 +4013,7 @@ const Workout = (() => {
       ...(en.note ? { note: en.note } : {}),
       ...(en.uni ? { uni: true } : {}),
       sets: en.sets
-        .filter(s => s.done || s.reps != null || s.repsR != null || s.weightKg != null || s.durationSec != null)
+        .filter(s => s.done || s.reps != null || s.repsR != null || s.weightKg != null || s.durationSec != null || s.distKm != null)
         .map(s => {
           const o = { reps: s.reps != null ? +s.reps : 0, weightKg: s.weightKg != null ? round(+s.weightKg, 3) : 0, rpe: s.rpe != null ? +s.rpe : null, done: !!s.done };
           if (en.uni) {
@@ -3833,16 +4024,20 @@ const Workout = (() => {
           if (s.warmup) o.warmup = true;
           else if (s.kind) o.kind = s.kind;
           if (s.durationSec != null) o.durationSec = +s.durationSec;
+          if (s.distKm != null) o.distKm = round(+s.distKm, 3);
+          if (s.level != null) o.level = +s.level;
           if (s.doneAt) o.doneAt = s.doneAt;
           return o;
         })
     })).filter(en => en.sets.length);
     const endedAt = editing ? (w.endedAt || Date.now()) : Date.now();
+    // Nachgetragenes Cardio: Workout-Dauer mindestens so lang wie die eingetragene Cardio-Zeit
+    const cardioSec = cardioTotals(entries.filter(en => Ex.type(Ex.get(en.exerciseId)) === 'cardio').flatMap(en => en.sets)).sec;
     const doc = {
       date: w.date,
       startedAt: w.startedAt,
       endedAt,
-      durationSec: editing ? (w.durationSec || Math.round((endedAt - w.startedAt) / 1000)) : Math.round((endedAt - w.startedAt) / 1000),
+      durationSec: editing ? (w.durationSec || Math.round((endedAt - w.startedAt) / 1000)) : Math.max(Math.round((endedAt - w.startedAt) / 1000), cardioSec),
       planId: w.planId || null,
       planDayIndex: Number.isInteger(w.planDayIndex) ? w.planDayIndex : null,
       planDayName: w.planDayName || null,
@@ -4030,6 +4225,7 @@ Views.start = {
       <div class="mt-16">
         ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
+        <button class="btn btn-secondary btn-block mt-8" data-act="startCardio">${icon('heart')} ${w ? 'Cardio hinzufügen' : 'Cardio starten'}</button>
       </div>
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
       ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
@@ -4043,7 +4239,7 @@ function miniWorkoutCard(r) {
     <div class="date-box"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()]}</span></div>
     <div class="grow">
       <div class="bold ellipsis">${esc(r.name)}</div>
-      <div class="mw-stats"><span>${icon('timer', '') .replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.dur)}</span><span>${fmtTon(r.ton)}</span><span>${r.sets} Sätze</span>${r.avgRpe ? `<span>RPE ${nf(r.avgRpe, 1)}</span>` : ''}</div>
+      <div class="mw-stats"><span>${icon('timer', '') .replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.dur)}</span>${r.sets || !r.cSec ? `<span>${fmtTon(r.ton)}</span><span>${r.sets} Sätze</span>` : ''}${r.cSec || r.cKm ? `<span>${icon('heart').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.cSec)}${r.cKm ? ' · ' + fmtKm(r.cKm) : ''}</span>` : ''}${r.avgRpe ? `<span>RPE ${nf(r.avgRpe, 1)}</span>` : ''}</div>
     </div>
     ${icon('chevR', 'li-chev')}
   </button>`;
@@ -4062,6 +4258,7 @@ Actions.startSheet = async () => {
     Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', sub: 'Übungen aus der Bibliothek wählen & los', icon: 'list' },
     { key: 'free', label: 'Leeres Workout', sub: 'Ohne Plan, Übungen unterwegs hinzufügen', icon: 'plus' },
+    { key: 'cardio', label: 'Cardio', sub: 'Laufen, Rad, Stepper, Schwimmen …', icon: 'heart' },
     Store.all('workouts').length ? { key: 'repeat', label: 'Letztes Workout wiederholen', icon: 'repeat' } : null
   ]);
   if (k === 'next') Workout.start({ templateId: n.template.id });
@@ -4070,11 +4267,40 @@ Actions.startSheet = async () => {
     if (t) Workout.start({ templateId: t });
   }
   else if (k === 'free') Workout.start({ name: 'Freies Workout' });
+  else if (k === 'cardio') Actions.startCardio();
   else if (k === 'compose') Actions.composeWorkout();
   else if (k === 'repeat') {
     const last = Store.all('workouts').sort((a, b) => b.date.localeCompare(a.date) || (b.startedAt || 0) - (a.startedAt || 0))[0];
     if (last) Workout.load(last);
   }
+};
+/** Cardio starten (eigene Einheit) bzw. ins laufende Workout einfügen */
+Actions.startCardio = async () => {
+  const cur = Workout.cur();
+  const ix = Analytics.cur(), use = {}, lastDn = {};
+  for (const r of ix.rows) for (const id of Object.keys(r.cBy || {})) { use[id] = (use[id] || 0) + 1; lastDn[id] = r.dn; }
+  const all = Store.all('exercises').filter(e => Ex.type(e) === 'cardio');
+  const recent = all.filter(e => use[e.id]).sort((a, b) => (lastDn[b.id] - lastDn[a.id]) || (use[b.id] - use[a.id])).slice(0, 5);
+  const k = await actionMenu(cur ? 'Cardio hinzufügen' : 'Cardio starten', [
+    ...recent.map(e => { const ss = Analytics.sessionsOf(e.id), l = ss[ss.length - 1]; return { key: e.id, label: e.name, sub: l ? `Zuletzt ${relDays(l.dn)}: ${cardioTxt({ sec: l.secs, km: l.km, lvl: null }, cardioInfo(e))}` : '', icon: 'heart' }; }),
+    { key: '__all', label: recent.length ? 'Andere Cardio-Art …' : 'Cardio-Art wählen …', sub: `${all.length} Arten: Laufband, Rad, Stepper, Schwimmen, Sport …`, icon: 'list' }
+  ]);
+  if (!k) return;
+  let id = k;
+  if (k === '__all') {
+    const ids = await pickExercises({ multi: false, title: 'Cardio-Art wählen', cat: 'Cardio' });
+    if (!ids || !ids[0]) return;
+    id = ids[0];
+  }
+  const w = Workout.cur();
+  if (w) {
+    const en = Workout.makeEntry(id);
+    w.entries.push(en);
+    w.openE = w.entries.length - 1;
+    Workout.autoSelect(); Workout.save();
+    if (App.tab !== 'training') App.go('training'); else App.renderCurrent();
+    setTimeout(() => { const c = $('#ex-' + en.uid); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
+  } else Workout.start({ name: Ex.name(id), entries: [Workout.makeEntry(id)] });
 };
 Actions.showHistory = () => { UI.trainSub = 'history'; App.go('training'); };
 
@@ -4100,7 +4326,8 @@ Actions.trainSub = el => { UI.trainSub = el.dataset.v; saveUI(); App.renderCurre
 
 Actions.freeWorkout = () => Workout.start({ name: 'Freies Workout' });
 /** Grobe Dauer eines Trainingstags: pro Satz ~45 s Arbeit + Pause, plus 5 min Aufwärmen */
-const planDayMinutes = d => Math.round(d.exercises.reduce((t, x) => t + (+x.sets || 0) * (45 + (+x.restSec || S().defaultRestSec)), 0) / 60) + (d.exercises.length ? 5 : 0);
+const isCardioId = id => Ex.type(Ex.get(id)) === 'cardio';
+const planDayMinutes = d => Math.round(d.exercises.reduce((t, x) => t + (isCardioId(x.exerciseId) ? (parseNum(x.reps) || 20) * 60 : (+x.sets || 0) * (45 + (+x.restSec || S().defaultRestSec))), 0) / 60) + (d.exercises.length ? 5 : 0);
 /* ---------- Meine Workouts & Trainingsplan (Wochentage) ---------- */
 const WEEKDAYS = ['Montag', 'Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'];
 const WD_KURZ = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
@@ -4114,7 +4341,7 @@ const activePlan = () => { const p = Store.raw('plans', S().activePlanId); retur
 const planDaysCount = p => (p && p.schedule ? p.schedule.filter(id => Tpl.get(id)).length : 0);
 /** Geplante Workouts pro Woche: aus dem aktiven Plan, sonst Wochenziel */
 function weeklyTarget() { return planDaysCount(activePlan()) || S().weeklyGoal || 4; }
-const tplSets = t => sum((t.exercises || []).map(x => +x.sets || 0));
+const tplSets = t => sum((t.exercises || []).map(x => isCardioId(x.exerciseId) ? 0 : +x.sets || 0));
 const whenLabel = n => n.inDays === 0 ? 'Heute' : n.inDays === 1 ? 'Morgen' : WEEKDAYS[n.dow];
 
 function renderPlans(el) {
@@ -4220,14 +4447,14 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
         ${xs.map((x, xi) => `
           <div class="pe-row">
             <div class="row"><b class="grow ellipsis">${esc(Ex.name(x.exerciseId))}</b>
-              <button class="uni-chip ${tplUni(x) ? 'on' : ''}" data-pa="uni" data-xi="${xi}" aria-pressed="${tplUni(x)}" title="Einseitig: links und rechts getrennt erfassen">${icon('swap')} L/R</button>
+              ${isCardioId(x.exerciseId) ? `<span class="badge">${icon('heart').replace('<svg', '<svg width="13" height="13"')} Cardio</span>` : `<button class="uni-chip ${tplUni(x) ? 'on' : ''}" data-pa="uni" data-xi="${xi}" aria-pressed="${tplUni(x)}" title="Einseitig: links und rechts getrennt erfassen">${icon('swap')} L/R</button>`}
               <button class="btn-icon" data-pa="exUp" data-xi="${xi}" aria-label="Nach oben" ${xi === 0 ? 'disabled style="opacity:.3"' : ''}>${icon('chevU')}</button>
               <button class="btn-icon" data-pa="exDel" data-xi="${xi}" aria-label="Entfernen">${icon('x')}</button></div>
-            <div class="pe-fields">
+            ${isCardioId(x.exerciseId) ? `<div class="pe-fields" style="grid-template-columns:1fr"><label><div class="mini-label">Ziel-Dauer (Minuten, optional)</div><input class="input" inputmode="numeric" data-pe="reps" data-xi="${xi}" value="${esc(x.reps)}" placeholder="z. B. 30"></label></div>` : `<div class="pe-fields">
               <div><div class="mini-label">Sätze</div><div class="pe-step"><button data-pa="setsDec" data-xi="${xi}" aria-label="Weniger Sätze">${icon('minus')}</button><input class="input" inputmode="numeric" data-pe="sets" data-xi="${xi}" value="${esc(x.sets)}" aria-label="Sätze"><button data-pa="setsInc" data-xi="${xi}" aria-label="Mehr Sätze">${icon('plus')}</button></div></div>
               <label><div class="mini-label">${Ex.type(Ex.get(x.exerciseId)) === 'sec' ? 'Sekunden' : 'Wdh.'}${tplUni(x) ? ' je Seite' : ''}</div><input class="input" data-pe="reps" data-xi="${xi}" value="${esc(x.reps)}" placeholder="8-12"></label>
               <label><div class="mini-label">Pause</div><select class="select" data-pe="restSec" data-xi="${xi}">${uniq([30, 45, 60, 90, 120, 150, 180, 240, 300, +x.restSec || S().defaultRestSec]).sort((a, b) => a - b).map(v => `<option value="${v}" ${+x.restSec === v ? 'selected' : ''}>${fmtClock(v)}</option>`).join('')}</select></label>
-            </div>
+            </div>`}
             <input class="input" data-pe="notes" data-xi="${xi}" value="${esc(x.notes || '')}" placeholder="Notiz (optional)" style="min-height:40px">
           </div>`).join('')}
       </div>
@@ -4252,7 +4479,7 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
       case 'exAdd': {
         const ids = await pickExercises({ multi: true, title: 'Übungen hinzufügen' });
         if (!ids || !ids.length) return;
-        ids.forEach(id => a.push({ exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '', uni: Ex.isUni(Ex.get(id)) }));
+        ids.forEach(id => a.push(isCardioId(id) ? { exerciseId: id, sets: 1, reps: '', restSec: 0, notes: '' } : { exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '', uni: Ex.isUni(Ex.get(id)) }));
         break;
       }
       case 'cancel': m.close(); return;
@@ -4392,14 +4619,24 @@ function openWorkoutDetail(id) {
       <p class="dim">${esc(fmtDateLong(wo.date))}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''}</p>
       <div class="pr-grid mt-12">
         <div class="pr-box"><span>Dauer</span><b>${fmtDur(wo.durationSec)}</b></div>
-        <div class="pr-box"><span>Volumen</span><b>${fmtTon(row ? row.ton : 0)}</b></div>
+        ${row && row.cardioOnly ? '' : `<div class="pr-box"><span>Volumen</span><b>${fmtTon(row ? row.ton : 0)}</b></div>
         <div class="pr-box"><span>Sätze</span><b>${row ? row.sets : 0}</b></div>
-        <div class="pr-box"><span>Ø RPE</span><b>${row && row.avgRpe ? nf(row.avgRpe, 1) : '–'}</b></div>
+        <div class="pr-box"><span>Ø RPE</span><b>${row && row.avgRpe ? nf(row.avgRpe, 1) : '–'}</b></div>`}
+        ${row && (row.cSec || row.cKm) ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(row.cSec)}</b></div>${row.cKm ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(row.cKm)}</b></div>` : ''}` : ''}
       </div>
       ${prEv.length ? `<div class="mt-12 row wrap">${prEv.map(p => `<span class="badge accent">${icon('trophy')} ${esc(Ex.name(p.exId))} ${fmtW(p.w)} × ${p.r}</span>`).join('')}</div>` : ''}
       ${wo.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)">${icon('note').replace('<svg', '<svg width="16" height="16" style="vertical-align:-3px;margin-right:6px"')}${esc(wo.notes)}</div>` : ''}
       ${(wo.entries || []).map(en => {
         const ex = Ex.get(en.exerciseId);
+        if (Ex.type(ex) === 'cardio') {
+          const info = cardioInfo(ex), ss = (en.sets || []).filter(s => s.durationSec || s.distKm);
+          return `<div class="mt-16">
+            <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b></button>
+            <span class="tiny dim">${esc(cardioTxt(cardioTotals(en.sets), info))}</span></div>
+            ${ss.length > 1 || info.mode !== 'time' ? `<div class="table-wrap"><table class="tbl"><thead><tr><th>Abschn.</th><th class="r">Dauer</th>${info.mode === 'dist' ? '<th class="r">km</th><th class="r">km/h</th>' : ''}${info.lvl ? `<th class="r">${esc(info.lvl)}</th>` : ''}</tr></thead><tbody>
+            ${ss.map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${i + 1}</td><td class="r">${s.durationSec ? fmtClock(s.durationSec) : '–'}</td>${info.mode === 'dist' ? `<td class="r">${s.distKm ? nf(s.distKm, 2) : '–'}</td><td class="r">${s.distKm && cardioKmhValid(s.distKm, s.durationSec) ? nf(s.distKm / (s.durationSec / 3600), 1) : '–'}</td>` : ''}${info.lvl ? `<td class="r">${s.level != null ? nf(s.level, 1) + lvlUnit(info.lvl) : '–'}</td>` : ''}</tr>`).join('')}
+            </tbody></table></div>` : ''}</div>`;
+        }
         const isSec = Ex.type(ex) === 'sec';
         return `<div class="mt-16">
           <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}</button>
@@ -4437,10 +4674,11 @@ function workoutText(wo) {
     const done = (en.sets || []).filter(s => s.done !== false && !s.warmup);
     if (!done.length) continue;
     ton += sum(done.map(setVol));
+    if (Ex.type(Ex.get(en.exerciseId)) === 'cardio') { lines.push(`• ${Ex.entryName(en)}: ${cardioTxt(cardioTotals(done), cardioInfo(Ex.get(en.exerciseId)))}`); continue; }
     const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
     lines.push(`• ${Ex.entryName(en)}${en.uni ? ' (L/R)' : ''}: ${done.map(s => isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))).join(', ')}`);
   }
-  lines.splice(2, 0, `📊 ${fmtTon(ton)} Volumen`);
+  if (ton) lines.splice(2, 0, `📊 ${fmtTon(ton)} Volumen`);
   lines.push('', `– getrackt mit ${APP.name}`);
   return lines.join('\n');
 }
@@ -4487,7 +4725,7 @@ function renderActiveWorkout(el, w) {
       </div>
       <div class="wo-body">
         ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
-        <button class="btn btn-secondary btn-block btn-lg mt-4" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button>
+        <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
       </div>`;
     updateTopH();
     return;
@@ -4518,7 +4756,7 @@ function renderActiveWorkout(el, w) {
     ${focus ? focusView(w) : `<div id="woEntries" class="${S().showRPE ? '' : 'no-rpe'} ${S().woPrev === false ? 'no-prev' : ''}">
       ${w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, exerciseCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
     </div>`}
-    <button class="btn btn-secondary btn-block btn-lg" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button>
+    <div class="row" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
     ${F('f_woExtras') ? '' : '<div hidden>'}<div class="card mt-16">
       <div class="form-grid">
         <label class="field"><span>Körpergewicht (${unit()})</span><input class="input" inputmode="decimal" data-in="woBw" value="${inputW(w.bodyWeightKg)}" placeholder="optional"></label>
@@ -4543,13 +4781,15 @@ function openIndex(w) {
   return w.entries.findIndex(en => en.sets.some(s => !s.done));
 }
 function woCard(en, ei, w, full) {
-  if (!woCollapse() || openIndex(w) === ei) return full(en, ei, w).replace('class="ex-card', 'class="ex-card ex-open');
   const type = Ex.type(Ex.get(en.exerciseId));
+  if (type === 'cardio') full = cardioCard;
+  if (!woCollapse() || openIndex(w) === ei) return full(en, ei, w).replace('class="ex-card', 'class="ex-card ex-open');
   const ws = workSets(en), done = ws.filter(s => s.done);
   const complete = en.sets.length > 0 && en.sets.every(s => s.done);
   const fmt = s => type === 'sec' ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s));
   const gw = goalWeight(en);
-  const sub = done.length ? done.map(fmt).join(' · ') : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  const sub = type === 'cardio' ? (done.length ? cardioTxt(cardioTotals(done), cardioInfo(Ex.get(en.exerciseId))) : cardioGoalTxt(en))
+    : done.length ? done.map(fmt).join(' · ') : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
   return `<div class="ex-card exc ${complete ? 'complete' : ''}" id="ex-${en.uid}">
     <button class="exc-head" data-act="exOpen" data-ei="${ei}" aria-expanded="false" aria-label="${esc(en.exerciseName)} öffnen">
       <span class="exc-idx">${complete ? icon('check') : ei + 1}</span>
@@ -4593,6 +4833,7 @@ function prevForSet(en, si, last) {
 /** Hat der Satz noch leere Felder, die das letzte Mal füllen kann? */
 function setFillable(s, prev, type) {
   if (!prev || !s || s.done) return false;
+  if (type === 'cardio') return (s.durationSec == null && !!prev.sec) || (s.distKm == null && !!prev.km) || (s.level == null && prev.lvl != null);
   const b = type === 'sec' ? s.durationSec : s.reps;
   const pb = type === 'sec' ? (prev.us ? prev.us[0] : prev.sec) : (prev.u ? prev.u[0] : prev.r);
   return (b == null && !!pb) || (s.weightKg == null && (!!prev.w || type === 'kg'));
@@ -4602,6 +4843,12 @@ function fillSet(en, si, last) {
   const s = en.sets[si], prev = prevForSet(en, si, last);
   const type = Ex.type(Ex.get(en.exerciseId));
   if (!setFillable(s, prev, type)) return false;
+  if (type === 'cardio') {
+    if (s.durationSec == null && prev.sec) s.durationSec = prev.sec;
+    if (s.distKm == null && prev.km) s.distKm = prev.km;
+    if (s.level == null && prev.lvl != null) s.level = prev.lvl;
+    return true;
+  }
   if (s.weightKg == null && (prev.w || type === 'kg')) s.weightKg = prev.w || 0;
   const [k, side] = type === 'sec' ? ['durationSec', i => prev.us ? prev.us[i] : prev.sec] : ['reps', i => prev.u ? prev.u[i] : prev.r];
   if (s[k] == null) s[k] = side(0) || null;
@@ -4631,6 +4878,70 @@ Actions.exFill = el => {
   App.renderCurrent();
   toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success');
 };
+
+/* ---------- Cardio-Karte: pro Abschnitt Dauer (+ Distanz) (+ Stufe), km/h wird berechnet ---------- */
+function cardioGoalTxt(en) {
+  const info = cardioInfo(Ex.get(en.exerciseId)), m = parseNum(en.target && en.target.reps);
+  const what = info.mode === 'dist' ? 'Dauer + Distanz' : info.mode === 'level' && info.lvl ? `Dauer + ${info.lvl}` : 'Dauer';
+  return m ? `Ziel ${nf(m, 0)} min · ${what}` : what;
+}
+function cardioSumTxt(en) {
+  const t = cardioTotals(en.sets.map(x => ({ ...x, done: true })));
+  if (!t.sec && !t.km) return '';
+  const info = cardioInfo(Ex.get(en.exerciseId));
+  // Bei einem Abschnitt nur sinnvoll, wenn km/h berechnet werden kann
+  if (en.sets.length < 2 && !(info.mode === 'dist' && t.kmh)) return '';
+  return `${en.sets.length > 1 ? 'Gesamt: ' : ''}${cardioTxt({ sec: t.sec, km: info.mode === 'dist' ? t.km : 0, lvl: null }, info)}`;
+}
+function cardioCard(en, ei, w) {
+  const ex = Ex.get(en.exerciseId), info = cardioInfo(ex);
+  const last = S().woPrev !== false ? lastSessionFor(en.exerciseId, w) : null;
+  const tgt = parseNum(en.target && en.target.reps);
+  const complete = en.sets.length > 0 && en.sets.every(s => s.done);
+  const doneN = en.sets.filter(s => s.done).length;
+  const dist = info.mode === 'dist', lvl = info.lvl;
+  const fill = !!last;
+  const cols = `30px repeat(${1 + (dist ? 1 : 0) + (lvl ? 1 : 0)}, minmax(0, 1fr))${fill ? ' 36px' : ''} 48px`;
+  const lvlHead = lvl === 'Steigung' ? 'Steig. %' : lvl === 'Gewicht' ? 'kg' : lvl || '';
+  const rows = en.sets.map((s, si) => {
+    const prev = last ? last.list[si] || null : null;
+    const d = `data-ei="${ei}" data-si="${si}"`;
+    const durPh = prev && prev.sec ? durIn(prev.sec) : si === 0 && tgt ? String(tgt) : 'min';
+    const kmPh = prev && prev.km ? nf(prev.km, 2) : 'km';
+    const lvPh = prev && prev.lvl != null ? nf(prev.lvl, 1) : '–';
+    return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
+      <button class="set-num" data-act="setMenu" ${d} aria-label="Abschnitt ${si + 1} Optionen">${si + 1}</button>
+      <input class="set-in" inputmode="decimal" data-in="cdDur" ${d} value="${esc(durIn(s.durationSec))}" placeholder="${esc(durPh)}" aria-label="Dauer in Minuten (z. B. 30 oder 30:15)" enterkeyhint="next">
+      ${dist ? `<input class="set-in" inputmode="decimal" data-in="cdKm" ${d} value="${s.distKm != null ? esc(nf(s.distKm, 3)) : ''}" placeholder="${esc(kmPh)}" aria-label="Distanz in km" enterkeyhint="${lvl ? 'next' : 'done'}">` : ''}
+      ${lvl ? `<input class="set-in" inputmode="decimal" data-in="cdLvl" ${d} value="${s.level != null ? esc(nf(s.level, 1)) : ''}" placeholder="${esc(lvPh)}" aria-label="${esc(lvl)}" enterkeyhint="done">` : ''}
+      ${fill ? fillBtn(s, prev, 'cardio', d) : ''}
+      <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Abschnitt zurücksetzen' : 'Abschnitt erledigt'}">${icon('check')}</button>
+    </div>`;
+  }).join('');
+  const sum = cardioSumTxt(en);
+  return `<div class="ex-card exs cd-card ${complete ? 'complete' : ''}" id="ex-${en.uid}">
+    <div class="exs-head">
+      <div class="grow" style="min-width:0">
+        <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
+        <div class="exs-goal" style="text-decoration:none">${esc(cardioGoalTxt(en))}</div>
+      </div>
+      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : en.sets.length > 1 ? `${doneN}/${en.sets.length}` : ''}</span>
+      <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
+    </div>
+    ${last ? `<div class="exs-last"><span class="grow">Letztes Mal ${fmtDateShort(last.date)}: ${esc(cardioTxt({ sec: last.secs, km: last.km, lvl: last.lvl || null }, info))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Übernehmen</button>` : ''}</div>` : ''}
+    ${en.note ? `<div class="exs-last">📝 ${esc(en.note)}</div>` : ''}
+    <div class="exs-sets cd-sets" style="--cd-cols:${cols}">
+      <div class="set-head"><span></span><span>Min.</span>${dist ? '<span>km</span>' : ''}${lvl ? `<span>${esc(lvlHead)}</span>` : ''}${fill ? '<span></span>' : ''}<span></span></div>
+      ${rows}
+    </div>
+    <div class="cd-sum" data-cdsum="${ei}" ${sum ? '' : 'hidden'}>${esc(sum)}</div>
+    <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Abschnitt</button>
+  </div>`;
+}
+const cdUpdateSum = ei => { const w = Workout.cur(), en = w && w.entries[ei], el = $(`[data-cdsum="${ei}"]`); if (!en || !el) return; const t = cardioSumTxt(en); el.textContent = t; el.hidden = !t; };
+Inputs.cdDur = el => { const s = setAt(el); if (!s) return; s.durationSec = parseDur(el.value); Workout.save(); cdUpdateSum(el.dataset.ei); };
+Inputs.cdKm = el => { const s = setAt(el); if (!s) return; const v = parseNum(el.value); s.distKm = v == null || v < 0 ? null : v; Workout.save(); cdUpdateSum(el.dataset.ei); };
+Inputs.cdLvl = el => { const s = setAt(el); if (!s) return; const v = parseNum(el.value); s.level = v == null ? null : v; Workout.save(); };
 
 /* ---------- Schlichte Eingabe: pro Satz nur Gewicht, Wdh., Haken ---------- */
 function simpleCard(en, ei, w) {
@@ -4849,6 +5160,21 @@ function focusView(w) {
   const en = w.entries[ei];
   const ex = Ex.get(en.exerciseId);
   const type = Ex.type(ex);
+  if (type === 'cardio') {
+    const nP = ei > 0 ? w.entries[ei - 1] : null, nN = ei < w.entries.length - 1 ? w.entries[ei + 1] : null;
+    return `<div class="focus" id="ex-${en.uid}">
+      <div class="fc-head">
+        <button class="btn-icon" data-act="focusNav" data-d="-1" aria-label="Vorherige Übung" ${nP ? '' : 'disabled style="opacity:.3"'}>${icon('chevL')}</button>
+        <div class="fc-title"><div class="fc-of">Übung ${ei + 1} von ${w.entries.length}</div><button class="fc-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button></div>
+        <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Menü">${icon('dots')}</button>
+      </div>
+      ${cardioCard(en, ei, w).replace('class="ex-card exs', 'class="ex-card exs fc-cardio')}
+    </div>
+    <div class="fc-nav">
+      <button class="btn btn-secondary" data-act="focusNav" data-d="-1" ${nP ? '' : 'disabled'}>${icon('chevL')}<span>${nP ? esc(shortName(nP.exerciseName)) : 'Anfang'}</span></button>
+      <button class="btn btn-secondary" data-act="focusNav" data-d="1" ${nN ? '' : 'disabled'}><span>${nN ? esc(shortName(nN.exerciseName)) : 'Ende'}</span>${icon('chevR')}</button>
+    </div>`;
+  }
   const last = lastSessionFor(en.exerciseId, w);
   const si = w.sel.e === ei && en.sets[w.sel.s] ? w.sel.s : firstOpen(en);
   const s = si >= 0 ? en.sets[si] : null;
@@ -5004,8 +5330,9 @@ function overviewHtml(w) {
       const ex = Ex.get(en.exerciseId), type = Ex.type(ex);
       const ws = workSets(en), done = ws.filter(s => s.done);
       const gw = goalWeight(en);
-      const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''} · Pause ${fmtClock((en.target && en.target.restSec) || S().defaultRestSec)}`;
-      const doneTxt = done.map(s => type === 'sec' ? secTxt(s) : `${s.weightKg ? wNum(s.weightKg) + '×' : ''}${repsTxt(s)}`).join(' · ');
+      const cardio = type === 'cardio';
+      const goal = cardio ? cardioGoalTxt(en) : `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''} · Pause ${fmtClock((en.target && en.target.restSec) || S().defaultRestSec)}`;
+      const doneTxt = cardio ? (done.length ? cardioTxt(cardioTotals(done), cardioInfo(ex)) : '') : done.map(s => type === 'sec' ? secTxt(s) : `${s.weightKg ? wNum(s.weightKg) + '×' : ''}${repsTxt(s)}`).join(' · ');
       return `<div class="list-item ov-item">
         <span class="ex-idx ${catCls(ex && ex.category)}">${ws.length && done.length === ws.length ? icon('check').replace('<svg', '<svg width="16" height="16"') : ei + 1}</span>
         <div class="li-main"><div class="li-title">${esc(en.exerciseName)} <span class="small dim">${done.length}/${ws.length}</span></div>
@@ -5013,7 +5340,7 @@ function overviewHtml(w) {
         <div class="ov-acts">
           <button class="btn-icon" data-x="up" data-ei="${ei}" aria-label="Nach oben" ${ei === 0 ? 'disabled style="opacity:.3"' : ''}>${icon('chevU')}</button>
           <button class="btn-icon" data-x="down" data-ei="${ei}" aria-label="Nach unten" ${ei === w.entries.length - 1 ? 'disabled style="opacity:.3"' : ''}>${icon('chevD')}</button>
-          <button class="btn-icon" data-x="goal" data-ei="${ei}" aria-label="Ziel bearbeiten">${icon('edit')}</button>
+          ${cardio ? '' : `<button class="btn-icon" data-x="goal" data-ei="${ei}" aria-label="Ziel bearbeiten">${icon('edit')}</button>`}
           <button class="btn-icon" data-x="go" data-ei="${ei}" aria-label="Hinspringen">${icon('chevR')}</button>
         </div></div>`;
     }).join('') || '<div class="list-item"><span class="dim">Noch keine Übungen</span></div>'}</div>
@@ -5295,9 +5622,22 @@ Actions.setDone = el => {
     return App.renderCurrent();
   }
   const type = Ex.type(Ex.get(en.exerciseId));
+  if (type === 'cardio') {
+    const pc = f => $(`.set-row [data-in="${f}"][data-ei="${ei}"][data-si="${si}"]`);
+    const di = pc('cdDur'), ki = pc('cdKm'), li = pc('cdLvl');
+    if (s.durationSec == null && di) s.durationSec = parseDur(di.placeholder);
+    if (s.distKm == null && ki) { const v = parseNum(ki.placeholder); s.distKm = v > 0 ? v : null; }
+    if (s.level == null && li) s.level = parseNum(li.placeholder);
+    if (!s.durationSec && !s.distKm) {
+      toast('Bitte Dauer eintragen (z. B. 30 = 30 min)', 'warn');
+      if (di) di.focus();
+      return;
+    }
+  }
   // Leere Felder mit den Werten vom letzten Mal (Placeholder) füllen – Liste oder Fokus
   const pick = f => $(`.set-row [data-in="${f}"][data-ei="${ei}"][data-si="${si}"]`) || $(`.fc-cur [data-in="${f}"][data-ei="${ei}"][data-si="${si}"]`);
   const wi = pick('setW'), bi = pick('setB');
+  if (type !== 'cardio') {
   if (s.weightKg == null && wi && wi.placeholder) s.weightKg = fromU(parseNum(wi.placeholder));
   if (type === 'sec') { if (s.durationSec == null && bi && bi.placeholder) s.durationSec = parseNum(bi.placeholder); }
   else if (s.reps == null && bi && bi.placeholder) s.reps = parseNum(bi.placeholder);
@@ -5321,6 +5661,7 @@ Actions.setDone = el => {
     if (inp) inp.focus();
     return;
   }
+  }
   s.done = true;
   s.doneAt = Date.now();
   vibrate(25);
@@ -5336,7 +5677,7 @@ Actions.setDone = el => {
   const nx = en.sets[si + 1];
   if (nx && !nx.done && nx.weightKg == null && !nx.warmup && !s.warmup && !(prevForSet(en, si + 1, lastSessionFor(en.exerciseId, w)) || {}).w) nx.weightKg = s.weightKg;
   Workout.save();
-  if (!wasLast && !w.editingId && S().autoRest !== false && F('f_rest')) {
+  if (!wasLast && !w.editingId && S().autoRest !== false && F('f_rest') && type !== 'cardio') {
     const rest = s.warmup ? Math.min(60, en.target.restSec || S().defaultRestSec) : (en.target.restSec || S().defaultRestSec);
     const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null;
     RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
@@ -5351,7 +5692,7 @@ Actions.setDone = el => {
 };
 Actions.setAdd = el => {
   const w = Workout.cur(); const en = w.entries[+el.dataset.ei];
-  const lastSet = [...en.sets].reverse().find(s => !s.warmup);
+  const lastSet = Ex.type(Ex.get(en.exerciseId)) === 'cardio' ? null : [...en.sets].reverse().find(s => !s.warmup);
   const ns = Workout.newSet(lastSet ? { reps: lastSet.reps, repsR: lastSet.repsR, weightKg: lastSet.weightKg, durationSec: lastSet.durationSec, durationSecR: lastSet.durationSecR } : {});
   en.sets.push(ns);
   w.sel = { e: +el.dataset.ei, s: en.sets.length - 1 };
@@ -5362,7 +5703,11 @@ Actions.setAdd = el => {
 Actions.setMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei, si = +el.dataset.si;
   const en = w.entries[ei], s = en.sets[si];
-  const k = await actionMenu(`${en.exerciseName} – Satz`, [
+  const cardio = Ex.type(Ex.get(en.exerciseId)) === 'cardio';
+  const k = await actionMenu(`${en.exerciseName} – ${cardio ? 'Abschnitt' : 'Satz'}`, cardio ? [
+    { key: 'dup', label: 'Abschnitt duplizieren', icon: 'copy' },
+    en.sets.length > 1 && { key: 'del', label: 'Abschnitt löschen', icon: 'trash', danger: true }
+  ] : [
     (s.warmup || s.kind) && { key: 'normal', label: 'Normaler Arbeitssatz', icon: 'check' },
     !s.warmup && { key: 'warm', label: 'Aufwärmsatz', sub: 'Zählt nicht für Volumen & PRs', icon: 'flame' },
     F('f_setTypes') && s.kind !== 'drop' && { key: 'drop', label: 'Drop-Satz', sub: 'Direkt weiter mit weniger Gewicht', icon: 'arrowDown' },
@@ -5383,14 +5728,15 @@ Actions.setMenu = async el => {
 };
 Actions.exMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
+  const isCardio = Ex.type(Ex.get(en.exerciseId)) === 'cardio';
   const k = await actionMenu(en.exerciseName, [
-    { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
+    !isCardio && { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
     canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', sub: 'Platzhalter als Werte in alle leeren Sätze', icon: 'fillIn' },
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
-    { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
+    !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
     { key: 'note', label: en.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen', icon: 'note' },
-    { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
+    !isCardio && { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
     ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },
     ei < w.entries.length - 1 && { key: 'down', label: 'Nach unten', icon: 'arrowDown' },
@@ -5509,7 +5855,9 @@ Actions.woFinish = async () => {
 
 /* ---------- Session-Zusammenfassung ---------- */
 function showSummary({ id, doc, prs }) {
-  const done = doc.entries.flatMap(e => e.sets.filter(s => s.done && !s.warmup));
+  const isC = e => Ex.type(Ex.get(e.exerciseId)) === 'cardio';
+  const done = doc.entries.filter(e => !isC(e)).flatMap(e => e.sets.filter(s => s.done && !s.warmup));
+  const ct = cardioTotals(doc.entries.filter(isC).flatMap(e => e.sets));
   const vol = sum(done.map(setVol));
   const rpes = done.filter(s => s.rpe).map(s => s.rpe);
   const real = F('f_prs') ? prs.filter(p => !p.first) : [];
@@ -5525,11 +5873,12 @@ function showSummary({ id, doc, prs }) {
       </div>
       <div class="pr-grid mt-16">
         <div class="pr-box"><span>Dauer</span><b>${fmtDur(doc.durationSec)}</b></div>
-        <div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
+        ${done.length || !ct.n ? `<div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
         <div class="pr-box"><span>Sätze</span><b>${done.length}</b></div>
-        <div class="pr-box"><span>Ø RPE</span><b>${rpes.length ? nf(avg(rpes), 1) : '–'}</b></div>
+        <div class="pr-box"><span>Ø RPE</span><b>${rpes.length ? nf(avg(rpes), 1) : '–'}</b></div>` : ''}
+        ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
       </div>
-      ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
+      ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
@@ -5549,10 +5898,10 @@ function showSummary({ id, doc, prs }) {
 /* ==========================================================================
    10. Übungs-Picker (Single/Multi)
    ========================================================================== */
-function pickExercises({ multi = true, title = 'Übung wählen' } = {}) {
+function pickExercises({ multi = true, title = 'Übung wählen', cat: cat0 = 'all' } = {}) {
   return new Promise(resolve => {
     const picked = [];
-    let q = '', cat = 'all';
+    let q = '', cat = cat0;
     let result = null;
     const m = Modal.open({
       title, size: 'full',
@@ -5563,12 +5912,12 @@ function pickExercises({ multi = true, title = 'Übung wählen' } = {}) {
       onClose: () => resolve(result)
     });
     const usage = {};
-    for (const r of Analytics.cur().rows) for (const id of r.ex) usage[id] = (usage[id] || 0) + 1;
+    for (const r of Analytics.cur().rows) for (const id of [...r.ex, ...Object.keys(r.cBy || {})]) usage[id] = (usage[id] || 0) + 1;
     const renderList = () => {
       $('#pkCats', m.el).innerHTML = ['all', ...CATEGORIES].map(c => `<button class="chip ${cat === c ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('');
       const nq = norm(q);
       let list = Ex.sorted().filter(e => (cat === 'all' || e.category === cat) && (!nq || norm(e.name).includes(nq) || (e.aliases || []).some(a => norm(a).includes(nq)) || (e.muscleGroups || []).some(mg => norm(mg).includes(nq))));
-      if (!nq && cat === 'all') list = list.sort((a, b) => (usage[b.id] || 0) - (usage[a.id] || 0) || a.name.localeCompare(b.name, 'de'));
+      if (!nq && (cat === 'all' || cat === 'Cardio')) list = list.sort((a, b) => (usage[b.id] || 0) - (usage[a.id] || 0) || a.name.localeCompare(b.name, 'de'));
       $('#pkList', m.el).innerHTML = list.length ? list.map(e => `<button class="ex-item ${picked.includes(e.id) ? 'picked' : ''}" data-pick="${esc(e.id)}">
           <span class="cat-dot ${catCls(e.category)}">${catShort(e.category)}</span>
           <span class="grow" style="min-width:0"><div class="bold ellipsis">${esc(e.name)}</div><div class="ex-meta ellipsis">${esc((e.muscleGroups || []).join(', '))} · ${esc(e.equipment)}</div></span>
@@ -5792,7 +6141,7 @@ function renderExList() {
     const mi = meta[e.id];
     const pr = Store.raw('prs', e.id);
     const t = Ex.type(e);
-    const right = mi.n ? `<b>${t === 'kg' && pr && pr.best1RM ? fmtW(pr.best1RM, 0) : t !== 'kg' && pr ? (pr.bestReps || '–') + (t === 'sec' ? '' : ' Wdh.') : mi.n + '×'}</b>${relDays(mi.last)}` : '<span class="faint">noch nie</span>';
+    const right = mi.n ? `<b>${t === 'cardio' ? (pr && pr.bestKmh ? fmtKmh(pr.bestKmh) : pr && pr.bestDurSec ? fmtDur(pr.bestDurSec) : mi.n + '×') : t === 'kg' && pr && pr.best1RM ? fmtW(pr.best1RM, 0) : t !== 'kg' && pr ? (pr.bestReps || '–') + (t === 'sec' ? '' : ' Wdh.') : mi.n + '×'}</b>${relDays(mi.last)}` : '<span class="faint">noch nie</span>';
     return `<button class="ex-item" data-act="openExercise" data-id="${esc(e.id)}">
       <span class="cat-dot ${catCls(e.category)}">${catShort(e.category)}</span>
       <span class="grow" style="min-width:0">
@@ -5828,12 +6177,12 @@ function openExerciseDetail(id) {
       <div class="row wrap">
         <span class="badge ${catCls(ex.category)}">${esc(ex.category)}</span>
         <span class="badge">${esc(ex.equipment)}</span>
-        <span class="badge">${esc(UNIT_TYPES[t])}</span>
+        ${t === 'cardio' && ex.category === 'Cardio' ? '' : `<span class="badge">${esc(UNIT_TYPES[t])}</span>`}
         ${ex.isCustom ? '<span class="badge info">Eigene Übung</span>' : ''}
       </div>
       <div class="muscle-pick mt-12">${(ex.muscleGroups || []).map(mg => `<span class="chip soft active" style="min-height:30px">${esc(mg)}</span>`).join('') || '<span class="dim small">Keine Muskelgruppen hinterlegt</span>'}</div>
       ${ex.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)"><span class="bold">Technik-Tipp:</span> ${esc(ex.notes)}</div>` : ''}
-      ${ss.length ? `
+      ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
           ${t === 'kg' ? `
             <div class="pr-box"><span>Bestes 1RM (e)</span><b>${pr ? fmtW(pr.best1RM) : '–'}</b></div>
@@ -5858,7 +6207,7 @@ function openExerciseDetail(id) {
         ${sessions.length > 8 && !showAll ? `<button class="btn btn-secondary btn-block" data-x="all">Alle ${sessions.length} Sessions anzeigen</button>` : ''}
       ` : `<div class="mt-16">${emptyState('chart', 'Noch keine Daten', 'Sobald du diese Übung trainierst, siehst du hier Verlauf, PRs und alle Sätze.')}</div>`}
     `);
-    if (ss.length) Charts.ensure().then(() => Charts.mount('exd', () => exerciseChart(id, exChartKey(t))));
+    if (ss.length) Charts.ensure().then(() => Charts.mount('exd', () => exerciseChart(id, exChartKey(t, id))));
   };
   m.setFoot(`${live ? `<button class="btn btn-primary" data-x="add">${icon('plus')} Zum Workout</button>` : ''}
     <button class="btn btn-secondary" data-x="edit">${icon('edit')} Bearbeiten</button>
@@ -5895,8 +6244,34 @@ function openExerciseDetail(id) {
     }
   });
 }
-function exChartKey(t) {
+function cardioDetailHtml(id, ss, showAll) {
+  const info = cardioInfo(Ex.get(id)), t = 'cardio';
+  const sessions = ss.slice().reverse(), shown = showAll ? sessions : sessions.slice(0, 8);
+  const best = (f, ok = () => true) => ss.filter(ok).reduce((b, x) => f(x) > (b ? f(b) : 0) ? x : b, null);
+  const bD = best(x => x.secs), bK = best(x => x.km), bS = best(x => x.kmh, x => cardioKmhValid(x.km, x.secs));
+  const keys = [['cdur', 'Dauer'], ...(info.mode === 'dist' ? [['ckm', 'Distanz'], ['ckmh', 'Tempo']] : []), ...(info.lvl ? [['clvl', info.lvl]] : [])];
+  return `
+    <div class="pr-grid mt-16">
+      <div class="pr-box"><span>Längste Einheit</span><b>${bD ? fmtDur(bD.secs) : '–'}</b><em>${bD ? fmtDateShort(bD.date) : ''}</em></div>
+      ${info.mode === 'dist' ? `<div class="pr-box"><span>Weiteste Distanz</span><b>${bK && bK.km ? fmtKm(bK.km) : '–'}</b><em>${bK && bK.km ? fmtDateShort(bK.date) : ''}</em></div>
+      <div class="pr-box"><span>Schnellstes Tempo</span><b>${bS ? fmtKmh(bS.kmh) : '–'}</b><em>${bS ? fmtDateShort(bS.date) : ''}</em></div>` : `<div class="pr-box"><span>Gesamtzeit</span><b>${fmtDur(sum(ss.map(x => x.secs)))}</b></div>`}
+      <div class="pr-box"><span>Einheiten</span><b>${ss.length}</b><em>zuletzt ${relDays(ss[ss.length - 1].dn)}</em></div>
+    </div>
+    <div class="chart-card mt-16" style="padding:12px">
+      ${keys.length > 1 ? `<div class="seg sm">${keys.map(([k, l]) => `<button data-x="chart" data-v="${k}" class="${exChartKey(t, id) === k ? 'active' : ''}">${esc(l)}</button>`).join('')}</div>` : ''}
+      <div class="chart-box"><canvas id="cv-exd" role="img" aria-label="Verlauf"></canvas></div>
+    </div>
+    <h4 class="mt-24 mb-8">Alle Einheiten</h4>
+    ${shown.map(s => `<div class="card tight mb-8" style="background:var(--surface-2)">
+        <div class="row between"><button class="link-btn" style="padding:0;min-height:30px" data-x="wo" data-id="${esc(s.wid)}">${esc(fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))}</button>
+        <span class="tiny dim">${s.list.length > 1 ? s.list.length + ' Abschnitte' : ''}</span></div>
+        <div class="small num">${esc(cardioTxt({ sec: s.secs, km: s.km, lvl: s.lvl || null }, info))}</div>
+      </div>`).join('')}
+    ${sessions.length > 8 && !showAll ? `<button class="btn btn-secondary btn-block" data-x="all">Alle ${sessions.length} Einheiten anzeigen</button>` : ''}`;
+}
+function exChartKey(t, id) {
   const k = UI.exChart;
+  if (t === 'cardio') { const info = cardioInfo(Ex.get(id)); const ok = ['cdur', ...(info.mode === 'dist' ? ['ckm', 'ckmh'] : []), ...(info.lvl ? ['clvl'] : [])]; return ok.includes(k) ? k : 'cdur'; }
   if (t === 'kg') return ['e1rm', 'vol', 'maxw'].includes(k) ? k : 'e1rm';
   return ['reps', 'sets'].includes(k) ? k : 'reps';
 }
@@ -5910,7 +6285,11 @@ function exerciseChart(id, key) {
     vol: ['Volumen', s => toU(s.vol), v => fmtTon(fromU(v))],
     maxw: ['Max-Gewicht', s => toU(s.maxW), v => fmtW(fromU(v))],
     reps: [t === 'sec' ? 'Längster Satz (s)' : 'Max Wdh.', s => t === 'sec' ? maxOf(s.list, x => x.sec) : maxOf(s.list, x => x.r), v => t === 'sec' ? fmtClock(v) : nf(v, 0)],
-    sets: ['Sätze', s => s.sets, v => nf(v, 0)]
+    sets: ['Sätze', s => s.sets, v => nf(v, 0)],
+    cdur: ['Dauer (min)', s => round(s.secs / 60, 1), v => nf(v, 0) + ' min'],
+    ckm: ['Distanz (km)', s => round(s.km, 2), v => fmtKm(v)],
+    ckmh: ['Tempo (km/h)', s => cardioKmhValid(s.km, s.secs) ? round(s.kmh, 2) : 0, v => fmtKmh(v)],
+    clvl: [(cardioInfo(Ex.get(id)).lvl || 'Stufe') + ' (max)', s => s.lvl || 0, v => nf(v, 1)]
   };
   const [label, f, fmt] = map[key] || map.e1rm;
   const data = ss.map(s => ({ x: s.dn, y: f(s) })).filter(p => p.y > 0);
@@ -5936,7 +6315,9 @@ function openExerciseForm(ex, preset = {}) {
           <label class="field"><span>Equipment</span><select class="select" data-f="equipment">${uniq([...EQUIPMENT, d.equipment]).map(c => `<option ${d.equipment === c ? 'selected' : ''}>${esc(c)}</option>`).join('')}</select></label>
         </div>
         <div class="field"><span>Erfassung</span>
-          <div class="seg">${Object.entries({ kg: 'Gewicht × Wdh.', reps: 'Nur Wdh.', sec: 'Zeit' }).map(([k, l]) => `<button data-u="${k}" class="${(d.defaultUnit === 'lb' ? 'kg' : d.defaultUnit) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
+          <div class="seg">${Object.entries({ kg: 'Gewicht × Wdh.', reps: 'Nur Wdh.', sec: 'Zeit', cardio: 'Cardio' }).map(([k, l]) => `<button data-u="${k}" class="${Ex.type(d) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
+        ${Ex.type(d) === 'cardio' ? `<div class="field"><span>Cardio-Felder</span>
+          <div class="seg">${Object.entries({ dist: 'Dauer + Distanz', level: 'Dauer + Stufe', time: 'Nur Dauer' }).map(([k, l]) => `<button data-cm="${k}" class="${cardioInfo(d).mode === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>` : ''}
         <div class="list"><div class="set-line"><div class="sl-main"><div class="sl-title">Einseitig (links & rechts)</div><div class="sl-sub">Wdh. für jede Seite getrennt erfassen – z. B. Bulgarian Split Squat, einarmiges Rudern</div></div>
           <label class="switch"><input type="checkbox" data-uni ${Ex.isUni(d) ? 'checked' : ''} aria-label="Einseitig"><span></span></label></div></div>
         <div class="field"><span>Muskelgruppen</span>
@@ -5954,7 +6335,9 @@ function openExerciseForm(ex, preset = {}) {
     m.body.addEventListener('change', e => { if (e.target.matches('[data-uni]')) { d.unilateral = e.target.checked; return; } const f = e.target.dataset.f; if (f) d[f] = e.target.value; });
     m.el.addEventListener('click', e => {
       const u = e.target.closest('[data-u]');
-      if (u) { d.defaultUnit = u.dataset.u; $$('[data-u]', m.el).forEach(b => b.classList.toggle('active', b === u)); return; }
+      if (u) { d.defaultUnit = u.dataset.u; if (u.dataset.u === 'cardio') d.category = 'Cardio'; else if (d.category === 'Cardio' && Ex.type(d) === 'cardio') d.category = 'Full Body'; draw(); return; }
+      const cm = e.target.closest('[data-cm]');
+      if (cm) { d.cardioMode = cm.dataset.cm; draw(); return; }
       const mg = e.target.closest('[data-m]');
       if (mg) {
         const v = mg.dataset.m;
@@ -5971,7 +6354,7 @@ function openExerciseForm(ex, preset = {}) {
       if (dup) return toast(`„${dup.name}" gibt es schon`, 'warn');
       const id = ex ? ex.id : autoId();
       Store.put('exercises', id, {
-        name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg',
+        name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg', ...(d.cardioMode ? { cardioMode: d.cardioMode } : {}),
         notes: (d.notes || '').trim(), aliases: d.aliases || [], isCustom: ex ? !!ex.isCustom : true, unilateral: Ex.isUni(d),
         createdAt: ex ? ex.createdAt || Date.now() : Date.now(), updatedAt: Date.now()
       }, { replace: true });
@@ -6223,7 +6606,7 @@ const PERIODS = [['4w', '4W'], ['3m', '3M'], ['6m', '6M'], ['1y', '1J'], ['all',
 /* ---------- Funktionen ein-/ausschalten ---------- */
 const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
-  ['Fortschritt', [['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_body', 'Körper: Gewicht, Maße, Fotos'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
+  ['Fortschritt', [['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper: Gewicht, Maße, Fotos'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
   ['Workout', [['f_rest', 'Pausen-Timer'], ['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
 ];
@@ -6235,7 +6618,7 @@ Actions.openFeatures = () => {
       ${FEATURES.map(([g, items]) => `<div class="look-group"><h4>${esc(g)}</h4><div class="list">${items.map(([k, l, sub]) => setLine(esc(l), sub ? esc(sub) : '', toggleCtl(k))).join('')}</div></div>`).join('')}`
   });
 };
-const PROG_SUBS = [['overview', 'Übersicht'], ['strength', 'Kraft'], ['volume', 'Volumen'], ['muscles', 'Muskeln'], ['body', 'Körper']];
+const PROG_SUBS = [['overview', 'Übersicht'], ['strength', 'Kraft'], ['volume', 'Volumen'], ['muscles', 'Muskeln'], ['cardio', 'Cardio'], ['body', 'Körper']];
 const progSubs = () => PROG_SUBS.filter(([k]) => k === 'overview' || F('f_' + k));
 Views.progress = {
   render(el) {
@@ -6309,7 +6692,7 @@ ProgressViews.overview = body => {
   // Trainingstage im Monat
   const now = new Date();
   const monthKey = (y, m) => `${y}-${pad(m + 1)}`;
-  const daysInMonth = key => new Set(ix.rows.filter(r => r.date.startsWith(key)).map(r => r.date)).size;
+  const daysInMonth = key => new Set(ix.rows.filter(r => r.date.startsWith(key) && !r.cardioOnly).map(r => r.date)).size;
   const curMonth = daysInMonth(monthKey(now.getFullYear(), now.getMonth()));
   const prev6 = Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 1 - i, 1); return daysInMonth(monthKey(d.getFullYear(), d.getMonth())); });
   const avg6 = avg(prev6);
@@ -6317,7 +6700,7 @@ ProgressViews.overview = body => {
   const expected = avg6 * monthFrac;
   // Konsistenz
   const goal = weeklyTarget();
-  const last28 = ix.rows.filter(r => r.dn > t - 28).length;
+  const last28 = ix.rows.filter(r => r.dn > t - 28 && !r.cardioOnly).length;
   const consistency = Math.min(100, last28 / (goal * 4) * 100);
   // Big 3
   const big3 = BIG3.map(b => {
@@ -6755,8 +7138,8 @@ ProgressViews.volume = body => {
   const prv = Analytics.prevRange(r);
   const c = chartColors();
   const scope = UI.volScope;
-  const exOpts = Object.keys(ix.sessions).filter(id => Ex.get(id)).sort((a, b) => Ex.name(a).localeCompare(Ex.name(b), 'de'));
-  if (!ix.sessions[UI.volEx] && exOpts.length) UI.volEx = exOpts.find(id => Ex.type(Ex.get(id)) === 'kg') || exOpts[0];
+  const exOpts = Object.keys(ix.sessions).filter(id => Ex.get(id) && Ex.type(Ex.get(id)) !== 'cardio').sort((a, b) => Ex.name(a).localeCompare(Ex.name(b), 'de'));
+  if (!exOpts.includes(UI.volEx) && exOpts.length) UI.volEx = exOpts.find(id => Ex.type(Ex.get(id)) === 'kg') || exOpts[0];
   const items = scopeItems(ix, scope);
   const inR = items.filter(x => x.dn >= r.from && x.dn <= r.to);
   const inP = prv ? items.filter(x => x.dn >= prv.from && x.dn <= prv.to) : null;
@@ -7147,6 +7530,74 @@ Actions.muscleTap = el => {
 };
 
 /* ---------- Körper ---------- */
+/* ---------- Cardio: Minuten & km pro Woche, Tempo-Verlauf, Bestleistungen, Verteilung ---------- */
+ProgressViews.cardio = body => {
+  const ix = Analytics.cur();
+  const r = Analytics.range(), prv = Analytics.prevRange(r);
+  const c = chartColors();
+  const cIds = Object.keys(ix.sessions).filter(id => ix.sessions[id][0] && ix.sessions[id][0].cardio);
+  if (!cIds.length) {
+    body.innerHTML = `<div class="card mt-16">${emptyState('heart', 'Noch kein Cardio', 'Starte eine Cardio-Einheit auf dem Start-Tab oder füge Cardio im Workout hinzu – Dauer, Distanz und Tempo landen dann hier.', `<button class="btn btn-primary" data-act="startCardio">${icon('heart')} Cardio starten</button>`)}</div>`;
+    return;
+  }
+  const rowsR = Analytics.rowsIn(r), rowsP = prv ? Analytics.rowsIn(prv) : null;
+  const tot = (rs, k) => sum(rs.map(x => x[k]));
+  const units = rs => rs.reduce((n, x) => n + Object.keys(x.cBy).length, 0);
+  const weeks = Analytics.weeksOf(r);
+  const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
+  const perWeek = k => weeks.map(w => sum(rowsR.filter(x => x.dn >= w && x.dn < w + 7).map(x => x[k])));
+  const minW = perWeek('cSec').map(v => round(v / 60, 0)), kmW = perWeek('cKm').map(v => round(v, 2));
+  const avgLine = vals => ({ type: 'line', label: 'Ø', data: vals.map(() => avg(vals)), borderColor: c.dim, borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
+  // Tempo: nur Arten mit Distanz & berechenbarem km/h
+  const speedIds = cIds.filter(id => ix.sessions[id].some(x => cardioKmhValid(x.km, x.secs))).sort((a, b) => ix.sessions[b].length - ix.sessions[a].length);
+  if (!speedIds.includes(UI.cardioEx)) UI.cardioEx = speedIds[0] || '';
+  const sp = UI.cardioEx ? ix.sessions[UI.cardioEx].filter(x => x.dn >= r.from && x.dn <= r.to && cardioKmhValid(x.km, x.secs)) : [];
+  // Verteilung nach Art (Minuten im Zeitraum)
+  const byEx = {};
+  for (const x of rowsR) for (const [id, v] of Object.entries(x.cBy)) byEx[id] = (byEx[id] || 0) + v.sec / 60;
+  const dist = Object.entries(byEx).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+  const top6 = dist.slice(0, 6), rest = sum(dist.slice(6).map(x => x[1]));
+  // Bestleistungen (gesamt) je Art
+  const bestOf = (ss, f) => ss.reduce((b, x) => f(x) > (b ? f(b) : 0) ? x : b, null);
+  const bests = cIds.map(id => {
+    const ss = ix.sessions[id];
+    return { id, n: ss.length, dur: bestOf(ss, x => x.secs), km: bestOf(ss, x => x.km), kmh: bestOf(ss.filter(x => cardioKmhValid(x.km, x.secs)), x => x.kmh) };
+  }).sort((a, b) => b.n - a.n);
+  const bestCell = (label, x, txt) => x ? `<div class="cd-best"><span>${label}</span><b>${txt}</b><small>${fmtDateShort(x.date)}</small></div>` : '';
+  const cb = chartBuilder();
+  const curMin = tot(rowsR, 'cSec') / 60, prevMin = rowsP ? tot(rowsP, 'cSec') / 60 : null;
+  const curKm = tot(rowsR, 'cKm'), prevKm = rowsP ? tot(rowsP, 'cKm') : null;
+  body.innerHTML = `
+    <div class="charts-grid">
+      ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Summe der Cardio-Dauer pro Kalenderwoche – nach dem Krafttraining und als eigene Einheit. Gestrichelt: Durchschnitt im Zeitraum.',
+        big: fmtDur(curMin * 60), small: `im Zeitraum · ${units(rowsR)} Einheiten`, delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',
+        factory: () => sum(minW) ? barChart(wLabels, [barDS('Minuten', minW, c.accent), avgLine(minW)], { tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
+      ${cb.card({ id: 'c2', wide: true, title: 'Distanz pro Woche', info: 'Summe aller Distanzen (km) pro Kalenderwoche – nur Arten mit Distanz (Laufen, Rad, Rudern …).',
+        big: curKm ? fmtKm(curKm) : '–', small: 'im Zeitraum', delta: deltaHtml(curKm, prevKm), sub: prv ? prevLabel : '',
+        factory: () => sum(kmW) ? barChart(wLabels, [barDS('km', kmW, c.series[0]), avgLine(kmW)], { tooltipFmt: v => nf(v, 2) + ' km', yFmt: v => nf(v, 0) }) : null })}
+      ${speedIds.length ? cb.card({ id: 'c3', wide: true, title: 'Tempo-Verlauf', info: 'Durchschnittsgeschwindigkeit (km/h) je Einheit = Distanz ÷ Dauer. Gestrichelt: Trend im Zeitraum.',
+        top: `<select class="select mt-8" data-ch="cardioEx" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Cardio-Art">${speedIds.map(id => `<option value="${esc(id)}" ${id === UI.cardioEx ? 'selected' : ''}>${esc(Ex.name(id))}</option>`).join('')}</select>`,
+        big: sp.length ? fmtKmh(sp[sp.length - 1].kmh) : '–', small: sp.length ? 'zuletzt' : 'keine Einheit im Zeitraum', delta: sp.length > 1 ? deltaHtml(sp[sp.length - 1].kmh, sp[0].kmh) : '', sub: sp.length > 1 ? `vs. ${fmtDateShort(sp[0].date)}` : '',
+        factory: () => {
+          if (!sp.length) return null;
+          const pts = sp.map(x => ({ x: x.dn, y: round(x.kmh, 2), label: `${fmtKmh(x.kmh)} (${cardioTxt({ sec: x.secs, km: x.km }, null)})` }));
+          const ds = [lineDS(Ex.name(UI.cardioEx), pts, c.accent)];
+          if (pts.length >= 3) { const lr = linReg(pts); ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 }); }
+          return timeLine(ds, { tooltipFmt: v => fmtKmh(v), yFmt: yAuto(' km/h') });
+        } }) : ''}
+      ${cb.card({ id: 'c4', title: 'Verteilung nach Art', info: 'Anteil der Cardio-Minuten je Art im Zeitraum (Top 6, Rest = Andere).',
+        factory: () => top6.length ? donut([...top6.map(([id]) => Ex.name(id)), ...(rest ? ['Andere'] : [])], [...top6.map(x => round(x[1], 0)), ...(rest ? [round(rest, 0)] : [])], [...c.series.slice(0, top6.length), c.faint], { tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
+      <div class="chart-card">
+        <div class="cc-head"><span class="cc-title">Bestleistungen</span>${infoBtn('Deine besten Einheiten je Cardio-Art (gesamt, unabhängig vom Zeitraum): längste Dauer, weiteste Distanz, schnellstes Tempo. Neue Bestleistungen werden nach dem Workout gefeiert.')}</div>
+        <div class="col mt-8" style="gap:12px">${bests.slice(0, 8).map(b => { const info = cardioInfo(Ex.get(b.id)); return `<div>
+          <button class="link-btn" style="padding:0;min-height:28px;color:var(--text)" data-act="openExercise" data-id="${esc(b.id)}"><b>${esc(Ex.name(b.id))}</b> <span class="tiny dim">${b.n}×</span></button>
+          <div class="cd-bests">${bestCell('Längste', b.dur, fmtDur(b.dur && b.dur.secs))}${info.mode === 'dist' ? bestCell('Weiteste', b.km && b.km.km ? b.km : null, b.km ? fmtKm(b.km.km) : '') + bestCell('Schnellste', b.kmh, b.kmh ? fmtKmh(b.kmh.kmh) : '') : ''}</div></div>`; }).join('')}</div>
+      </div>
+    </div>`;
+  cb.mountAll();
+};
+Changes.cardioEx = el => { UI.cardioEx = el.value; saveUI(); App.renderCurrent(); };
+
 ProgressViews.body = body => {
   const r = Analytics.range();
   const c = chartColors();
@@ -7501,10 +7952,10 @@ Actions.exportCSV = () => {
   if (!W.length) return toast('Noch keine Workouts zum Exportieren', 'info');
   const q = v => { const s = v == null ? '' : String(v); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const dec = v => v == null || v === '' ? '' : String(round(+v, 3)).replace('.', ',');
-  const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight'];
+  const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight', 'distanceKm', 'level'];
   const lines = [head];
   for (const w of W) for (const en of w.entries || []) (en.sets || []).forEach((s, i) => {
-    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '']);
+    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '', dec(s.distKm), dec(s.level)]);
   });
   download(`trainio-workouts-${isoDate()}.csv`, '﻿' + lines.map(r => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
   toast(`${lines.length - 1} Sätze exportiert`, 'success');
@@ -7601,7 +8052,7 @@ async function pdfWorkoutLog(from) {
     d.setFont('helvetica', 'bold'); d.setFontSize(11);
     st.text(`${fmtDate(w.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}  ·  ${w.planDayName || w.name || 'Workout'}`, 18, st.y + 1);
     d.setFont('helvetica', 'normal'); d.setFontSize(9); d.setTextColor(90);
-    st.text(`${fmtDur(w.durationSec)} · ${fmtTon(row ? row.ton : 0)} · ${row ? row.sets : 0} Sätze`, 192, st.y + 1, { align: 'right' });
+    st.text(`${fmtDur(w.durationSec)} · ${row && row.cardioOnly ? 'Cardio' : `${fmtTon(row ? row.ton : 0)} · ${row ? row.sets : 0} Sätze`}${row && row.cSec && !row.cardioOnly ? ' · Cardio ' + fmtDur(row.cSec) : ''}`, 192, st.y + 1, { align: 'right' });
     d.setTextColor(20);
     st.y += 10;
     if (w.notes) { d.setFontSize(9); d.setTextColor(90); const ls = d.splitTextToSize(pdfSafe(w.notes), 175); st.need(ls.length * 4); d.text(ls, 18, st.y); st.y += ls.length * 4 + 1; d.setTextColor(20); }
@@ -7609,7 +8060,7 @@ async function pdfWorkoutLog(from) {
       const sets = (en.sets || []).filter(s => s.done !== false);
       if (!sets.length) continue;
       const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
-      const txt = sets.map(s => (s.warmup ? 'W ' : '') + (isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))) + (s.rpe ? ` @${nf(s.rpe, 1)}` : '')).join('   ');
+      const txt = Ex.type(Ex.get(en.exerciseId)) === 'cardio' ? cardioTxt(cardioTotals(sets), cardioInfo(Ex.get(en.exerciseId))) : sets.map(s => (s.warmup ? 'W ' : '') + (isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))) + (s.rpe ? ` @${nf(s.rpe, 1)}` : '')).join('   ');
       d.setFontSize(9.5);
       const lines = d.splitTextToSize(pdfSafe(txt), 120);
       st.need(lines.length * 4.5 + 2);

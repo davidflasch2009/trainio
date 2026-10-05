@@ -77,6 +77,27 @@ Konfetti und Inhalte der Startseite.
   (Name + Sätze bzw. Ziel). Ist eine Übung fertig, klappt sie zu und die nächste öffnet sich;
   antippen öffnet jede Übung direkt. Abschaltbar unter **Mehr → Workout-Ansicht**.
 
+## Cardio
+
+- **Eigener Übungstyp**: Statt Sätze × Sekunden gibt es pro Cardio-Übung einen Block mit
+  **Dauer + Distanz (km)**. Die Geschwindigkeit in **km/h** rechnet die App aus. Optional kommt **Stufe** bzw.
+  beim Laufband **Steigung (%)** dazu. Geräte ohne Distanz (Stepper, HIIT, Seilspringen …) haben
+  **Dauer + Stufe**, Sportarten (Fußball, Tennis, Klettern …) nur die **Dauer**. Über „+ Abschnitt“ kannst du mehrere
+  Teile eintragen (z. B. 5 min warm, 20 min schnell).
+- **Dauer eingeben**: `30` = 30 min, `30,5` = 30:30, `30:15` = 30 min 15 s, `1:05:00` = 1 h 5 min.
+- **Letztes Mal** steht als Platzhalter in den Feldern, „Übernehmen“ trägt es ein.
+- **Cardio starten** auf dem Start-Tab (eigene Einheit) bzw. **Cardio**-Knopf im laufenden Workout
+  (z. B. nach dem Krafttraining). Zuletzt genutzte Arten stehen oben.
+- **48 Cardio-Arten**: Laufband, draußen laufen, Gehen, Wandern, Nordic Walking, Rad (Ergometer, draußen,
+  Spinning, MTB), Rudern, SkiErg, Crosstrainer, Stepper, Schwimmen, Kajak/SUP, Inliner, Langlauf, HIIT,
+  Tabata, Boxen, Tanzen, Klettern, Ballsportarten u. v. m. Eigene Cardio-Übungen: Erfassung „Cardio“
+  und Felder wählen (Dauer + Distanz / Dauer + Stufe / nur Dauer).
+- **Fortschritt → Cardio**: Minuten & km pro Woche, Tempo-Verlauf (km/h) je Art mit Trend,
+  Verteilung nach Art und Bestleistungen (längste Einheit, weiteste Distanz, schnellstes Tempo).
+  Neue Bestleistungen werden nach dem Workout gefeiert.
+- **Getrennt von Kraft**: Cardio zählt nicht in Volumen, Satzanzahl, Muskel-Heatmap oder Push/Pull.
+  Reine Cardio-Tage zählen nicht für Streak, Wochenziel und Konsistenz.
+
 ## Tabs ein-/ausblenden
 
 **Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
@@ -87,7 +108,7 @@ und beim Hinzufügen von Übungen erreichbar.
 
 **Mehr → Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen, Pausen-Timer,
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
-Workout-Notizen, Arrow-Import und Tools – alles einzeln abschaltbar.
+Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
 ## Übungen & Muskel-Diagramm
 
