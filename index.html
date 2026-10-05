@@ -436,10 +436,11 @@ svg { flex-shrink: 0; }
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
 /* Hinter der iPhone-Statusleiste: nur beim Scrollen eine ruhige Fläche, damit Inhalt nicht unter der Uhr durchläuft */
-#sbShade { position: fixed; top: 0; left: 0; right: 0; height: env(safe-area-inset-top); z-index: 29; background: var(--bg); opacity: 0; pointer-events: none; transition: opacity .2s; }
+#sbShade { position: fixed; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top) + 28px); z-index: 29; pointer-events: none; opacity: 0; transition: opacity .25s;
+  background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 55%, transparent 100%); }
 body.is-scrolled #sbShade { opacity: 1; }
 [data-design="glass"] .wo-head { background: color-mix(in srgb, var(--bg) 70%, var(--glass-bar)) !important; }
-[data-design="glass"] #sbShade { background: var(--glass-bar); -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%); backdrop-filter: blur(var(--glass-blur)) saturate(180%); }
+
 .topbar.empty { position: relative; min-height: 0; height: env(safe-area-inset-top); padding: 0; border-bottom: 0 !important; background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
 .topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
 .start-date { margin-top: 18px; color: var(--text-dim); font-weight: 700; font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
@@ -4454,7 +4455,7 @@ Actions.startCardio = async () => {
 /* ---------- Ziele: 1RM-Ziel pro Übung (Epley: Gewicht × (1 + Wdh./30)) ---------- */
 const goalsList = () => S().goals || [];
 /** Bestes geschätztes 1RM einer Übung aus allen gespeicherten Workouts */
-const best1RM = exId => maxOf(Analytics.sessionsOf(exId).filter(x => !x.cardio), x => x.best) || 0;
+const best1RM = exId => Math.max(0, maxOf(Analytics.sessionsOf(exId).filter(x => !x.cardio), x => x.best));
 function goalsCard() {
   const gs = goalsList();
   const rows = gs.map(g => {
@@ -4505,7 +4506,7 @@ function checkGoals(doc) {
   const hit = [];
   const goals = goalsList().map(g => {
     if (g.reachedAt) return g;
-    const best = maxOf((doc.entries || []).filter(en => en.exerciseId === g.exId).flatMap(en => en.sets || []).filter(s => s.done !== false && !s.warmup), s => e1rm(+s.weightKg || 0, repsOf(s))) || 0;
+    const best = Math.max(0, maxOf((doc.entries || []).filter(en => en.exerciseId === g.exId).flatMap(en => en.sets || []).filter(s => s.done !== false && !s.warmup), s => e1rm(+s.weightKg || 0, repsOf(s))));
     if (best >= g.kg - 1e-6) { hit.push({ ...g, best }); return { ...g, reachedAt: Date.now() }; }
     return g;
   });
@@ -7323,7 +7324,7 @@ const TIERS = [['Bronze', '#cd7f32'], ['Silber', '#b8c0cc'], ['Gold', '#f5c542']
 function milestoneList(ix) {
   const rows = ix.rows, strength = rows.filter(r => !r.cardioOnly);
   const st = Analytics.streak();
-  const bestOf = ids => maxOf(ids.flatMap(id => ix.sessions[id] || []), s => s.best) || 0;
+  const bestOf = ids => Math.max(0, maxOf(ids.flatMap(id => ix.sessions[id] || []), s => s.best));
   const big3 = BIG3.map(b => bestOf(b.ids));
   const months = {};
   strength.forEach(r => { const k = r.date.slice(0, 7); months[k] = (months[k] || 0) + 1; });
