@@ -615,6 +615,11 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 
 /* Listen */
 .list { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--card-shadow); }
+.list-item.am-featured { border: 2px solid var(--accent) !important; border-radius: calc(16px * var(--rs)); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); min-height: 72px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }
+.list-item.am-featured .li-icon { background: var(--accent); color: var(--accent-ink); }
+.am-featured .li-title { font-size: calc(17px * var(--fs)); }
+.am-featured .li-chev { color: var(--accent-text); margin-left: auto; }
+.li-kicker { display: block; font-size: calc(11.5px * var(--fs)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--accent-text); margin-bottom: 1px; }
 .list-item { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px; border-bottom: var(--bw) solid var(--border); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; color: var(--text); }
 .list-item:last-child { border-bottom: 0; }
 button.list-item:active, .list-item.clickable:active { background: var(--surface-2); }
@@ -2902,11 +2907,17 @@ function actionMenu(title, items) {
     let res = null;
     const m = Modal.open({
       title, size: 'sm',
-      body: `<div class="list">${items.filter(Boolean).map(it => `
-        <button class="list-item ${it.danger ? 'danger' : ''}" data-k="${esc(it.key)}">
+      body: (() => {
+        const all = items.filter(Boolean), feat = all.filter(it => it.featured), rest = all.filter(it => !it.featured);
+        const row = (it, cls = '') => `
+        <button class="list-item ${cls} ${it.danger ? 'danger' : ''}" data-k="${esc(it.key)}">
           <span class="li-icon">${icon(it.icon || 'chevR')}</span>
-          <span class="li-main"><span class="li-title">${esc(it.label)}</span>${it.sub ? `<div class="li-sub">${esc(it.sub)}</div>` : ''}</span>
-        </button>`).join('')}</div>`,
+          <span class="li-main">${it.kicker ? `<span class="li-kicker">${esc(it.kicker)}</span>` : ''}<span class="li-title">${esc(it.label)}</span>${it.sub ? `<div class="li-sub">${esc(it.sub)}</div>` : ''}</span>
+          ${cls ? icon('chevR', 'li-chev') : ''}
+        </button>`;
+        // Hervorgehobene Einträge (z. B. heutiges Workout) abgesetzt über der Liste
+        return `${feat.map(it => row(it, 'am-featured')).join('')}${rest.length ? `<div class="list${feat.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
+      })(),
       onClose: () => resolve(res)
     });
     m.el.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) { res = b.dataset.k; m.close(); } });
@@ -4255,7 +4266,7 @@ Actions.startSheet = async () => {
   if (Workout.cur()) return App.go('training');
   const n = Analytics.nextPlanDay();
   const k = await actionMenu('Workout starten', [
-    n && { key: 'next', label: `${n.day.name}`, sub: `${whenLabel(n)} laut „${n.plan.name}"`, icon: 'play' },
+    n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), sub: `laut „${n.plan.name}"`, icon: 'play', featured: true },
     Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', sub: 'Übungen aus der Bibliothek wählen & los', icon: 'list' },
     { key: 'free', label: 'Leeres Workout', sub: 'Ohne Plan, Übungen unterwegs hinzufügen', icon: 'plus' },
