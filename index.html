@@ -435,7 +435,7 @@ svg { flex-shrink: 0; }
   border-bottom: 1px solid transparent; transition: border-color .2s;
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
-.topbar.empty { min-height: 0; padding-bottom: 0; padding-top: env(safe-area-inset-top); border-bottom: 0 !important; }
+.topbar.empty { position: relative; min-height: 0; height: env(safe-area-inset-top); padding: 0; border-bottom: 0 !important; background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
 .topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
 .start-date { margin-top: 18px; color: var(--text-dim); font-weight: 700; font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
 .start-date b { display: block; font-size: calc(26px * var(--fs)); color: var(--text); text-transform: none; letter-spacing: -.02em; margin-top: 2px; font-family: var(--font-display); }
@@ -1651,7 +1651,7 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 @keyframes fxFade { from { opacity: 0; } to { opacity: 1; } }
 @keyframes fxPop { 0% { transform: scale(.7); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
 @keyframes fxOpen { from { opacity: 0; transform: translateY(-6px) scaleY(.96); } to { opacity: 1; transform: none; } }
-@keyframes fxDone { 0% { background-color: color-mix(in srgb, var(--accent) 26%, transparent); } 100% { background-color: transparent; } }
+@keyframes fxDone { from { background-color: color-mix(in srgb, var(--accent) 30%, transparent); } }
 @keyframes fxComplete { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
 @keyframes fxFill { 0% { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { background-color: var(--surface-2); box-shadow: 0 0 0 0 transparent; } }
 @keyframes fxBump { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
