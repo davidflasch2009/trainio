@@ -443,9 +443,10 @@ svg { flex-shrink: 0; }
   padding: 8px max(16px, env(safe-area-inset-right)) calc(var(--nav-space) + 28px) max(16px, env(safe-area-inset-left));
 }
 body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
-.tab { display: none; animation: fadeIn .18s ease; }
+.tab { display: none; animation: tabIn .3s cubic-bezier(.2, .8, .2, 1); }
 .tab.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tabIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 .bottom-nav {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 50;
@@ -702,6 +703,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .toast.pr { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface-3)), color-mix(in srgb, var(--accent) 10%, var(--surface-3))); border-color: var(--accent-dim); color: var(--text); }
 .toast .t-act { margin-left: auto; background: none; border: 0; color: var(--accent-text); font-weight: 800; min-height: 32px; padding: 0 6px; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
+@keyframes restIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-8px); } }
 
 /* Modals: Bottom-Sheet mobil, zentriert auf Desktop */
@@ -738,7 +740,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .rest-dock {
   position: fixed; left: 12px; right: 12px; z-index: 48; bottom: calc(var(--nav-space) + 10px);
   max-width: 560px; margin: 0 auto; background: var(--surface-3); border: var(--bw) solid var(--border-strong); border-radius: calc(18px * var(--rs));
-  box-shadow: var(--shadow); overflow: hidden; animation: toastIn .25s ease;
+  box-shadow: var(--shadow); overflow: hidden; animation: restIn .38s var(--ease-spring, ease);
 }
 .rest-dock .rest-bar { height: 4px; background: var(--accent); transform-origin: left; transition: transform 1s linear; }
 .rest-dock .rest-row { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; }
@@ -1574,6 +1576,44 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .look-current .dt-pair { width: 128px; flex-shrink: 0; }
 .look-current .tp { height: 64px; }
 
+/* ---------- Bewegung & Feedback: jede Berührung bekommt eine Reaktion ---------- */
+:root { --ease-out: cubic-bezier(.2, .8, .2, 1); --ease-spring: cubic-bezier(.34, 1.56, .64, 1); }
+:where(button, [data-act], .chip, .switch, a) { -webkit-tap-highlight-color: transparent; }
+:where(.btn-icon, .chip, .seg button, .set-num, .link-btn, .hint-chip, .ws-item, .fc-pill, .reg-item, .exs-goal, .nav-btn, .side-btn, .sync-pill, .uni-chip, .set-fill, .rpe-chips button, .stepper button, .ex-goal, .exs-add, .exc-head, .ov-acts .btn-icon) {
+  transition: transform .16s var(--ease-out), background-color .2s, color .2s, border-color .2s, box-shadow .2s, opacity .2s;
+}
+:where(.btn-icon, .chip, .seg button, .set-num, .link-btn, .hint-chip, .ws-item, .fc-pill, .reg-item, .sync-pill, .uni-chip, .rpe-chips button, .stepper button):active { transform: scale(.93); }
+:where(.nav-btn, .side-btn):active { transform: scale(.9); }
+.exs-add:active, .exc-head:active { background: var(--surface-2); }
+button.list-item, .ex-item, .card.clickable, .stat.clickable, .mini-wo { transition: background-color .16s, transform .16s var(--ease-out), box-shadow .2s; }
+button.list-item:active, .ex-item:active, .stat.clickable:active { transform: scale(.985); }
+.set-check { transition: transform .18s var(--ease-spring), background-color .22s, border-color .22s, color .22s, box-shadow .22s; }
+.set-check:active { transform: scale(.86); }
+.set-in, .fc-in, .input, .select, .textarea { transition: border-color .18s, box-shadow .18s, background-color .18s; }
+.set-in:focus, .fc-in:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 28%, transparent); }
+/* Einmal-Effekte (per JS gesetzt) */
+.fx-up { animation: fxUp .32s var(--ease-out) both; }
+.fx-up-2 { animation: fxUp .32s var(--ease-out) .05s both; }
+.fx-fade { animation: fxFade .26s var(--ease-out) both; }
+.fx-pop { animation: fxPop .42s var(--ease-spring); }
+.fx-open { animation: fxOpen .34s var(--ease-out) both; transform-origin: top center; }
+.fx-done { animation: fxDone .7s var(--ease-out); }
+.fx-done .set-check { animation: fxPop .42s var(--ease-spring); }
+.fx-complete { animation: fxComplete .9s var(--ease-out); }
+.fx-fill { animation: fxFill .7s var(--ease-out); }
+.fx-bump { animation: fxBump .22s var(--ease-out); }
+.fx-stagger > * { animation: fxUp .34s var(--ease-out) both; }
+.fx-stagger > :nth-child(2) { animation-delay: .03s; } .fx-stagger > :nth-child(3) { animation-delay: .06s; }
+.fx-stagger > :nth-child(4) { animation-delay: .09s; } .fx-stagger > :nth-child(5) { animation-delay: .12s; }
+.fx-stagger > :nth-child(6) { animation-delay: .15s; } .fx-stagger > :nth-child(n+7) { animation-delay: .18s; }
+@keyframes fxUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes fxFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fxPop { 0% { transform: scale(.7); } 55% { transform: scale(1.14); } 100% { transform: scale(1); } }
+@keyframes fxOpen { from { opacity: 0; transform: translateY(-6px) scaleY(.96); } to { opacity: 1; transform: none; } }
+@keyframes fxDone { 0% { background-color: color-mix(in srgb, var(--accent) 26%, transparent); } 100% { background-color: transparent; } }
+@keyframes fxComplete { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
+@keyframes fxFill { 0% { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { background-color: var(--surface-2); box-shadow: 0 0 0 0 transparent; } }
+@keyframes fxBump { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
@@ -2916,7 +2956,7 @@ function actionMenu(title, items) {
           ${cls ? icon('chevR', 'li-chev') : ''}
         </button>`;
         // Hervorgehobene Einträge (z. B. heutiges Workout) abgesetzt über der Liste
-        return `${feat.map(it => row(it, 'am-featured')).join('')}${rest.length ? `<div class="list${feat.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
+        return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${rest.length ? `<div class="list fx-stagger${feat.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
       })(),
       onClose: () => resolve(res)
     });
@@ -2946,6 +2986,24 @@ document.addEventListener('click', e => {
 }, true);
 window.addEventListener('scroll', () => { const p = $('#popover'); if (p && !p.hidden) p.hidden = true; }, { passive: true });
 
+/* ---------- Bewegung: Einmal-Effekte auf frisch gerenderten Elementen ---------- */
+/** Effekt-Klasse setzen (startet neu, falls schon gesetzt). Reduziert/Aus regelt das CSS. */
+function fx(el, cls) {
+  if (!el) return;
+  (el.length != null && !el.tagName ? Array.from(el) : [el]).forEach(n => { n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); n.addEventListener('animationend', function done(ev) { if (ev.target === n) { n.classList.remove(cls); n.removeEventListener('animationend', done); } }); });
+}
+/* Ansicht wechseln (Segment, Chips, Unter-Tabs): Inhalt unter dem Schalter sanft einblenden */
+const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'histMore', 'setSeg']);
+function fxSwap(act, v) {
+  const sel = `[data-act="${act}"]${v != null ? `[data-v="${CSS.escape(v)}"]` : ''}`;
+  let n = $(`#view ${sel}`);
+  if (!n) return;
+  // vom Schalter bis zur obersten Ebene des Tabs gehen – alles darunter wird eingeblendet
+  while (n && n.parentElement && !n.parentElement.classList.contains('tab')) n = n.parentElement;
+  if (!n || !n.parentElement) return;
+  for (let s = n.nextElementSibling; s; s = s.nextElementSibling) fx(s, 'fx-up');
+}
+
 /* ---------- Event-Delegation ---------- */
 const Actions = {};
 const Inputs = {};
@@ -2955,8 +3013,15 @@ document.addEventListener('click', e => {
   if (!el || el.disabled) return;
   const fn = Actions[el.dataset.act];
   if (!fn) return;
-  try { fn(el, e); } catch (err) { console.error(err); toast('Fehler: ' + err.message, 'error'); }
+  const act = el.dataset.act, v = el.dataset.v;
+  try {
+    const r = fn(el, e);
+    if (SWAP_ACTS.has(act)) Promise.resolve(r).then(() => requestAnimationFrame(() => fxSwap(act, v)));
+  } catch (err) { console.error(err); toast('Fehler: ' + err.message, 'error'); }
 });
+/* Schalter: Knopf-Animation fertig laufen lassen, bevor neu gerendert wird */
+let renderHoldUntil = 0;
+document.addEventListener('change', e => { if (e.target.closest('.switch')) renderHoldUntil = Date.now() + 240; }, true);
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-in]');
   if (el && Inputs[el.dataset.in]) Inputs[el.dataset.in](el, e);
@@ -3309,7 +3374,10 @@ const App = {
     saveUI();
     $('#popover').hidden = true;
     this.renderCurrent();
-    if (changed) window.scrollTo({ top: 0 });
+    if (changed) {
+      window.scrollTo({ top: 0 });
+      fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
+    }
   },
   renderAll() {
     this.renderCurrent();
@@ -3357,7 +3425,7 @@ function scheduleRender() {
     renderTimer = null;
     if (isEditingInView()) { renderPending = true; return; }
     App.renderCurrent();
-  }, 40);
+  }, Math.max(40, renderHoldUntil - Date.now()));
 }
 document.addEventListener('focusout', () => {
   if (!renderPending) return;
@@ -4111,7 +4179,8 @@ const RestTimer = (() => {
     const dock = $('#restDock');
     if (!w || !w.rest) { dock.innerHTML = ''; document.body.classList.remove('has-rest'); return; }
     document.body.classList.add('has-rest');
-    dock.innerHTML = `<div class="rest-dock" id="restBox">
+    // Einblend-Animation nur beim ersten Erscheinen, nicht bei jedem Neu-Rendern
+    dock.innerHTML = `<div class="rest-dock" id="restBox" ${dock.firstElementChild ? 'style="animation:none"' : ''}>
       <div class="rest-bar" id="restBar"></div>
       <div class="rest-row">
         <button class="rest-time" data-act="restBig" id="restTime" aria-label="Großer Countdown">0:00</button>
@@ -4740,6 +4809,7 @@ function renderActiveWorkout(el, w) {
         <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
       </div>`;
     updateTopH();
+    fxOpenCard(el);
     return;
   }
   el.innerHTML = `
@@ -4780,11 +4850,20 @@ function renderActiveWorkout(el, w) {
     <button class="btn btn-danger-ghost btn-block mt-12" data-act="woCancel">${icon('x')} ${w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen'}</button>
     </div>`;
   updateTopH();
+  fxOpenCard(el);
   // Aktuelle Übung in der Leiste sichtbar halten
   const strip = $('#woStrip', el), cur = strip && $('.ws-item.cur', strip);
   if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
 }
 
+/** Wechselt die offene Übung (oder die Fokus-Übung), blendet sie sanft ein */
+let lastOpenCard = null;
+function fxOpenCard(root) {
+  const c = $('.ex-open, .focus', root);
+  const id = c ? c.id : null;
+  if (id && lastOpenCard && id !== lastOpenCard) fx(c, c.classList.contains('focus') ? 'fx-up' : 'fx-open');
+  lastOpenCard = id;
+}
 /* ---------- Zugeklappte Übungen: nur die aktuelle ist offen ---------- */
 const woCollapse = () => S().woCollapse !== false;
 /** Aktuelle (offene) Übung: manuell geöffnet, sonst die erste mit offenen Sätzen; -1 = alle fertig */
@@ -4878,6 +4957,7 @@ Actions.setFill = el => {
   w.sel = { e: ei, s: si };
   Workout.save();
   App.renderCurrent();
+  fx($$(`[data-ei="${ei}"][data-si="${si}"].set-in, [data-ei="${ei}"][data-si="${si}"].fc-in`), 'fx-fill');
 };
 Actions.exFill = el => {
   const w = Workout.cur(); if (!w) return;
@@ -4888,6 +4968,7 @@ Actions.exFill = el => {
   vibrate(8);
   Workout.save();
   App.renderCurrent();
+  fx($$(`.set-in[data-ei="${el.dataset.ei}"], .fc-in[data-ei="${el.dataset.ei}"]`), 'fx-fill');
   toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success');
 };
 
@@ -5613,6 +5694,7 @@ Actions.step = el => {
   }
   vibrate(8);
   Workout.save();
+  fx($$(`[data-in^="set"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).filter(i => el.parentElement && el.parentElement.contains(i)), 'fx-bump');
 };
 Actions.rpePick = el => {
   const s = setAt(el); if (!s) return;
@@ -5631,7 +5713,9 @@ Actions.setDone = el => {
     s.done = false; s.doneAt = null;
     w.sel = { e: ei, s: si };
     Workout.save();
-    return App.renderCurrent();
+    App.renderCurrent();
+    fx($(`.set-row[data-ei="${ei}"][data-si="${si}"] .set-check`), 'fx-bump');
+    return;
   }
   const type = Ex.type(Ex.get(en.exerciseId));
   if (type === 'cardio') {
@@ -5697,6 +5781,8 @@ Actions.setDone = el => {
   if (wasLast) toast('Alle Sätze erledigt – stark! Jetzt „Beenden" tippen.', 'success');
   else if (exDone) toast(`${en.exerciseName} geschafft 💪`, 'success');
   App.renderCurrent();
+  fx($(`.set-row[data-ei="${ei}"][data-si="${si}"]`), 'fx-done');
+  if (exDone) fx($('#ex-' + en.uid), 'fx-complete');
   // Liste: zur nächsten Übung scrollen, wenn diese fertig ist
   const nextE = woCollapse() ? openIndex(w) : w.sel.e;
   if (!focus && exDone && nextE >= 0 && nextE !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[nextE]));
@@ -5711,6 +5797,7 @@ Actions.setAdd = el => {
   w.focusE = +el.dataset.ei;
   Workout.save();
   App.renderCurrent();
+  fx($(`.set-row[data-ei="${el.dataset.ei}"][data-si="${en.sets.length - 1}"], .fc-pill[data-ei="${el.dataset.ei}"][data-si="${en.sets.length - 1}"]`), 'fx-up');
 };
 Actions.setMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei, si = +el.dataset.si;
@@ -5827,6 +5914,7 @@ Actions.woAddEx = async () => {
   Workout.autoSelect();
   Workout.save();
   App.renderCurrent();
+  w.entries.slice(-ids.length).forEach(en => fx($('#ex-' + en.uid), 'fx-up'));
   setTimeout(() => { const last = w.entries[w.entries.length - ids.length]; const c = last && $('#ex-' + last.uid); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 50);
 };
 Actions.woRename = async () => {
