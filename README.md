@@ -107,6 +107,14 @@ Konfetti und Inhalte der Startseite.
   1RM-Formel (Epley: Gewicht × (1 + Wdh./30)) aus allen gespeicherten Sätzen – 80 kg × 11 ≈ 109 kg zählt also
   als erreicht. Fortschrittsbalken auf dem Start-Tab; erreichte Ziele werden nach dem Workout mit Konfetti gefeiert.
 
+## Meilensteine
+
+Fortschritt → Übersicht → **Meilensteine**: 15 Meilensteine mit je 5 Stufen
+(Bronze → Silber → Gold → Platin → Diamant) in den Gruppen Training (Workouts, Streak, Workouts pro Monat,
+Trainingszeit, verschiedene Übungen), Volumen (Tonnage, Sätze, Wiederholungen, PRs), Kraft (geschätztes 1RM
+Bank/Kniebeuge/Kreuzheben, Big-3-Total) und Cardio (Zeit, Distanz) – jeweils mit Fortschrittsbalken
+„noch X bis Gold“. Dazu Spezial-Abzeichen (Frühaufsteher, Nachteule, Marathon).
+
 ## Tabs ein-/ausblenden
 
 **Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten

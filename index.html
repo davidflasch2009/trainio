@@ -1116,6 +1116,20 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ratio-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: var(--bw) solid var(--border); }
 .ratio-row:last-child { border-bottom: 0; }
 .ratio-row b { font-size: calc(18px * var(--fs)); font-weight: 800; }
+.ms-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: var(--bw) solid var(--border); }
+.ms-row:last-child { border-bottom: 0; }
+.ms-ic { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: color-mix(in srgb, var(--tc) 22%, var(--surface-2)); box-shadow: inset 0 0 0 2px var(--tc); }
+.ms-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.ms-top { display: flex; align-items: center; gap: 8px; }
+.ms-top b { flex: 1; min-width: 0; }
+.ms-tier { font-size: calc(11px * var(--fs)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; color: #111; background: var(--tc); }
+.ms-pips { display: flex; gap: 4px; }
+.ms-pips i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); }
+.ms-pips i.on { background: var(--c); }
+.ms-bar { height: 6px; }
+.ms-sub { font-size: calc(12px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.ms-legend { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
+.ms-legend::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .badge-tile { background: var(--surface-2); border-radius: calc(14px * var(--rs)); padding: 12px 8px; text-align: center; font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text-dim); border: 1px solid transparent; }
 .badge-tile .bt-ic { font-size: calc(26px * var(--fs)); display: block; margin-bottom: 4px; filter: grayscale(1); opacity: .35; }
@@ -7170,25 +7184,67 @@ function renderMoreStats(el) {
   cb.mountAll();
 }
 
-/* ---------- Meilensteine (eigene Idee) ---------- */
-function badgesHtml(ix) {
-  const n = ix.rows.length;
-  const ton = sum(ix.rows.map(r => r.ton));
+/* ---------- Meilensteine: Stufen Bronze → Silber → Gold → Platin → Diamant ---------- */
+const TIERS = [['Bronze', '#cd7f32'], ['Silber', '#b8c0cc'], ['Gold', '#f5c542'], ['Platin', '#6ee7d8'], ['Diamant', '#a78bfa']];
+function milestoneList(ix) {
+  const rows = ix.rows, strength = rows.filter(r => !r.cardioOnly);
   const st = Analytics.streak();
-  const maxWOf = ids => maxOf(ids.flatMap(id => ix.sessions[id] || []), s => s.maxW);
-  const big3 = BIG3.map(b => maxOf(b.ids.flatMap(id => ix.sessions[id] || []), s => s.best)).map(v => v > 0 ? v : 0);
-  const hours = ix.rows.filter(r => r.startedAt && !r.imp).map(r => new Date(r.startedAt).getHours());
-  const list = [
-    ['🎉', 'Erstes Workout', n >= 1], ['🔟', '10 Workouts', n >= 10], ['💪', '50 Workouts', n >= 50], ['💯', '100 Workouts', n >= 100], ['🏛️', '250 Workouts', n >= 250],
-    ['🧱', '10 t bewegt', ton >= 10000], ['🚚', '100 t bewegt', ton >= 100000], ['🏗️', '1.000 t bewegt', ton >= 1e6],
-    ['🔥', '4 Wochen Streak', st.best >= 4], ['⚡', '12 Wochen Streak', st.best >= 12], ['👑', '52 Wochen Streak', st.best >= 52],
-    ['🏆', 'Erster PR', ix.prEvents.length >= 1], ['🥇', '25 PRs', ix.prEvents.length >= 25],
-    ['🛋️', '100 kg Bank', maxWOf(BIG3[0].ids) >= 100], ['🦵', '140 kg Kniebeuge', maxWOf(BIG3[1].ids) >= 140], ['🏋️', '180 kg Kreuzheben', maxWOf(BIG3[2].ids) >= 180],
-    ['🎯', '500 kg Big-3-Total', sum(big3) >= 500],
-    ['🌅', 'Frühaufsteher', hours.some(h => h < 7)], ['🦉', 'Nachteule', hours.some(h => h >= 21)], ['⏳', 'Marathon (2 h+)', ix.rows.some(r => r.dur >= 7200)]
+  const bestOf = ids => maxOf(ids.flatMap(id => ix.sessions[id] || []), s => s.best) || 0;
+  const big3 = BIG3.map(b => bestOf(b.ids));
+  const months = {};
+  strength.forEach(r => { const k = r.date.slice(0, 7); months[k] = (months[k] || 0) + 1; });
+  const exCount = new Set(rows.flatMap(r => [...r.ex, ...Object.keys(r.cBy || {})])).size;
+  const kg = v => fmtW(v, 0), t = v => nf(v / 1000, v < 10000 ? 1 : 0) + ' t';
+  return [
+    ['Training', [
+      ['🏋️', 'Workouts', strength.length, [10, 50, 100, 250, 500], v => nf(v, 0)],
+      ['🔥', 'Längster Streak', st.best, [4, 12, 26, 52, 104], v => nf(v, 0) + ' Wo.'],
+      ['📅', 'Workouts in einem Monat', Math.max(0, ...Object.values(months)), [8, 12, 16, 20, 25], v => nf(v, 0)],
+      ['⏱️', 'Trainingszeit', sum(rows.map(r => r.dur)) / 3600, [10, 50, 100, 250, 500], v => nf(v, 0) + ' h'],
+      ['🧭', 'Verschiedene Übungen', exCount, [10, 25, 50, 75, 100], v => nf(v, 0)]
+    ]],
+    ['Volumen', [
+      ['🧱', 'Tonnage gesamt', sum(rows.map(r => r.ton)), [10000, 100000, 500000, 1e6, 2.5e6], t],
+      ['📦', 'Sätze gesamt', sum(rows.map(r => r.sets)), [500, 2500, 5000, 10000, 25000], v => nf(v, 0)],
+      ['🔁', 'Wiederholungen gesamt', sum(rows.map(r => r.reps)), [5000, 25000, 50000, 100000, 250000], v => nf(v, 0)],
+      ['🏆', 'PRs', ix.prEvents.length, [1, 10, 25, 50, 100], v => nf(v, 0)]
+    ]],
+    ['Kraft (geschätztes 1RM)', [
+      ['🛋️', 'Bankdrücken', big3[0], [60, 80, 100, 120, 140], kg],
+      ['🦵', 'Kniebeuge', big3[1], [80, 100, 140, 180, 220], kg],
+      ['⚓', 'Kreuzheben', big3[2], [100, 140, 180, 220, 260], kg],
+      ['🎯', 'Big-3-Total', big3.every(v => v > 0) ? sum(big3) : 0, [300, 400, 500, 600, 700], kg]
+    ]],
+    ['Cardio', [
+      ['❤️', 'Cardio-Zeit', sum(rows.map(r => r.cSec)) / 3600, [5, 25, 50, 100, 250], v => nf(v, 0) + ' h'],
+      ['🛣️', 'Cardio-Distanz', sum(rows.map(r => r.cKm)), [25, 100, 250, 500, 1000], v => nf(v, 0) + ' km']
+    ]]
   ];
-  const got = list.filter(b => b[2]).length;
-  return `<p class="small dim mb-8">${got} von ${list.length} freigeschaltet</p><div class="badges-grid">${list.map(([i, l, ok]) => `<div class="badge-tile ${ok ? 'got' : ''}"><span class="bt-ic">${i}</span>${esc(l)}</div>`).join('')}</div>`;
+}
+function badgesHtml(ix) {
+  const groups = milestoneList(ix);
+  const all = groups.flatMap(g => g[1]);
+  const lvl = (v, th) => th.filter(x => v >= x).length;
+  const got = sum(all.map(m => lvl(m[2], m[3]))), total = all.length * TIERS.length;
+  const hours = ix.rows.filter(r => r.startedAt && !r.imp).map(r => new Date(r.startedAt).getHours());
+  const special = [['🌅', 'Frühaufsteher', 'vor 7 Uhr', hours.some(h => h < 7)], ['🦉', 'Nachteule', 'ab 21 Uhr', hours.some(h => h >= 21)], ['⏳', 'Marathon', '2 h+ Workout', ix.rows.some(r => r.dur >= 7200)], ['🎉', 'Erstes Workout', '', ix.rows.length > 0]];
+  const row = ([ic, name, v, th, f]) => {
+    const n = lvl(v, th), next = th[n], prev = n ? th[n - 1] : 0;
+    const p = next ? clamp((v - prev) / (next - prev), 0, 1) : 1;
+    const tc = n ? TIERS[n - 1][1] : 'var(--surface-3)';
+    return `<div class="ms-row" style="--tc:${tc}">
+      <span class="ms-ic">${ic}</span>
+      <div class="ms-main">
+        <div class="ms-top"><b>${esc(name)}</b>${n ? `<span class="ms-tier">${TIERS[n - 1][0]}</span>` : ''}</div>
+        <div class="ms-pips">${TIERS.map(([l, c], i) => `<i class="${i < n ? 'on' : ''}" style="--c:${c}" title="${l}: ${f(th[i])}"></i>`).join('')}</div>
+        <div class="goal-bar ms-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
+        <div class="ms-sub">${f(v)} · ${next ? `noch ${f(next - v)} bis ${TIERS[n][0]} (${f(next)})` : 'Höchste Stufe erreicht 💎'}</div>
+      </div>
+    </div>`;
+  };
+  return `<p class="small dim mb-8">${got} von ${total} Stufen erreicht · ${TIERS.map(([l, c]) => `<span class="ms-legend" style="--c:${c}">${l}</span>`).join(' ')}</p>
+    ${groups.map(([g, ms]) => `<div class="card mb-12"><h4 class="mb-8">${esc(g)}</h4>${ms.map(row).join('')}</div>`).join('')}
+    <div class="card"><h4 class="mb-8">Spezial</h4><div class="badges-grid">${special.map(([i, l, sub, ok]) => `<div class="badge-tile ${ok ? 'got' : ''}"><span class="bt-ic">${i}</span>${esc(l)}${sub ? `<em>${esc(sub)}</em>` : ''}</div>`).join('')}</div></div>`;
 }
 
 
