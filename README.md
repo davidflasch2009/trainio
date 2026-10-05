@@ -115,6 +115,12 @@ Trainingszeit, verschiedene Übungen), Volumen (Tonnage, Sätze, Wiederholungen,
 Bank/Kniebeuge/Kreuzheben, Big-3-Total) und Cardio (Zeit, Distanz) – jeweils mit Fortschrittsbalken
 „noch X bis Gold“. Dazu Spezial-Abzeichen (Frühaufsteher, Nachteule, Marathon).
 
+## Wischgesten im Workout
+
+Satz-Zeile **nach rechts wischen = abhaken** (bzw. zurücksetzen, wenn schon erledigt), **nach links = löschen** –
+mit „Rückgängig“ im Hinweis unten. Ab etwa einem Viertel der Breite rastet die Aktion ein; kürzer loslassen
+bricht ab. Gilt in der Listen-Ansicht (schlicht & ausführlich) und bei Cardio-Abschnitten.
+
 ## Dauerhafte Übungs-Notiz
 
 Im Workout über ⋯ → **„Dauerhafte Notiz“** (oder in den Übungs-Details) z. B. „Sitzhöhe 4, Griff eng“ hinterlegen.

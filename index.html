@@ -853,6 +853,17 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-head span:nth-child(n+3) { text-align: center; }
 .set-head .rpe-h { text-align: center; }
 .set-row { min-height: 52px; border-top: 1px solid transparent; position: relative; }
+/* Wischen: die ganze Zeile gleitet, dahinter erscheint die Aktion */
+.set-row.swiping { transform: translateX(var(--sx, 0px)); z-index: 2; background-color: var(--bg); background-image: linear-gradient(var(--surface), var(--surface)); border-radius: calc(10px * var(--rs)); box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.swipe-bg { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; pointer-events: none; color: #fff; font-weight: 800; font-size: calc(14px * var(--fs)); border-radius: calc(10px * var(--rs)); background: var(--surface-3); }
+.swipe-bg span { display: inline-flex; align-items: center; gap: 8px; opacity: .6; transform: scale(.9); transition: opacity .15s, transform .2s cubic-bezier(.34,1.56,.64,1); }
+.swipe-bg svg { width: 22px; height: 22px; }
+.swipe-bg.sw-right { background: color-mix(in srgb, var(--accent) 60%, #000); color: #fff; }
+.swipe-bg.sw-left { background: #b91c1c; }
+.swipe-bg.sw-right .sw-r, .swipe-bg.sw-left .sw-l { visibility: hidden; }
+.swipe-bg.sw-armed span { opacity: 1; transform: scale(1.08); }
+.swipe-bg.sw-right.sw-armed { background: var(--accent); color: var(--accent-ink); }
+.swipe-bg.sw-left.sw-armed { background: #ef4444; }
 .set-row.sel { background: var(--surface-2); }
 .set-row.done { background: color-mix(in srgb, var(--accent) 7%, transparent); }
 .set-row.sel.done { background: color-mix(in srgb, var(--accent) 11%, var(--surface-2)); }
@@ -3466,11 +3477,12 @@ function isEditingInView() {
   const a = document.activeElement;
   return !!(a && a.matches('input, textarea, select') && $('#view').contains(a));
 }
+let swipeActive = false;
 function scheduleRender() {
   if (renderTimer) return;
   renderTimer = setTimeout(() => {
     renderTimer = null;
-    if (isEditingInView()) { renderPending = true; return; }
+    if (isEditingInView() || swipeActive) { renderPending = true; return; }
     App.renderCurrent();
   }, Math.max(40, renderHoldUntil - Date.now()));
 }
@@ -5922,6 +5934,81 @@ Actions.setDone = el => {
   if (!focus && exDone && nextE >= 0 && nextE !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[nextE]));
   else if (focus && w.focusE !== ei) window.scrollTo({ top: 0, behavior: 'smooth' });
 };
+/* ---------- Wischgesten auf Satz-Zeilen: → abhaken, ← löschen (mit Rückgängig) ---------- */
+function deleteSetWithUndo(ei, si) {
+  const w = Workout.cur(); if (!w) return;
+  const en = w.entries[ei]; if (!en || !en.sets[si]) return;
+  const [gone] = en.sets.splice(si, 1);
+  Workout.autoSelect(); Workout.save(); App.renderCurrent();
+  toast(`Satz ${si + 1} gelöscht`, 'info', { duration: 4500, action: { label: 'Rückgängig', fn: () => {
+    const cw = Workout.cur(); const ce = cw && cw.entries.find(e => e.uid === en.uid); if (!ce) return;
+    ce.sets.splice(Math.min(si, ce.sets.length), 0, gone); Workout.save(); App.renderCurrent();
+    fx($(`.set-row[data-ei="${cw.entries.indexOf(ce)}"][data-si="${si}"]`), 'fx-up');
+  } } });
+}
+(() => {
+  let row = null, bg = null, x0 = 0, y0 = 0, dx = 0, mode = null; // mode: null (unentschieden) | 'h' | 'v'
+  const TH = () => Math.min(110, row ? row.offsetWidth * .28 : 90);
+  const reset = (animate = true) => {
+    if (!row) return;
+    const r = row, b = bg;
+    r.style.transition = animate ? 'transform .22s cubic-bezier(.2,.8,.2,1)' : '';
+    r.style.setProperty('--sx', '0px');
+    setTimeout(() => {
+      r.classList.remove('swiping', 'sw-left', 'sw-right', 'sw-armed'); r.style.transition = ''; r.style.removeProperty('--sx'); if (b) b.remove();
+      if (renderPending && !swipeActive && !isEditingInView()) { renderPending = false; App.renderCurrent(); }
+    }, animate ? 230 : 0);
+    row = bg = null; mode = null; dx = 0; swipeActive = false;
+  };
+  document.addEventListener('touchstart', e => {
+    const r = e.target.closest('.wo-body .set-row[data-ei]');
+    if (!r || e.touches.length > 1 || e.target.closest('select')) return;
+    if (row) reset(false);
+    row = r; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; mode = null;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (!row) return;
+    const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+    if (!mode) {
+      if (Math.abs(mx) < 10 && Math.abs(my) < 10) return;
+      mode = Math.abs(mx) > Math.abs(my) * 1.3 ? 'h' : 'v';
+      if (mode === 'v') { row = null; return; }
+      bg = document.createElement('div');
+      bg.className = 'swipe-bg';
+      const done = row.classList.contains('done');
+      bg.innerHTML = `<span class="sw-l">${icon(done ? 'undo' : 'check')}<b>${done ? 'Zurück' : 'Erledigt'}</b></span><span class="sw-r"><b>Löschen</b>${icon('trash')}</span>`;
+      // Aktions-Fläche hinter die Zeile legen (gleiche Position), die Zeile selbst gleitet darüber
+      const par = row.parentElement;
+      if (getComputedStyle(par).position === 'static') par.style.position = 'relative';
+      Object.assign(bg.style, { top: row.offsetTop + 'px', height: row.offsetHeight + 'px', left: row.offsetLeft + 'px', width: row.offsetWidth + 'px' });
+      par.insertBefore(bg, row); row.classList.add('swiping'); swipeActive = true;
+    }
+    if (mode !== 'h') return;
+    e.preventDefault();
+    dx = mx;
+    const lim = row.offsetWidth * .7, eased = Math.sign(dx) * Math.min(lim, Math.abs(dx));
+    row.style.setProperty('--sx', eased + 'px');
+    const armed = Math.abs(dx) > TH();
+    [row, bg].forEach(n => { n.classList.toggle('sw-right', dx > 0); n.classList.toggle('sw-left', dx < 0); });
+    if (armed !== row.classList.contains('sw-armed')) { row.classList.toggle('sw-armed', armed); bg.classList.toggle('sw-armed', armed); if (armed) vibrate(10); }
+  }, { passive: false });
+  const end = () => {
+    if (!row || mode !== 'h') { row = null; mode = null; return; }
+    const r = row, ei = +r.dataset.ei, si = +r.dataset.si;
+    if (Math.abs(dx) > TH()) {
+      if (dx > 0) { reset(); setTimeout(() => Actions.setDone({ dataset: { ei, si } }), 120); }
+      else {
+        r.style.transition = 'transform .2s ease-in';
+        r.style.setProperty('--sx', -r.offsetWidth + 'px');
+        row = bg = null; mode = null; swipeActive = false;
+        setTimeout(() => deleteSetWithUndo(ei, si), 190);
+      }
+    } else reset();
+  };
+  document.addEventListener('touchend', end);
+  document.addEventListener('touchcancel', () => reset());
+})();
+
 Actions.setAdd = el => {
   const w = Workout.cur(); const en = w.entries[+el.dataset.ei];
   const lastSet = Ex.type(Ex.get(en.exerciseId)) === 'cardio' ? null : [...en.sets].reverse().find(s => !s.warmup);
