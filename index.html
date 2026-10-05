@@ -1077,8 +1077,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .muscle-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* Fortschritt */
-.prog-controls { position: sticky; top: var(--top-h, 56px); z-index: 30; margin: 0 -16px; padding: 8px 16px 10px; background: color-mix(in srgb, var(--bg) 90%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
-@media (min-width: 900px) { .prog-controls { margin: 0 -28px; padding: 8px 28px 10px; } }
+.prog-controls { position: sticky; top: calc(var(--top-h, 0px) + 8px); z-index: 30; margin: 0; padding: 8px; border-radius: calc(18px * var(--rs)); border: var(--bw) solid var(--border) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
+@media (min-width: 900px) { .prog-controls { padding: 10px; } }
+.prog-controls .seg.tabs { background: transparent; border: 0; padding: 0; }
+.pc-row { margin-top: 8px; gap: 8px; align-items: center; }
+.pc-chips { padding: 2px 12px 2px 0; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); }
+@media (max-width: 700px) { .prog-controls .seg.tabs { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); padding-right: 14px; } }
+.pc-chips .chip { flex-shrink: 0; }
+.pc-sep { flex: 0 0 1px; align-self: stretch; margin: 4px 2px; background: var(--border-strong); }
+.pc-phase { padding: 6px 4px 0; }
 .prog-controls .row { gap: 8px; }
 .chart-card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; min-width: 0; display: flex; flex-direction: column; box-shadow: var(--card-shadow); }
 .chart-card .cc-head { display: flex; align-items: center; gap: 4px; }
@@ -6858,15 +6865,16 @@ Views.progress = {
     el.innerHTML = `
       <div class="prog-controls">
         <div class="seg tabs" role="tablist">${progSubs().map(([k, l]) => `<button role="tab" class="${UI.progSub === k ? 'active' : ''}" data-act="progSub" data-v="${k}">${l}</button>`).join('')}</div>
-        <div class="row mt-8">
-          <div class="chips grow">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}</div>
+        <div class="row pc-row">
+          <div class="chips grow pc-chips phase-chips">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}<span class="pc-sep" aria-hidden="true"></span>${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
           <div class="seg sm" style="flex:0 0 auto" aria-label="Einheit"><button class="${unit() === 'kg' ? 'active' : ''}" data-act="unitSet" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-act="unitSet" data-v="lb">lb</button></div>
         </div>
-        <div class="chips mt-8 phase-chips">${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
-        ${r.phase ? `<div class="tiny dim mt-8">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
+        ${r.phase ? `<div class="tiny dim pc-phase">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
       </div>
       <div id="progBody"></div>`;
     updateTopH();
+    // Aktiven Zeitraum/Tab in den scrollbaren Leisten sichtbar halten
+    $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
     const body = $('#progBody', el);
     if (!Analytics.cur().rows.length && UI.progSub !== 'body') {
       body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">🏹 Arrow-Import</button>` : '')}</div>`;
