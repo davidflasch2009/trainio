@@ -435,12 +435,16 @@ svg { flex-shrink: 0; }
   border-bottom: 1px solid transparent; transition: border-color .2s;
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
+.topbar.empty { min-height: 0; padding-bottom: 0; padding-top: env(safe-area-inset-top); border-bottom: 0 !important; }
+.topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
+.start-date { margin-top: 18px; color: var(--text-dim); font-weight: 700; font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
+.start-date b { display: block; font-size: calc(26px * var(--fs)); color: var(--text); text-transform: none; letter-spacing: -.02em; margin-top: 2px; font-family: var(--font-display); }
 .topbar-title { font-size: calc(20px * var(--fs)); font-weight: 800; flex: 1; min-width: 0; letter-spacing: -.02em; }
 .topbar-back { margin-left: -10px; flex-shrink: 0; }
 .topbar-title small { display: block; font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--text-dim); letter-spacing: 0; }
 .view {
   width: 100%; max-width: 1120px; margin: 0 auto;
-  padding: 8px max(16px, env(safe-area-inset-right)) calc(var(--nav-space) + 28px) max(16px, env(safe-area-inset-left));
+  padding: 16px max(16px, env(safe-area-inset-right)) calc(var(--nav-space) + 28px) max(16px, env(safe-area-inset-left));
 }
 body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .tab { display: none; animation: tabIn .3s cubic-bezier(.2, .8, .2, 1); }
@@ -3479,11 +3483,15 @@ function syncPill() {
   const s = Store.syncState();
   return `<button class="sync-pill ${s}" data-act="go" data-tab="more" title="Sync-Status">${'<i></i>'}${SYNC_LABEL[s]}</button>`;
 }
+/* Keine Titelleiste mehr: der aktive Tab ist unten/links markiert. Oben bleibt nur, was etwas zu sagen hat:
+   „Zurück", wenn ein Tab über „Mehr" geöffnet ist, und der Sync-Status, wenn er nicht „alles synchron" ist. */
 function renderTopbar() {
-  const titles = { start: APP.name, training: Workout.cur() ? 'Workout' : 'Training', exercises: 'Übungen', progress: 'Fortschritt', more: 'Mehr' };
-  const sub = App.tab === 'start' ? `<small>${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</small>` : '';
-  const back = App.peek === App.tab ? `<button class="btn-icon topbar-back" data-act="go" data-tab="more" aria-label="Zurück zu Mehr">${icon('chevL')}</button>` : '';
-  $('#topbar').innerHTML = `${back}<div class="topbar-title">${esc(titles[App.tab])}${sub}</div>${syncPill()}`;
+  const tb = $('#topbar');
+  const back = App.peek === App.tab ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="go" data-tab="more">${icon('chevL')} Mehr</button>` : '';
+  const st = Store.syncState();
+  const pill = st === 'pending' || st === 'offline' ? syncPill() : '';
+  tb.innerHTML = back || pill ? `${back}<span class="grow"></span>${pill}` : '';
+  tb.classList.toggle('empty', !back && !pill);
 }
 function renderBanner() {
   const w = Workout.cur();
@@ -4306,7 +4314,9 @@ Views.start = {
     const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
+    const hr = new Date().getHours(), nm = (S().displayName || (Auth.user && Auth.user() && Auth.user().displayName) || '').split(' ')[0];
     el.innerHTML = `
+      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}<b>${hr < 11 ? 'Guten Morgen' : hr < 18 ? 'Hallo' : 'Guten Abend'}${nm ? ', ' + esc(nm) : ''} 👋</b></div>
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>
