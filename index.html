@@ -979,7 +979,19 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exc-cnt { flex-shrink: 0; font-weight: 800; font-size: calc(13px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .exc-head > svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--text-faint); }
 .ex-card.ex-open { border-color: var(--accent-dim); }
-.exs-last { padding: 0 14px 8px; font-size: calc(12.5px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exs-last { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px 14px; font-size: calc(12.5px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exs-last .link-btn { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 4px 6px; font-size: calc(13px * var(--fs)); white-space: nowrap; flex-shrink: 0; }
+.exs-last .link-btn svg, .fc-fill svg, .hint-chip.fill svg { width: 15px; height: 15px; }
+.exs .fill .set-head, .exs .fill .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 36px 48px; gap: 6px; }
+.exs .rpe.fill .set-head, .exs .rpe.fill .set-row { grid-template-columns: 28px minmax(0, 1fr) minmax(0, 1fr) 58px 34px 46px; gap: 5px; }
+.exs .uni.fill .set-head, .exs .uni.fill .set-row { grid-template-columns: 28px minmax(0, 1.15fr) minmax(0, 1fr) minmax(0, 1fr) 34px 46px; gap: 5px; }
+.exs .uni.rpe.fill .set-head, .exs .uni.rpe.fill .set-row { grid-template-columns: 26px minmax(0, 1.1fr) minmax(0, 1fr) minmax(0, 1fr) 50px 32px 44px; gap: 4px; }
+.set-fill { width: 100%; height: 40px; border: 0; border-radius: calc(10px * var(--rs)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-text); display: flex; align-items: center; justify-content: center; padding: 0; }
+.set-fill svg { width: 18px; height: 18px; }
+.set-fill:active { transform: scale(.92); }
+.set-prev.can-fill { border: 0; background: none; padding: 0; min-height: 40px; color: var(--accent-text); font-weight: 600; text-align: left; text-decoration: underline dotted; text-underline-offset: 3px; }
+.fc-fill { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 2px 4px; font-size: calc(13px * var(--fs)); }
+.hint-chip.fill { display: inline-flex; align-items: center; gap: 4px; border: 0; color: var(--accent-text); font-weight: 700; background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .exs .set-head, .exs .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 8px; padding: 0 12px; }
 .exs .rpe .set-head, .exs .rpe .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 64px 48px; }
 .exs .set-head span { text-align: center; }
@@ -1647,7 +1659,7 @@ const DEFAULT_SETTINGS = {
   sex: 'm',
   sound: true,
   wakeLock: true,
-  prefill: true,
+  prefillText: false,
   displayName: '',
   barKg: 20,
   warmupSteps: [[40, 5], [60, 3], [80, 2]],
@@ -1880,6 +1892,7 @@ const ICONS = {
   camera: '<path d="M4 8h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13.5" r="3.5"/>',
   arrowUp: '<path d="M12 19V5M6 11l6-6 6 6"/>',
   arrowDown: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  fillIn: '<path d="M12 3v11M7.5 9.5 12 14l4.5-4.5"/><path d="M4 15v4a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-4"/>',
   bolt: '<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>',
   target: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
   refresh: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
@@ -3726,7 +3739,7 @@ const Workout = (() => {
     for (let i = 0; i < nSets; i++) {
       const prev = last ? (last.list[i] || last.list[last.list.length - 1]) : null;
       const s = newSet();
-      if (S().prefill) {
+      if (S().prefillText) {
         if (Ex.type(ex) === 'sec') {
           s.durationSec = prev ? (prev.us ? prev.us[0] : prev.sec) || null : (lo || null);
           if (uni && prev && prev.us) s.durationSecR = prev.us[1] || null;
@@ -4570,6 +4583,55 @@ function rInput(s, d, type, ph, generic = '', cls = 'set-in') {
   return `<input class="${cls}" inputmode="numeric" data-in="setBR" ${d} value="${v ?? ''}" placeholder="${esc(ph.r || generic)}" data-ph0="${esc(ph.r0 || generic)}" aria-label="${type === 'sec' ? 'Sekunden rechts' : 'Wiederholungen rechts'}" enterkeyhint="done">`;
 }
 
+/* ---------- Letztes Mal übernehmen: Platzhalter → echte Werte (nur leere Felder) ---------- */
+function prevForSet(en, si, last) {
+  const s = en.sets[si];
+  if (!last || !s || s.warmup) return null;
+  const no = en.sets.slice(0, si + 1).filter(x => !x.warmup).length;
+  return last.list[no - 1] || null;
+}
+/** Hat der Satz noch leere Felder, die das letzte Mal füllen kann? */
+function setFillable(s, prev, type) {
+  if (!prev || !s || s.done) return false;
+  const b = type === 'sec' ? s.durationSec : s.reps;
+  const pb = type === 'sec' ? (prev.us ? prev.us[0] : prev.sec) : (prev.u ? prev.u[0] : prev.r);
+  return (b == null && !!pb) || (s.weightKg == null && (!!prev.w || type === 'kg'));
+}
+const canFillAny = (en, last) => { const type = Ex.type(Ex.get(en.exerciseId)); return en.sets.some((s, si) => setFillable(s, prevForSet(en, si, last), type)); };
+function fillSet(en, si, last) {
+  const s = en.sets[si], prev = prevForSet(en, si, last);
+  const type = Ex.type(Ex.get(en.exerciseId));
+  if (!setFillable(s, prev, type)) return false;
+  if (s.weightKg == null && (prev.w || type === 'kg')) s.weightKg = prev.w || 0;
+  const [k, side] = type === 'sec' ? ['durationSec', i => prev.us ? prev.us[i] : prev.sec] : ['reps', i => prev.u ? prev.u[i] : prev.r];
+  if (s[k] == null) s[k] = side(0) || null;
+  if (en.uni && s[k + 'R'] == null) s[k + 'R'] = (prev.u || prev.us ? side(1) : null) || null;
+  return true;
+}
+const fillBtn = (s, prev, type, d) => setFillable(s, prev, type)
+  ? `<button class="set-fill" data-act="setFill" ${d} aria-label="Werte vom letzten Mal übernehmen" title="Letztes Mal übernehmen">${icon('fillIn')}</button>`
+  : '<span></span>';
+Actions.setFill = el => {
+  const w = Workout.cur(); if (!w) return;
+  const ei = +el.dataset.ei, si = +el.dataset.si, en = w.entries[ei];
+  if (!en || !fillSet(en, si, lastSessionFor(en.exerciseId, w))) return;
+  vibrate(8);
+  w.sel = { e: ei, s: si };
+  Workout.save();
+  App.renderCurrent();
+};
+Actions.exFill = el => {
+  const w = Workout.cur(); if (!w) return;
+  const en = w.entries[+el.dataset.ei]; if (!en) return;
+  const last = lastSessionFor(en.exerciseId, w);
+  const n = en.sets.reduce((c, _, si) => c + (fillSet(en, si, last) ? 1 : 0), 0);
+  if (!n) return;
+  vibrate(8);
+  Workout.save();
+  App.renderCurrent();
+  toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success');
+};
+
 /* ---------- Schlichte Eingabe: pro Satz nur Gewicht, Wdh., Haken ---------- */
 function simpleCard(en, ei, w) {
   const ex = Ex.get(en.exerciseId);
@@ -4584,6 +4646,8 @@ function simpleCard(en, ei, w) {
   const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
   const fmtPrev = p => type === 'sec' ? prevSec(p) : (p.w ? `${wNum(p.w)}×${prevR(p)}` : `${prevR(p)}`);
   const generic = type === 'sec' ? 'Sek.' : 'Wdh.';
+  const [lo] = parseRange(en.target && en.target.reps);
+  const fill = !!last;
   let no = 0;
   const rows = en.sets.map((s, si) => {
     const num = s.warmup ? 'W' : ++no;
@@ -4592,13 +4656,14 @@ function simpleCard(en, ei, w) {
     const bVal = type === 'sec' ? s.durationSec : s.reps;
     const wPh = prev && prev.w ? inputW(prev.w) : (type === 'kg' ? unit() : '+' + unit());
     const ph = sidePh(s, prev, type);
-    const bPh = ph.l || generic;
+    const bPh = ph.l || (lo ? String(lo) : generic);
     return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
       ${setNumHtml(s, num, d)}
       <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
       <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
       ${uni ? rInput(s, d, type, ph, generic) : ''}
       ${rpe ? `<select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">RPE</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>` : ''}
+      ${fill ? fillBtn(s, prev, type, d) : ''}
       <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
     </div>`;
   }).join('');
@@ -4611,9 +4676,9 @@ function simpleCard(en, ei, w) {
       <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `${doneN}/${ws.length}`}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
-    ${last ? `<div class="exs-last">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</div>` : ''}
-    <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''}">
-      <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}<span></span></div>
+    ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
+    <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''} ${fill ? 'fill' : ''}">
+      <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}${fill ? '<span></span>' : ''}<span></span></div>
       ${rows}
     </div>
     <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
@@ -4705,13 +4770,14 @@ function exerciseCard(en, ei, w) {
   const fmtPrev = s => !s ? '–' : type === 'sec' ? prevSec(s) + (s.w ? ` +${wNum(s.w)}` : '') : (s.w ? `${wNum(s.w)}×${prevR(s)}` : `${prevR(s)}`);
   const lastTxt = last ? `Letztes Mal ${fmtDateShort(last.date)}: ${last.list.map(fmtPrev).join(' · ')}` : '';
   const uni = !!en.uni;
+  const [lo] = parseRange(t.reps);
   let workNo = 0;
   const rows = en.sets.map((s, si) => {
     const num = s.warmup ? 'W' : ++workNo;
     const prev = last && !s.warmup ? (last.list[num - 1] || null) : null;
     const sel = w.sel.e === ei && w.sel.s === si;
     const isPR = F('f_prs') && s.done && !s.warmup && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, repsOf(s)) > (pr.best1RM || 0) + 0.05);
-    return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni) + (sel ? setPanel(ei, si, s, type, uni) : '');
+    return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni, lo) + (sel ? setPanel(ei, si, s, type, uni) : '');
   }).join('');
   const meta = ex ? [ex.equipment, (ex.muscleGroups || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') : '';
   return `<div class="ex-card ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(var(--top-h, 56px) + var(--wo-head-h, 120px))">
@@ -4726,6 +4792,7 @@ function exerciseCard(en, ei, w) {
     ${goalBar(en, ei, type)}
     <div class="ex-hints">
       ${lastTxt ? `<span class="hint-chip">${esc(lastTxt)}</span>` : '<span class="hint-chip">Erstes Mal – viel Spaß!</span>'}
+      ${last && canFillAny(en, last) ? `<button class="hint-chip fill" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}
       ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
       ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
@@ -4739,15 +4806,17 @@ function exerciseCard(en, ei, w) {
     </div>
   </div>`;
 }
-function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni = false) {
+function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni = false, lo = null) {
   const bVal = type === 'sec' ? s.durationSec : s.reps;
   const wPh = prev && prev.w ? inputW(prev.w) : '';
   const ph = sidePh(s, prev, type);
-  const bPh = ph.l;
+  const bPh = ph.l || (lo ? String(lo) : '');
   const d = `data-ei="${ei}" data-si="${si}"`;
+  const canFill = !isPR && setFillable(s, prev, type);
   return `<div class="set-row ${s.done ? 'done' : ''} ${sel ? 'sel' : ''}" ${d}>
     ${setNumHtml(s, num, d)}
-    <span class="set-prev" data-act="setSel" ${d}>${isPR ? '<span class="accent bold">🏆 PR</span>' : fmtPrev(prev)}</span>
+    ${canFill ? `<button class="set-prev can-fill" data-act="setFill" ${d} aria-label="${esc(fmtPrev(prev))} übernehmen" title="Antippen = übernehmen">${fmtPrev(prev)}</button>`
+      : `<span class="set-prev" data-act="setSel" ${d}>${isPR ? '<span class="accent bold">🏆 PR</span>' : fmtPrev(prev)}</span>`}
     <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
     <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
     ${uni ? rInput(s, d, type, ph) : ''}
@@ -4800,10 +4869,11 @@ function focusView(w) {
     const d = `data-ei="${ei}" data-si="${si}"`;
     const wPh = prev && prev.w ? inputW(prev.w) : '';
     const ph = sidePh(s, prev, type);
-    const bPh = ph.l;
+    const [lo] = parseRange(en.target && en.target.reps);
+    const bPh = ph.l || (lo ? String(lo) : '');
     const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
     cur = `<div class="fc-cur">
-      <div class="fc-label"><b>${s.warmup ? 'Aufwärmsatz' : `Satz ${no} von ${ws.length}`}${s.done ? ' <span class="badge accent">erledigt</span>' : ''}</b>${prev ? `<span>Letztes Mal: ${esc(fmtPrev(prev))}</span>` : ''}</div>
+      <div class="fc-label"><b>${s.warmup ? 'Aufwärmsatz' : `Satz ${no} von ${ws.length}`}${s.done ? ' <span class="badge accent">erledigt</span>' : ''}</b>${prev ? `<span>Letztes Mal: ${esc(fmtPrev(prev))}</span>` : ''}${setFillable(s, prev, type) ? `<button class="link-btn fc-fill" data-act="setFill" ${d}>${icon('fillIn')} Übernehmen</button>` : ''}</div>
       <div class="fc-steppers ${uni ? 'uni' : ''}">
         <div class="fc-big"><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
           <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
@@ -5079,18 +5149,22 @@ Actions.goalEdit = el => openGoalEditor(+el.dataset.ei);
 function setPanel(ei, si, s, type, uni = false) {
   const d = `data-ei="${ei}" data-si="${si}"`;
   const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
+  // Platzhalter wie in der Zeile: Werte vom letzten Mal
+  const w = Workout.cur(), en = w && w.entries[ei];
+  const prev = en ? prevForSet(en, si, lastSessionFor(en.exerciseId, w)) : null;
+  const ph = sidePh(s, prev, type);
   return `<div class="set-panel ${uni ? 'uni' : ''}" ${d}>
     <div><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
       <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
-      <input inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="0" aria-label="Gewicht">
+      <input inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${prev && prev.w ? esc(inputW(prev.w)) : '0'}" aria-label="Gewicht">
       <button data-act="step" data-f="w" data-d="1" ${d} aria-label="Mehr Gewicht">${icon('plus')}</button></div></div>
     <div><div class="stepper-label">${uni ? bShort + ' links' : bLabel}</div>
       <div class="stepper"><button data-act="step" data-f="b" data-d="-1" ${d} aria-label="Weniger">${icon('minus')}</button>
-      <input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="0" aria-label="${bLabel}${uni ? ' links' : ''}">
+      <input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(ph.l || '0')}" aria-label="${bLabel}${uni ? ' links' : ''}">
       <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
     ${uni ? `<div><div class="stepper-label">${bShort} rechts</div>
       <div class="stepper"><button data-act="step" data-f="bR" data-d="-1" ${d} aria-label="Weniger rechts">${icon('minus')}</button>
-      ${rInput(s, d, type, { r: (type === 'sec' ? s.durationSec : s.reps) != null ? String(type === 'sec' ? s.durationSec : s.reps) : '0', r0: '0' }, '0', '')}
+      ${rInput(s, d, type, { r: ph.r || '0', r0: ph.r0 || '0' }, '0', '')}
       <button data-act="step" data-f="bR" data-d="1" ${d} aria-label="Mehr rechts">${icon('plus')}</button></div></div>` : ''}
     ${S().showRPE ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
     <div class="panel-actions">
@@ -5260,7 +5334,7 @@ Actions.setDone = el => {
   if (focus) w.focusE = exDone && S().autoScroll !== false && w.sel.e >= 0 ? w.sel.e : ei;
   // Nächsten Satz mit gleichem Gewicht vorbelegen, falls leer
   const nx = en.sets[si + 1];
-  if (nx && !nx.done && nx.weightKg == null && !nx.warmup && !s.warmup) nx.weightKg = s.weightKg;
+  if (nx && !nx.done && nx.weightKg == null && !nx.warmup && !s.warmup && !(prevForSet(en, si + 1, lastSessionFor(en.exerciseId, w)) || {}).w) nx.weightKg = s.weightKg;
   Workout.save();
   if (!wasLast && !w.editingId && S().autoRest !== false && F('f_rest')) {
     const rest = s.warmup ? Math.min(60, en.target.restSec || S().defaultRestSec) : (en.target.restSec || S().defaultRestSec);
@@ -5311,6 +5385,7 @@ Actions.exMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
   const k = await actionMenu(en.exerciseName, [
     { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
+    canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', sub: 'Platzhalter als Werte in alle leeren Sätze', icon: 'fillIn' },
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
     { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
@@ -5324,6 +5399,7 @@ Actions.exMenu = async el => {
   ]);
   if (!k) return;
   if (k === 'goal') return openGoalEditor(ei);
+  if (k === 'fill') return Actions.exFill({ dataset: { ei } });
   if (k === 'warm') return Actions.warmup({ dataset: { ei } });
   if (k === 'plates') return openPlates(goalWeight(en));
   if (k === 'uni') {
@@ -7234,7 +7310,7 @@ Views.more = {
         ${setLine('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])))}
         ${setLine('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])))}
         ${setLine('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]))}
-        ${setLine('Werte vorausfüllen', 'Letztes Mal + Progressions-Vorschlag', toggleCtl('prefill'))}
+        ${setLine('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'))}
         ${setLine('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'))}
         ${setLine('Ton bei Pausenende', '', toggleCtl('sound'))}
         ${setLine('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'))}
