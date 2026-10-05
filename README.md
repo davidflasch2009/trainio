@@ -115,6 +115,12 @@ Trainingszeit, verschiedene Übungen), Volumen (Tonnage, Sätze, Wiederholungen,
 Bank/Kniebeuge/Kreuzheben, Big-3-Total) und Cardio (Zeit, Distanz) – jeweils mit Fortschrittsbalken
 „noch X bis Gold“. Dazu Spezial-Abzeichen (Frühaufsteher, Nachteule, Marathon).
 
+## Dauerhafte Übungs-Notiz
+
+Im Workout über ⋯ → **„Dauerhafte Notiz“** (oder in den Übungs-Details) z. B. „Sitzhöhe 4, Griff eng“ hinterlegen.
+Die Notiz hängt an der Übung und erscheint als 📌-Hinweis in jedem zukünftigen Workout – antippen zum Ändern.
+„Notiz nur für heute“ gilt weiterhin nur für das aktuelle Workout.
+
 ## Tabs ein-/ausblenden
 
 **Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten

@@ -1013,6 +1013,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .cd-best span { font-size: calc(11px * var(--fs)); color: var(--text-faint); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
 .cd-best b { font-size: calc(15px * var(--fs)); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cd-best small { font-size: calc(11px * var(--fs)); color: var(--text-faint); }
+.pin-note { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; border: 0; border-radius: calc(8px * var(--rs)); padding: 5px 10px; background: color-mix(in srgb, var(--warning, #f5c542) 16%, var(--surface-2)); color: var(--text); font-size: calc(13px * var(--fs)); font-weight: 600; text-align: left; }
+.hint-chip.pin { background: color-mix(in srgb, var(--warning, #f5c542) 16%, var(--surface-2)); color: var(--text); }
+.pin-card { width: 100%; text-align: left; color: inherit; font: inherit; background: color-mix(in srgb, var(--warning, #f5c542) 10%, var(--surface-2)); border-style: dashed; }
 .cd-sum { padding: 6px 14px 2px; font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .focus .fc-cardio { margin: 8px 0 0; border: 0; box-shadow: none; background: transparent; }
 .set-fill { width: 100%; height: 40px; border: 0; border-radius: calc(10px * var(--rs)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-text); display: flex; align-items: center; justify-content: center; padding: 0; }
@@ -5064,6 +5067,17 @@ Actions.exFill = el => {
   toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success');
 };
 
+/* ---------- Dauerhafte Übungs-Notiz (am Übungs-Dokument, erscheint in jedem Workout) ---------- */
+const pinNote = exId => ((Ex.get(exId) || {}).myNote || '').trim();
+const pinChip = (exId, cls = 'pin-note') => pinNote(exId) ? `<button class="${cls}" data-act="pinNoteEdit" data-id="${esc(exId)}" aria-label="Notiz bearbeiten">📌 ${esc(pinNote(exId))}</button>` : '';
+Actions.pinNoteEdit = async el => {
+  const id = el.dataset.id, ex = Ex.get(id); if (!ex) return;
+  const v = await promptDialog({ title: 'Notiz zur Übung', label: `${ex.name} – bleibt für alle zukünftigen Workouts`, value: ex.myNote || '', placeholder: 'z. B. Sitzhöhe 4, Griff eng, Polster Stufe 2' });
+  if (v == null) return;
+  Store.put('exercises', id, { myNote: v.trim(), updatedAt: Date.now() });
+  toast(v.trim() ? 'Notiz gespeichert – erscheint ab jetzt bei jedem Workout' : 'Notiz entfernt', 'success');
+};
+
 /* ---------- Cardio-Karte: pro Abschnitt Dauer (+ Distanz) (+ Stufe), km/h wird berechnet ---------- */
 function cardioGoalTxt(en) {
   const info = cardioInfo(Ex.get(en.exerciseId)), m = parseNum(en.target && en.target.reps);
@@ -5114,6 +5128,7 @@ function cardioCard(en, ei, w) {
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal ${fmtDateShort(last.date)}: ${esc(cardioTxt({ sec: last.secs, km: last.km, lvl: last.lvl || null }, info))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Übernehmen</button>` : ''}</div>` : ''}
+    ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
     ${en.note ? `<div class="exs-last">📝 ${esc(en.note)}</div>` : ''}
     <div class="exs-sets cd-sets" style="--cd-cols:${cols}">
       <div class="set-head"><span></span><span>Min.</span>${dist ? '<span>km</span>' : ''}${lvl ? `<span>${esc(lvlHead)}</span>` : ''}${fill ? '<span></span>' : ''}<span></span></div>
@@ -5172,6 +5187,8 @@ function simpleCard(en, ei, w) {
       <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `${doneN}/${ws.length}`}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
+    ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
+    ${en.note ? `<div class="exs-last">📝 ${esc(en.note)}</div>` : ''}
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
     <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''} ${fill ? 'fill' : ''}">
       <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}${fill ? '<span></span>' : ''}<span></span></div>
@@ -5292,6 +5309,7 @@ function exerciseCard(en, ei, w) {
       ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
       ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
+      ${pinChip(en.exerciseId, 'hint-chip pin')}
     </div>
     <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
     ${rows}
@@ -5421,6 +5439,7 @@ function focusView(w) {
         <div class="fc-title"><div class="fc-of">Übung ${ei + 1} von ${w.entries.length}</div><button class="fc-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button></div>
         <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Menü">${icon('dots')}</button>
       </div>
+      ${pinNote(en.exerciseId) ? `<div class="center mt-8">${pinChip(en.exerciseId)}</div>` : ''}
       ${woSimple() ? `<div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(`${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${goalWeight(en) ? ' · ' + fmtW(goalWeight(en)) : ''}`)}</button></div>` : goalBar(en, ei, type)}
       <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
         ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
@@ -5926,7 +5945,8 @@ Actions.exMenu = async el => {
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
     !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
-    { key: 'note', label: en.note ? 'Notiz bearbeiten' : 'Notiz hinzufügen', icon: 'note' },
+    { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', sub: 'Bleibt bei der Übung – z. B. Sitzhöhe, Griff', icon: 'flag' },
+    { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', sub: 'Nur in diesem Workout', icon: 'note' },
     !isCardio && { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
     ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },
@@ -5946,8 +5966,10 @@ Actions.exMenu = async el => {
     const ex = Ex.get(en.exerciseId);
     if (ex && Ex.isUni(ex) !== en.uni) Store.put('exercises', ex.id, { unilateral: en.uni, updatedAt: Date.now() });
     toast(en.uni ? `${en.exerciseName}: links & rechts getrennt` : `${en.exerciseName}: beidseitig`, 'success');
+  } else if (k === 'pin') {
+    await Actions.pinNoteEdit({ dataset: { id: en.exerciseId } });
   } else if (k === 'note') {
-    const v = await promptDialog({ title: 'Notiz', label: en.exerciseName, value: en.note || '', placeholder: 'z. B. Sitzhöhe 4, enger Griff' });
+    const v = await promptDialog({ title: 'Notiz für heute', label: en.exerciseName, value: en.note || '', placeholder: 'z. B. Sitzhöhe 4, enger Griff' });
     if (v != null) en.note = v.trim();
   } else if (k === 'rest') {
     const v = await promptDialog({ title: 'Pausenzeit', label: 'Sekunden', value: String(en.target.restSec || S().defaultRestSec), inputmode: 'numeric' });
@@ -6379,6 +6401,7 @@ function openExerciseDetail(id) {
         ${ex.isCustom ? '<span class="badge info">Eigene Übung</span>' : ''}
       </div>
       <div class="muscle-pick mt-12">${(ex.muscleGroups || []).map(mg => `<span class="chip soft active" style="min-height:30px">${esc(mg)}</span>`).join('') || '<span class="dim small">Keine Muskelgruppen hinterlegt</span>'}</div>
+      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `📌 <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Eigene Notiz hinzufügen (z. B. Sitzhöhe, Griff) – erscheint in jedem Workout</span>`}</button>
       ${ex.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)"><span class="bold">Technik-Tipp:</span> ${esc(ex.notes)}</div>` : ''}
       ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
@@ -6552,7 +6575,7 @@ function openExerciseForm(ex, preset = {}) {
       if (dup) return toast(`„${dup.name}" gibt es schon`, 'warn');
       const id = ex ? ex.id : autoId();
       Store.put('exercises', id, {
-        name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg', ...(d.cardioMode ? { cardioMode: d.cardioMode } : {}),
+        name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg', ...(d.cardioMode ? { cardioMode: d.cardioMode } : {}), ...(d.myNote ? { myNote: d.myNote } : {}),
         notes: (d.notes || '').trim(), aliases: d.aliases || [], isCustom: ex ? !!ex.isCustom : true, unilateral: Ex.isUni(d),
         createdAt: ex ? ex.createdAt || Date.now() : Date.now(), updatedAt: Date.now()
       }, { replace: true });
