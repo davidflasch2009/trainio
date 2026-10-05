@@ -6843,17 +6843,26 @@ Actions.volScope = el => { UI.volScope = el.dataset.v; saveUI(); App.renderCurre
 Changes.volEx = el => { UI.volEx = el.value; saveUI(); App.renderCurrent(); };
 Changes.volMuscle = el => { UI.volMuscle = el.value; saveUI(); App.renderCurrent(); };
 
-/* ---------- Muskeln (detailliert): 23 Regionen statt 14 Gruppen ---------- */
+/* ---------- Muskeln (detailliert): 36 Regionen statt 14 Gruppen ---------- */
 /* key: [Anzeigename, übergeordnete Muskelgruppe] */
 const REGIONS = {
-  brust_o: ['Obere Brust', 'Brust'], brust_u: ['Mittlere/untere Brust', 'Brust'],
+  brust_o: ['Obere Brust (Schlüsselbein-Anteil)', 'Brust'], brust_m: ['Mittlere Brust', 'Brust'], brust_u: ['Untere Brust', 'Brust'],
+  serratus: ['Sägemuskel (Serratus)', 'Brust'],
   delt_v: ['Vordere Schulter', 'Schulter'], delt_s: ['Seitliche Schulter', 'Schulter'], delt_h: ['Hintere Schulter', 'Hintere Schulter'],
-  bizeps: ['Bizeps', 'Bizeps'], trizeps: ['Trizeps', 'Trizeps'], unterarm: ['Unterarme', 'Unterarme'],
-  trap_o: ['Oberer Trapez (Nacken)', 'Trapez'], ruecken_o: ['Oberer Rücken (Rhomboiden, mittl. Trapez)', 'Rücken'], lat: ['Latissimus', 'Rücken'],
-  ruecken_u: ['Unterer Rücken', 'Unterer Rücken'],
-  bauch: ['Gerade Bauchmuskeln', 'Bauch'], obliques: ['Seitliche Bauchmuskeln', 'Bauch'], hueftbeuger: ['Hüftbeuger', 'Bauch'],
-  quad: ['Quadrizeps', 'Quadrizeps'], adduktoren: ['Adduktoren', 'Adduktoren'], abduktoren: ['Abduktoren / seitl. Gesäß', 'Abduktoren'],
-  gluteus: ['Gesäß (großer Gesäßmuskel)', 'Gesäß'], hamstrings: ['Beinbeuger', 'Beinbeuger'],
+  rotatoren: ['Rotatorenmanschette (Infraspinatus)', 'Hintere Schulter'],
+  bizeps: ['Bizeps', 'Bizeps'], brachialis: ['Brachialis & Oberarmspeichenmuskel', 'Bizeps'],
+  trizeps_l: ['Trizeps – langer Kopf', 'Trizeps'], trizeps_s: ['Trizeps – seitlicher Kopf', 'Trizeps'],
+  unterarm_f: ['Unterarm-Beuger', 'Unterarme'], unterarm_e: ['Unterarm-Strecker', 'Unterarme'],
+  trap_o: ['Oberer Trapez (Nacken)', 'Trapez'], trap_m: ['Mittlerer Trapez', 'Trapez'], trap_u: ['Unterer Trapez', 'Trapez'],
+  rhomboiden: ['Rhomboiden', 'Rücken'], lat: ['Latissimus', 'Rücken'], teres: ['Großer Rundmuskel (Teres)', 'Rücken'],
+  ruecken_u: ['Unterer Rücken (Rückenstrecker)', 'Unterer Rücken'],
+  bauch_o: ['Obere Bauchmuskeln', 'Bauch'], bauch_u: ['Untere Bauchmuskeln', 'Bauch'], obliques: ['Seitliche Bauchmuskeln', 'Bauch'],
+  hueftbeuger: ['Hüftbeuger', 'Bauch'],
+  quad_rf: ['Gerader Schenkelmuskel (Rectus femoris)', 'Quadrizeps'], quad_vl: ['Äußerer Quadrizeps (Vastus lateralis)', 'Quadrizeps'],
+  quad_vm: ['Innerer Quadrizeps (Vastus medialis)', 'Quadrizeps'],
+  adduktoren: ['Adduktoren', 'Adduktoren'], abduktoren: ['Abduktoren / mittlerer Gesäßmuskel', 'Abduktoren'],
+  gluteus: ['Gesäß (großer Gesäßmuskel)', 'Gesäß'],
+  hamstrings_l: ['Beinbeuger außen (Biceps femoris)', 'Beinbeuger'], hamstrings_m: ['Beinbeuger innen (Semitendinosus)', 'Beinbeuger'],
   waden: ['Waden (Zwillingswadenmuskel)', 'Waden'], soleus: ['Schollenmuskel (Soleus)', 'Waden'], tibialis: ['Schienbein (Tibialis)', 'Waden']
 };
 /** Regionen einer Übung: Hauptmuskel zählt 1, Hilfsmuskeln 0,5 – verfeinert über Name & Aliase */
@@ -6869,34 +6878,69 @@ function exRegions(ex) {
   (ex.muscleGroups || []).forEach((m, i) => {
     const w = i === 0 ? 1 : 0.5;
     switch (m) {
-      case 'Brust': add(has(/schräg|incline|von unten|low to high|landmine/) ? ['brust_o'] : has(/negativ|decline|dip|von oben|high to low/) ? ['brust_u'] : ['brust_o', 'brust_u'], w); break;
+      case 'Brust':
+        if (has(/schräg|incline|von unten|low to high|landmine/)) { add(['brust_o'], w); add(['brust_m'], w * .5); }
+        else if (has(/negativ|decline|dip|von oben|high to low/)) { add(['brust_u'], w); add(['brust_m'], w * .5); }
+        else { add(['brust_m'], w); add(['brust_o', 'brust_u'], w * .5); }
+        if (has(/liegestütz|push.?up|pullover|plus|serratus/)) add(['serratus'], w * .5);
+        break;
       case 'Schulter':
-        if (has(/seitheb|lateral|upright|aufrecht/)) add(['delt_s'], w);
+        if (has(/außenrot|aussenrot|innenrot|external rot|internal rot|rotator|cuban/)) add(['rotatoren'], w);
+        else if (has(/seitheb|lateral|upright|aufrecht/)) add(['delt_s'], w);
         else if (has(/front raise|frontheb/)) add(['delt_v'], w);
         else if (has(/bank|bench|dip|liegestütz|push.?up|fly|flie|brust|chest|floor/)) add(['delt_v'], w);
-        else add(['delt_v', 'delt_s'], w);
+        else if (has(/arnold/)) add(['delt_v', 'delt_s'], w);
+        else { add(['delt_v'], w); add(['delt_s'], w * .6); add(['serratus'], w * .3); }
+        if (has(/upright|aufrecht/)) add(['trap_o'], w * .5);
         break;
-      case 'Hintere Schulter': add(['delt_h'], w); break;
-      case 'Bizeps': add(['bizeps'], w); break;
-      case 'Trizeps': add(['trizeps'], w); break;
-      case 'Unterarme': add(['unterarm'], w); break;
+      case 'Hintere Schulter':
+        add(['delt_h'], w); add(['rotatoren'], w * .5);
+        if (has(/face|reverse|butterfly|fly|flie|pull.?apart/)) add(['trap_m', 'rhomboiden'], w * .4);
+        break;
+      case 'Bizeps':
+        if (has(/hammer|neutral|seil|rope|cross.?body|zottman/)) { add(['brachialis'], w); add(['bizeps'], w * .6); }
+        else if (has(/reverse|obergriff|overhand|pronated/)) { add(['brachialis'], w); add(['unterarm_e'], w * .5); add(['bizeps'], w * .4); }
+        else { add(['bizeps'], w); add(['brachialis'], w * .4); }
+        break;
+      case 'Trizeps':
+        if (has(/über.?kopf|overhead|french|skull|stirn|liegend|lying|katana|jm press|tate/)) { add(['trizeps_l'], w); add(['trizeps_s'], w * .6); }
+        else { add(['trizeps_s'], w); add(['trizeps_l'], w * .6); }
+        break;
+      case 'Unterarme':
+        if (has(/reverse|strecker|extension|obergriff/)) add(['unterarm_e'], w);
+        else { add(['unterarm_f'], w); add(['unterarm_e'], w * .4); }
+        break;
       case 'Rücken':
-        if (has(/lat|klimm|pull.?up|chin|pulldown|pullover|latzug|straight.?arm|hang/)) add(['lat'], w);
-        else if (has(/rudern|row|face|reverse|seal|pendlay|meadows/)) add(['lat', 'ruecken_o'], w);
-        else if (has(/kreuzheb|deadlift|rack/)) add(['ruecken_o', 'lat'], w * .8);
-        else add(['lat', 'ruecken_o'], w);
+        if (has(/pullover|straight.?arm|überzug/)) { add(['lat'], w); add(['teres'], w * .7); add(['serratus'], w * .4); }
+        else if (has(/lat|klimm|pull.?up|chin|pulldown|latzug|hang/)) { add(['lat'], w); add(['teres'], w * .8); add(['rhomboiden', 'trap_u'], w * .4); }
+        else if (has(/rudern|row|face|reverse|seal|pendlay|meadows/)) { add(['rhomboiden', 'trap_m'], w); add(['lat'], w * .8); add(['teres'], w * .6); add(['trap_u', 'delt_h'], w * .4); }
+        else if (has(/kreuzheb|deadlift|rack/)) { add(['trap_m', 'rhomboiden', 'lat'], w * .6); add(['trap_o'], w * .4); }
+        else { add(['lat'], w); add(['rhomboiden', 'trap_m'], w * .7); add(['teres'], w * .6); }
         break;
-      case 'Trapez': add(has(/shrug|schulterheb|farmer|carry|clean|snatch|umsetz|reiß|upright|aufrecht|rack/) ? ['trap_o'] : has(/face|reverse|rudern|row|pull.?apart|fly/) ? ['ruecken_o'] : ['trap_o', 'ruecken_o'], w); break;
+      case 'Trapez':
+        if (has(/y.?raise|y.?heb|prone y|lower trap/)) add(['trap_u'], w);
+        else if (has(/shrug|schulterheb|farmer|carry|clean|snatch|umsetz|reiß|upright|aufrecht|rack/)) add(['trap_o'], w);
+        else if (has(/face|reverse|rudern|row|pull.?apart|fly/)) { add(['trap_m', 'rhomboiden'], w); add(['trap_u'], w * .5); }
+        else { add(['trap_o'], w); add(['trap_m'], w * .6); }
+        break;
       case 'Unterer Rücken': add(['ruecken_u'], w); break;
       case 'Bauch':
         if (has(/twist|side|seit|oblique|woodchop|pallof|bicycle|copenhagen|suitcase/)) add(['obliques'], w);
-        else if (has(/leg raise|beinheb|knee raise|knieheb|hanging|l.?sit|v.?up|mountain|reverse crunch|dragon/)) { add(['bauch'], w); add(['hueftbeuger'], w * .75); }
-        else if (has(/plank|stütz|hollow|ab wheel|rollout|bear/)) add(['bauch', 'obliques'], w);
-        else add(['bauch'], w);
+        else if (has(/leg raise|beinheb|knee raise|knieheb|hanging|l.?sit|v.?up|mountain|reverse crunch|dragon/)) { add(['bauch_u'], w); add(['hueftbeuger'], w * .75); add(['bauch_o'], w * .5); }
+        else if (has(/plank|stütz|hollow|ab wheel|rollout|bear/)) { add(['bauch_o', 'bauch_u'], w); add(['obliques'], w * .7); }
+        else { add(['bauch_o'], w); add(['bauch_u'], w * .6); if (has(/sit.?up|situp/)) add(['hueftbeuger'], w * .5); }
         break;
-      case 'Quadrizeps': add(['quad'], w); if (has(/sumo|ausfall|lunge|split|bulgarian|goblet|step/)) add(['adduktoren'], .5); break;
+      case 'Quadrizeps':
+        if (has(/beinstreck|leg extension|extension|sissy/)) { add(['quad_rf'], w); add(['quad_vl', 'quad_vm'], w * .8); }
+        else if (has(/eng|narrow|heel|ferse|cyclist|spanish|step/)) { add(['quad_vm'], w); add(['quad_vl'], w * .8); add(['quad_rf'], w * .6); }
+        else { add(['quad_vl', 'quad_vm'], w); add(['quad_rf'], w * .6); }
+        if (has(/sumo|ausfall|lunge|split|bulgarian|goblet|step/)) add(['adduktoren'], .5);
+        break;
       case 'Gesäß': add(['gluteus'], w); if (has(/abduk|hip thrust|bridge|split|lunge|ausfall|bulgarian|step|kickback|monster|band walk|einbeinig|single leg|pistol/)) add(['abduktoren'], .5); break;
-      case 'Beinbeuger': add(['hamstrings'], w); break;
+      case 'Beinbeuger':
+        if (has(/sitzend|seated|nordic/)) { add(['hamstrings_m'], w); add(['hamstrings_l'], w * .8); }
+        else add(['hamstrings_l', 'hamstrings_m'], w);
+        break;
       case 'Adduktoren': add(['adduktoren'], w); break;
       case 'Abduktoren': add(['abduktoren'], w); break;
       case 'Waden':
@@ -6918,51 +6962,62 @@ const BODY = {
   head: '<ellipse cx="100" cy="36" rx="16" ry="20"/><path d="M84 38c-3 0-4 6-1 10l2 1zM116 38c3 0 4 6 1 10l-2 1z"/>',
   front: {
     single: {
-      bauch: ['M90 124h9v16h-9z', 'M101 124h9v16h-9z', 'M90 142h9v17h-9z', 'M101 142h9v17h-9z', 'M90 161h9v16h-9z', 'M101 161h9v16h-9z',
-        'M90 179h9v34c-4-1-7-8-9-18z', 'M101 179h9v16c-2 10-5 17-9 18z']
+      bauch_o: ['M90 124h9v16h-9z', 'M101 124h9v16h-9z', 'M90 142h9v17h-9z', 'M101 142h9v17h-9z'],
+      bauch_u: ['M90 161h9v16h-9z', 'M101 161h9v16h-9z', 'M90 179h9v34c-4-1-7-8-9-18z', 'M101 179h9v16c-2 10-5 17-9 18z']
     },
     paired: {
       trap_o: ['M91 63C89 70 84 75 76 79L95 80C94 74 93 68 91 63Z'],
       delt_s: ['M68 82C60 84 54 92 52 104C51 112 52 120 55 127C57 116 59 106 62 98C64 92 66 87 68 82Z'],
       delt_v: ['M69 82C66 88 63 96 62 104C60 112 58 120 56 127C62 123 66 116 68 108C70 100 72 92 75 84Z'],
-      brust_o: ['M99 82L76 84C72 89 69 95 68 102L99 101Z'],
-      brust_u: ['M99 103L68 104C68 110 70 115 74 119C82 124 92 124 99 121Z'],
-      bizeps: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z'],
-      trizeps: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
-      unterarm: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
-      obliques: ['M83 123L88 125L88 193C83 190 79 187 76 183C76 169 75 157 75 147C78 137 80 129 83 123Z',
-        'M71 119L81 122L76 127Z', 'M72 128L81 131L77 136Z', 'M73 137L80 140L76 145Z'],
+      brust_o: ['M99 82L76 84C73 88 71 92 70 96C79 93 89 92 99 93Z'],
+      brust_m: ['M99 94.5C89 93.5 79 94.5 70 97.5C68.5 101 68 105 68 108C78 106.5 89 107.5 99 109.5Z'],
+      brust_u: ['M99 111C89 109 78 108 68 109.5C68 113 70 116 74 119C82 124 92 124 99 121Z'],
+      serratus: ['M71 119L81 122L76 127Z', 'M72 128L81 131L77 136Z', 'M73 137L80 140L76 145Z'],
+      bizeps: ['M56 124C53 133 51.5 141 51 147C54 150 58 149 60 145C62 137 64 129 66 120C62 120 58 121 56 124Z'],
+      brachialis: ['M51 149C50.5 151 50.2 153 50 154.5C54 158 58 156 60 150L60 147C58 151 54 152 51 149Z',
+        'M46 158C42 170 40 180 39 188C42 186 45 180 48 172C50 166 53 162 55 160C51 157 48 157 46 158Z'],
+      trizeps_s: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
+      unterarm_f: ['M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z',
+        'M39.5 191C42 188 44.5 184 47 179C45.5 187 43.5 195 42 203L37 200C37.8 197 38.6 194 39.5 191Z'],
+      obliques: ['M83 123L88 125L88 193C83 190 79 187 76 183C76 169 75 157 75 147C78 137 80 129 83 123Z'],
       hueftbeuger: ['M77 192C83 197 89 205 93 214L89 219C84 210 79 202 75 197Z'],
-      quad: ['M73 210C70 230 70 256 74 280C76 290 78 296 80 301L83 299C80 281 78 257 79 233C79 225 77 217 73 210Z',
-        'M80 220C79 244 80 268 84 293L90 297C92 273 92 247 90 227C87 223 83 221 80 220Z',
-        'M92 262C90 274 90 286 92 297L97 301C99 291 99 279 97 266Z'],
+      abduktoren: ['M74 194C71.5 198 70.5 203 71 208L74 211C75.5 206 75.5 200 74.5 196Z'],
+      quad_vl: ['M73 212C70 230 70 256 74 280C76 290 78 296 80 301L83 299C80 281 78 257 79 233C79 225 77 218 73 212Z'],
+      quad_rf: ['M80 220C79 244 80 268 84 293L90 297C92 273 92 247 90 227C87 223 83 221 80 220Z'],
+      quad_vm: ['M92 262C90 274 90 286 92 297L97 301C99 291 99 279 97 266Z'],
       adduktoren: ['M89 214L99 223L99 257C96 247 93 237 90 227Z'],
       tibialis: ['M78 316C76 334 78 352 82 370L85 368C83 350 82 332 83 314Z'],
-      waden: ['M88 314C93 328 95 344 93 362L90 366C90 348 89 330 86 316Z']
+      waden: ['M88 314C93 328 95 344 93 362L90 366C90 348 89 330 86 316Z'],
+      soleus: ['M90 369C92 375 93 381 92.5 387L89 386C88 380 88 375 88.5 370Z']
     },
     // Konturen & Faserlinien (nur Linien)
-    lines: ['M84 303a5 6 0 1 0 10 0a5 6 0 1 0-10 0', 'M78 90l12 4M74 98l18 3M73 110l20 1', 'M58 92l6 10M55 102l5 10',
-      'M80 236l3 40M86 232l1 44', 'M94 64l-1 12', 'M96 214l-6-7']
+    lines: ['M84 303a5 6 0 1 0 10 0a5 6 0 1 0-10 0', 'M80 88l10 2M76 101l16 0M75 114l17-1', 'M58 92l6 10M55 102l5 10',
+      'M80 236l3 40M86 232l1 44', 'M94 64l-1 12', 'M96 214l-6-7', 'M57 130l2 12']
   },
   back: {
     single: {
-      trap_o: ['M100 58L92 58C90 67 84 74 70 82C80 86 90 89 100 91C110 89 120 86 130 82C116 74 110 67 108 58Z'],
-      ruecken_o: ['M100 92C92 90 85 89 79 88C85 104 92 124 100 150C108 124 115 104 121 88C115 89 108 90 100 92Z'],
       ruecken_u: ['M93 154C91 168 91 184 92 199L99 201V151Z', 'M107 154C109 168 109 184 108 199L101 201V151Z']
     },
     paired: {
-      delt_h: ['M70 82C62 84 55 92 53 104C52 112 53 120 56 127C60 117 64 107 70 99C73 95 75 90 76 86Z'],
-      ruecken_o: ['M78 91C76 99 76 107 78 116C84 117 88 115 91 111C87 104 83 97 78 91Z'],
-      lat: ['M78 118C76 130 76 144 78 158C80 172 86 184 96 192L99 181C98 167 96 153 92 139C88 129 84 122 78 118Z'],
-      trizeps: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z', 'M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
-      unterarm: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
+      trap_o: ['M100 58L92 58C90 67 84 74 70 82C79 84 89 86 100 88Z'],
+      trap_m: ['M100 89.5C89 87.5 80 86 72 84C74 87 77 90 81 92.5C88 97 94 103 100 110Z'],
+      trap_u: ['M100 112C94 105 88 99 82 95C86 108 92 126 100 150Z'],
+      delt_h: ['M70 82C62 84 55 92 53 104C52 112 53 120 56 127C59 118 62 110 66 103C68 98 69 93 70 89Z'],
+      rotatoren: ['M71 90C69 96 68 101 68 106C71 110 76 112 82 113C81 107 80 100 79.5 94C77 92.5 74 91 71 90Z'],
+      rhomboiden: ['M81 95C82 102 83 109 84 115C86 116 88 116 90 115C88 108 85 101 81 95Z'],
+      teres: ['M67.5 109C66.5 113 66.3 117 66.8 121C72 122 78 120 84 117C79 116 73 114 67.5 109Z'],
+      lat: ['M67 124C70 134 74 146 77 158C80 172 86 184 96 192L99 181C98 167 96 155 93 144C90 134 88 126 86 120C80 123 73 125 67 124Z'],
+      trizeps_l: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z'],
+      trizeps_s: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
+      unterarm_e: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
       abduktoren: ['M76 192C73 198 72 206 74 214C78 208 84 203 90 199C86 195 81 193 76 192Z'],
       gluteus: ['M74 215C72 229 76 242 86 248C94 252 99 246 99 236V203C92 203 84 207 78 211Z'],
-      hamstrings: ['M74 252C72 270 74 288 78 302L86 304C84 286 84 268 86 254Z', 'M87 254C86 272 88 290 90 304L97 302C99 286 99 270 98 254Z'],
+      hamstrings_l: ['M74 252C72 270 74 288 78 302L86 304C84 286 84 268 86 254Z'],
+      hamstrings_m: ['M87 254C86 272 88 290 90 304L97 302C99 286 99 270 98 254Z'],
       waden: ['M76 314C72 328 73 344 80 356C84 344 86 328 86 314Z', 'M87 314C87 330 89 346 93 358C98 346 98 330 95 316Z'],
       soleus: ['M80 358C81 368 83 378 85 386L93 386C94 376 94 368 93 360C90 364 86 364 80 358Z']
     },
-    lines: ['M84 96l4 10M80 128l10 20M84 140l8 26', 'M58 96l6 8M56 104l6 10', 'M80 270l2 26M92 268l1 28', 'M80 232c4 4 10 6 16 6']
+    lines: ['M88 140l6 18M82 150l8 20', 'M58 96l6 8M56 104l6 10', 'M80 270l2 26M92 268l1 28', 'M80 232c4 4 10 6 16 6', 'M72 98l7 8']
   }
 };
 function bodySvg(view, valueOf, labelOf) {
@@ -7031,7 +7086,7 @@ ProgressViews.muscles = body => {
   body.innerHTML = `
     <div class="charts-grid">
       <div class="chart-card wide">
-        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn('23 Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln halb. Schrägbank trifft z. B. die obere Brust, Seitheben die seitliche Schulter, Wadenheben sitzend den Soleus. Tippe auf einen Muskel für Details.')}</div>
+        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn(`${Object.keys(REGIONS).length} Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln anteilig. Schrägbank trifft z. B. die obere Brust, Hammer-Curls den Brachialis, Trizepsdrücken über Kopf den langen Trizepskopf, Rudern die Rhomboiden & den mittleren Trapez, Beinstrecken den Rectus femoris, Wadenheben sitzend den Soleus. Tippe auf einen Muskel für Details.`)}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
         <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 40%, var(--mus-off)), var(--accent) 60%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>

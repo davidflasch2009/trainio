@@ -62,6 +62,11 @@ Konfetti und Inhalte der Startseite.
 
 - **Schlicht** (Standard): pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben,
   Notizen usw. hinter dem ⋯-Menü.
+- **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
+  Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
+  „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
+  ebenfalls automatisch. In der ausführlichen Ansicht: Wert in der Spalte „Letztes“ antippen.
+  Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Werte als Text vorausfüllen**.
 - **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
 - Umschalten unter **Mehr → Workout-Ansicht** oder im Workout über ⋯.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
@@ -88,8 +93,12 @@ Workout-Notizen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
 - ~190 Übungen inkl. Maschinen, Kabel, Kettlebell, Core & Cardio. Bestehende Konten bekommen
   neue Übungen automatisch ergänzt.
-- Body-Heatmap mit 23 Muskelregionen (z. B. obere/untere Brust, vordere/seitliche/hintere
-  Schulter, Latissimus, Rhomboiden, Adduktoren, Soleus) plus sortierte Regionen-Liste.
+- Body-Heatmap mit 36 Muskelregionen plus sortierte Regionen-Liste, u. a. Brust oben/mitte/unten,
+  Sägemuskel, vordere/seitliche/hintere Schulter, Rotatorenmanschette, Bizeps & Brachialis,
+  Trizeps langer/seitlicher Kopf, Unterarm-Beuger/-Strecker, Trapez oben/mitte/unten, Rhomboiden,
+  Latissimus, Teres, obere/untere Bauchmuskeln, Rectus femoris / Vastus lateralis / Vastus medialis,
+  Beinbeuger außen/innen, Soleus und Tibialis. Welche Region eine Übung trifft, ergibt sich aus
+  Muskelgruppe + Name (z. B. Hammer-Curls → Brachialis, Trizeps über Kopf → langer Kopf).
 
 ## Dateien
 
