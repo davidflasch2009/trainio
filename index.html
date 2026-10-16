@@ -695,6 +695,14 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 
 /* Empty-State */
 .empty { text-align: center; padding: 32px 16px; color: var(--text-dim); }
+.bw-quick .row { gap: 8px; }
+.bw-quick .input { flex: 1; min-width: 0; font-size: max(16px, calc(20px * var(--fs))); font-weight: var(--fw-b); }
+.wd-when { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 0; color: var(--text-dim); font: inherit; text-align: left; cursor: pointer; }
+.wd-when svg, .wd-edit span svg { width: 14px; height: 14px; color: var(--text-faint); }
+.pr-box.wd-edit { font: inherit; color: inherit; text-align: left; cursor: pointer; border: 0; width: 100%; }
+.pr-box.wd-edit span { display: flex; align-items: center; gap: 4px; }
+.wm-dur { gap: 8px; }
+.wm-dur .input { max-width: 84px; text-align: center; }
 .sum-badge { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); }
 .sum-badge svg { width: 32px; height: 32px; }
 .imp-ic { width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; color: var(--text-dim); }
@@ -1735,7 +1743,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.7.0',
+  version: '1.8.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1787,6 +1795,11 @@ const DEFAULT_SETTINGS = {
   displayName: '',
   barKg: 20,
   warmupSteps: [[40, 5], [60, 3], [80, 2]],
+  // Körper-Tab: standardmäßig nur Gewicht
+  f_bodyFat: false,
+  f_measures: false,
+  f_photos: false,
+  bwGoal: null,
   warmupBar: true,
   platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
   platesLb: [45, 35, 25, 10, 5, 2.5],
@@ -4934,14 +4947,15 @@ Actions.openWorkout = el => openWorkoutDetail(el.dataset.id);
 function openWorkoutDetail(id) {
   const wo = Store.raw('workouts', id);
   if (!wo) return toast('Workout nicht gefunden', 'error');
+  const editMeta = () => openWorkoutMeta(id, () => { m.close(); openWorkoutDetail(id); });
   const row = Analytics.cur().rows.find(r => r.id === id);
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
   const m = Modal.open({
     title: wo.planDayName || wo.name || 'Workout', size: 'lg',
     body: `
-      <p class="dim">${esc(fmtDateLong(wo.date))}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''}</p>
+      <button class="wd-when" data-x="meta" aria-label="Datum, Uhrzeit und Dauer bearbeiten">${esc(fmtDateLong(wo.date))}${parseISO(wo.date).getFullYear() !== new Date().getFullYear() ? ' ' + parseISO(wo.date).getFullYear() : ''}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''} ${icon('edit')}</button>
       <div class="pr-grid mt-12">
-        <div class="pr-box"><span>Dauer</span><b>${fmtDur(wo.durationSec)}</b></div>
+        <button class="pr-box wd-edit" data-x="meta" aria-label="Dauer bearbeiten"><span>Dauer ${icon('edit')}</span><b>${fmtDur(wo.durationSec)}</b></button>
         ${row && row.cardioOnly ? '' : `<div class="pr-box"><span>Volumen</span><b>${fmtTon(row ? row.ton : 0)}</b></div>
         <div class="pr-box"><span>Sätze</span><b>${row ? row.sets : 0}</b></div>
         <div class="pr-box"><span>Ø RPE</span><b>${row && row.avgRpe ? nf(row.avgRpe, 1) : '–'}</b></div>`}
@@ -4972,8 +4986,8 @@ function openWorkoutDetail(id) {
       }).join('')}`,
     foot: `<button class="btn btn-danger-ghost" data-x="del" aria-label="Löschen" style="flex:0 0 auto">${icon('trash')}</button>
       <button class="btn btn-secondary" data-x="share" aria-label="Teilen" title="Teilen" style="flex:0 0 auto">${icon('share')}</button>
-      <button class="btn btn-secondary" data-x="edit" aria-label="Bearbeiten" title="Bearbeiten" style="flex:0 0 auto">${icon('edit')}</button>
-      <button class="btn btn-primary" data-x="repeat">${icon('repeat')} Wiederholen</button>`
+      <button class="btn btn-secondary" data-x="edit" style="flex:1 1 auto;padding:0 12px">Bearbeiten</button>
+      <button class="btn btn-primary" data-x="repeat" style="flex:1 1 auto;padding:0 12px">Wiederholen</button>`
   });
   m.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-x]');
@@ -4985,9 +4999,65 @@ function openWorkoutDetail(id) {
         PR.recalcAll();
         toast('Workout gelöscht', 'success');
       }
-    } else if (b.dataset.x === 'edit') { m.close(); Workout.load(wo, { edit: true }); }
+    } else if (b.dataset.x === 'meta') editMeta();
+    else if (b.dataset.x === 'edit') {
+      const k = await actionMenu('Workout bearbeiten', [
+        { key: 'meta', label: 'Datum, Uhrzeit & Dauer', sub: 'Auch Name, Körpergewicht und Notiz', icon: 'calendar' },
+        { key: 'sets', label: 'Sätze & Übungen', sub: 'Gewichte, Wiederholungen, Übungen ändern', icon: 'dumbbell' }
+      ]);
+      if (k === 'meta') editMeta();
+      else if (k === 'sets') { m.close(); Workout.load(wo, { edit: true }); }
+    }
     else if (b.dataset.x === 'repeat') { m.close(); Workout.load(wo); }
     else if (b.dataset.x === 'share') shareWorkout(wo);
+  });
+}
+/** Gespeichertes Workout nachträglich ändern: Name, Datum, Startzeit, Dauer, Körpergewicht, Notiz */
+function openWorkoutMeta(id, onSaved) {
+  const wo = Store.raw('workouts', id);
+  if (!wo) return;
+  const st = wo.startedAt ? new Date(wo.startedAt) : null;
+  const p2 = n => String(n).padStart(2, '0');
+  const mins = Math.round((wo.durationSec || 0) / 60);
+  const m = Modal.open({
+    title: 'Workout bearbeiten', size: 'sm',
+    body: `<div class="form-grid">
+        <label class="field full"><span>Name</span><input class="input" id="wmName" value="${esc(wo.planDayName || wo.name || '')}" placeholder="Workout"></label>
+        <label class="field"><span>Datum</span><input class="input" type="date" id="wmDate" value="${esc(wo.date)}" max="${isoDate()}"></label>
+        <label class="field"><span>Startzeit</span><input class="input" type="time" id="wmTime" value="${st ? p2(st.getHours()) + ':' + p2(st.getMinutes()) : ''}"></label>
+        <div class="field full"><span>Dauer</span>
+          <div class="row wm-dur"><input class="input" id="wmH" inputmode="numeric" value="${Math.floor(mins / 60)}" aria-label="Stunden"><span class="dim">h</span>
+          <input class="input" id="wmM" inputmode="numeric" value="${mins % 60}" aria-label="Minuten"><span class="dim">min</span></div></div>
+        <label class="field full"><span>Körpergewicht (${unit()})</span><input class="input" id="wmBw" inputmode="decimal" value="${inputW(wo.bodyWeightKg)}" placeholder="optional"></label>
+        <label class="field full"><span>Notiz</span><textarea class="textarea" id="wmNotes" style="min-height:70px" placeholder="Wie lief's?">${esc(wo.notes || '')}</textarea></label>
+      </div>`,
+    foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="save">${icon('check')} Speichern</button>`
+  });
+  m.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    if (b.dataset.x === 'cancel') return m.close();
+    if (b.dataset.x !== 'save') return;
+    const v = sel => $(sel, m.el).value.trim();
+    const date = v('#wmDate');
+    if (!isISO(date) || date > isoDate()) return toast('Bitte ein gültiges Datum wählen', 'warn');
+    const durSec = Math.round(((parseNum(v('#wmH')) || 0) * 60 + (parseNum(v('#wmM')) || 0)) * 60);
+    if (durSec <= 0 || durSec > 24 * 3600) return toast('Bitte eine Dauer zwischen 1 Minute und 24 Stunden eintragen', 'warn');
+    const start = parseISO(date);
+    const tm = v('#wmTime').match(/^(\d{1,2}):(\d{2})/);
+    if (tm) start.setHours(+tm[1], +tm[2], 0, 0);
+    else if (st) start.setHours(st.getHours(), st.getMinutes(), 0, 0);
+    else start.setHours(12, 0, 0, 0);
+    const bw = parseNum(v('#wmBw'));
+    const name = v('#wmName') || wo.name || 'Workout';
+    const patch = {
+      date, startedAt: start.getTime(), endedAt: start.getTime() + durSec * 1000, durationSec: durSec, durationEstimated: false,
+      name, notes: $('#wmNotes', m.el).value.trim(), bodyWeightKg: bw ? round(fromU(bw), 2) : null, updatedAt: Date.now()
+    };
+    if (wo.planDayName) patch.planDayName = name;
+    Store.put('workouts', id, patch);
+    m.close();
+    toast('Workout aktualisiert', 'success');
+    if (onSaved) onSaved();
   });
 }
 function workoutText(wo) {
@@ -6824,7 +6894,7 @@ const Charts = (() => {
   let loading = null;
   function ensure() {
     if (window.Chart) return Promise.resolve(true);
-    if (!loading) loading = loadScript(CDN.chart).then(() => { applyDefaults(); return true; }).catch(() => { loading = null; return false; });
+    if (!loading) loading = loadScript(CDN.chart).then(() => { window.Chart.register(crosshairPlugin); applyDefaults(); return true; }).catch(() => { loading = null; return false; });
     return loading;
   }
   function applyDefaults() {
@@ -6843,7 +6913,14 @@ const Charts = (() => {
     Object.assign(C.defaults.plugins.legend.labels, { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14, color: c.dim });
     Object.assign(C.defaults.elements.point, { radius: 0, hoverRadius: 6, hitRadius: 14 });
     C.defaults.elements.line.borderWidth = 2;
+    C.defaults.elements.line.borderCapStyle = 'round';
+    C.defaults.elements.line.borderJoinStyle = 'round';
     C.defaults.elements.bar.borderRadius = 4;
+    C.defaults.scale.grid.lineWidth = 1;
+    C.defaults.scale.ticks.color = c.faint;
+    C.defaults.font.size = 11;
+    C.defaults.plugins.tooltip.titleFont = { weight: '600', size: 12 };
+    C.defaults.plugins.tooltip.bodyFont = { weight: '500', size: 12.5 };
     // Re-Theme laufender Charts (Kopie der Liste – mount() entfernt und ergänzt Einträge, sonst Endlosschleife)
     for (const [id, x] of [...inst]) if (x.chart) mount(id, x.factory);
   }
@@ -6903,15 +6980,35 @@ const thresholdPlugin = {
   }
 };
 
+/* Senkrechte Hilfslinie an der angetippten Stelle (Linien-Diagramme) */
+const crosshairPlugin = {
+  id: 'crosshair',
+  afterDatasetsDraw(chart) {
+    if (chart.config.type !== 'line') return;
+    const act = chart.tooltip && chart.tooltip.getActiveElements ? chart.tooltip.getActiveElements() : [];
+    if (!act.length) return;
+    const x = act[0].element.x, a = chart.chartArea, ctx = chart.ctx;
+    ctx.save();
+    ctx.strokeStyle = cssVar('--border-strong'); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(x, a.top); ctx.lineTo(x, a.bottom); ctx.stroke();
+    ctx.restore();
+  }
+};
+/** Gleitender Durchschnitt über die letzten n Punkte */
+const movingAvg = (pts, n = 5) => pts.map((p, i) => { const w = pts.slice(Math.max(0, i - n + 1), i + 1); return { x: p.x, y: round(avg(w.map(q => q.y)), 2) }; });
+/** Durchschnitt über ein Zeitfenster (Tage) – glättet abwechselnde Trainingstage */
+const timeAvg = (pts, days = 21) => pts.map(p => ({ x: p.x, y: round(avg(pts.filter(q => q.x <= p.x && q.x > p.x - days).map(q => q.y)), 2) }));
 const dnTick = function (v) {
   const span = (this.max - this.min) || 0;
   return span > 420 ? fmtDN(v, { month: 'short', year: '2-digit' }) : fmtDN(v, { day: '2-digit', month: '2-digit' });
 };
 function lineDS(label, data, color, opts = {}) {
   const c = chartColors();
+  const n = data.length;
   return {
-    label, data, borderColor: color, backgroundColor: alpha(color, .12), fill: true, tension: .3,
-    pointRadius: data.length <= 40 ? 4 : 0, pointHoverRadius: 6, pointBackgroundColor: color,
+    label, data, borderColor: color, backgroundColor: alpha(color, .1), fill: true, tension: .25,
+    // Punkte nur bei wenigen Werten – sonst nur der letzte Wert als Endpunkt
+    pointRadius: ctx => n <= 16 ? 3 : (ctx.dataIndex === n - 1 ? 3.5 : 0), pointHoverRadius: 5, pointHitRadius: 12, pointBackgroundColor: color,
     pointBorderColor: c.surface, pointBorderWidth: 2, borderWidth: 2, spanGaps: true, ...opts
   };
 }
@@ -6922,6 +7019,10 @@ const yAuto = (suffix = '') => function (v, i, ticks) {
 };
 /** Zeitreihe mit linearer X-Achse (Tag-Nummern) – kein Datums-Adapter nötig */
 function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend = false, yMin, yMax, thresholds, xMax } = {}) {
+  // Nur ein Zeitpunkt: Achse um ±7 Tage aufspannen statt unlesbarer Ticks
+  const xs = datasets.flatMap(d => (d.data || []).map(p => p && p.x)).filter(Number.isFinite);
+  let xMin;
+  if (xs.length && Math.min(...xs) === Math.max(...xs)) { xMin = xs[0] - 7; xMax = xMax ?? xs[0] + 7; }
   return {
     type: 'line',
     data: { datasets },
@@ -6929,7 +7030,7 @@ function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend
     options: {
       interaction: { mode: 'nearest', axis: 'x', intersect: false },
       scales: {
-        x: { type: 'linear', bounds: 'data', grid: { display: false }, border: { display: false }, max: xMax, ticks: { maxTicksLimit: 5, maxRotation: 0, callback: dnTick } },
+        x: { type: 'linear', bounds: 'data', grid: { display: false }, border: { display: false }, min: xMin, max: xMax, ticks: { maxTicksLimit: 5, maxRotation: 0, callback: dnTick } },
         y: { grid: { color: chartColors().grid }, border: { display: false }, min: yMin, max: yMax, ticks: { maxTicksLimit: 5, callback: yFmt } }
       },
       plugins: {
@@ -6968,7 +7069,7 @@ function barChart(labels, datasets, { yFmt = v => nf(v, 0), tooltipFmt, horizont
     }
   };
 }
-const barDS = (label, data, color, opts = {}) => ({ label, data, backgroundColor: color, borderRadius: 4, borderSkipped: 'start', maxBarThickness: 26, categoryPercentage: .8, barPercentage: .9, ...opts });
+const barDS = (label, data, color, opts = {}) => ({ label, data, backgroundColor: color, hoverBackgroundColor: Array.isArray(color) ? color.map(x => alpha(x, .8)) : alpha(color, .8), borderRadius: 4, borderSkipped: 'start', maxBarThickness: 22, categoryPercentage: .8, barPercentage: .9, ...opts });
 function donut(labels, data, colors, { tooltipFmt = v => nf(v, 0) } = {}) {
   const total = sum(data);
   return {
@@ -7049,7 +7150,8 @@ const PERIODS = [['4w', '4W'], ['3m', '3M'], ['6m', '6M'], ['1y', '1J'], ['all',
 /* ---------- Funktionen ein-/ausschalten ---------- */
 const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
-  ['Fortschritt', [['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper: Gewicht, Maße, Fotos'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
+  ['Fortschritt', [['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
+  ['Körper-Tab', [['f_bodyFat', 'Körperfett & fettfreie Masse'], ['f_measures', 'Umfänge & Verhältnisse', 'Brust, Taille, Arm … in cm'], ['f_photos', 'Fortschrittsfotos']]],
   ['Workout', [['f_rest', 'Pausen-Timer'], ['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
 ];
@@ -7561,6 +7663,18 @@ ProgressViews.strength = body => {
   ].map(([l, v, lo, hi]) => ({ l, v: benchB && v ? v / benchB : null, lo, hi }));
   const cb = chartBuilder();
   const big3Chips = BIG3.map(b => b.ids.find(id => ix.sessions[id])).filter(Boolean);
+  // Rep-Maxima: schwerstes Gewicht für mind. n Wiederholungen (alle Sessions)
+  const repMax = [];
+  for (let n = 1; n <= 12; n++) {
+    let best = null;
+    for (const s of ss) for (const x of s.list) if (x.r >= n && x.w > 0 && (!best || x.w > best.w || (x.w === best.w && s.dn < best.dn))) best = { n, w: x.w, r: x.r, dn: s.dn };
+    if (best) repMax.push(best);
+  }
+  const newestRep = repMax.length ? repMax.reduce((a, b) => b.dn > a.dn ? b : a) : null;
+  // Kraft im Vergleich: e1RM der meist-trainierten Übungen, Start im Zeitraum = 100 %
+  const cmp = exIds.map(id => ({ id, pts: ix.sessions[id].filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).slice(0, 4)
+    .map((x, i) => { let run = 0; return { id: x.id, color: c.series[i], pts: x.pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, y: round(run / x.pts[0].best * 100, 1), label: `${nf(run / x.pts[0].best * 100, 0)} % (bestes e1RM ${fmtW(run)})` }; }) }; });
+  const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
   body.innerHTML = `
     <div class="card mt-12">
       <label class="field"><span>Übung</span>
@@ -7578,6 +7692,14 @@ ProgressViews.strength = body => {
           if (lr) ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
           return timeLine(ds, { tooltipFmt: v => fmtW(fromU(v)), legend: !!lr });
         } })}
+      ${cb.card({ id: 'k12', wide: true, title: 'Rep-Maxima', info: 'Dein schwerstes Gewicht für mindestens 1, 2, 3 … 12 Wiederholungen – über alle Sessions dieser Übung. Wo zwei Balken fast gleich hoch sind, liegt dein nächster Rep-PR in Reichweite.',
+        big: repMax.length ? fmtW(repMax[0].w) : '–', small: repMax.length ? (repMax[0].n === 1 && repMax[0].r === 1 ? 'echtes 1RM' : `schwerster Satz (${repMax[0].r} Wdh.)`) : '',
+        sub: newestRep ? `Neuester Rep-PR: ${fmtW(newestRep.w)} × ${newestRep.r} am ${fmtDN(newestRep.dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '',
+        factory: () => repMax.length ? barChart(repMax.map(x => x.n + '×'), [barDS('Bestes Gewicht', repMax.map(x => toU(x.w)), c.accent)],
+          { tooltipFmt: (v, ctx) => `${fmtW(fromU(v))} für ${repMax[ctx.dataIndex].n}+ Wdh. · ${fmtDN(repMax[ctx.dataIndex].dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}`, yFmt: v => nf(v, 0) }) : null })}
+      ${cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Bestes geschätztes 1RM bis zum jeweiligen Tag für deine meist-trainierten Übungen (mind. 3 Sessions im Zeitraum), bei der ersten Session im Zeitraum auf 100 % gesetzt. So siehst du auf einer Skala, welche Übung am schnellsten wächst.',
+        big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
+        factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null })}
       ${cb.card({ id: 'k2', title: 'Max-Gewicht pro Session', info: 'Schwerstes bewegtes Gewicht je Session (mind. 1 Wiederholung).',
         big: inR.length ? fmtW(maxOf(inR, s => s.maxW)) : '–',
         factory: () => inR.length ? timeLine([lineDS('Max-Gewicht', inR.map(s => ({ x: s.dn, y: toU(s.maxW), label: `${fmtW(s.maxW)} × ${s.repsAtMax}` })), c.accent, { pointRadius: 4, fill: false })], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}
@@ -7697,6 +7819,10 @@ ProgressViews.volume = body => {
   const curW = isoWeek(todayDN()).week;
   const thisY = cum(y).map((v, i) => i < curW ? toU(v) : null), lastY = cum(y - 1).map(v => toU(v));
   const restItems = scope === 'total' ? inR.filter(x => x.restAvg) : [];
+  // Zeit & Dichte (nur Gesamt): echte Dauer, ohne reine Cardio-Einheiten
+  const durRows = ix.rows.filter(w => w.dn >= r.from && w.dn <= r.to && w.dur > 0 && !w.estDur);
+  const durW = weeks.map(w => round(sum(durRows.filter(x => x.dn >= w && x.dn < w + 7).map(x => x.dur)) / 3600, 2));
+  const dens = durRows.filter(w => w.ton > 0 && w.dur >= 600 && !w.cardioOnly).map(w => ({ x: w.dn, y: round(toU(w.ton) / (w.dur / 60), 1), label: `${nf(toU(w.ton) / (w.dur / 60), 0)} ${unit()}/min · ${w.name}` }));
   const cb = chartBuilder();
   const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? UI.volMuscle : 'alle Übungen';
   body.innerHTML = `
@@ -7710,15 +7836,30 @@ ProgressViews.volume = body => {
         big: fmtTon(tot(x => x.ton)), small: 'im Zeitraum', delta: deltaHtml(tot(x => x.ton), totP(x => x.ton)), sub: prv ? prevLabel : '',
         factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
       ${cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
-        factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.series[0]), avgLine(setsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
+        factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.accent), avgLine(setsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
       ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Summe aller Wiederholungen pro Woche.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
-        factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.series[0]), avgLine(repsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
-      ${cb.card({ id: 'v4', title: scope === 'total' ? 'Ø Volumen pro Workout' : 'Volumen pro Session', info: 'Zeigt die Dichte: Wird jedes Training „voller"?',
+        factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.accent), avgLine(repsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
+      ${cb.card({ id: 'v4', wide: true, title: scope === 'total' ? 'Volumen pro Workout' : 'Volumen pro Session', info: 'Jeder Punkt ist ein Workout. Die Linie ist der Durchschnitt der jeweils letzten 3 Wochen – so siehst du den Trend, ohne dass Push-, Pull- und Beintage durcheinanderspringen.',
         big: inR.length ? fmtTon(avg(inR.map(x => x.ton))) : '–', small: 'Ø', delta: inP && inP.length ? deltaHtml(avg(inR.map(x => x.ton)), avg(inP.map(x => x.ton))) : '',
-        factory: () => inR.length > 1 ? timeLine([lineDS('Volumen', inR.map(x => ({ x: x.dn, y: toU(x.ton) })), c.accent)], { tooltipFmt: v => fmtTon(fromU(v)) }) : null })}
+        factory: () => {
+          if (inR.length < 2) return null;
+          const pts = inR.map(x => ({ x: x.dn, y: toU(x.ton), label: `${fmtTon(x.ton)}${x.name ? ' · ' + x.name : ''}` }));
+          return timeLine([
+            lineDS('Workout', pts, c.faint, { showLine: false, fill: false, pointRadius: 3, pointBackgroundColor: c.faint, pointBorderWidth: 0 }),
+            lineDS('Ø 3 Wochen', timeAvg(pts), c.accent, { fill: false, pointRadius: 0 })
+          ], { legend: true, tooltipFmt: v => fmtTon(fromU(v)) });
+        } })}
+      ${scope === 'total' ? `${cb.card({ id: 'v11', title: 'Trainingszeit pro Woche', info: 'Summe der Workout-Dauer pro Kalenderwoche in Stunden. Gestrichelt: Durchschnitt im Zeitraum.',
+        big: nf(sum(durRows.map(w => w.dur)) / 3600, 1), small: 'h im Zeitraum',
+        factory: () => durRows.length ? barChart(wLabels, [barDS('Stunden', durW, c.accent), avgLine(durW)], { tooltipFmt: v => fmtDur(v * 3600), yFmt: v => nf(v, 1) + ' h' }) : null })}
+      ${cb.card({ id: 'v12', title: 'Trainingsdichte', info: 'Tonnage pro Trainingsminute je Workout (kg/min). Steigt sie, schaffst du mehr Arbeit in derselben Zeit. Linie: Ø der letzten 3 Wochen.',
+        big: dens.length ? nf(avg(dens.map(p => p.y)), 0) : '–', small: unit() + '/min Ø',
+        factory: () => dens.length > 1 ? timeLine([
+          lineDS('Workout', dens, c.faint, { showLine: false, fill: false, pointRadius: 3, pointBackgroundColor: c.faint, pointBorderWidth: 0 }),
+          lineDS('Ø 3 Wochen', timeAvg(dens), c.accent, { fill: false, pointRadius: 0 })
+        ], { legend: true, tooltipFmt: v => nf(v, 0) + ' ' + unit() + '/min' }) : null })}` : ''}
       ${cb.card({ id: 'v5', title: 'Volumen nach Wochentag', info: 'An welchen Wochentagen passiert die meiste Arbeit? Tonnage im Zeitraum je Wochentag.',
-        factory: () => sum(wd) ? { type: 'radar', data: { labels: ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'], datasets: [{ label: 'Tonnage', data: wd.map(toU), borderColor: c.accent, backgroundColor: alpha(c.accent, .18), pointBackgroundColor: c.accent, pointRadius: 3, borderWidth: 2 }] },
-          options: { plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => fmtTon(fromU(ctx.parsed.r)) } } }, scales: { r: { beginAtZero: true, grid: { color: c.grid }, angleLines: { color: c.grid }, pointLabels: { color: c.dim, font: { size: 12, weight: '600' } }, ticks: { display: false } } } } } : null })}
+        factory: () => sum(wd) ? barChart(['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'], [barDS('Tonnage', wd.map(toU), c.accent)], { tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => unit() === 'kg' && v >= 1000 ? nf(v / 1000, 0) + ' t' : nf(v, 0) }) : null })}
       ${cb.card({ id: 'v6', title: scope === 'muscle' ? `Top-Übungen ${UI.volMuscle}` : 'Volumen pro Übung (Top 10)', info: 'Deine meist-trainierten Übungen im Zeitraum nach Tonnage.', size: 'lg',
         factory: () => top10.length ? barChart(top10.map(([id]) => Ex.name(id)), [barDS('Tonnage', top10.map(([, v]) => toU(v)), c.accent)], { horizontal: true, tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => unit() === 'kg' && v >= 1000 ? nf(v / 1000, 0) + ' t' : nf(v, 0) }) : null })}
       ${cb.card({ id: 'v7', title: 'Volumen-Trend pro Übung', info: 'Volumen je Session für die gewählte Übung mit Trendlinie.',
@@ -8012,7 +8153,12 @@ ProgressViews.muscles = body => {
           thresholds: { axis: 'x', lines: [{ value: 10, label: 'MEV', color: c.dim }, { value: 15, label: 'MAV', color: c.accent }, { value: 20, label: 'MRV', color: c.warning }] }, xMax: Math.max(24, Math.ceil(Math.max(...MUSCLES.map(perWeek)) + 2))
         }) })}
       ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der Sätze je Muskelgruppe im Zeitraum (Top 7, Rest = Andere).', size: '',
-        factory: () => top7.length ? donut([...top7.map(x => x[0]), ...(rest ? ['Andere'] : [])], [...top7.map(x => x[1]), ...(rest ? [rest] : [])], [...c.series.slice(0, top7.length), c.faint], { tooltipFmt: v => `${v} Sätze` }) : null })}
+        factory: () => {
+          if (!top7.length) return null;
+          const all = [...top7, ...(rest ? [['Andere', rest]] : [])], tot = sum(all.map(x => x[1]));
+          return barChart(all.map(x => x[0]), [barDS('Anteil', all.map(x => round(x[1] / tot * 100, 1)), all.map(x => x[0] === 'Andere' ? c.faint : c.accent))],
+            { horizontal: true, yFmt: v => v + ' %', tooltipFmt: (v, ctx) => `${nf(v, 0)} % · ${all[ctx.dataIndex][1]} Sätze` });
+        } })}
       ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Verhältnis Pull-Sätze zu Push-Sätzen. Ideal ≈ 1,0 (Rücken/Brust-Balance). Warnung unter 0,8 oder über 1,2.',
         big: ppRatio != null ? nf(ppRatio, 2) : '–', small: `${pull} Pull / ${push} Push`, top: `<div class="mt-8">${ratioBadge(ppRatio, 0.8, 1.2)}</div>`,
         factory: () => { const d = weekly(rs => { const p = sum(rs.map(w => w.cats.Push || 0)), q = sum(rs.map(w => w.cats.Pull || 0)); return p ? round(q / p, 2) : null; }); return d.some(v => v != null) ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [{ type: 'line', label: 'Pull/Push', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.8, label: '0,8', color: c.faint }, { value: 1.2, label: '1,2', color: c.faint }] } }) : null; } })}
@@ -8146,38 +8292,113 @@ ProgressViews.body = body => {
   const adonis = ratio('shoulderCm', 'waistCm'), whr = ratio('waistCm', 'hipCm'), armThigh = ratio('armCm', 'thighCm');
   const photos = Store.all('photos').filter(p => p.data).sort((a, b) => String(a.date).localeCompare(String(b.date)));
   const mSeries = MEASURES.map(([k, l], i) => ({ k, l, color: c.series[i], data: P.filter(p => p.measurements && p.measurements[k] > 0 && dayNum(p.date) >= r.from && dayNum(p.date) <= r.to).map(p => ({ x: dayNum(p.date), y: p.measurements[k] })) })).filter(s => s.data.length);
+  // Gewicht: Trend, Ziel, Veränderung pro Woche
+  const goal = S().bwGoal > 0 ? +S().bwGoal : null;
+  const trendPts = bwR.map(p => ({ x: p.dn, y: p.kg }));
+  const trend = trendPts.length >= 3 && trendPts[trendPts.length - 1].x - trendPts[0].x >= 14 ? linReg(trendPts) : null;
+  const perWeek = trend ? trend.slope * 7 : null;
+  let eta = null;
+  if (goal && latest && trend && Math.abs(goal - latest.kg) > .1 && Math.sign(goal - latest.kg) === Math.sign(trend.slope) && Math.abs(trend.slope) > 1e-4) {
+    const days = (goal - latest.kg) / trend.slope;
+    if (days > 0 && days < 730) eta = todayDN() + Math.round(days);
+  }
+  const weeks = new Map();
+  bwAll.forEach(p => { const w = weekStartDN(p.dn); if (!weeks.has(w)) weeks.set(w, []); weeks.get(w).push(p.kg); });
+  const wk = [...weeks.entries()].sort((x, y) => x[0] - y[0]).map(([w, v]) => ({ w, kg: avg(v) }));
+  const wkDiff = wk.map((x, i) => i ? { w: x.w, d: x.kg - wk[i - 1].kg, gap: x.w - wk[i - 1].w } : null).filter(x => x && x.gap <= 14 && x.w >= weekStartDN(r.from) && x.w <= r.to);
+  const startR = bwR[0], minR = bwR.length ? bwR.reduce((m, p) => p.kg < m.kg ? p : m) : null, maxR = bwR.length ? bwR.reduce((m, p) => p.kg > m.kg ? p : m) : null;
+  const todayEntry = P.find(p => p.date === isoDate() && p.bodyWeightKg > 0);
+  const signW = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + nf(Math.abs(toU(d)), Math.abs(d) < 1 ? 2 : 1) + ' ' + unit();
+  const statRow = (l, v, sub = '') => `<div class="ratio-row"><span class="grow">${l}</span><b>${v}</b>${sub ? `<span class="tiny dim">${sub}</span>` : ''}</div>`;
   const cb = chartBuilder();
   body.innerHTML = `
-    <button class="btn btn-primary btn-block btn-lg mt-12" data-act="bodyNew">${icon('plus')} Eintrag hinzufügen</button>
+    <div class="card mt-12 bw-quick">
+      <div class="small dim">${todayEntry ? `Heute: ${fmtW(todayEntry.bodyWeightKg)} – neuer Wert ersetzt ihn` : 'Gewicht heute'}</div>
+      <div class="row mt-8">
+        <input class="input" id="bwQuick" inputmode="decimal" placeholder="${latest ? esc(inputW(latest.kg)) : 'z. B. 82,5'}" aria-label="Gewicht heute in ${unit()}" enterkeyhint="done">
+        <span class="dim">${unit()}</span>
+        <button class="btn btn-primary" data-act="bwQuickSave">${icon('check')} Speichern</button>
+      </div>
+      <button class="link-btn mt-4" data-act="bodyNew" style="padding:6px 0;min-height:32px">Anderes Datum${F('f_bodyFat') || F('f_measures') || F('f_photos') ? ' oder mehr Werte' : ''} eintragen</button>
+    </div>
     <div class="charts-grid">
-      ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge (Körper-Tab und Workouts) mit gleitendem 7-Tage-Durchschnitt. Delta = Veränderung zum Wert vor ca. einem Monat.',
-        big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d) }) : '', sub: monthAgo ? 'vs. vor 4 Wochen' : '',
-        factory: () => bwR.length ? timeLine([lineDS('Gewicht', bwR.map(p => ({ x: p.dn, y: toU(p.kg) })), c.series[0], { fill: false, borderWidth: 1.5, pointRadius: bwR.length <= 60 ? 3 : 0 }), lineDS('Ø 7 Tage', ma7, c.accent, { fill: false, pointRadius: 0, borderWidth: 2.5 })], { legend: true, tooltipFmt: v => fmtW(fromU(v)) }) : null })}
-      ${cb.card({ id: 'b2', title: 'Körperfett', info: 'Körperfettanteil in Prozent – falls eingetragen.', big: bf.length ? nf(bf[bf.length - 1].bodyFatPct, 1) + ' %' : '–',
+      ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge (Körper-Tab und Workouts). Grüne Linie: gleitender 7-Tage-Durchschnitt – er glättet Wasser-Schwankungen. Trend = lineare Veränderung im gewählten Zeitraum.',
+        big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d) }) : '',
+        sub: [monthAgo ? 'vs. vor 4 Wochen' : '', perWeek != null ? `Trend ${signW(perWeek)} pro Woche` : '', goal ? `Ziel ${fmtW(goal)}${latest ? ` · noch ${fmtW(Math.abs(goal - latest.kg))}` : ''}${eta ? ` · ca. ${fmtDN(eta, { day: 'numeric', month: 'short' })}` : ''}` : ''].filter(Boolean).join(' · '),
+        top: `<div class="row mt-8"><button class="chip sm" data-act="bwGoalSet">${icon('target')} ${goal ? 'Ziel: ' + fmtW(goal) : 'Zielgewicht festlegen'}</button></div>`,
+        factory: () => {
+          if (!bwR.length) return null;
+          const ds = [
+            lineDS('Messwert', bwR.map(p => ({ x: p.dn, y: toU(p.kg) })), c.faint, { fill: false, borderWidth: 1, tension: 0, pointRadius: bwR.length <= 90 ? 2.5 : 0, pointBackgroundColor: c.faint }),
+            lineDS('Ø 7 Tage', ma7, c.accent, { fill: false, borderWidth: 2.5, pointRadius: 0 })
+          ];
+          const ys = bwR.map(p => toU(p.kg)).concat(goal ? [toU(goal)] : []);
+          return timeLine(ds, { legend: true, tooltipFmt: v => nf(v, 1) + ' ' + unit(), thresholds: goal ? { axis: 'y', lines: [{ value: toU(goal), label: 'Ziel', color: c.dim }] } : null,
+            yMin: Math.floor(Math.min(...ys) - .5), yMax: Math.ceil(Math.max(...ys) + .5) });
+        } })}
+      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: 'Wochendurchschnitt im Vergleich zur Vorwoche. Blau = abgenommen, orange = zugenommen. Wochen ohne Eintrag werden übersprungen.',
+        big: wkDiff.length ? signW(wkDiff[wkDiff.length - 1].d) : '–', small: wkDiff.length ? 'letzte Woche' : 'mind. 2 Wochen mit Einträgen nötig',
+        factory: () => {
+          if (!wkDiff.length) return null;
+          const labels = wkDiff.map(x => 'KW ' + isoWeek(x.w).week);
+          const vals = wkDiff.map(x => round(toU(x.d), 2));
+          return barChart(labels, [barDS('Abnahme', vals.map(v => v < 0 ? v : null), c.series[0]), barDS('Zunahme', vals.map(v => v > 0 ? v : null), c.series[1])],
+            { stacked: true, legend: true, tooltipFmt: v => (v > 0 ? '+' : '') + nf(v, 2) + ' ' + unit(), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
+        } })}
+      <div class="chart-card">
+        <div class="cc-head"><span class="cc-title">${icon('scale', 'cc-ic')} Im Zeitraum</span>${infoBtn('Kennzahlen deines Gewichts im oben gewählten Zeitraum.')}</div>
+        ${bwR.length ? `${statRow('Start', fmtW(startR.kg), fmtDN(startR.dn, { day: '2-digit', month: '2-digit' }))}
+        ${statRow('Aktuell', fmtW(bwR[bwR.length - 1].kg), fmtDN(bwR[bwR.length - 1].dn, { day: '2-digit', month: '2-digit' }))}
+        ${statRow('Veränderung', signW(bwR[bwR.length - 1].kg - startR.kg))}
+        ${statRow('Niedrigster', fmtW(minR.kg), fmtDN(minR.dn, { day: '2-digit', month: '2-digit' }))}
+        ${statRow('Höchster', fmtW(maxR.kg), fmtDN(maxR.dn, { day: '2-digit', month: '2-digit' }))}
+        ${statRow('Einträge', nf(bwR.length, 0))}` : '<p class="dim small mt-8">Noch keine Einträge im Zeitraum.</p>'}
+      </div>
+      ${F('f_bodyFat') ? `${cb.card({ id: 'b2', title: 'Körperfett', info: 'Körperfettanteil in Prozent – falls eingetragen.', big: bf.length ? nf(bf[bf.length - 1].bodyFatPct, 1) + ' %' : '–',
         factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: yAuto(' %') }) : null })}
       ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie, baust du Muskeln auf.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
-        factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}
-      ${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Alle Körperumfänge in cm. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
+        factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}` : ''}
+      ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Alle Körperumfänge in cm. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
         factory: () => mSeries.length ? timeLine(mSeries.map(s => lineDS(s.l, s.data, s.color, { fill: false, pointRadius: s.data.length <= 30 ? 3 : 0 })), { legend: true, tooltipFmt: v => nf(v, 1) + ' cm' }) : null })}
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Schulter/Taille: „Adonis-Index", ideal ≈ 1,618. Taille/Hüfte: gesund bei Männern < 0,9, Frauen < 0,85. Arm/Oberschenkel: Proportion Ober- zu Unterkörper.')}</div>
         <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim">Ziel 1,62</span></div>
         <div class="ratio-row"><span class="grow">Taille / Hüfte</span><b>${whr ? nf(whr, 2) : '–'}</b><span class="tiny dim">${whr ? (whr < (S().sex === 'f' ? .85 : .9) ? '✓ gesund' : '⚠ erhöht') : ''}</span></div>
         <div class="ratio-row"><span class="grow">Arm / Oberschenkel</span><b>${armThigh ? nf(armThigh, 2) : '–'}</b><span class="tiny dim"></span></div>
-      </div>
-      <div class="chart-card">
+      </div>` : ''}
+      ${F('f_photos') ? `<div class="chart-card">
         <div class="cc-head"><span class="cc-title">Fotos</span>${infoBtn('Fortschrittsfotos chronologisch. Tippe auf ein Foto für den Vorher/Nachher-Vergleich.')}</div>
         ${photos.length ? `<div class="photo-strip mt-8">${photos.map(p => `<button data-act="photoCompare" data-id="${esc(p.id)}"><img src="${p.data}" alt="Foto vom ${esc(fmtDate(p.date))}" loading="lazy">${esc(fmtDate(p.date))}</button>`).join('')}</div>` : '<p class="dim small mt-8">Noch keine Fotos – füge beim nächsten Eintrag eins hinzu.</p>'}
-      </div>
+      </div>` : ''}
     </div>
+    <button class="btn btn-ghost btn-block mt-12" data-act="bodyCfg">${icon('sliders')} Anzeige anpassen</button>
     <div class="section-head"><h2>Verlauf</h2><span class="small dim">${P.length} Einträge</span></div>
     ${P.length ? `<div class="list">${[...P].reverse().map(p => `<button class="list-item" data-act="bodyEdit" data-id="${esc(p.id)}">
-      <span class="li-icon">${icon(p.photoId ? 'camera' : 'scale')}</span>
+      <span class="li-icon">${icon(p.photoId && F('f_photos') ? 'camera' : 'scale')}</span>
       <span class="li-main"><span class="li-title">${esc(fmtDate(p.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }))}</span>
-      <div class="li-sub">${[p.bodyWeightKg ? fmtW(p.bodyWeightKg) : '', p.bodyFatPct ? nf(p.bodyFatPct, 1) + ' % KFA' : '', p.measurements ? MEASURES.filter(([k]) => p.measurements[k]).length + ' Umfänge' : '', p.notes ? esc(p.notes) : ''].filter(Boolean).join(' · ') || '–'}</div></span>
-      ${icon('chevR', 'li-chev')}</button>`).join('')}</div>` : `<div class="card">${emptyState('scale', 'Noch keine Körperdaten', 'Trage Gewicht, KFA, Umfänge und Fotos ein – die Charts entstehen automatisch.')}</div>`}`;
+      <div class="li-sub">${[p.bodyWeightKg ? fmtW(p.bodyWeightKg) : '', F('f_bodyFat') && p.bodyFatPct ? nf(p.bodyFatPct, 1) + ' % KFA' : '', F('f_measures') && p.measurements ? MEASURES.filter(([k]) => p.measurements[k]).length + ' Umfänge' : '', p.notes ? esc(p.notes) : ''].filter(Boolean).join(' · ') || '–'}</div></span>
+      ${icon('chevR', 'li-chev')}</button>`).join('')}</div>` : `<div class="card">${emptyState('scale', 'Noch keine Einträge', 'Trag oben dein Gewicht ein – der Verlauf entsteht automatisch.')}</div>`}`;
   cb.mountAll();
 };
+Actions.bwQuickSave = () => {
+  const inp = $('#bwQuick');
+  const v = parseNum(inp && inp.value);
+  if (!v || v < 20 || v > 400) { toast('Bitte ein Gewicht eintragen', 'warn'); if (inp) inp.focus(); return; }
+  const kg = round(fromU(v), 2), today = isoDate();
+  const ex = Store.all('progress').find(p => p.date === today && p.bodyWeightKg > 0) || Store.all('progress').find(p => p.date === today);
+  if (ex) Store.put('progress', ex.id, { bodyWeightKg: kg, updatedAt: Date.now() });
+  else Store.put('progress', autoId(), { date: today, bodyWeightKg: kg, bodyFatPct: null, measurements: null, photoUrl: null, photoId: null, notes: '', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true });
+  toast(`${fmtW(kg)} gespeichert`, 'success');
+};
+Actions.bwGoalSet = async () => {
+  const cur = S().bwGoal;
+  const v = await promptDialog({ title: 'Zielgewicht', label: `Ziel in ${unit()} (leer = kein Ziel)`, value: cur ? inputW(cur) : '', inputmode: 'decimal', okLabel: 'Speichern' });
+  if (v == null) return;
+  const n = parseNum(v);
+  Store.saveSettings({ bwGoal: n && n > 20 ? round(fromU(n), 2) : null });
+};
+Actions.bodyCfg = () => Modal.open({ title: 'Körper-Tab anpassen', size: 'sm', body: `<p class="small dim">Das Gewicht ist immer da. Schalte zusätzlich ein, was du erfassen willst – vorhandene Daten bleiben erhalten.</p>
+  <div class="list mt-12">${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}</div>` });
 Actions.bodyNew = () => openBodyForm(null);
 Actions.bodyEdit = el => openBodyForm(Store.raw('progress', el.dataset.id));
 
@@ -8201,16 +8422,16 @@ function openBodyForm(entry) {
   let photoData = null;
   const existingPhoto = entry && entry.photoId ? Store.raw('photos', entry.photoId) : null;
   const m = Modal.open({
-    title: entry ? 'Eintrag bearbeiten' : 'Neuer Körper-Eintrag', size: 'lg',
+    title: entry ? 'Eintrag bearbeiten' : 'Neuer Körper-Eintrag', size: F('f_bodyFat') || F('f_measures') || F('f_photos') ? 'lg' : 'sm',
     body: `<div class="stack">
       <div class="form-grid">
         <label class="field"><span>Datum</span><input class="input" type="date" id="bfDate" value="${esc(d.date)}" max="${isoDate()}"></label>
         <label class="field"><span>Gewicht (${unit()})</span><input class="input" id="bfW" inputmode="decimal" value="${inputW(d.bodyWeightKg)}" placeholder="z. B. 82,5"></label>
-        <label class="field"><span>Körperfett (%)</span><input class="input" id="bfBf" inputmode="decimal" value="${d.bodyFatPct != null ? String(d.bodyFatPct).replace('.', ',') : ''}" placeholder="optional"></label>
+        <label class="field" ${F('f_bodyFat') ? '' : 'hidden'}><span>Körperfett (%)</span><input class="input" id="bfBf" inputmode="decimal" value="${d.bodyFatPct != null ? String(d.bodyFatPct).replace('.', ',') : ''}" placeholder="optional"></label>
       </div>
-      <div><div class="field-label mb-8">Umfänge (cm)</div>
+      <div ${F('f_measures') ? '' : 'hidden'}><div class="field-label mb-8">Umfänge (cm)</div>
         <div class="measure-grid">${MEASURES.map(([k, l]) => `<label class="field"><span>${l}</span><input class="input" data-mk="${k}" inputmode="decimal" value="${d.measurements[k] != null ? String(d.measurements[k]).replace('.', ',') : ''}"></label>`).join('')}</div></div>
-      <div class="field"><span>Foto</span>
+      <div class="field" ${F('f_photos') ? '' : 'hidden'}><span>Foto</span>
         <div class="row">${existingPhoto ? `<img src="${existingPhoto.data}" alt="" style="width:64px;height:84px;object-fit:cover;border-radius:10px" id="bfPrev">` : '<img alt="" style="width:64px;height:84px;object-fit:cover;border-radius:10px;display:none" id="bfPrev">'}
         <label class="btn btn-secondary">${icon('camera')} ${existingPhoto ? 'Foto ersetzen' : 'Foto wählen'}<input type="file" accept="image/*" id="bfPhoto" hidden></label></div></div>
       <label class="field"><span>Notizen</span><textarea class="textarea" id="bfNotes" style="min-height:70px">${esc(d.notes || '')}</textarea></label>
@@ -8370,6 +8591,13 @@ Views.more = {
         ${setLine('Übungen-Tab', 'Bibliothek als eigener Tab', toggleCtl('f_exercises'))}
         ${setLine('Fortschritt-Tab', 'Statistiken & Diagramme', toggleCtl('f_progress'))}
         ${F('f_exercises') ? '' : navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten')}
+      </div>
+
+      <div class="section-head"><h4>Körper-Tab</h4></div>
+      <div class="list">
+        ${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}
+        ${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}
+        ${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}
       </div>
 
       <div class="section-head"><h4>Funktionen</h4></div>

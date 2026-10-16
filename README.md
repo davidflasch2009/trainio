@@ -139,6 +139,27 @@ und beim Hinzufügen von Übungen erreichbar.
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
 Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
+## Workouts nachträglich bearbeiten
+
+Workout öffnen (z. B. unter „Letzte Workouts") → **Bearbeiten**:
+- **Datum, Uhrzeit & Dauer** – auch Name, Körpergewicht und Notiz. Datum/Uhrzeit oder Dauer kann man
+  im Workout-Detail auch direkt antippen.
+- **Sätze & Übungen** – öffnet das Workout im Editor (Gewichte, Wiederholungen, Übungen).
+
+## Körper-Tab
+
+Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
+Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
+Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Körper-Tab** (oder im Körper-Tab über
+„Anzeige anpassen") einschalten – vorhandene Daten bleiben erhalten.
+
+## Diagramme
+
+Ruhige, einheitliche Darstellung (eine Farbe pro Kennzahl, Mehrfarbig nur beim Vergleich), Hilfslinie beim
+Antippen, jedes Diagramm im Vollbild mit Tabelle. Neu u. a.: **Rep-Maxima** (schwerstes Gewicht je
+Wiederholungszahl), **Kraft im Vergleich** (Fortschritt mehrerer Übungen auf einer Skala),
+**Trainingszeit pro Woche**, **Trainingsdichte** (kg/min), Volumen pro Workout mit 3-Wochen-Durchschnitt.
+
 ## Übungen & Muskel-Diagramm
 
 - Über 320 Übungen inkl. Maschinen, Kabel, Multipresse (Smith Machine), Plate-Loaded, Kettlebell, Core & Cardio –
