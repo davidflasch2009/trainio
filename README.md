@@ -183,7 +183,10 @@ Wiederholungszahl), **Kraft im Vergleich** (Fortschritt mehrerer Übungen auf ei
 | `index.html` | komplette App |
 | `sw.js` | Service Worker (Offline-Cache) |
 | `manifest.json` | PWA-Manifest |
-| `icon-192.png`, `icon-512.png` | App-Icons |
+| `icon.svg` | Logo „Progress-Kettlebell“ als Vektor (Favicon) |
+| `icon-192.png`, `icon-512.png` | App-Icons (abgerundete Kachel) |
+| `icon-maskable-192.png`, `icon-maskable-512.png` | Android-Icons mit Sicherheitsrand (maskable) |
+| `apple-touch-icon.png` | iPhone-Homescreen-Icon |
 
 ## 1. Firebase einrichten (einmalig)
 
