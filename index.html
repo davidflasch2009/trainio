@@ -1743,7 +1743,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.8.0',
+  version: '1.8.1',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -3662,11 +3662,11 @@ window.addEventListener('scroll', () => { $('#topbar').classList.toggle('scrolle
 function emptyState(ic, title, text, btn = '') {
   return `<div class="empty">${icon(ic)}<h3>${esc(title)}</h3><p class="small">${esc(text)}</p>${btn ? `<div class="mt-16">${btn}</div>` : ''}</div>`;
 }
-function deltaHtml(cur, prev, { invert = false, fmt = null, suffix = '' } = {}) {
+function deltaHtml(cur, prev, { invert = false, fmt = null, suffix = '', neutral = false } = {}) {
   if (prev == null || cur == null || !Number.isFinite(prev) || !Number.isFinite(cur)) return '';
   if (prev === 0) return cur > 0 ? `<span class="delta up">${icon('arrowUp')}neu</span>` : '';
   const d = (cur - prev) / Math.abs(prev);
-  const cls = Math.abs(d) < 0.005 ? 'flat' : ((d > 0) !== invert ? 'up' : 'down');
+  const cls = Math.abs(d) < 0.005 || neutral ? 'flat' : ((d > 0) !== invert ? 'up' : 'down');
   const ic = Math.abs(d) < 0.005 ? '' : icon(d > 0 ? 'arrowUp' : 'arrowDown');
   return `<span class="delta ${cls}">${ic}${fmt ? fmt(cur - prev) : (d > 0 ? '+' : '') + nf(d * 100, 0) + ' %'}${suffix}</span>`;
 }
@@ -8319,11 +8319,14 @@ ProgressViews.body = body => {
         <span class="dim">${unit()}</span>
         <button class="btn btn-primary" data-act="bwQuickSave">${icon('check')} Speichern</button>
       </div>
-      <button class="link-btn mt-4" data-act="bodyNew" style="padding:6px 0;min-height:32px">Anderes Datum${F('f_bodyFat') || F('f_measures') || F('f_photos') ? ' oder mehr Werte' : ''} eintragen</button>
+      <div class="row between mt-4">
+        <button class="link-btn" data-act="bodyNew" style="padding:6px 0;min-height:32px">Anderes Datum${F('f_bodyFat') || F('f_measures') || F('f_photos') ? ' oder mehr Werte' : ''} eintragen</button>
+        <button class="link-btn" data-act="bwImport" style="padding:6px 0;min-height:32px">${icon('upload').replace('<svg', '<svg width="15" height="15" style="vertical-align:-3px"')} CSV importieren</button>
+      </div>
     </div>
     <div class="charts-grid">
       ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge (Körper-Tab und Workouts). Grüne Linie: gleitender 7-Tage-Durchschnitt – er glättet Wasser-Schwankungen. Trend = lineare Veränderung im gewählten Zeitraum.',
-        big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d) }) : '',
+        big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '',
         sub: [monthAgo ? 'vs. vor 4 Wochen' : '', perWeek != null ? `Trend ${signW(perWeek)} pro Woche` : '', goal ? `Ziel ${fmtW(goal)}${latest ? ` · noch ${fmtW(Math.abs(goal - latest.kg))}` : ''}${eta ? ` · ca. ${fmtDN(eta, { day: 'numeric', month: 'short' })}` : ''}` : ''].filter(Boolean).join(' · '),
         top: `<div class="row mt-8"><button class="chip sm" data-act="bwGoalSet">${icon('target')} ${goal ? 'Ziel: ' + fmtW(goal) : 'Zielgewicht festlegen'}</button></div>`,
         factory: () => {
@@ -8396,6 +8399,127 @@ Actions.bwGoalSet = async () => {
   if (v == null) return;
   const n = parseNum(v);
   Store.saveSettings({ bwGoal: n && n > 20 ? round(fromU(n), 2) : null });
+};
+/* ---------- Gewicht aus CSV importieren (z. B. Better Weight, Withings, Libra, eigene Tabellen) ---------- */
+function csvSplit(line, d) {
+  const out = []; let cur = '', q = false;
+  for (let i = 0; i < line.length; i++) {
+    const ch = line[i];
+    if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; }
+    else if (ch === '"') q = true;
+    else if (ch === d) { out.push(cur.trim()); cur = ''; }
+    else cur += ch;
+  }
+  out.push(cur.trim());
+  return out;
+}
+/** Datum in ISO: 2026-10-15, 15.10.2026, 15.10.26, 15/10/2026, 2026/10/15 (Uhrzeit wird ignoriert) */
+function csvDate(v) {
+  const t = String(v || '').trim();
+  let m = t.match(/^(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/);
+  if (m) { const iso = `${m[1]}-${m[2].padStart(2, '0')}-${m[3].padStart(2, '0')}`; return isISO(iso) ? iso : null; }
+  m = t.match(/^(\d{1,2})[./-](\d{1,2})[./-](\d{2,4})/);
+  if (m) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; const iso = `${y}-${m[2].padStart(2, '0')}-${m[1].padStart(2, '0')}`; return isISO(iso) ? iso : null; }
+  return null;
+}
+function parseWeightCsv(text) {
+  const lines = String(text || '').replace(/^﻿/, '').split(/\r?\n/).filter(l => l.trim());
+  if (!lines.length) return { rows: [], skipped: 0, error: 'Keine Daten gefunden' };
+  const first = lines[0];
+  const d = first.includes('\t') ? '\t' : (first.split(';').length >= first.split(',').length ? ';' : ',');
+  let head = csvSplit(first, d);
+  let dateCol = head.findIndex(h => /datum|date|tag\b|day|zeit|time/i.test(h));
+  let wCol = head.findIndex(h => /gewicht|weight|masse|mass|kg|lbs?\b/i.test(h) && !/bmi|fett|fat|muskel|muscle|wasser|water|bone|knochen|ziel|goal/i.test(h));
+  let lb = wCol >= 0 && /\blbs?\b|pound|pfund/i.test(head[wCol]);
+  let start = 1;
+  if (dateCol < 0 || wCol < 0) {
+    // Ohne erkennbare Kopfzeile: erste Datumsspalte + erste Zahl-Spalte danach
+    const cells = csvSplit(first, d);
+    dateCol = cells.findIndex(c => csvDate(c));
+    wCol = cells.findIndex((c, i) => i !== dateCol && parseNum(c) > 20 && parseNum(c) < 700);
+    lb = false; start = csvDate(first.split(d)[Math.max(0, dateCol)]) ? 0 : 1;
+    if (dateCol < 0 || wCol < 0) return { rows: [], skipped: lines.length, error: 'Spalten für Datum und Gewicht nicht erkannt' };
+  }
+  const byDate = new Map();
+  let skipped = 0;
+  for (const line of lines.slice(start)) {
+    const c = csvSplit(line, d);
+    const date = csvDate(c[dateCol]);
+    let w = parseNum(c[wCol]);
+    if (w != null && lb) w *= KG_PER_LB;
+    if (!date || w == null || w < 20 || w > 400 || date > isoDate()) { skipped++; continue; }
+    if (!byDate.has(date)) byDate.set(date, []);
+    byDate.get(date).push(w);
+  }
+  const rows = [...byDate.entries()].map(([date, ws]) => ({ date, kg: round(avg(ws), 2) })).sort((a, b) => a.date.localeCompare(b.date));
+  return { rows, skipped, lb, error: rows.length ? null : 'Keine gültigen Gewichtswerte gefunden' };
+}
+Actions.bwImport = () => {
+  let parsed = null;
+  const m = Modal.open({
+    title: 'Gewicht importieren', size: 'lg',
+    body: `<p class="small dim">CSV-Export aus deiner Waagen- oder Gewichts-App (z. B. Better Weight, Withings, Libra) – Datum und Gewicht werden automatisch erkannt, auch mit deutschem Komma.</p>
+      <label class="btn btn-secondary btn-block mt-12">${icon('upload')} CSV-Datei wählen<input type="file" id="bwiFile" accept=".csv,.txt,text/csv,text/plain" hidden></label>
+      <label class="field mt-12"><span>… oder Inhalt hier einfügen</span><textarea class="textarea" id="bwiText" placeholder="&quot;Datum&quot;;&quot;Gewicht (kg)&quot;&#10;&quot;2026-10-15&quot;;&quot;75,8&quot;" style="min-height:96px;font-family:var(--mono);font-size:13px"></textarea></label>
+      <div id="bwiPrev" class="mt-12"></div>`,
+    foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="go" disabled>${icon('check')} Importieren</button>`
+  });
+  const go = $('[data-x="go"]', m.el);
+  const preview = () => {
+    const text = $('#bwiText', m.el).value;
+    const box = $('#bwiPrev', m.el);
+    if (!text.trim()) { box.innerHTML = ''; go.disabled = true; parsed = null; return; }
+    parsed = parseWeightCsv(text);
+    if (parsed.error) { box.innerHTML = `<div class="card tight danger-text">${icon('xCircle', 'imp-ic')} ${esc(parsed.error)}</div>`; go.disabled = true; return; }
+    const have = new Set(Store.all('progress').filter(p => p.bodyWeightKg > 0).map(p => p.date));
+    const dup = parsed.rows.filter(r => have.has(r.date)).length;
+    const ks = parsed.rows.map(r => r.kg), r0 = parsed.rows[0], r1 = parsed.rows[parsed.rows.length - 1];
+    box.innerHTML = `<div class="card tight" style="background:var(--surface-2)">
+        <div>${icon('checkCircle', 'imp-ic')} <b>${parsed.rows.length}</b> Tage mit Gewicht${parsed.lb ? ' (aus lb umgerechnet)' : ''}</div>
+        <div class="mt-4">${icon('calendar', 'imp-ic')} ${esc(fmtDate(r0.date, { day: '2-digit', month: '2-digit', year: 'numeric' }))} – ${esc(fmtDate(r1.date, { day: '2-digit', month: '2-digit', year: 'numeric' }))}</div>
+        <div class="mt-4">${icon('scale', 'imp-ic')} ${fmtW(r0.kg)} → ${fmtW(r1.kg)} · min ${fmtW(Math.min(...ks))} · max ${fmtW(Math.max(...ks))}</div>
+        ${parsed.skipped ? `<div class="mt-4 dim">${icon('warn', 'imp-ic')} ${parsed.skipped} Zeilen ohne gültiges Datum/Gewicht übersprungen</div>` : ''}
+        <div class="mt-8">${sparkline(ks.map(toU), cssVar('--accent'))}</div>
+      </div>
+      ${dup ? `<label class="set-line mt-8" style="padding:8px 0"><div class="sl-main"><div class="sl-title">${dup} ${dup === 1 ? 'Tag' : 'Tage'} schon vorhanden</div><div class="sl-sub">Aus: überspringen · An: mit Werten aus der Datei überschreiben</div></div>
+        <span class="switch"><input type="checkbox" id="bwiOver" aria-label="Vorhandene überschreiben"><span></span></span></label>` : ''}`;
+    const label = n => { go.disabled = !n; go.innerHTML = n ? `${icon('check')} ${n} importieren` : 'Alles schon vorhanden'; };
+    label(parsed.rows.length - dup);
+    const over = $('#bwiOver', m.el);
+    if (over) over.addEventListener('change', () => label(over.checked ? parsed.rows.length : parsed.rows.length - dup));
+  };
+  $('#bwiText', m.el).addEventListener('input', debounce(preview, 250));
+  $('#bwiFile', m.el).addEventListener('change', async e => {
+    const f = e.target.files[0]; if (!f) return;
+    $('#bwiText', m.el).value = await f.text();
+    preview();
+  });
+  m.el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    if (b.dataset.x === 'cancel') return m.close();
+    if (b.dataset.x !== 'go' || !parsed || !parsed.rows.length) return;
+    const over = !!($('#bwiOver', m.el) && $('#bwiOver', m.el).checked);
+    const byDate = new Map(Store.all('progress').filter(p => p.bodyWeightKg > 0).map(p => [p.date, p]));
+    const importId = autoId(), now = Date.now(), ops = [], created = [], overwritten = [];
+    for (const r of parsed.rows) {
+      const ex = byDate.get(r.date);
+      if (ex) {
+        if (!over || Math.abs(ex.bodyWeightKg - r.kg) < 1e-6) continue;
+        overwritten.push({ id: ex.id, bodyWeightKg: ex.bodyWeightKg });
+        ops.push({ type: 'put', coll: 'progress', id: ex.id, doc: { bodyWeightKg: r.kg, updatedAt: now } });
+      } else {
+        const id = autoId();
+        created.push(id);
+        ops.push({ type: 'put', coll: 'progress', id, replace: true, doc: { date: r.date, bodyWeightKg: r.kg, bodyFatPct: null, measurements: null, photoUrl: null, photoId: null, notes: '', importId, createdAt: now, updatedAt: now } });
+      }
+    }
+    if (!ops.length) { toast('Nichts Neues – alle Tage sind schon vorhanden', 'info'); return m.close(); }
+    go.disabled = true;
+    await Store.batch(ops);
+    Store.put('imports', importId, { source: 'weight-csv', importedAt: now, undoneAt: null, counts: { progress: created.length, overwritten: overwritten.length }, docIds: { workouts: [], exercises: [], progress: created }, overwritten }, { replace: true });
+    m.close();
+    toast(`${created.length} Gewichtswerte importiert${overwritten.length ? `, ${overwritten.length} überschrieben` : ''}`, 'success', { duration: 4500 });
+  });
 };
 Actions.bodyCfg = () => Modal.open({ title: 'Körper-Tab anpassen', size: 'sm', body: `<p class="small dim">Das Gewicht ist immer da. Schalte zusätzlich ein, was du erfassen willst – vorhandene Daten bleiben erhalten.</p>
   <div class="list mt-12">${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}</div>` });
@@ -8628,8 +8752,9 @@ Views.more = {
 
       <div class="section-head"><h4>Daten</h4></div>
       ${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
-      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts)</span></button>` : ''}
+      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${lastImport.source === 'weight-csv' ? `${((lastImport.docIds || {}).progress || []).length + ((lastImport.overwritten || []).length)} Gewichtswerte` : `${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts`})</span></button>` : ''}
       <div class="list mt-12">
+        ${navRow('bwImport', 'scale', 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App')}
         ${navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel')}
         ${navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report')}
         ${navRow('backupJSON', 'download', 'Backup JSON', 'Komplettes Backup aller Daten')}
@@ -8951,11 +9076,12 @@ Actions.undoImport = async () => {
   const usedElsewhere = new Set(Store.all('workouts').filter(w => !wSet.has(w.id)).flatMap(w => (w.entries || []).map(e => e.exerciseId)));
   const usedInPlans = new Set(Store.all('templates').flatMap(t => (t.exercises || []).map(x => x.exerciseId)));
   const eIds = (ids.exercises || []).filter(id => Store.raw('exercises', id) && !usedElsewhere.has(id) && !usedInPlans.has(id));
-  if (!await confirmDialog({ title: 'Import rückgängig machen?', text: `Entfernt ${wIds.length} Workouts, ${eIds.length} neu angelegte Übungen und ${pIds.length} Körper-Einträge aus dem Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}.`, okLabel: 'Rückgängig machen', danger: true })) return;
+  if (!await confirmDialog({ title: 'Import rückgängig machen?', text: imp.source === 'weight-csv' ? `Entfernt ${pIds.length} importierte Gewichtswerte${(imp.overwritten || []).length ? ` und stellt ${imp.overwritten.length} überschriebene wieder her` : ''} (Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}).` : `Entfernt ${wIds.length} Workouts, ${eIds.length} neu angelegte Übungen und ${pIds.length} Körper-Einträge aus dem Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}.`, okLabel: 'Rückgängig machen', danger: true })) return;
   const ops = [
     ...wIds.map(id => ({ type: 'del', coll: 'workouts', id })),
     ...pIds.map(id => ({ type: 'del', coll: 'progress', id })),
     ...eIds.map(id => ({ type: 'del', coll: 'exercises', id })),
+    ...(imp.overwritten || []).filter(o => Store.raw('progress', o.id)).map(o => ({ type: 'put', coll: 'progress', id: o.id, doc: { bodyWeightKg: o.bodyWeightKg, updatedAt: Date.now() } })),
     { type: 'put', coll: 'imports', id: imp.id, doc: { undoneAt: Date.now() } }
   ];
   await Store.batch(ops);

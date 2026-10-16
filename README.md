@@ -150,6 +150,10 @@ Workout öffnen (z. B. unter „Letzte Workouts") → **Bearbeiten**:
 
 Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
 Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
+**Gewicht importieren:** Körper-Tab → „CSV importieren" (oder Mehr → Daten → Gewicht importieren). Funktioniert
+mit CSV-Exporten aus Waagen-/Gewichts-Apps wie Better Weight, Withings oder Libra – Datum- und Gewichtsspalte
+werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau mit Zeitraum, vorhandene Tage
+werden übersprungen oder auf Wunsch überschrieben; „Letzten Import rückgängig machen" nimmt alles wieder zurück.
 Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Körper-Tab** (oder im Körper-Tab über
 „Anzeige anpassen") einschalten – vorhandene Daten bleiben erhalten.
 
