@@ -1085,7 +1085,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 /* Übungs-Bibliothek */
 .ex-list { display: grid; grid-template-columns: 1fr; gap: 8px; }
 /* Grid-Kinder dürfen schrumpfen – sonst sprengt Text mit nowrap/ellipsis die Spalte */
-.ex-list > *, .charts-grid > *, .stat-grid > *, .grid-2 > *, .grid-3 > *, .pr-grid > *, .big3 > *, .form-grid > *, .measure-grid > * { min-width: 0; }
+.ex-list > *, .charts-grid > *, .stat-grid > *, .grid-2 > *, .grid-3 > *, .pr-grid > *, .form-grid > *, .measure-grid > * { min-width: 0; }
 @media (min-width: 720px) { .ex-list { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1100px) { .ex-list { grid-template-columns: repeat(3, 1fr); } }
 .ex-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); text-align: left; width: 100%; color: var(--text); min-height: 64px; box-shadow: var(--card-shadow); }
@@ -1139,14 +1139,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .legend i { display: inline-block; width: 10px; height: 10px; border-radius: calc(3px * var(--rs)); margin-right: 6px; vertical-align: -1px; }
 .legend button { background: none; border: 0; padding: 4px 0; color: var(--text-dim); font-size: calc(12px * var(--fs)); display: inline-flex; align-items: center; min-height: 28px; }
 .legend button.off { opacity: .4; text-decoration: line-through; }
-.big3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
-.big3 > div { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px; min-width: 0; }
-.big3 span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
-.big3 b { display: block; font-size: calc(20px * var(--fs)); font-weight: var(--fw-x); }
 .spark { width: 100%; height: 30px; display: block; margin-top: 4px; }
 .minibars { display: flex; align-items: flex-end; gap: 3px; height: 46px; margin-top: 8px; }
 .minibars i { flex: 1; background: var(--accent); border-radius: calc(3px * var(--rs)) calc(3px * var(--rs)) 0 0; min-height: 2px; opacity: .85; display: block; }
 .minibars i.zero { background: var(--surface-3); }
+.minibars i.run { opacity: .35; }
+.cmp-tbl td, .cmp-tbl th { padding: 8px 4px; }
+.cmp-tbl td:first-child { color: var(--text-dim); }
+.cmp-tbl th { text-transform: none; letter-spacing: 0; font-size: calc(12px * var(--fs)); }
+.cmp-tbl .delta { margin-left: 0; font-size: calc(12px * var(--fs)); }
 .heat7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
 .heat7 button { aspect-ratio: 1; border-radius: calc(10px * var(--rs)); border: 0; background: var(--surface-2); color: var(--text-dim); font-size: calc(11px * var(--fs)); font-weight: var(--fw-b); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; position: relative; }
 .heat7 button.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
@@ -1154,9 +1155,6 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .gh-heat svg { display: block; }
 .gh-legend { display: flex; align-items: center; gap: 4px; justify-content: flex-end; font-size: calc(11px * var(--fs)); color: var(--text-faint); margin-top: 6px; }
 .gh-legend i { width: 11px; height: 11px; border-radius: calc(3px * var(--rs)); display: inline-block; }
-.score-ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
-.score-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-.score-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(22px * var(--fs)); font-weight: var(--fw-x); }
 .ampel { display: grid; grid-template-columns: 1fr auto; gap: 0; }
 .ampel-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: var(--bw) solid var(--border); font-size: calc(14px * var(--fs)); }
 .ampel-row:last-child { border-bottom: 0; }
@@ -1286,8 +1284,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 /* Gemeinsame Typografie über Tokens */
 h1, h2, h3, .topbar-title, .hello h1 { font-family: var(--font-display); }
 h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(--title-spacing); }
-.stat .stat-value, .chart-card .cc-big b, .pr-box b, .big3 b, .wo-timer, .rest-dock .rest-time, .rest-ring .ring-txt b,
-.set-in, .stepper input, .score-ring b, .fc-big input { font-family: var(--font-num); }
+.stat .stat-value, .chart-card .cc-big b, .pr-box b, .wo-timer, .rest-dock .rest-time, .rest-ring .ring-txt b,
+.set-in, .stepper input, .fc-big input { font-family: var(--font-num); }
 
 /* ---------- Liquid Glass ---------- */
 [data-design="glass"] body { background: transparent; letter-spacing: -.003em; }
@@ -1458,7 +1456,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="soft"] .set-row.done .set-check { box-shadow: inset 2px 2px 6px rgba(0, 0, 0, .2); }
 [data-design="soft"] .set-row.done .set-in, [data-design="soft"] .set-row.done .set-rpe { box-shadow: none; }
 [data-design="soft"] .set-num { box-shadow: 2px 2px 5px var(--sh-lo), -2px -2px 5px var(--sh-hi); background: var(--surface); }
-[data-design="soft"] :is(.pr-box, .big3 > div, .badge-tile, .mini-wo .date-box, .heat7 button, .hint-chip) { background: var(--surface); box-shadow: inset 2px 2px 6px var(--sh-lo), inset -2px -2px 6px var(--sh-hi); }
+[data-design="soft"] :is(.pr-box, .badge-tile, .mini-wo .date-box, .heat7 button, .hint-chip) { background: var(--surface); box-shadow: inset 2px 2px 6px var(--sh-lo), inset -2px -2px 6px var(--sh-hi); }
 [data-design="soft"] .badge-tile.got { background: var(--surface); box-shadow: 4px 4px 10px var(--sh-lo), -4px -4px 10px var(--sh-hi); border-color: transparent; }
 [data-design="soft"] .topbar { background: color-mix(in srgb, var(--bg) 90%, transparent); }
 [data-design="soft"] .topbar.scrolled { border-bottom-color: transparent; box-shadow: 0 6px 14px var(--sh-lo); }
@@ -1743,7 +1741,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.8.2',
+  version: '1.9.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -3010,7 +3008,7 @@ const UI = (() => {
   return Object.assign({
     tab: 'start', trainSub: 'plans', progSub: 'overview', period: '3m', customFrom: null, customTo: null,
     exCat: 'all', exEq: 'all', exSort: 'az', kraftEx: 'ex_bankdruecken', volScope: 'total', volEx: 'ex_bankdruecken',
-    volMuscle: 'Brust', muscleSel: 'Brust', targetW: {}, calMonth: null, exChart: 'e1rm'
+    volMuscle: 'Brust', muscleSel: 'Brust', kraftScope: 'total', kraftMuscle: 'Brust', calMonth: null, exChart: 'e1rm'
   }, s, { exQ: '' });
 })();
 const saveUI = debounce(() => { try { localStorage.setItem(LS.ui, JSON.stringify(UI)); } catch (e) {} }, 250);
@@ -3175,7 +3173,7 @@ function fx(el, cls) {
   (el.length != null && !el.tagName ? Array.from(el) : [el]).forEach(n => { n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); n.addEventListener('animationend', function done(ev) { if (ev.target === n) { n.classList.remove(cls); n.removeEventListener('animationend', done); } }); });
 }
 /* Ansicht wechseln (Segment, Chips, Unter-Tabs): Inhalt unter dem Schalter sanft einblenden */
-const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'histMore', 'setSeg']);
+const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'kraftScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'histMore', 'setSeg']);
 function fxSwap(act, v) {
   const sel = `[data-act="${act}"]${v != null ? `[data-v="${CSS.escape(v)}"]` : ''}`;
   let n = $(`#view ${sel}`);
@@ -7017,6 +7015,34 @@ const yAuto = (suffix = '') => function (v, i, ticks) {
   const step = ticks && ticks.length > 1 ? Math.abs(ticks[1].value - ticks[0].value) : 1;
   return nf(v, step >= 1 ? 0 : step >= 0.1 ? 1 : 2) + suffix;
 };
+/** Start/Ende der Achse liegen oft dicht neben dem nächsten „runden" Tick – dann überlappen die Datumsangaben (z. B. „25.09.13.10.") */
+function dropCrowdedTicks(ax) {
+  const t = ax.ticks;
+  if (t.length < 4) return;
+  const step = t[2].value - t[1].value;
+  if (t[t.length - 1].value - t[t.length - 2].value < step * .6) t.splice(t.length - 2, 1);
+  if (t[1].value - t[0].value < step * .6) t.splice(1, 1);
+}
+/** Index der laufenden Woche in einer Wochen-Liste (oder -1) */
+const runIdx = weeks => weeks.indexOf(weekStartDN(todayDN()));
+/** Durchschnitt ohne die laufende (unvollständige) Woche */
+const avgDone = (vals, ri) => avg(vals.filter((_, i) => i !== ri));
+/** Laufende Woche/Monat: Balken blass, Linien zum letzten Punkt gestrichelt – kein scheinbarer Absturz */
+function markRunning(datasets, ri) {
+  for (const d of datasets) {
+    if (d.isAvg) continue;
+    if (d.type === 'line') {
+      const col = d.borderColor;
+      d.segment = { borderDash: ctx => ctx.p1DataIndex === ri ? [4, 4] : undefined };
+      d.pointBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col, .35) : col);
+    } else {
+      const col = j => Array.isArray(d.backgroundColor) ? d.backgroundColor[j] : d.backgroundColor;
+      const bg = d.data.map((_, j) => j === ri ? alpha(col(j), .35) : col(j));
+      d.hoverBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col(j), .45) : alpha(col(j), .8));
+      d.backgroundColor = bg;
+    }
+  }
+}
 /** Zeitreihe mit linearer X-Achse (Tag-Nummern) – kein Datums-Adapter nötig */
 function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend = false, yMin, yMax, thresholds, xMax } = {}) {
   // Nur ein Zeitpunkt: Achse um ±7 Tage aufspannen statt unlesbarer Ticks
@@ -7030,7 +7056,7 @@ function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend
     options: {
       interaction: { mode: 'nearest', axis: 'x', intersect: false },
       scales: {
-        x: { type: 'linear', bounds: 'data', grid: { display: false }, border: { display: false }, min: xMin, max: xMax, ticks: { maxTicksLimit: 5, maxRotation: 0, callback: dnTick } },
+        x: { type: 'linear', bounds: 'data', grid: { display: false }, border: { display: false }, min: xMin, max: xMax, ticks: { maxTicksLimit: 5, maxRotation: 0, callback: dnTick }, afterBuildTicks: dropCrowdedTicks },
         y: { grid: { color: chartColors().grid }, border: { display: false }, min: yMin, max: yMax, ticks: { maxTicksLimit: 5, callback: yFmt } }
       },
       plugins: {
@@ -7046,9 +7072,13 @@ function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend
     }
   };
 }
-function barChart(labels, datasets, { yFmt = v => nf(v, 0), tooltipFmt, horizontal = false, stacked = false, legend = false, thresholds, xMax } = {}) {
+function barChart(labels, datasets, { yFmt, tooltipFmt, horizontal = false, stacked = false, legend = false, thresholds, xMax, running = -1, runLabel = 'läuft noch' } = {}) {
+  // Ohne eigenes Format sind es Zählwerte – dann nur ganze Zahlen als Achsen-Ticks (nicht „1, 1, 2, 2")
+  const intTicks = !yFmt;
+  yFmt = yFmt || (v => nf(v, 0));
   const valAxis = horizontal ? 'x' : 'y';
   const catAxis = horizontal ? 'y' : 'x';
+  if (running >= 0) markRunning(datasets, running);
   return {
     type: 'bar',
     data: { labels, datasets },
@@ -7059,12 +7089,14 @@ function barChart(labels, datasets, { yFmt = v => nf(v, 0), tooltipFmt, horizont
       interaction: { mode: 'index', intersect: false },
       scales: {
         [catAxis]: { stacked, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: horizontal ? 20 : 8 } },
-        [valAxis]: { stacked, beginAtZero: true, max: xMax, grid: { color: chartColors().grid }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: yFmt } }
+        [valAxis]: { stacked, beginAtZero: true, max: xMax, grid: { color: chartColors().grid }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: yFmt, precision: intTicks ? 0 : undefined } }
       },
       plugins: {
         legend: { display: legend, position: 'bottom' },
         thresholds: thresholds || {},
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${tooltipFmt ? tooltipFmt(ctx.parsed[valAxis], ctx) : nf(ctx.parsed[valAxis], 1)}` } }
+        tooltip: { callbacks: {
+          title: items => items.length ? `${items[0].label}${items[0].dataIndex === running ? ` · ${runLabel}` : ''}` : '',
+          label: ctx => `${ctx.dataset.label}: ${tooltipFmt ? tooltipFmt(ctx.parsed[valAxis], ctx) : nf(ctx.parsed[valAxis], 1)}` } }
       }
     }
   };
@@ -7136,10 +7168,6 @@ function sparkline(vals, color) {
   const mn = Math.min(...vals), mx = Math.max(...vals), span = mx - mn || 1;
   const pts = vals.map((v, i) => `${(i / (vals.length - 1) * 100).toFixed(2)},${(28 - (v - mn) / span * 24).toFixed(2)}`).join(' ');
   return `<svg class="spark" viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/></svg>`;
-}
-function scoreRing(v, color) {
-  const R = 36, L = 2 * Math.PI * R;
-  return `<div class="score-ring"><svg viewBox="0 0 84 84"><circle cx="42" cy="42" r="${R}" fill="none" stroke="var(--surface-3)" stroke-width="8"/><circle cx="42" cy="42" r="${R}" fill="none" stroke="${color}" stroke-width="8" stroke-linecap="round" stroke-dasharray="${L}" stroke-dashoffset="${L * (1 - clamp(v, 0, 100) / 100)}"/></svg><b>${Math.round(v)}</b></div>`;
 }
 const heatColor = lv => lv <= 0 ? 'var(--surface-2)' : `color-mix(in srgb, var(--accent) ${[0, 28, 50, 75, 100][clamp(lv, 0, 4)]}%, var(--surface-2))`;
 
@@ -7276,8 +7304,25 @@ ProgressViews.overview = body => {
   const t = todayDN();
   const st = Analytics.streak();
   const cw = weekStartDN(t);
-  const volNow = Analytics.volumeBetween(cw, t), volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + (t - cw));
-  // 12-Wochen-Minibars
+  // Wochen-/Monatsvergleich: jeweils bis zum gleichen Tag der Vorperiode, damit die Hälfte der Woche nicht wie ein Einbruch aussieht
+  const statsIn = (a, b) => { const rs = ix.rows.filter(r => r.dn >= a && r.dn <= b); return { n: rs.length, sets: sum(rs.map(r => r.sets)), ton: sum(rs.map(r => r.ton)), prs: ix.prEvents.filter(p => p.dn >= a && p.dn <= b).length }; };
+  const wkNow = statsIn(cw, t), wkPrev = statsIn(cw - 7, cw - 7 + (t - cw)), wkFull = statsIn(cw - 7, cw - 1);
+  const nowD = new Date();
+  const ms = dayNum(`${nowD.getFullYear()}-${pad(nowD.getMonth() + 1)}-01`);
+  const pmD = new Date(nowD.getFullYear(), nowD.getMonth() - 1, 1);
+  const pms = dayNum(`${pmD.getFullYear()}-${pad(pmD.getMonth() + 1)}-01`);
+  const moNow = statsIn(ms, t), moPrev = statsIn(pms, Math.min(ms - 1, pms + (t - ms))), moFull = statsIn(pms, ms - 1);
+  const bwAvg = (a, b) => { const v = Analytics.bwSeries().filter(p => p.dn >= a && p.dn <= b); return v.length ? avg(v.map(p => p.kg)) : null; };
+  const bwNow = bwAvg(ms, t), bwPrev = bwAvg(pms, ms - 1);
+  const cmpRows = (a, b) => [
+    ['Workouts', nf(a.n, 0), nf(b.n, 0), deltaHtml(a.n, b.n, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) })],
+    ['Sätze', nf(a.sets, 0), nf(b.sets, 0), deltaHtml(a.sets, b.sets)],
+    ['Volumen', fmtTon(a.ton), fmtTon(b.ton), deltaHtml(a.ton, b.ton)],
+    ['PRs', nf(a.prs, 0), nf(b.prs, 0), deltaHtml(a.prs, b.prs, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) })]
+  ];
+  const wdName = WD_SHORT[dowOfDN(t)];
+  const monthName = d => d.toLocaleDateString('de-DE', { month: 'long' });
+  // 12-Wochen-Minibars (laufende Woche blass, Ø nur aus abgeschlossenen Wochen)
   const weeks12 = Array.from({ length: 12 }, (_, i) => cw - (11 - i) * 7);
   const wCounts = weeks12.map(w => ix.rows.filter(r => r.dn >= w && r.dn < w + 7).length);
   const mxW = Math.max(1, ...wCounts);
@@ -7290,17 +7335,7 @@ ProgressViews.overview = body => {
   const avg6 = avg(prev6);
   const monthFrac = now.getDate() / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const expected = avg6 * monthFrac;
-  // Konsistenz
   const goal = weeklyTarget();
-  const last28 = ix.rows.filter(r => r.dn > t - 28 && !r.cardioOnly).length;
-  const consistency = Math.min(100, last28 / (goal * 4) * 100);
-  // Big 3
-  const big3 = BIG3.map(b => {
-    const ss = b.ids.flatMap(id => ix.sessions[id] || []).sort((a, z) => a.dn - z.dn);
-    const recent = ss.filter(s => s.dn > t - 90);
-    const val = recent.length ? maxOf(recent, s => s.best) : (ss.length ? maxOf(ss, s => s.best) : null);
-    return { ...b, val, old: !recent.length && ss.length, spark: recent.map(s => toU(s.best)) };
-  });
   // P/P/L letzte 4 Wochen
   const r4 = ix.rows.filter(r => r.dn > t - 28);
   const catSum = k => sum(r4.map(r => r.cats[k] || 0));
@@ -7326,13 +7361,12 @@ ProgressViews.overview = body => {
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Workouts gesamt</span>${infoBtn('Alle gespeicherten Workouts. Balken = Workouts pro Woche der letzten 12 Wochen.')}</div>
-        <div class="cc-big"><b>${ix.rows.length}</b><small>Ø ${nf(avg(wCounts), 1)} / Woche (12 W)</small></div>
-        <div class="minibars" role="img" aria-label="Workouts pro Woche, letzte 12 Wochen">${wCounts.map((n, i) => `<i class="${n ? '' : 'zero'}" style="height:${Math.max(4, n / mxW * 100)}%" title="KW ${isoWeek(weeks12[i]).week}: ${n}"></i>`).join('')}</div>
+        <div class="cc-big"><b>${ix.rows.length}</b><small>Ø ${nf(avgDone(wCounts, 11), 1)} / Woche (11 W)</small></div>
+        <div class="minibars" role="img" aria-label="Workouts pro Woche, letzte 12 Wochen">${wCounts.map((n, i) => `<i class="${n ? '' : 'zero'}${i === 11 ? ' run' : ''}" style="height:${Math.max(4, n / mxW * 100)}%" title="KW ${isoWeek(weeks12[i]).week}: ${n}${i === 11 ? ' (läuft noch)' : ''}"></i>`).join('')}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Volumen diese Woche</span>${infoBtn('Tonnage = Σ Wiederholungen × Gewicht aller erledigten Arbeitssätze. Verglichen mit der Vorwoche bis zum gleichen Wochentag.')}</div>
-        <div class="cc-big"><b>${fmtTon(volNow)}</b>${deltaHtml(volNow, volPrev)}</div>
-        <div class="cc-sub">Vorwoche bis heute: ${fmtTon(volPrev)} · gesamt: ${fmtTon(Analytics.volumeBetween(cw - 7, cw - 1))}</div>
+        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn(`Diese Woche bis heute im Vergleich zur Vorwoche bis zum gleichen Wochentag (${wdName}) – so ist der Vergleich fair, auch mitten in der Woche. Volumen = Σ Wiederholungen × Gewicht aller erledigten Arbeitssätze.`)}</div>
+        ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev), `Vorwoche bis ${wdName} · ganze Vorwoche: ${wkFull.n} Workouts, ${fmtTon(wkFull.ton)}`)}
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Unterschiedliche Tage mit Training im aktuellen Monat. Verglichen wird mit dem anteiligen Durchschnitt der letzten 6 Monate bis zum heutigen Tag.')}</div>
@@ -7340,14 +7374,9 @@ ProgressViews.overview = body => {
         <div class="cc-sub">Soll bis heute (anteilig): ${nf(expected, 1)} Tage · Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Konsistenz-Score</span>${infoBtn(`Workouts der letzten 4 Wochen geteilt durch geplante Workouts (Wochenziel ${goal} × 4) × 100, maximal 100. Wochenziel unter Mehr → Training änderbar.`)}</div>
-        <div class="row mt-8" style="gap:16px">${scoreRing(consistency, consistency >= 75 ? c.success : consistency >= 50 ? c.warning : c.danger)}
-          <div><div class="bold">${consistency >= 90 ? 'Hervorragend' : consistency >= 75 ? 'Sehr konstant' : consistency >= 50 ? 'Ausbaufähig' : 'Dranbleiben!'}</div><div class="small dim">${last28} von ${goal * 4} geplanten Workouts in 4 Wochen</div></div></div>
-      </div>
-      <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Big 3 – geschätztes 1RM</span>${infoBtn('Bestes geschätztes 1RM (Epley) der letzten 90 Tage für Bankdrücken, Kniebeuge und Kreuzheben. Linie = Verlauf der Sessions.')}</div>
-        <div class="big3">${big3.map(b => `<div><span>${b.label}</span><b>${b.val ? wNum(b.val, 0) : '–'}<small class="dim" style="font-size:12px"> ${b.val ? unit() : ''}</small></b>${b.old ? '<span class="tiny faint">älter als 90 T.</span>' : sparkline(b.spark, c.accent)}</div>`).join('')}</div>
-        <div class="cc-sub mt-8">Total: <b>${big3.every(b => b.val) ? fmtW(sum(big3.map(b => b.val)), 0) : '–'}</b></div>
+        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} bis heute im Vergleich zum ${monthName(pmD)} bis zum gleichen Tag. Körpergewicht: Durchschnitt aller Einträge im ganzen Monat.`)}</div>
+        ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
+          `${monthName(pmD)} bis zum ${nowD.getDate()}. · ganzer Monat: ${moFull.n} Workouts, ${fmtTon(moFull.ton)}`)}
       </div>
       ${cb.card({
         id: 'ppl', title: 'Push / Pull / Legs Balance', info: 'Verteilung deiner Arbeitssätze nach Kategorie in den letzten 4 Wochen. „Andere" = Core, Cardio, Full Body.',
@@ -7375,7 +7404,7 @@ ProgressViews.overview = body => {
         ${ghHeatmap(ix)}
       </div>
     </div>
-    ${F('f_moreStats') ? `<div class="section-head"><h2>Mehr Stats</h2><button class="btn btn-sm btn-secondary" data-act="toggleMoreStats">${UI.moreStats ? 'Ausblenden' : 'Anzeigen'}</button></div>
+    ${F('f_moreStats') ? `<div class="section-head"><h2>Mehr Stats</h2></div>
     <div id="moreStats"></div>` : ''}
     ${F('f_badges') ? `<div class="section-head"><h2>Meilensteine</h2></div>
     ${badgesHtml(ix)}` : ''}`;
@@ -7383,9 +7412,14 @@ ProgressViews.overview = body => {
   // Heatmap zeigt beim Öffnen die aktuellsten Wochen (rechts), ältere per Wischen
   const gh = $('#ghHeat', body);
   if (gh) requestAnimationFrame(() => { gh.scrollLeft = gh.scrollWidth; });
-  if (UI.moreStats && $('#moreStats', body)) renderMoreStats($('#moreStats', body));
+  if ($('#moreStats', body)) renderMoreStats($('#moreStats', body));
 };
-Actions.toggleMoreStats = () => { UI.moreStats = !UI.moreStats; saveUI(); App.renderCurrent(); };
+/** Kleine Vergleichstabelle (jetzt vs. vorher) für Wochen- und Monatsvergleich */
+function cmpTable([colA, colB], rows, foot = '') {
+  return `<table class="tbl cmp-tbl mt-8"><thead><tr><th></th><th class="r">${esc(colA)}</th><th class="r">${esc(colB)}</th><th></th></tr></thead>
+    <tbody>${rows.map(([l, a, b, d]) => `<tr><td>${l}</td><td class="r"><b>${a}</b></td><td class="r dim">${b}</td><td class="r">${d || ''}</td></tr>`).join('')}</tbody></table>
+    ${foot ? `<div class="cc-sub mt-8">${foot}</div>` : ''}`;
+}
 
 function nextPRAttack(ix) {
   const t = todayDN();
@@ -7449,23 +7483,13 @@ function renderMoreStats(el) {
   const c = chartColors();
   const t = todayDN();
   const cb = chartBuilder();
-  // Tageszeit
-  const tod = [0, 0, 0, 0, 0];
-  for (const w of rows) if (w.startedAt && !w.imp) {
-    const h = new Date(w.startedAt).getHours();
-    tod[h >= 5 && h < 10 ? 0 : h >= 10 && h < 14 ? 1 : h >= 14 && h < 18 ? 2 : h >= 18 ? 3 : 4]++;
-  }
   // Lieblings-Übungen
   const countEx = rs => { const m = {}; rs.forEach(w => w.ex.forEach(id => { m[id] = (m[id] || 0) + 1; })); return Object.entries(m).sort((a, b) => b[1] - a[1]); };
   const favAll = countEx(ix.rows)[0], favPer = countEx(rows)[0];
-  // Verwaist
-  const orphans = Object.entries(ix.sessions).filter(([, ss]) => ss.length >= 4 && t - ss[ss.length - 1].dn > 60).sort((a, b) => b[1].length - a[1].length);
   // Dauer-Histogramm
   const bins = [[0, 30, '< 30'], [30, 45, '30–45'], [45, 60, '45–60'], [60, 75, '60–75'], [75, 90, '75–90'], [90, 120, '90–120'], [120, 1e9, '120+']];
   const durs = rows.filter(w => w.dur > 60 && !w.estDur).map(w => w.dur / 60);
-  // Komplett-Rate
-  const planned = sum(rows.map(w => w.planned)), done = sum(rows.map(w => w.done));
-  // PRs pro Monat (12 Monate)
+  // PRs pro Monat (12 Monate, der laufende zuletzt)
   const now = new Date();
   const months12 = Array.from({ length: 12 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1); return `${d.getFullYear()}-${pad(d.getMonth() + 1)}`; });
   const prMonth = months12.map(k => ix.prEvents.filter(p => p.date.startsWith(k)).length);
@@ -7490,31 +7514,17 @@ function renderMoreStats(el) {
   const ampelColor = { green: c.success, yellow: c.warning, red: c.danger };
   const ampelText = { green: 'Fortschritt', yellow: 'Stagnation', red: 'Rückschritt' };
   el.innerHTML = `<div class="charts-grid">
-    ${cb.card({ id: 'tod', title: 'Beste Tageszeit', info: 'Wann startest du deine Workouts? Importierte Workouts ohne echte Uhrzeit werden ignoriert.', size: 'sm',
-      factory: () => sum(tod) ? donut(['Morgens 5–10', 'Vormittag 10–14', 'Nachmittag 14–18', 'Abend 18–24', 'Nacht 0–5'], tod, [c.series[3], c.series[0], c.series[2], c.series[6], c.faint], { tooltipFmt: v => `${v} Workouts` }) : null })}
     <div class="chart-card">
       <div class="cc-head"><span class="cc-title">${icon('heart', 'cc-ic')} Lieblings-Übung</span>${infoBtn('Übung mit den meisten Sessions – insgesamt und im gewählten Zeitraum.')}</div>
       <div class="ratio-row"><span class="grow">Insgesamt</span><b>${favAll ? esc(Ex.name(favAll[0])) : '–'}</b><span class="dim small">${favAll ? favAll[1] + '×' : ''}</span></div>
       <div class="ratio-row"><span class="grow">Im Zeitraum</span><b>${favPer ? esc(Ex.name(favPer[0])) : '–'}</b><span class="dim small">${favPer ? favPer[1] + '×' : ''}</span></div>
     </div>
-    <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">${icon('history', 'cc-ic')} Verwaiste Übungen</span>${infoBtn('Übungen, die du früher regelmäßig (≥ 4×) gemacht hast, aber seit über 60 Tagen nicht mehr.')}</div>
-      ${orphans.length ? orphans.slice(0, 6).map(([id, ss]) => `<button class="ratio-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;text-align:left" data-act="openExercise" data-id="${esc(id)}"><span class="grow">${esc(Ex.name(id))}</span><span class="dim small">${ss.length}× · ${relDays(ss[ss.length - 1].dn)}</span></button>`).join('') : '<p class="dim small mt-8">Keine – du bleibst deinen Übungen treu.</p>'}
-    </div>
     ${cb.card({ id: 'durh', title: 'Workout-Dauer', info: 'Verteilung der Workout-Dauer im Zeitraum (Minuten).', big: durs.length ? nf(avg(durs), 0) : '–', small: 'min Ø',
       factory: () => durs.length ? barChart(bins.map(b => b[2]), [barDS('Workouts', bins.map(([a, z]) => durs.filter(d => d >= a && d < z).length), c.accent)], { tooltipFmt: v => `${v} Workouts` }) : null })}
     ${cb.card({ id: 'setsw', title: 'Sätze pro Workout', info: 'Anzahl erledigter Arbeitssätze je Workout.', big: rows.length ? nf(avg(rows.map(w => w.sets)), 1) : '–', small: 'Ø',
       factory: () => rows.length > 1 ? timeLine([lineDS('Sätze', rows.map(w => ({ x: w.dn, y: w.sets })), c.accent)], { tooltipFmt: v => nf(v, 0) }) : null })}
-    ${cb.card({ id: 'rpew', title: 'Ø RPE pro Workout', info: 'Durchschnittliche Anstrengung (RPE 6–10) deiner Sätze je Workout – nur wenn RPE getrackt wurde.', big: rows.some(w => w.avgRpe) ? nf(avg(rows.filter(w => w.avgRpe).map(w => w.avgRpe)), 1) : '–',
-      factory: () => { const d = rows.filter(w => w.avgRpe).map(w => ({ x: w.dn, y: round(w.avgRpe, 2) })); return d.length > 1 ? timeLine([lineDS('Ø RPE', d, c.accent)], { yMin: 5, yMax: 10, yFmt: v => nf(v, 1) }) : null; } })}
-    ${cb.card({ id: 'rpevol', title: 'RPE-Volumen', info: 'Adjustierte Tonnage: Σ (Wdh. × Gewicht × RPE/10). Berücksichtigt, wie hart die Sätze waren.',
-      factory: () => { const d = rows.filter(w => w.rpeVol > 0).map(w => ({ x: w.dn, y: toU(w.rpeVol) })); return d.length > 1 ? timeLine([lineDS('RPE-Volumen', d, c.accent)], { tooltipFmt: v => fmtTon(fromU(v)) }) : null; } })}
-    <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">${icon('checkCircle', 'cc-ic')} Komplett-Rate</span>${infoBtn('Anteil der geplanten Sätze, die als erledigt abgehakt wurden (im Zeitraum).')}</div>
-      <div class="row mt-8" style="gap:16px">${scoreRing(planned ? done / planned * 100 : 0, c.accent)}<div class="small dim">${done} von ${planned} Sätzen erledigt</div></div>
-    </div>
-    ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Anzahl neuer e1RM-Bestwerte pro Monat (letzte 12 Monate).', big: sum(prMonth), small: 'PRs in 12 Monaten',
-      factory: () => barChart(months12.map(k => MONTHS[+k.slice(5) - 1]), [barDS('PRs', prMonth, c.accent)], { tooltipFmt: v => `${v} PRs` }) })}
+    ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Anzahl neuer e1RM-Bestwerte pro Monat (letzte 12 Monate). Der laufende Monat ist blass.', big: sum(prMonth), small: 'PRs in 12 Monaten',
+      factory: () => barChart(months12.map(k => MONTHS[+k.slice(5) - 1]), [barDS('PRs', prMonth, c.accent)], { tooltipFmt: v => `${v} PRs`, running: 11 }) })}
     <div class="chart-card">
       <div class="cc-head"><span class="cc-title">${icon('trophy', 'cc-ic')} Rekord-Workout</span>${infoBtn('Deine Session mit der höchsten Tonnage aller Zeiten.')}</div>
       ${rec ? `<div class="cc-big"><b>${fmtTon(rec.ton)}</b></div><div class="cc-sub">${esc(rec.name)} · ${fmtDate(rec.date)}</div><button class="btn btn-secondary btn-sm mt-12" data-act="openWorkout" data-id="${esc(rec.id)}">Öffnen</button>` : '–'}
@@ -7601,23 +7611,29 @@ const BENCHMARKS = {
   ex_bankdruecken: [1.0, 1.5, 2.0], ex_kniebeuge: [1.25, 1.75, 2.5], ex_kniebeuge_lowbar: [1.25, 1.75, 2.5],
   ex_kreuzheben: [1.5, 2.0, 2.75], ex_sumo_kreuzheben: [1.5, 2.0, 2.75], ex_military_press: [0.6, 0.85, 1.1], ex_ohp_kh: [0.6, 0.85, 1.1]
 };
-function wilksCoef(bw, sex) {
-  const m = [-216.0475144, 16.2606339, -0.002388645, -0.00113732, 7.01863e-6, -1.291e-8];
-  const f = [594.31747775582, -27.23842536447, 0.82112226871, -0.00930733913, 4.731582e-5, -9.054e-8];
-  const c = sex === 'f' ? f : m;
-  const x = sex === 'f' ? clamp(bw, 26.51, 154.53) : clamp(bw, 40, 201.9);
-  return 500 / (c[0] + c[1] * x + c[2] * x ** 2 + c[3] * x ** 3 + c[4] * x ** 4 + c[5] * x ** 5);
+/** Kraftzuwachs je Übung: bestes e1RM bis zum Tag ÷ erste Session im Zeitraum (mind. 3 Sessions im Zeitraum) */
+function strengthGains(ix, ids, r) {
+  return ids.map(id => {
+    const pts = (ix.sessions[id] || []).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
+    if (pts.length < 3) return null;
+    const base = pts[0].best;
+    let run = 0;
+    const series = pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, ratio: run / base }; });
+    return { id, base, best: run, gain: (run / base - 1) * 100, series, n: pts.length };
+  }).filter(Boolean);
 }
-/** Big-3-Total über Zeit: je Lift bestes e1RM der letzten 90 Tage */
-function big3TotalSeries(ix) {
-  const lifts = BIG3.map(b => b.ids.flatMap(id => ix.sessions[id] || []).sort((a, z) => a.dn - z.dn));
-  const dns = uniq(lifts.flat().map(s => s.dn)).sort((a, b) => a - b);
-  const out = [];
-  for (const dn of dns) {
-    const vals = lifts.map(ss => { const w = ss.filter(s => s.dn <= dn && s.dn > dn - 90); return w.length ? maxOf(w, s => s.best) : 0; });
-    if (vals.every(v => v > 0)) out.push({ dn, total: sum(vals), parts: vals });
-  }
-  return out;
+/** Kraft-Index (verkettet): Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten */
+function gainIndex(gains) {
+  const xs = uniq(gains.flatMap(g => g.series.map(p => p.x))).sort((a, b) => a - b);
+  let level = 1, prev = new Map();
+  return xs.map(x => {
+    const cur = new Map();
+    for (const g of gains) { let v = null; for (const p of g.series) { if (p.x <= x) v = p.ratio; else break; } if (v != null) cur.set(g.id, v); }
+    const ch = [...cur].filter(([id]) => prev.has(id)).map(([id, v]) => v / prev.get(id) - 1);
+    if (ch.length) level *= 1 + avg(ch);
+    prev = cur;
+    return { x, y: round((level - 1) * 100, 1), n: cur.size };
+  });
 }
 ProgressViews.strength = body => {
   const ix = Analytics.cur();
@@ -7627,42 +7643,89 @@ ProgressViews.strength = body => {
   const t = todayDN();
   const exIds = Object.keys(ix.sessions).filter(id => Ex.get(id) && Ex.type(Ex.get(id)) === 'kg').sort((a, b) => ix.sessions[b].length - ix.sessions[a].length);
   if (!exIds.length) { body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Kraftdaten', 'Trainiere eine Übung mit Gewicht, um hier deinen Kraftverlauf zu sehen.')}</div>`; return; }
+  const scope = ['total', 'exercise', 'muscle'].includes(UI.kraftScope) ? UI.kraftScope : 'total';
+  const musOpts = MUSCLES.filter(m => exIds.some(id => (Ex.get(id).muscleGroups || []).includes(m)));
+  const muscle = musOpts.includes(UI.kraftMuscle) ? UI.kraftMuscle : musOpts[0];
   const exId = ix.sessions[UI.kraftEx] && exIds.includes(UI.kraftEx) ? UI.kraftEx : exIds[0];
+  const big3Chips = BIG3.map(b => b.ids.find(id => ix.sessions[id])).filter(Boolean);
+  const cb = chartBuilder();
+  // Kraft im Vergleich: e1RM der meist-trainierten Übungen (der Auswahl), Start im Zeitraum = 100 %
+  const cmpCard = ids => {
+    const cmp = ids.map(id => ({ id, pts: ix.sessions[id].filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
+      .map((x, i) => { let run = 0; return { id: x.id, color: c.series[i], pts: x.pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, y: round(run / x.pts[0].best * 100, 1), label: `${nf(run / x.pts[0].best * 100, 0)} % (bestes e1RM ${fmtW(run)})` }; }) }; });
+    const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
+    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Bestes geschätztes 1RM bis zum jeweiligen Tag für deine meist-trainierten Übungen (mind. 3 Sessions im Zeitraum), bei der ersten Session im Zeitraum auf 100 % gesetzt. So siehst du auf einer Skala, welche Übung am schnellsten wächst.',
+      big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
+      factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null });
+  };
+  // Tage seit letztem PR (für eine Übung oder eine Auswahl)
+  const sincePRCard = (ids, firstDn) => {
+    const ev = ix.prEvents.filter(p => ids.includes(p.exId));
+    const last = ev[ev.length - 1];
+    const since = last ? t - last.dn : t - firstDn;
+    return `<div class="chart-card">
+        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Wird rot, wenn dein letzter Rekord ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'} mehr als 60 Tage zurückliegt – Zeit für einen neuen Reiz (Deload, andere Wiederholungsbereiche, Variation).`)}</div>
+        <div class="cc-big"><b style="font-size:46px;${since > 60 ? 'color:var(--danger)' : ''}">${since}</b><small>${since === 1 ? 'Tag' : 'Tage'}</small></div>
+        <div class="cc-sub">${last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 60 ? ' · ⚠ Zeit für einen neuen Reiz' : ''}</div>
+      </div>`;
+  };
+  const head = `
+    <div class="card mt-12">
+      <div class="seg">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="kraftScope" data-v="${k}">${l}</button>`).join('')}</div>
+      ${scope === 'exercise' ? `<select class="select mt-12" data-ch="kraftEx" aria-label="Übung">${exIds.map(id => `<option value="${esc(id)}" ${id === exId ? 'selected' : ''}>${esc(Ex.name(id))} (${ix.sessions[id].length}×)</option>`).join('')}</select>
+      ${big3Chips.length ? `<div class="chips mt-12">${big3Chips.map(id => `<button class="chip ${id === exId ? 'active' : ''}" data-act="kraftEx" data-v="${esc(id)}">${esc(BIG3.find(b => b.ids.includes(id)).label)}</button>`).join('')}</div>` : ''}` : ''}
+      ${scope === 'muscle' ? `<select class="select mt-12" data-ch="kraftMuscle" aria-label="Muskelgruppe">${musOpts.map(m => `<option ${m === muscle ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>` : ''}
+    </div>`;
+
+  /* ----- Gesamt / Pro Muskelgruppe: Prozent-Ansicht (kg verschiedener Übungen lassen sich nicht addieren) ----- */
+  if (scope !== 'exercise') {
+    const ids = scope === 'muscle' ? exIds.filter(id => (Ex.get(id).muscleGroups || []).includes(muscle)) : exIds;
+    const what = scope === 'muscle' ? `deiner ${muscle}-Übungen` : 'aller Übungen';
+    const gains = strengthGains(ix, ids, r);
+    const idxPts = gainIndex(gains);
+    const idxNow = idxPts.length ? idxPts[idxPts.length - 1].y : null;
+    const top = gains.slice().sort((a, b) => b.gain - a.gain).slice(0, 8);
+    const weeks = Analytics.weeksOf(r), ri = runIdx(weeks);
+    const prR = ix.prEvents.filter(p => ids.includes(p.exId) && p.dn >= r.from && p.dn <= r.to);
+    const prPrev = prv ? ix.prEvents.filter(p => ids.includes(p.exId) && p.dn >= prv.from && p.dn <= prv.to).length : null;
+    const prW = weeks.map(w => prR.filter(p => p.dn >= w && p.dn < w + 7));
+    const firstDn = Math.min(...ids.map(id => ix.sessions[id][0].dn));
+    body.innerHTML = `${head}
+    <div class="charts-grid">
+      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist – als Durchschnitt ${what} mit mind. 3 Sessions. Je Übung zählt das beste geschätzte 1RM bis zum jeweiligen Tag im Vergleich zur ersten Session im Zeitraum. Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten.`,
+        big: idxNow != null ? (idxNow >= 0 ? '+' : '') + nf(idxNow, 1) + ' %' : '–', small: gains.length ? `Ø aus ${gains.length} ${gains.length === 1 ? 'Übung' : 'Übungen'}` : 'mind. 3 Sessions je Übung nötig',
+        factory: () => idxPts.length > 1 ? timeLine([lineDS('Kraftzuwachs', idxPts.map(p => ({ x: p.x, y: p.y, label: `${p.y >= 0 ? '+' : ''}${nf(p.y, 1)} % (${p.n} Übungen)` })), c.accent)],
+          { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %', yMin: 0 }) : null })}
+      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum: bestes geschätztes 1RM im Vergleich zur ersten Session im Zeitraum (mind. 3 Sessions).`, size: top.length > 5 ? 'lg' : '',
+        big: top.length ? esc(Ex.name(top[0].id)) : '–', small: top.length ? `${top[0].gain >= 0 ? '+' : ''}${nf(top[0].gain, 0)} %` : 'mind. 3 Sessions je Übung nötig',
+        factory: () => top.length ? barChart(top.map(g => Ex.name(g.id)), [barDS('Zuwachs', top.map(g => round(g.gain, 1)), top.map(g => g.gain > 0.05 ? c.accent : c.faint))],
+          { horizontal: true, yFmt: v => nf(v, 0) + ' %', tooltipFmt: (v, ctx) => `${v >= 0 ? '+' : ''}${nf(v, 1)} % · ${fmtW(top[ctx.dataIndex].base)} → ${fmtW(top[ctx.dataIndex].best)}` }) : null })}
+      ${cmpCard(ids)}
+      ${cb.card({ id: 'kp', wide: true, title: 'PR-Timeline', info: `Neue Rekorde (geschätztes 1RM) ${what} pro Woche. Die laufende Woche ist blass.`,
+        big: prR.length, small: 'PRs im Zeitraum', delta: deltaHtml(prR.length, prPrev, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }), sub: prv ? prevLabel : '',
+        factory: () => prR.length ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [barDS('PRs', prW.map(x => x.length), c.accent)],
+          { running: ri, tooltipFmt: (v, ctx) => `${v}${prW[ctx.dataIndex].length ? ' · ' + uniq(prW[ctx.dataIndex].map(p => Ex.name(p.exId))).slice(0, 3).join(', ') : ''}` }) : null })}
+      ${sincePRCard(ids, firstDn)}
+    </div>`;
+    cb.mountAll();
+    return;
+  }
+
+  /* ----- Pro Übung: kg-Karten ----- */
   const ss = ix.sessions[exId];
   const inR = ss.filter(s => s.dn >= r.from && s.dn <= r.to);
   const inP = prv ? ss.filter(s => s.dn >= prv.from && s.dn <= prv.to) : [];
   const bestNow = inR.length ? maxOf(inR, s => s.best) : null;
   const bestPrev = inP.length ? maxOf(inP, s => s.best) : null;
   const prEv = ix.prEvents.filter(p => p.exId === exId);
-  const lastPR = prEv[prEv.length - 1];
-  const sincePR = lastPR ? t - lastPR.dn : t - ss[0].dn;
   // laufendes Bestes e1RM (für Intensität)
   let run = 0;
   const runBest = new Map();
   for (const s of ss) { run = Math.max(run, s.best); runBest.set(s, run); }
-  // Zielgewicht
-  const targetKg = UI.targetW[exId] != null ? UI.targetW[exId] : (ss[ss.length - 1].maxW || 0);
   const bench = BENCHMARKS[exId];
-  const hasBw = Analytics.bwSeries().length > 0;
-  // Prognose (letzte 90 Tage)
-  const p90 = ss.filter(s => s.dn > t - 90 && s.best > 0).map(s => ({ x: s.dn, y: s.best }));
-  const reg = p90.length >= 3 && (p90[p90.length - 1].x - p90[0].x) >= 14 ? linReg(p90) : null;
-  const projDn = t + 60;
-  const projVal = reg ? reg.slope * projDn + reg.intercept : null;
-  // Big 3 + Wilks
-  const b3 = big3TotalSeries(ix);
-  const b3r = b3.filter(p => p.dn >= r.from && p.dn <= r.to);
-  const wilks = b3r.map(p => { const bw = Analytics.bwAt(p.dn); return bw ? { x: p.dn, y: p.total * wilksCoef(bw, S().sex) } : null; }).filter(Boolean);
-  // Ratios
-  const best180 = ids => { const w = ids.flatMap(id => (ix.sessions[id] || []).filter(s => s.dn > t - 180)); return w.length ? maxOf(w, s => s.best) : 0; };
-  const benchB = best180(['ex_bankdruecken']);
-  const ratios = [
-    ['Kniebeuge / Bank', best180(['ex_kniebeuge', 'ex_kniebeuge_lowbar']), 1.2, 1.6],
-    ['Kreuzheben / Bank', best180(['ex_kreuzheben', 'ex_sumo_kreuzheben']), 1.4, 2.0],
-    ['Rudern / Bank', best180(['ex_lh_rudern']), 0.7, 1.05]
-  ].map(([l, v, lo, hi]) => ({ l, v: benchB && v ? v / benchB : null, lo, hi }));
-  const cb = chartBuilder();
-  const big3Chips = BIG3.map(b => b.ids.find(id => ix.sessions[id])).filter(Boolean);
+  const bwAll = Analytics.bwSeries();
+  const hasBw = bwAll.length > 0;
+  const bwR = bwAll.filter(p => p.dn >= r.from && p.dn <= r.to);
   // Rep-Maxima: schwerstes Gewicht für mind. n Wiederholungen (alle Sessions)
   const repMax = [];
   for (let n = 1; n <= 12; n++) {
@@ -7671,16 +7734,11 @@ ProgressViews.strength = body => {
     if (best) repMax.push(best);
   }
   const newestRep = repMax.length ? repMax.reduce((a, b) => b.dn > a.dn ? b : a) : null;
-  // Kraft im Vergleich: e1RM der meist-trainierten Übungen, Start im Zeitraum = 100 %
-  const cmp = exIds.map(id => ({ id, pts: ix.sessions[id].filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).slice(0, 4)
-    .map((x, i) => { let run = 0; return { id: x.id, color: c.series[i], pts: x.pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, y: round(run / x.pts[0].best * 100, 1), label: `${nf(run / x.pts[0].best * 100, 0)} % (bestes e1RM ${fmtW(run)})` }; }) }; });
-  const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
-  body.innerHTML = `
-    <div class="card mt-12">
-      <label class="field"><span>Übung</span>
-        <select class="select" data-ch="kraftEx">${exIds.map(id => `<option value="${esc(id)}" ${id === exId ? 'selected' : ''}>${esc(Ex.name(id))} (${ix.sessions[id].length}×)</option>`).join('')}</select></label>
-      ${big3Chips.length ? `<div class="chips mt-12">${big3Chips.map(id => `<button class="chip ${id === exId ? 'active' : ''}" data-act="kraftEx" data-v="${esc(id)}">${esc(BIG3.find(b => b.ids.includes(id)).label)}</button>`).join('')}</div>` : ''}
-    </div>
+  // Gewicht vs. Kraft: Veränderung im Zeitraum
+  const e1Delta = inR.length > 1 ? maxOf(inR, s => s.best) - inR[0].best : null;
+  const bwDelta = bwR.length > 1 ? bwR[bwR.length - 1].kg - bwR[0].kg : null;
+  const signKg = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + fmtW(Math.abs(d));
+  body.innerHTML = `${head}
     <div class="charts-grid">
       ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: 'Pro Session der beste Satz, umgerechnet mit Epley: Gewicht × (1 + Wdh./30). Gestrichelt: lineare Trendlinie im Zeitraum.',
         big: bestNow ? fmtW(bestNow) : '–', small: 'bestes im Zeitraum', delta: deltaHtml(bestNow, bestPrev), sub: prv ? prevLabel : '',
@@ -7697,18 +7755,10 @@ ProgressViews.strength = body => {
         sub: newestRep ? `Neuester Rep-PR: ${fmtW(newestRep.w)} × ${newestRep.r} am ${fmtDN(newestRep.dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '',
         factory: () => repMax.length ? barChart(repMax.map(x => x.n + '×'), [barDS('Bestes Gewicht', repMax.map(x => toU(x.w)), c.accent)],
           { tooltipFmt: (v, ctx) => `${fmtW(fromU(v))} für ${repMax[ctx.dataIndex].n}+ Wdh. · ${fmtDN(repMax[ctx.dataIndex].dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}`, yFmt: v => nf(v, 0) }) : null })}
-      ${cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Bestes geschätztes 1RM bis zum jeweiligen Tag für deine meist-trainierten Übungen (mind. 3 Sessions im Zeitraum), bei der ersten Session im Zeitraum auf 100 % gesetzt. So siehst du auf einer Skala, welche Übung am schnellsten wächst.',
-        big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
-        factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null })}
+      ${cmpCard(exIds)}
       ${cb.card({ id: 'k2', title: 'Max-Gewicht pro Session', info: 'Schwerstes bewegtes Gewicht je Session (mind. 1 Wiederholung).',
         big: inR.length ? fmtW(maxOf(inR, s => s.maxW)) : '–',
         factory: () => inR.length ? timeLine([lineDS('Max-Gewicht', inR.map(s => ({ x: s.dn, y: toU(s.maxW), label: `${fmtW(s.maxW)} × ${s.repsAtMax}` })), c.accent, { pointRadius: 4, fill: false })], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}
-      ${cb.card({ id: 'k3', title: 'Wdh. bei Zielgewicht', info: 'Wie viele Wiederholungen schaffst du bei deinem Zielgewicht (± 2,5 kg)? Steigende Linie = mehr Kraftausdauer bei gleicher Last.',
-        top: `<div class="row mt-8"><span class="small dim">Zielgewicht</span><input class="input num-input" style="max-width:96px;min-height:38px;padding:4px" inputmode="decimal" data-ch="targetW" data-id="${esc(exId)}" value="${inputW(targetKg)}" aria-label="Zielgewicht"><span class="small dim">${unit()}</span></div>`,
-        factory: () => {
-          const pts = inR.map(s => { const m = s.list.filter(x => Math.abs(x.w - targetKg) <= 2.5 + 1e-9); return m.length ? { x: s.dn, y: maxOf(m, x => x.r) } : null; }).filter(Boolean);
-          return pts.length ? timeLine([lineDS('Max. Wdh.', pts, c.accent, { pointRadius: 4 })], { tooltipFmt: v => `${v} Wdh.` }) : null;
-        } })}
       ${cb.card({ id: 'k4', title: 'Trainings-Intensität', info: 'Schwerstes Gewicht der Session geteilt durch dein bis dahin bestes e1RM × 100 %. Zeigt, wie schwer du trainierst (z. B. 85 % ≈ 5er-Bereich).',
         big: inR.length ? nf(inR[inR.length - 1].maxW / runBest.get(inR[inR.length - 1]) * 100, 0) + ' %' : '–', small: 'letzte Session',
         factory: () => inR.length ? timeLine([lineDS('Intensität', inR.map(s => ({ x: s.dn, y: round(s.maxW / runBest.get(s) * 100, 1) })), c.accent)], { tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => v + ' %', yMax: 100 }) : null })}
@@ -7722,6 +7772,19 @@ ProgressViews.strength = body => {
           const ys = pts.map(p => p.y);
           return timeLine([lineDS('Relative Kraft', pts, c.accent)], { tooltipFmt: v => nf(v, 2) + ' × KG', yFmt: v => nf(v, 1), thresholds: lines ? { lines, axis: 'y' } : null, yMin: Math.max(0, Math.min(...ys, bench ? bench[0] : 99) - .2), yMax: bench ? Math.max(...ys, bench[2]) + .15 : undefined });
         } })}
+      ${cb.card({ id: 'kgw', wide: true, title: 'Gewicht vs. Kraft', info: 'Geschätztes 1RM dieser Übung (linke Achse) und dein Körpergewicht als 7-Tage-Durchschnitt (rechte Achse) im selben Zeitraum. So siehst du, ob du stärker wirst, während du ab- oder zunimmst.',
+        big: e1Delta != null ? signKg(e1Delta) : '–', small: e1Delta != null ? 'Kraft (e1RM)' : 'mind. 2 Sessions im Zeitraum nötig',
+        sub: hasBw ? (bwDelta != null ? `Körpergewicht im selben Zeitraum: ${signKg(bwDelta)}` : 'Zu wenige Gewichts-Einträge im Zeitraum') : 'Körpergewicht im Körper-Tab eintragen',
+        factory: () => {
+          if (!inR.length || !bwR.length) return null;
+          const ma = bwR.map(p => { const w = bwAll.filter(q => q.dn <= p.dn && q.dn > p.dn - 7); return { x: p.dn, y: toU(avg(w.map(q => q.kg))) }; });
+          const cfg = timeLine([
+            lineDS('e1RM', inR.map(s => ({ x: s.dn, y: toU(s.best) })), c.accent, { fill: false }),
+            lineDS('Körpergewicht', ma, c.series[0], { fill: false, pointRadius: 0, yAxisID: 'y2' })
+          ], { legend: true, tooltipFmt: v => fmtW(fromU(v)) });
+          cfg.options.scales.y2 = { position: 'right', grid: { display: false }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: yAuto() } };
+          return cfg;
+        } })}
       ${cb.card({ id: 'k6', title: 'PR-Timeline', info: 'Jeder Punkt ist ein neuer e1RM-Rekord dieser Übung.',
         big: prEv.filter(p => p.dn >= r.from).length, small: 'PRs im Zeitraum',
         factory: () => {
@@ -7732,40 +7795,14 @@ ProgressViews.strength = body => {
           cfg.options.interaction = { mode: 'nearest', intersect: false };
           return cfg;
         } })}
-      <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn('Wird rot, wenn dein letzter Rekord in dieser Übung mehr als 60 Tage zurückliegt – Zeit für einen neuen Reiz (Deload, andere Wiederholungsbereiche, Variation).')}</div>
-        <div class="cc-big"><b style="font-size:46px;${sincePR > 60 ? 'color:var(--danger)' : ''}">${sincePR}</b><small>${sincePR === 1 ? 'Tag' : 'Tage'}</small></div>
-        <div class="cc-sub">${lastPR ? `Letzter PR: ${fmtW(lastPR.w)} × ${lastPR.r} am ${fmtDate(lastPR.date)}` : 'Noch kein PR – seit der ersten Session'}${sincePR > 60 ? ' · ⚠ Zeit für einen neuen Reiz' : ''}</div>
-      </div>
-      ${cb.card({ id: 'k8', wide: true, title: 'Prognose (60 Tage)', info: 'Lineare Regression über deine e1RM-Werte der letzten 90 Tage, 60 Tage in die Zukunft verlängert (gestrichelt). Eine Schätzung, kein Versprechen.',
-        big: reg ? fmtW(projVal) : '–', small: reg ? `am ${fmtDN(projDn, { day: '2-digit', month: '2-digit' })}` : 'mind. 3 Sessions in 90 Tagen nötig',
-        sub: reg ? (reg.slope > 0 ? `Bei aktuellem Trend am ${fmtDN(projDn, { day: '2-digit', month: '2-digit' })} ≈ ${fmtW(projVal, 0)} (+${fmtW(reg.slope * 30, 1)} pro Monat)` : 'Der Trend zeigt aktuell keine Steigerung – Zeit für Progression oder einen Deload.') : '',
-        factory: () => {
-          if (!reg) return null;
-          const pts = p90.map(p => ({ x: p.x, y: toU(p.y) }));
-          return timeLine([
-            lineDS('e1RM', pts, c.accent),
-            { label: 'Prognose', data: [{ x: pts[pts.length - 1].x, y: toU(reg.slope * pts[pts.length - 1].x + reg.intercept) }, { x: projDn, y: toU(projVal) }], borderColor: c.accent, borderDash: [6, 5], borderWidth: 2, pointRadius: [0, 5], pointBackgroundColor: c.accent, fill: false, tension: 0 }
-          ], { tooltipFmt: v => fmtW(fromU(v)), legend: true, xMax: projDn });
-        } })}
-      ${cb.card({ id: 'k9', title: 'Big 3 Total', info: 'Summe der geschätzten 1RMs aus Bankdrücken, Kniebeuge und Kreuzheben (je bestes e1RM der vorangegangenen 90 Tage).',
-        big: b3.length ? fmtW(b3[b3.length - 1].total, 0) : '–', small: b3.length ? 'aktuell' : 'alle drei Lifts nötig',
-        factory: () => b3r.length ? timeLine([lineDS('Big-3-Total', b3r.map(p => ({ x: p.dn, y: toU(p.total) })), c.accent)], { tooltipFmt: v => fmtW(fromU(v), 0) }) : null })}
-      ${cb.card({ id: 'k10', title: 'Wilks-Score', info: `Standardisierter Powerlifting-Score: Big-3-Total × Wilks-Koeffizient (Körpergewicht, ${S().sex === 'f' ? 'Frauen' : 'Männer'}-Formel; unter Mehr → Profil änderbar). Ca. 300 = fortgeschritten, 400+ = sehr stark.`,
-        big: wilks.length ? nf(wilks[wilks.length - 1].y, 0) : '–', small: wilks.length ? 'Punkte' : (hasBw ? 'Big 3 nötig' : 'Körpergewicht nötig'),
-        factory: () => wilks.length ? timeLine([lineDS('Wilks', wilks.map(p => ({ x: p.x, y: round(p.y, 1) })), c.accent)], { tooltipFmt: v => nf(v, 1) }) : null })}
-      ${cb.card({ id: 'k11', title: 'Strength Ratios', info: 'Verhältnis deiner besten e1RMs (letzte 180 Tage) zum Bankdrücken. Grün = im typischen, gesunden Bereich; rot = mögliche Dysbalance.',
-        factory: () => ratios.some(x => x.v) ? (() => {
-          const cfg = barChart(ratios.map(x => x.l), [barDS('Verhältnis', ratios.map(x => x.v ? round(x.v, 2) : 0), ratios.map(x => x.v && x.v >= x.lo && x.v <= x.hi ? c.success : c.danger))], { horizontal: true, tooltipFmt: (v, ctx) => `${nf(v, 2)} (Zielbereich ${nf(ratios[ctx.dataIndex].lo, 2)}–${nf(ratios[ctx.dataIndex].hi, 2)})`, yFmt: v => nf(v, 1) });
-          return cfg;
-        })() : null,
-        extra: `<div class="mt-8">${ratios.map(x => `<div class="ratio-row small"><span class="grow">${x.l}</span>${x.v ? `<span>${x.v >= x.lo && x.v <= x.hi ? '✓ im Bereich' : '⚠ außerhalb'}</span><b class="num">${nf(x.v, 2)}</b>` : '<span class="dim">keine Daten</span>'}<span class="dim tiny">Ziel ${nf(x.lo, 1)}–${nf(x.hi, 1)}</span></div>`).join('')}</div>` })}
+      ${sincePRCard([exId], ss[0].dn)}
     </div>`;
   cb.mountAll();
 };
+Actions.kraftScope = el => { UI.kraftScope = el.dataset.v; saveUI(); App.renderCurrent(); };
+Changes.kraftMuscle = el => { UI.kraftMuscle = el.value; saveUI(); App.renderCurrent(); };
 Changes.kraftEx = el => { UI.kraftEx = el.value; saveUI(); App.renderCurrent(); };
 Actions.kraftEx = el => { UI.kraftEx = el.dataset.v; saveUI(); App.renderCurrent(); };
-Changes.targetW = el => { const v = parseNum(el.value); UI.targetW[el.dataset.id] = v == null ? null : fromU(v); saveUI(); App.renderCurrent(); };
 
 /* ---------- Volumen ---------- */
 function binsOfList(list) { const b = [0, 0, 0, 0]; for (const x of list) if (x.r > 0) b[x.r <= 5 ? 0 : x.r <= 10 ? 1 : x.r <= 15 ? 2 : 3]++; return b; }
@@ -7802,7 +7839,9 @@ ProgressViews.volume = body => {
   const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
   const tonW = wk(x => x.ton), setsW = wk(x => x.sets), repsW = wk(x => x.reps);
   const tot = f => sum(inR.map(f)), totP = f => inP ? sum(inP.map(f)) : null;
-  const avgLine = (vals, label = 'Ø') => ({ type: 'line', label, data: vals.map(() => avg(vals)), borderColor: c.dim, borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
+  // Ø-Linie ohne die laufende Woche – sie ist noch nicht vorbei
+  const ri = runIdx(weeks);
+  const avgLine = (vals, label = 'Ø') => ({ type: 'line', label, isAvg: true, data: vals.map(() => avgDone(vals, ri)), borderColor: c.dim, borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
   // Wochentage
   const wd = [0, 0, 0, 0, 0, 0, 0];
   for (const x of inR) wd[(dowOfDN(x.dn) + 6) % 7] += x.ton;
@@ -7818,10 +7857,17 @@ ProgressViews.volume = body => {
   const cum = yr => { const per = new Array(53).fill(0); for (const x of items) { const iw = isoWeek(x.dn); if (iw.year === yr) per[iw.week - 1] += x.ton; } let s = 0; return per.map(v => (s += v)); };
   const curW = isoWeek(todayDN()).week;
   const thisY = cum(y).map((v, i) => i < curW ? toU(v) : null), lastY = cum(y - 1).map(v => toU(v));
-  const restItems = scope === 'total' ? inR.filter(x => x.restAvg) : [];
-  // Zeit & Dichte (nur Gesamt): echte Dauer, ohne reine Cardio-Einheiten
+  // Dichte (nur Gesamt): echte Dauer, ohne reine Cardio-Einheiten
   const durRows = ix.rows.filter(w => w.dn >= r.from && w.dn <= r.to && w.dur > 0 && !w.estDur);
-  const durW = weeks.map(w => round(sum(durRows.filter(x => x.dn >= w && x.dn < w + 7).map(x => x.dur)) / 3600, 2));
+  // Pro Workout-Typ (nur Gesamt): nach Workout-Name gruppiert, z. B. „Push A" und „Push B" getrennt
+  const typeMap = new Map();
+  for (const w of ix.rows) if (w.dn >= r.from && w.dn <= r.to && w.ton > 0 && !w.cardioOnly) { if (!typeMap.has(w.name)) typeMap.set(w.name, []); typeMap.get(w.name).push(w); }
+  const types = [...typeMap].filter(([, ws]) => ws.length >= 2).sort((a, b) => b[1].length - a[1].length).slice(0, 5)
+    .map(([name, ws], i) => {
+      const k = Math.min(3, Math.floor(ws.length / 2));
+      const first = avg(ws.slice(0, k).map(w => w.ton)), last = avg(ws.slice(-k).map(w => w.ton));
+      return { name, ws, color: c.series[i], avgTon: avg(ws.map(w => w.ton)), first, last };
+    });
   const dens = durRows.filter(w => w.ton > 0 && w.dur >= 600 && !w.cardioOnly).map(w => ({ x: w.dn, y: round(toU(w.ton) / (w.dur / 60), 1), label: `${nf(toU(w.ton) / (w.dur / 60), 0)} ${unit()}/min · ${w.name}` }));
   const cb = chartBuilder();
   const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? UI.volMuscle : 'alle Übungen';
@@ -7832,13 +7878,13 @@ ProgressViews.volume = body => {
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="volMuscle" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.volMuscle ? 'selected' : ''}>${m}</option>`).join('')}</select>` : ''}
     </div>
     <div class="charts-grid">
-      ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Σ Wiederholungen × Gewicht pro Kalenderwoche (${scopeName}). Gestrichelt: Durchschnitt im Zeitraum.`,
+      ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Σ Wiederholungen × Gewicht pro Kalenderwoche (${scopeName}). Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.`,
         big: fmtTon(tot(x => x.ton)), small: 'im Zeitraum', delta: deltaHtml(tot(x => x.ton), totP(x => x.ton)), sub: prv ? prevLabel : '',
-        factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
-      ${cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
-        factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.accent), avgLine(setsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
-      ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Summe aller Wiederholungen pro Woche.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
-        factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.accent), avgLine(repsW)], { tooltipFmt: v => nf(v, 0) }) : null })}
+        factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { running: ri, tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
+      ${cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
+        factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.accent), avgLine(setsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
+      ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Summe aller Wiederholungen pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
+        factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.accent), avgLine(repsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
       ${cb.card({ id: 'v4', wide: true, title: scope === 'total' ? 'Volumen pro Workout' : 'Volumen pro Session', info: 'Jeder Punkt ist ein Workout. Die Linie ist der Durchschnitt der jeweils letzten 3 Wochen – so siehst du den Trend, ohne dass Push-, Pull- und Beintage durcheinanderspringen.',
         big: inR.length ? fmtTon(avg(inR.map(x => x.ton))) : '–', small: 'Ø', delta: inP && inP.length ? deltaHtml(avg(inR.map(x => x.ton)), avg(inP.map(x => x.ton))) : '',
         factory: () => {
@@ -7849,9 +7895,10 @@ ProgressViews.volume = body => {
             lineDS('Ø 3 Wochen', timeAvg(pts), c.accent, { fill: false, pointRadius: 0 })
           ], { legend: true, tooltipFmt: v => fmtTon(fromU(v)) });
         } })}
-      ${scope === 'total' ? `${cb.card({ id: 'v11', title: 'Trainingszeit pro Woche', info: 'Summe der Workout-Dauer pro Kalenderwoche in Stunden. Gestrichelt: Durchschnitt im Zeitraum.',
-        big: nf(sum(durRows.map(w => w.dur)) / 3600, 1), small: 'h im Zeitraum',
-        factory: () => durRows.length ? barChart(wLabels, [barDS('Stunden', durW, c.accent), avgLine(durW)], { tooltipFmt: v => fmtDur(v * 3600), yFmt: v => nf(v, 1) + ' h' }) : null })}
+      ${scope === 'total' ? `${cb.card({ id: 'vt', wide: true, title: 'Volumen pro Workout-Typ', info: 'Volumen je Workout, getrennt nach Workout-Name (z. B. „Push A" und „Push B" einzeln) – so vergleichst du gleiche Trainingstage miteinander. Die 5 häufigsten Workouts mit mind. 2 Einheiten im Zeitraum. Trend: Ø der letzten 3 Einheiten gegen die ersten 3.',
+        big: types.length ? nf(types.length, 0) : '–', small: types.length ? (types.length === 1 ? 'Workout-Typ' : 'Workout-Typen') : 'mind. 2 gleichnamige Workouts nötig',
+        factory: () => types.length ? timeLine(types.map(tp => lineDS(tp.name, tp.ws.map(w => ({ x: w.dn, y: toU(w.ton), label: fmtTon(w.ton) })), tp.color, { fill: false, pointRadius: 3 })), { legend: true, tooltipFmt: v => fmtTon(fromU(v)) }) : null,
+        extra: types.length ? `<div class="mt-8">${types.map(tp => `<div class="ratio-row small"><span class="ampel-dot" style="background:${tp.color}"></span><span class="grow">${esc(tp.name)} <span class="dim">${tp.ws.length}×</span></span><span class="dim">Ø ${fmtTon(tp.avgTon)}</span>${deltaHtml(tp.last, tp.first)}</div>`).join('')}</div>` : '' })}
       ${cb.card({ id: 'v12', title: 'Trainingsdichte', info: 'Tonnage pro Trainingsminute je Workout (kg/min). Steigt sie, schaffst du mehr Arbeit in derselben Zeit. Linie: Ø der letzten 3 Wochen.',
         big: dens.length ? nf(avg(dens.map(p => p.y)), 0) : '–', small: unit() + '/min Ø',
         factory: () => dens.length > 1 ? timeLine([
@@ -7878,7 +7925,7 @@ ProgressViews.volume = body => {
           const bw = weeks.map(w => inR.filter(x => x.dn >= w && x.dn < w + 7).reduce((b, x) => x.bins.map((v, i) => v + b[i]), [0, 0, 0, 0]));
           if (!sum(bw.map(sum))) return null;
           const pctOf = i => bw.map(b => sum(b) ? round(b[i] / sum(b) * 100, 1) : 0);
-          return barChart(wLabels, ['1–5', '6–10', '11–15', '16+'].map((l, i) => barDS(`${l} Wdh.`, pctOf(i), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 2 } })), { stacked: true, legend: true, xMax: 100, yFmt: v => v + ' %', tooltipFmt: v => nf(v, 0) + ' %' });
+          return barChart(wLabels, ['1–5', '6–10', '11–15', '16+'].map((l, i) => barDS(`${l} Wdh.`, pctOf(i), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 2 } })), { stacked: true, legend: true, xMax: 100, running: ri, yFmt: v => v + ' %', tooltipFmt: v => nf(v, 0) + ' %' });
         } })}
       ${cb.card({ id: 'v9', wide: true, title: `Tonnage ${y} vs. ${y - 1}`, info: 'Kumulierte Tonnage nach Kalenderwoche – dieses Jahr gegen das Vorjahr. Unabhängig vom Zeitraum-Filter.',
         big: fmtTon(fromU(thisY[curW - 1] || 0)), small: `bis KW ${curW}`, delta: deltaHtml(thisY[curW - 1] || 0, lastY[curW - 1] || 0), sub: `vs. ${y - 1} bis KW ${curW}`,
@@ -7889,9 +7936,6 @@ ProgressViews.volume = body => {
             { label: String(y - 1), data: lastY, borderColor: c.series[0], fill: false, tension: .3, pointRadius: 0, borderWidth: 2 }] },
           options: { interaction: { mode: 'index', intersect: false }, plugins: { legend: { display: true, position: 'bottom' }, tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${fmtTon(fromU(ctx.parsed.y))}` } } }, scales: { x: { grid: { display: false }, ticks: { maxTicksLimit: 7, maxRotation: 0 } }, y: { grid: { color: c.grid }, ticks: { maxTicksLimit: 5, callback: v => unit() === 'kg' ? nf(v / 1000, 0) + ' t' : nf(v / 1000, 0) + 'k' } } } }
         } : null })}
-      ${cb.card({ id: 'v10', title: 'Ø Pausenzeit pro Satz', info: 'Durchschnittliche Zeit zwischen zwei abgehakten Sätzen je Workout (15 s – 10 min). Nur für live getrackte Workouts im Scope „Gesamt".',
-        big: restItems.length ? fmtClock(avg(restItems.map(x => x.restAvg))) : '–', small: 'min:s',
-        factory: () => restItems.length ? timeLine([lineDS('Ø Pause', restItems.map(x => ({ x: x.dn, y: Math.round(x.restAvg) })), c.accent)], { tooltipFmt: v => fmtClock(v), yFmt: v => fmtClock(v) }) : null })}
     </div>`;
   cb.mountAll();
 };
@@ -8125,8 +8169,11 @@ ProgressViews.muscles = body => {
   const push = cats('Push'), pull = cats('Pull'), legs = cats('Legs');
   const ppRatio = push ? pull / push : null;
   const luRatio = push + pull ? legs / (push + pull) : null;
-  const weeks = Analytics.weeksOf(r);
+  const weeks = Analytics.weeksOf(r), ri = runIdx(weeks);
   const weekly = f => weeks.map(w => f(rows.filter(x => x.dn >= w && x.dn < w + 7)));
+  const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
+  // Muskeln über Zeit: Top 7 Muskelgruppen im Zeitraum, Rest = Andere
+  const topM = MUSCLES.filter(m => setsM[m] > 0).sort((a, b) => setsM[b] - setsM[a]).slice(0, 7);
   const neglected = MUSCLES.filter(m => perWeek(m) < 10);
   const usage = {};
   for (const [id, ss] of Object.entries(ix.sessions)) usage[id] = ss.length;
@@ -8161,17 +8208,22 @@ ProgressViews.muscles = body => {
         } })}
       ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Verhältnis Pull-Sätze zu Push-Sätzen. Ideal ≈ 1,0 (Rücken/Brust-Balance). Warnung unter 0,8 oder über 1,2.',
         big: ppRatio != null ? nf(ppRatio, 2) : '–', small: `${pull} Pull / ${push} Push`, top: `<div class="mt-8">${ratioBadge(ppRatio, 0.8, 1.2)}</div>`,
-        factory: () => { const d = weekly(rs => { const p = sum(rs.map(w => w.cats.Push || 0)), q = sum(rs.map(w => w.cats.Pull || 0)); return p ? round(q / p, 2) : null; }); return d.some(v => v != null) ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [{ type: 'line', label: 'Pull/Push', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.8, label: '0,8', color: c.faint }, { value: 1.2, label: '1,2', color: c.faint }] } }) : null; } })}
+        factory: () => { const d = weekly(rs => { const p = sum(rs.map(w => w.cats.Push || 0)), q = sum(rs.map(w => w.cats.Pull || 0)); return p ? round(q / p, 2) : null; }); const mx = Math.max(1.5, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Pull/Push', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.8, label: '0,8', color: c.faint }, { value: 1.2, label: '1,2', color: c.faint }] } }) : null; } })}
       ${cb.card({ id: 'm5', title: 'Beine vs. Oberkörper', info: 'Verhältnis Leg-Sätze zu Push+Pull-Sätzen. Bei einem ausgewogenen Ganzkörper-Split meist 0,4–0,7.',
         big: luRatio != null ? nf(luRatio, 2) : '–', small: `${legs} Beine / ${push + pull} Oberkörper`, top: `<div class="mt-8">${ratioBadge(luRatio, 0.35, 0.8)}</div>`,
-        factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); return d.some(v => v != null) ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2) }) : null; } })}
+        factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2) }) : null; } })}
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter MEV (10 Sätze/Woche) lagen – mit passenden Übungsvorschlägen.')}</div>
         ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Alle Muskelgruppen über MEV – top! ✅</p>'}
       </div>
       ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit.',
         top: `<select class="select mt-8" data-ch="muscleSel" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.muscleSel ? 'selected' : ''}>${m}</option>`).join('')}</select>`,
-        factory: () => { const d = weekly(rs => sum(rs.map(w => w.muscles[UI.muscleSel] || 0))); return sum(d) ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [{ type: 'line', label: UI.muscleSel, data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .12), fill: true, pointRadius: 3, tension: .3 }], { tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: [{ value: 10, label: 'MEV', color: c.faint }, { value: 20, label: 'MRV', color: c.warning }] } }) : null; } })}
+        factory: () => { const d = weekly(rs => sum(rs.map(w => w.muscles[UI.muscleSel] || 0))); return sum(d) ? barChart(wLabels, [{ type: 'line', label: UI.muscleSel, data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .12), fill: true, pointRadius: 3, tension: .3 }], { running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: [{ value: 10, label: 'MEV', color: c.faint }, { value: 20, label: 'MRV', color: c.warning }] } }) : null; } })}
+      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Eine Übung zählt für jede ihrer Muskelgruppen. Die laufende Woche ist blass.', size: 'lg',
+        factory: () => topM.length ? barChart(wLabels, [
+          ...topM.map((m, i) => barDS(m, weekly(rs => sum(rs.map(w => w.muscles[m] || 0))), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })),
+          ...(MUSCLES.length > topM.length ? [barDS('Andere', weekly(rs => sum(rs.map(w => sum(MUSCLES.filter(m => !topM.includes(m)).map(m => w.muscles[m] || 0))))), c.faint, { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })] : [])
+        ], { stacked: true, legend: true, running: ri, tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null })}
       ${cb.card({ id: 'm8', title: 'Übungs-Vielfalt', info: 'Wie viele unterschiedliche Übungen pro Muskelgruppe du im Zeitraum gemacht hast (Variety Score).', size: 'lg',
         big: new Set(rows.flatMap(w => w.ex)).size, small: 'verschiedene Übungen gesamt',
         factory: () => variety.some(x => x[1]) ? barChart(variety.map(x => x[0]), [barDS('Übungen', variety.map(x => x[1]), c.series[0])], { horizontal: true, tooltipFmt: v => `${v} Übungen` }) : null })}
@@ -8225,7 +8277,8 @@ ProgressViews.cardio = body => {
   const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
   const perWeek = k => weeks.map(w => sum(rowsR.filter(x => x.dn >= w && x.dn < w + 7).map(x => x[k])));
   const minW = perWeek('cSec').map(v => round(v / 60, 0)), kmW = perWeek('cKm').map(v => round(v, 2));
-  const avgLine = vals => ({ type: 'line', label: 'Ø', data: vals.map(() => avg(vals)), borderColor: c.dim, borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
+  const ri = runIdx(weeks);
+  const avgLine = vals => ({ type: 'line', label: 'Ø', isAvg: true, data: vals.map(() => avgDone(vals, ri)), borderColor: c.dim, borderDash: [4, 4], borderWidth: 1.5, pointRadius: 0, fill: false });
   // Tempo: nur Arten mit Distanz & berechenbarem km/h
   const speedIds = cIds.filter(id => ix.sessions[id].some(x => cardioKmhValid(x.km, x.secs))).sort((a, b) => ix.sessions[b].length - ix.sessions[a].length);
   if (!speedIds.includes(UI.cardioEx)) UI.cardioEx = speedIds[0] || '';
@@ -8247,12 +8300,12 @@ ProgressViews.cardio = body => {
   const curKm = tot(rowsR, 'cKm'), prevKm = rowsP ? tot(rowsP, 'cKm') : null;
   body.innerHTML = `
     <div class="charts-grid">
-      ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Summe der Cardio-Dauer pro Kalenderwoche – nach dem Krafttraining und als eigene Einheit. Gestrichelt: Durchschnitt im Zeitraum.',
+      ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Summe der Cardio-Dauer pro Kalenderwoche – nach dem Krafttraining und als eigene Einheit. Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.',
         big: fmtDur(curMin * 60), small: `im Zeitraum · ${units(rowsR)} Einheiten`, delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',
-        factory: () => sum(minW) ? barChart(wLabels, [barDS('Minuten', minW, c.accent), avgLine(minW)], { tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
+        factory: () => sum(minW) ? barChart(wLabels, [barDS('Minuten', minW, c.accent), avgLine(minW)], { running: ri, tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
       ${cb.card({ id: 'c2', wide: true, title: 'Distanz pro Woche', info: 'Summe aller Distanzen (km) pro Kalenderwoche – nur Arten mit Distanz (Laufen, Rad, Rudern …).',
         big: curKm ? fmtKm(curKm) : '–', small: 'im Zeitraum', delta: deltaHtml(curKm, prevKm), sub: prv ? prevLabel : '',
-        factory: () => sum(kmW) ? barChart(wLabels, [barDS('km', kmW, c.series[0]), avgLine(kmW)], { tooltipFmt: v => nf(v, 2) + ' km', yFmt: v => nf(v, 0) }) : null })}
+        factory: () => sum(kmW) ? barChart(wLabels, [barDS('km', kmW, c.series[0]), avgLine(kmW)], { running: ri, tooltipFmt: v => nf(v, 2) + ' km', yFmt: v => nf(v, 0) }) : null })}
       ${speedIds.length ? cb.card({ id: 'c3', wide: true, title: 'Tempo-Verlauf', info: 'Durchschnittsgeschwindigkeit (km/h) je Einheit = Distanz ÷ Dauer. Gestrichelt: Trend im Zeitraum.',
         top: `<select class="select mt-8" data-ch="cardioEx" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Cardio-Art">${speedIds.map(id => `<option value="${esc(id)}" ${id === UI.cardioEx ? 'selected' : ''}>${esc(Ex.name(id))}</option>`).join('')}</select>`,
         big: sp.length ? fmtKmh(sp[sp.length - 1].kmh) : '–', small: sp.length ? 'zuletzt' : 'keine Einheit im Zeitraum', delta: sp.length > 1 ? deltaHtml(sp[sp.length - 1].kmh, sp[0].kmh) : '', sub: sp.length > 1 ? `vs. ${fmtDateShort(sp[0].date)}` : '',
@@ -8346,7 +8399,7 @@ ProgressViews.body = body => {
           const labels = wkDiff.map(x => 'KW ' + isoWeek(x.w).week);
           const vals = wkDiff.map(x => round(toU(x.d), 2));
           return barChart(labels, [barDS('Abnahme', vals.map(v => v < 0 ? v : null), c.series[0]), barDS('Zunahme', vals.map(v => v > 0 ? v : null), c.series[1])],
-            { stacked: true, legend: true, tooltipFmt: v => (v > 0 ? '+' : '') + nf(v, 2) + ' ' + unit(), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
+            { stacked: true, legend: true, running: wkDiff.findIndex(x => x.w === weekStartDN(todayDN())), tooltipFmt: v => (v > 0 ? '+' : '') + nf(v, 2) + ' ' + unit(), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
         } })}
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">${icon('scale', 'cc-ic')} Im Zeitraum</span>${infoBtn('Kennzahlen deines Gewichts im oben gewählten Zeitraum.')}</div>
@@ -8361,8 +8414,10 @@ ProgressViews.body = body => {
         factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: yAuto(' %') }) : null })}
       ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie, baust du Muskeln auf.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
         factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}` : ''}
-      ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Alle Körperumfänge in cm. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
-        factory: () => mSeries.length ? timeLine(mSeries.map(s => lineDS(s.l, s.data, s.color, { fill: false, pointRadius: s.data.length <= 30 ? 3 : 0 })), { legend: true, tooltipFmt: v => nf(v, 1) + ' cm' }) : null })}
+      ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Veränderung jedes Umfangs in cm seit dem ersten Eintrag im Zeitraum – so werden auch kleine Änderungen sichtbar. Der Tooltip zeigt zusätzlich den Messwert. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
+        sub: 'Veränderung in cm seit Zeitraumbeginn',
+        factory: () => mSeries.length ? timeLine(mSeries.map(s => lineDS(s.l, s.data.map(p => ({ x: p.x, y: round(p.y - s.data[0].y, 1), label: `${nf(p.y, 1)} cm (${p.y - s.data[0].y >= 0 ? '+' : '−'}${nf(Math.abs(p.y - s.data[0].y), 1)})` })), s.color, { fill: false, pointRadius: s.data.length <= 30 ? 3 : 0 })),
+          { legend: true, tooltipFmt: v => nf(v, 1) + ' cm', yFmt: v => (v > 0 ? '+' : '') + nf(v, 1), thresholds: { axis: 'y', lines: [{ value: 0, label: '', color: c.faint }] } }) : null })}
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Schulter/Taille: „Adonis-Index", ideal ≈ 1,618. Taille/Hüfte: gesund bei Männern < 0,9, Frauen < 0,85. Arm/Oberschenkel: Proportion Ober- zu Unterkörper.')}</div>
         <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim">Ziel 1,62</span></div>
@@ -8744,7 +8799,7 @@ Views.more = {
       <div class="section-head"><h4>Profil</h4></div>
       <div class="list">
         ${setLine('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
-        ${setLine('Geschlecht', 'Für Wilks-Score & Richtwerte', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
+        ${setLine('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
         ${navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : ''))}
         ${navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`)}
         ${setLine('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`)}

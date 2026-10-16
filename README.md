@@ -160,9 +160,24 @@ Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Körper-Tab** (oder
 ## Diagramme
 
 Ruhige, einheitliche Darstellung (eine Farbe pro Kennzahl, Mehrfarbig nur beim Vergleich), Hilfslinie beim
-Antippen, jedes Diagramm im Vollbild mit Tabelle. Neu u. a.: **Rep-Maxima** (schwerstes Gewicht je
-Wiederholungszahl), **Kraft im Vergleich** (Fortschritt mehrerer Übungen auf einer Skala),
-**Trainingszeit pro Woche**, **Trainingsdichte** (kg/min), Volumen pro Workout mit 3-Wochen-Durchschnitt.
+Antippen, jedes Diagramm im Vollbild mit Tabelle. Die **laufende Woche** (bzw. der laufende Monat) ist blass
+bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe Woche nicht wie ein Einbruch aus.
+
+- **Übersicht**: Streak, Workouts gesamt, **Wochenvergleich** und **Monatsrückblick** (jeweils bis zum gleichen
+  Tag der Vorperiode), Trainingstage im Monat, Push/Pull/Legs, PR-Angriff, aktive PRs, letzte 7 Tage,
+  Jahres-Kalender; darunter immer sichtbar „Mehr Stats" (Lieblings-Übung, Workout-Dauer, Sätze pro Workout,
+  PRs pro Monat, Rekord-Workout, Gesamt bewegt, Erste-Hilfe-Ampel) und die Meilensteine.
+- **Kraft** mit Filter **Gesamt / Pro Übung / Pro Muskelgruppe**: Gesamt und Muskelgruppe zeigen den
+  **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
+  Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,
+  Max-Gewicht, Intensität, relative Kraft, **Gewicht vs. Kraft** (Körpergewicht und e1RM in einem Diagramm),
+  PR-Timeline.
+- **Volumen**: Tonnage, Sätze und Wiederholungen pro Woche, Volumen pro Workout, **Volumen pro Workout-Typ**
+  (nach Workout-Name, z. B. „Push A" und „Push B" getrennt), Trainingsdichte, Wochentage, Top-Übungen,
+  Trend pro Übung, Intensitäts-Mix, Jahresvergleich.
+- **Muskeln**: Body-Heatmap, Sätze pro Muskelgruppe, Verteilung, Push vs. Pull, Beine vs. Oberkörper,
+  vernachlässigte Muskeln, Muskel-Fortschritt, **Muskeln über Zeit** (gestapelt), Übungs-Vielfalt.
+- **Körper → Umfänge**: Veränderung in cm seit Zeitraumbeginn statt flacher Linien auf einer Skala.
 
 ## Übungen & Muskel-Diagramm
 
