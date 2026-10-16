@@ -62,7 +62,11 @@
   --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
   --title-transform: none;
   --title-spacing: -.02em;
+  --fw-x: 700;        /* Überschriften & Zahlen */
+  --fw-b: 600;        /* Buttons, Labels, Hervorhebungen */
 }
+/* Designs mit bewusst schwerer Typo */
+[data-design="brutal"], [data-design="iron"] { --fw-x: 800; --fw-b: 700; }
 /* Kategorische Diagramm-Farben (validierte Reihenfolge) – je Modus */
 [data-theme="dark"] {
   --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500;
@@ -75,24 +79,25 @@
   color-scheme: light;
 }
 
-/* ---------- GymLog (Standard): Neon-Grün auf Graphit ---------- */
+/* ---------- Trainio (Standard): ruhiges Graphit mit gedecktem Grün ---------- */
 [data-design="gymlog"][data-theme="dark"] {
-  --bg: #0b0d10; --surface: #15181d; --surface-2: #1d2129; --surface-3: #262b35;
-  --border: #272c35; --border-strong: #353b47;
-  --text: #f1f3f5; --text-dim: #9aa3af; --text-faint: #6b7480;
-  --accent: #39FF88; --accent-dim: #1f8a4a; --accent-text: #39FF88; --accent-ink: #04130a; --accent-soft: rgba(57, 255, 136, .12);
-  --danger: #ff5a5f; --danger-soft: rgba(255, 90, 95, .14); --warning: #ffb020; --warning-soft: rgba(255, 176, 32, .14);
-  --success: #39FF88; --info: #5aa9ff;
-  --shadow: 0 12px 32px rgba(0, 0, 0, .5); --grid: #23272f;
+  --bg: #0c0d10; --surface: #15171b; --surface-2: #1c1f24; --surface-3: #262a30;
+  --border: #24272d; --border-strong: #33373e;
+  --text: #eef0f3; --text-dim: #9ba2ac; --text-faint: #6b717b;
+  --accent: #3ccf82; --accent-dim: #24784d; --accent-text: #52d892; --accent-ink: #04140b; --accent-soft: rgba(60, 207, 130, .12);
+  --danger: #f2555a; --danger-soft: rgba(242, 85, 90, .14); --warning: #f0a531; --warning-soft: rgba(240, 165, 49, .14);
+  --success: #3ccf82; --info: #5ba4f5;
+  --shadow: 0 16px 40px rgba(0, 0, 0, .5); --grid: #202329;
 }
 [data-design="gymlog"][data-theme="light"] {
-  --bg: #f3f5f8; --surface: #ffffff; --surface-2: #eef1f5; --surface-3: #e2e6ec;
-  --border: #dfe4ea; --border-strong: #c9d0d9;
-  --text: #11161c; --text-dim: #5c6672; --text-faint: #8a94a0;
-  --accent: #19d873; --accent-dim: #0b8f48; --accent-text: #087a3c; --accent-ink: #04130a; --accent-soft: rgba(25, 216, 115, .14);
-  --danger: #d9363c; --danger-soft: rgba(229, 72, 77, .12); --warning: #9c6300; --warning-soft: rgba(217, 138, 0, .14);
-  --success: #0b8a2e; --info: #2a78d6;
-  --shadow: 0 12px 32px rgba(16, 24, 40, .14); --grid: #e7eaee;
+  --bg: #f4f5f7; --surface: #ffffff; --surface-2: #f0f2f5; --surface-3: #e4e7ec;
+  --border: #e2e5ea; --border-strong: #cbd0d8;
+  --text: #101318; --text-dim: #576070; --text-faint: #8a92a0;
+  --accent: #15a356; --accent-dim: #74c99a; --accent-text: #11804a; --accent-ink: #ffffff; --accent-soft: rgba(21, 163, 86, .1);
+  --danger: #d23a40; --danger-soft: rgba(210, 58, 64, .1); --warning: #9c6300; --warning-soft: rgba(217, 138, 0, .12);
+  --success: #11804a; --info: #2a6fcf;
+  --shadow: 0 16px 40px rgba(16, 24, 40, .12); --grid: #eceef2;
+  --card-shadow: 0 1px 2px rgba(16, 24, 40, .04);
 }
 
 /* ---------- Liquid Glass: transluzentes Material über Wallpaper (iOS 26) ---------- */
@@ -385,10 +390,10 @@ body {
 }
 body.modal-open { overflow: hidden; }
 h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
-h1 { font-size: calc(26px * var(--fs)); font-weight: 800; }
-h2 { font-size: calc(19px * var(--fs)); font-weight: 700; }
-h3 { font-size: calc(16px * var(--fs)); font-weight: 700; }
-h4 { font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
+h1 { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); }
+h2 { font-size: calc(19px * var(--fs)); font-weight: var(--fw-b); }
+h3 { font-size: calc(16px * var(--fs)); font-weight: var(--fw-b); }
+h4 { font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); text-transform: uppercase; letter-spacing: .06em; }
 p { margin: 0; }
 a { color: var(--accent-text); }
 button, input, select, textarea { font: inherit; color: inherit; }
@@ -400,7 +405,7 @@ svg { flex-shrink: 0; }
 .faint { color: var(--text-faint); }
 .small { font-size: calc(13px * var(--fs)); }
 .tiny { font-size: calc(11.5px * var(--fs)); }
-.bold { font-weight: 700; }
+.bold { font-weight: var(--fw-b); }
 .accent { color: var(--accent-text); }
 .danger-text { color: var(--danger); }
 .warn-text { color: var(--warning); }
@@ -443,9 +448,9 @@ body.is-scrolled #sbShade { opacity: 1; }
 
 .topbar.empty { position: relative; min-height: 0; height: env(safe-area-inset-top); padding: 0; border-bottom: 0 !important; background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
 .topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
-.start-date { margin-top: 18px; color: var(--text-dim); font-weight: 700; font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
+.start-date { margin-top: 18px; color: var(--text-dim); font-weight: var(--fw-b); font-size: calc(13px * var(--fs)); text-transform: uppercase; letter-spacing: .06em; }
 .start-date b { display: block; font-size: calc(26px * var(--fs)); color: var(--text); text-transform: none; letter-spacing: -.02em; margin-top: 2px; font-family: var(--font-display); }
-.topbar-title { font-size: calc(20px * var(--fs)); font-weight: 800; flex: 1; min-width: 0; letter-spacing: -.02em; }
+.topbar-title { font-size: calc(20px * var(--fs)); font-weight: var(--fw-x); flex: 1; min-width: 0; letter-spacing: -.02em; }
 .topbar-back { margin-left: -10px; flex-shrink: 0; }
 .topbar-title small { display: block; font-size: calc(12px * var(--fs)); font-weight: 600; color: var(--text-dim); letter-spacing: 0; }
 .view {
@@ -473,6 +478,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 }
 .nav-btn svg { width: 24px; height: 24px; }
 .nav-btn.active { color: var(--accent-text); }
+.nav-btn .nav-dot.off, .side-btn .nav-dot.off { background: var(--warning); }
 .nav-btn .nav-dot { position: absolute; top: 9px; left: calc(50% + 8px); width: 8px; height: 8px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 0 2px var(--surface); }
 
 .sidebar { display: none; }
@@ -483,7 +489,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
     position: sticky; top: 0; height: 100dvh; padding: 22px 14px;
     background: var(--surface); border-right: var(--bw) solid var(--border);
   }
-  .sidebar .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 22px; font-size: calc(20px * var(--fs)); font-weight: 800; letter-spacing: -.02em; }
+  .sidebar .brand { display: flex; align-items: center; gap: 10px; padding: 4px 10px 22px; font-size: calc(20px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.02em; }
   .sidebar .brand img { width: 34px; height: 34px; border-radius: calc(10px * var(--rs)); }
   .side-btn {
     display: flex; align-items: center; gap: 12px; min-height: 46px; padding: 0 12px; border-radius: calc(12px * var(--rs));
@@ -509,7 +515,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .card.clickable:active { transform: scale(.985); }
 .card-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
 .card-head h3 { flex: 1; min-width: 0; }
-.card-title { font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+.card-title { font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 26px 0 10px; }
 .section-head:first-child { margin-top: 6px; }
 
@@ -517,7 +523,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px;
   min-height: 44px; min-width: 44px; padding: 0 16px; border-radius: calc(12px * var(--rs));
-  border: 1px solid transparent; font-weight: 700; font-size: calc(15px * var(--fs)); line-height: 1;
+  border: 1px solid transparent; font-weight: var(--fw-b); font-size: calc(15px * var(--fs)); line-height: 1;
   background: var(--surface-2); color: var(--text); transition: transform .1s, filter .15s, background .15s;
   white-space: nowrap; user-select: none; -webkit-user-select: none; text-decoration: none;
 }
@@ -541,16 +547,15 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .btn-icon:hover { background: var(--surface-2); color: var(--text); }
 .btn-icon svg { width: 22px; height: 22px; }
 .btn-hero {
-  width: 100%; min-height: 64px; border-radius: calc(18px * var(--rs)); font-size: calc(18px * var(--fs));
-  background: var(--accent); color: var(--accent-ink);
-  box-shadow: 0 10px 30px color-mix(in srgb, var(--accent) 28%, transparent);
+  width: 100%; min-height: 58px; border-radius: calc(16px * var(--rs)); font-size: calc(17px * var(--fs));
+  background: var(--accent); color: var(--accent-ink); letter-spacing: -.01em;
 }
 .btn-hero svg { width: 24px; height: 24px; }
 .btn-arrow {
   background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--info))); color: var(--accent-ink);
   min-height: 56px; font-size: calc(17px * var(--fs)); border-radius: calc(16px * var(--rs)); width: 100%;
 }
-.link-btn { background: none; border: 0; color: var(--accent-text); font-weight: 700; font-size: calc(14px * var(--fs)); padding: 10px 4px; min-height: 44px; }
+.link-btn { background: none; border: 0; color: var(--accent-text); font-weight: var(--fw-b); font-size: calc(14px * var(--fs)); padding: 10px 4px; min-height: 44px; }
 
 /* Formulare */
 .field { display: flex; flex-direction: column; gap: 6px; }
@@ -568,7 +573,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 }
 .textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
 .textarea.code { font-family: var(--mono); font-size: calc(13px * var(--fs)); min-height: 300px; white-space: pre; tab-size: 2; }
-.input.num-input { text-align: center; font-variant-numeric: tabular-nums; font-weight: 700; }
+.input.num-input { text-align: center; font-variant-numeric: tabular-nums; font-weight: var(--fw-b); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .form-grid .full { grid-column: 1 / -1; }
 .search { position: relative; }
@@ -580,9 +585,9 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .stepper button { height: 48px; border: 0; background: transparent; color: var(--text); font-size: calc(22px * var(--fs)); font-weight: 600; display: flex; align-items: center; justify-content: center; }
 .stepper button:active { background: var(--surface-3); }
 .stepper button svg { width: 20px; height: 20px; }
-.stepper input { min-width: 0; height: 48px; border: 0; background: transparent; text-align: center; font-weight: 800; font-size: calc(19px * var(--fs)); font-variant-numeric: tabular-nums; outline: none; padding: 0 2px; }
+.stepper input { min-width: 0; height: 48px; border: 0; background: transparent; text-align: center; font-weight: var(--fw-x); font-size: calc(19px * var(--fs)); font-variant-numeric: tabular-nums; outline: none; padding: 0 2px; }
 .stepper .unit { font-size: calc(11px * var(--fs)); color: var(--text-faint); font-weight: 600; text-align: center; margin-top: -6px; padding-bottom: 4px; }
-.stepper-label { font-size: calc(11.5px * var(--fs)); font-weight: 700; color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
+.stepper-label { font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; margin-bottom: 5px; }
 
 /* Toggle-Switch */
 .switch { position: relative; width: 52px; height: 32px; flex-shrink: 0; }
@@ -609,7 +614,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .chip svg { width: 15px; height: 15px; }
 .seg { display: flex; background: var(--surface-2); border: var(--bw) solid var(--border); border-radius: calc(12px * var(--rs)); padding: 3px; gap: 2px; overflow-x: auto; scrollbar-width: none; }
 .seg::-webkit-scrollbar { display: none; }
-.seg button { flex: 1 0 auto; min-height: 38px; padding: 0 12px; border: 0; border-radius: calc(9px * var(--rs)); background: transparent; color: var(--text-dim); font-weight: 700; font-size: calc(13.5px * var(--fs)); white-space: nowrap; }
+.seg button { flex: 1 0 auto; min-height: 38px; padding: 0 12px; border: 0; border-radius: calc(9px * var(--rs)); background: transparent; color: var(--text-dim); font-weight: var(--fw-b); font-size: calc(13.5px * var(--fs)); white-space: nowrap; }
 .seg button.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 [data-theme="light"] .seg button.active { box-shadow: 0 1px 3px rgba(16,24,40,.12); }
 .seg.tabs button { flex: 1 1 auto; padding: 0 6px; font-size: calc(13px * var(--fs)); }
@@ -617,7 +622,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .seg.sm button { min-height: 32px; font-size: calc(12.5px * var(--fs)); padding: 0 10px; }
 
 /* Badges */
-.badge { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 999px; font-size: calc(11.5px * var(--fs)); font-weight: 700; background: var(--surface-2); color: var(--text-dim); white-space: nowrap; }
+.badge { display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px; border-radius: 999px; font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-b); background: var(--surface-2); color: var(--text-dim); white-space: nowrap; }
 .badge.accent { background: var(--accent-soft); color: var(--accent-text); }
 .badge.danger { background: var(--danger-soft); color: var(--danger); }
 .badge.warn { background: var(--warning-soft); color: var(--warning); }
@@ -633,17 +638,17 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 .goal-item:last-child { border-bottom: 0; }
 .goal-top { display: flex; align-items: baseline; gap: 8px; }
 .goal-top b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.goal-top span { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--text-dim); font-size: calc(13px * var(--fs)); }
+.goal-top span { font-variant-numeric: tabular-nums; font-weight: var(--fw-b); color: var(--text-dim); font-size: calc(13px * var(--fs)); }
 .goal-bar { height: 10px; border-radius: 999px; background: var(--surface-3); overflow: hidden; }
 .goal-bar i { display: block; height: 100%; border-radius: inherit; background: var(--accent); width: var(--p); transition: width .6s var(--ease-out, ease); }
 .goal-item.reached .goal-bar i { background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 60%, #fff)); }
 .goal-sub { font-size: calc(12px * var(--fs)); color: var(--text-faint); }
-.goal-item.reached .goal-sub { color: var(--accent-text); font-weight: 700; }
-.list-item.am-featured { border: 2px solid var(--accent) !important; border-radius: calc(16px * var(--rs)); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); min-height: 72px; box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent); }
+.goal-item.reached .goal-sub { color: var(--accent-text); font-weight: var(--fw-b); }
+.list-item.am-featured { border: 1px solid var(--accent-dim) !important; border-radius: calc(14px * var(--rs)); background: color-mix(in srgb, var(--accent) 7%, var(--surface)); min-height: 72px; }
 .list-item.am-featured .li-icon { background: var(--accent); color: var(--accent-ink); }
 .am-featured .li-title { font-size: calc(17px * var(--fs)); }
 .am-featured .li-chev { color: var(--accent-text); margin-left: auto; }
-.li-kicker { display: block; font-size: calc(11.5px * var(--fs)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; color: var(--accent-text); margin-bottom: 1px; }
+.li-kicker { display: block; font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-x); text-transform: uppercase; letter-spacing: .05em; color: var(--accent-text); margin-bottom: 1px; }
 .list-item { display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 10px 14px; border-bottom: var(--bw) solid var(--border); width: 100%; background: none; border-left: 0; border-right: 0; border-top: 0; text-align: left; color: var(--text); }
 .list-item:last-child { border-bottom: 0; }
 button.list-item:active, .list-item.clickable:active { background: var(--surface-2); }
@@ -661,12 +666,12 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 @media (min-width: 720px) { .stat-grid { grid-template-columns: repeat(4, 1fr); } }
 .stat { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); padding: 14px; min-height: 108px; display: flex; flex-direction: column; gap: 4px; position: relative; overflow: hidden; box-shadow: var(--card-shadow); }
-.stat .stat-label { font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
+.stat .stat-label { font-size: calc(12.5px * var(--fs)); font-weight: 550; color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
 .stat .stat-label svg { width: 15px; height: 15px; }
-.stat .stat-value { font-size: calc(27px * var(--fs)); font-weight: 800; letter-spacing: -.02em; line-height: 1.1; margin-top: auto; }
-.stat .stat-value small { font-size: calc(14px * var(--fs)); font-weight: 700; color: var(--text-dim); margin-left: 2px; }
+.stat .stat-value { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.025em; line-height: 1.1; margin-top: auto; font-variant-numeric: tabular-nums; }
+.stat .stat-value small { font-size: calc(14px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); margin-left: 2px; }
 .stat .stat-sub { font-size: calc(12px * var(--fs)); color: var(--text-dim); }
-.delta { font-size: calc(12px * var(--fs)); font-weight: 700; display: inline-flex; align-items: center; gap: 2px; }
+.delta { font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); display: inline-flex; align-items: center; gap: 2px; }
 .delta.up { color: var(--success); }
 .delta.down { color: var(--danger); }
 .delta.flat { color: var(--text-dim); }
@@ -675,13 +680,13 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 /* Info-i + Popover */
 .info-i { width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--text-faint); display: inline-flex; align-items: center; justify-content: center; padding: 0; position: relative; flex-shrink: 0; }
 .info-i::before { content: ''; position: absolute; inset: -9px; }
-.info-i svg { width: 16px; height: 16px; }
+.info-i svg { width: 15px; height: 15px; opacity: .7; }
 .popover { position: fixed; z-index: 300; max-width: min(300px, calc(100vw - 32px)); background: var(--surface-3); color: var(--text); border: var(--bw) solid var(--border-strong); border-radius: calc(12px * var(--rs)); padding: 10px 12px; font-size: calc(13px * var(--fs)); line-height: 1.45; box-shadow: var(--shadow); }
 
 /* Banner (laufendes Workout) */
 .banner {
   display: flex; align-items: center; gap: 12px; margin: 4px max(16px, env(safe-area-inset-right)) 4px max(16px, env(safe-area-inset-left));
-  padding: 12px 14px; border-radius: calc(16px * var(--rs)); background: var(--accent); color: var(--accent-ink); border: 0; width: auto; text-align: left; font-weight: 700;
+  padding: 12px 14px; border-radius: calc(16px * var(--rs)); background: var(--accent); color: var(--accent-ink); border: 0; width: auto; text-align: left; font-weight: var(--fw-b);
 }
 .banner svg { width: 20px; height: 20px; }
 .banner .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-ink); animation: pulse 1.4s infinite; }
@@ -690,6 +695,9 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 
 /* Empty-State */
 .empty { text-align: center; padding: 32px 16px; color: var(--text-dim); }
+.sum-badge { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); }
+.sum-badge svg { width: 32px; height: 32px; }
+.imp-ic { width: 15px; height: 15px; vertical-align: -3px; margin-right: 4px; color: var(--text-dim); }
 .empty svg { width: 44px; height: 44px; color: var(--text-faint); margin-bottom: 10px; }
 .empty h3 { color: var(--text); margin-bottom: 6px; }
 
@@ -697,7 +705,7 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 .fab {
   position: fixed; right: max(18px, env(safe-area-inset-right)); bottom: calc(var(--nav-space) + 18px); z-index: 45;
   width: 58px; height: 58px; border-radius: calc(18px * var(--rs)); border: 0; background: var(--accent); color: var(--accent-ink);
-  display: flex; align-items: center; justify-content: center; box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 35%, transparent);
+  display: flex; align-items: center; justify-content: center; box-shadow: 0 8px 20px rgba(0, 0, 0, .28);
 }
 .fab svg { width: 28px; height: 28px; }
 @media (min-width: 900px) { .fab { bottom: 28px; right: 32px; } }
@@ -705,7 +713,7 @@ button.list-item:active, .list-item.clickable:active { background: var(--surface
 /* Tabellen */
 .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
 table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var(--fs)); font-variant-numeric: tabular-nums; }
-.tbl th { text-align: left; font-size: calc(11.5px * var(--fs)); text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); font-weight: 700; padding: 8px 8px; border-bottom: var(--bw) solid var(--border); white-space: nowrap; }
+.tbl th { text-align: left; font-size: calc(11.5px * var(--fs)); text-transform: uppercase; letter-spacing: .05em; color: var(--text-faint); font-weight: var(--fw-b); padding: 8px 8px; border-bottom: var(--bw) solid var(--border); white-space: nowrap; }
 .tbl td { padding: 9px 8px; border-bottom: var(--bw) solid var(--border); white-space: nowrap; }
 .tbl tr:last-child td { border-bottom: 0; }
 .tbl .r { text-align: right; }
@@ -724,7 +732,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .toast.error .t-ic { color: var(--danger); }
 .toast.warn .t-ic { color: var(--warning); }
 .toast.pr { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 22%, var(--surface-3)), color-mix(in srgb, var(--accent) 10%, var(--surface-3))); border-color: var(--accent-dim); color: var(--text); }
-.toast .t-act { margin-left: auto; background: none; border: 0; color: var(--accent-text); font-weight: 800; min-height: 32px; padding: 0 6px; }
+.toast .t-act { margin-left: auto; background: none; border: 0; color: var(--accent-text); font-weight: var(--fw-x); min-height: 32px; padding: 0 6px; }
 @keyframes toastIn { from { opacity: 0; transform: translateY(-12px) scale(.98); } to { opacity: 1; transform: none; } }
 @keyframes restIn { from { opacity: 0; transform: translateY(24px) scale(.96); } to { opacity: 1; transform: none; } }
 @keyframes toastOut { to { opacity: 0; transform: translateY(-8px); } }
@@ -767,7 +775,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 }
 .rest-dock .rest-bar { height: 4px; background: var(--accent); transform-origin: left; transition: transform 1s linear; }
 .rest-dock .rest-row { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; }
-.rest-dock .rest-time { font-size: calc(26px * var(--fs)); font-weight: 800; font-variant-numeric: tabular-nums; min-width: 78px; background: none; border: 0; text-align: left; padding: 0; color: var(--text); }
+.rest-dock .rest-time { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; min-width: 78px; background: none; border: 0; text-align: left; padding: 0; color: var(--text); }
 .rest-dock .rest-label { flex: 1; min-width: 0; font-size: calc(12px * var(--fs)); color: var(--text-dim); line-height: 1.25; }
 .rest-dock.done { border-color: var(--accent); }
 .rest-dock.done .rest-time { color: var(--accent-text); }
@@ -779,7 +787,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .rest-ring .ring-bg { stroke: var(--surface-3); }
 .rest-ring .ring-fg { stroke: var(--accent); transition: stroke-dashoffset 1s linear; stroke-linecap: round; }
 .rest-ring .ring-txt { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-.rest-ring .ring-txt b { font-size: calc(64px * var(--fs)); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
+.rest-ring .ring-txt b { font-size: calc(64px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
 
 /* ==========================================================================
    5. Screens
@@ -794,7 +802,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .mini-wo { display: flex; align-items: center; gap: 12px; }
 .mini-wo .date-box { width: 48px; height: 52px; border-radius: calc(12px * var(--rs)); background: var(--surface-2); display: flex; flex-direction: column; align-items: center; justify-content: center; flex-shrink: 0; }
 .mini-wo .date-box b { font-size: calc(19px * var(--fs)); line-height: 1; }
-.mini-wo .date-box span { font-size: calc(10.5px * var(--fs)); color: var(--text-dim); text-transform: uppercase; font-weight: 700; margin-top: 3px; }
+.mini-wo .date-box span { font-size: calc(10.5px * var(--fs)); color: var(--text-dim); text-transform: uppercase; font-weight: var(--fw-b); margin-top: 3px; }
 .mini-wo .mw-stats { display: flex; gap: 12px; font-size: calc(12.5px * var(--fs)); color: var(--text-dim); margin-top: 3px; flex-wrap: wrap; }
 .grid-2 { display: grid; gap: 10px; grid-template-columns: 1fr; }
 @media (min-width: 720px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
@@ -808,7 +816,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .plan-day:first-of-type { border-top: 0; }
 .plan-day .pd-main { flex: 1; min-width: 0; }
 .plan-day .pd-ex { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); margin-top: 2px; }
-.plan-day.next .pd-name::after { content: 'Nächster'; margin-left: 8px; font-size: calc(11px * var(--fs)); font-weight: 800; color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 2px 8px; vertical-align: 2px; }
+.plan-day.next .pd-name::after { content: 'Nächster'; margin-left: 8px; font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); color: var(--accent-ink); background: var(--accent); border-radius: 999px; padding: 2px 8px; vertical-align: 2px; }
 .pe-row { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 12px; border: var(--bw) solid var(--border); border-radius: calc(12px * var(--rs)); background: var(--surface-2); }
 .pe-row .pe-fields { display: grid; grid-template-columns: 1fr 1.2fr 1fr; gap: 8px; }
 .pe-row .pe-fields .input { min-height: 40px; padding: 6px 8px; text-align: center; }
@@ -816,11 +824,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .pe-step { display: grid; grid-template-columns: 30px minmax(0, 1fr) 30px; align-items: center; background: var(--surface); border: var(--bw) solid var(--border); border-radius: calc(12px * var(--rs)); overflow: hidden; }
 .pe-step button { height: 40px; border: 0; background: transparent; color: var(--text); display: grid; place-items: center; padding: 0; }
 .pe-step button svg { width: 16px; height: 16px; }
-.pe-step .input { border: 0; background: transparent; min-height: 40px; padding: 0; font-weight: 800; }
+.pe-step .input { border: 0; background: transparent; min-height: 40px; padding: 0; font-weight: var(--fw-x); }
 .week-plan { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; }
 .wp-day { min-width: 0; min-height: 60px; padding: 7px 2px; border: var(--bw) solid var(--border); border-radius: calc(10px * var(--rs)); background: var(--surface-2); color: var(--text-faint); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
-.wp-day span { font-size: calc(11.5px * var(--fs)); font-weight: 800; }
-.wp-day b { font-size: calc(10.5px * var(--fs)); font-weight: 700; max-width: 100%; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wp-day span { font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-x); }
+.wp-day b { font-size: calc(10.5px * var(--fs)); font-weight: var(--fw-b); max-width: 100%; padding: 0 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .wp-day.has { background: var(--accent-soft); border-color: var(--accent-dim); color: var(--accent-text); }
 .wp-day.has b { color: var(--text); }
 .wp-day.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
@@ -830,12 +838,12 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .sched-row .sl-main { flex: 0 0 auto; width: 86px; }
 .set-line.sched-row .select { flex: 1; min-width: 0; width: auto; }
 .pe-daysum { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); font-weight: 600; }
-.mini-label { font-size: calc(11px * var(--fs)); font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
+.mini-label { font-size: calc(11px * var(--fs)); font-weight: var(--fw-b); color: var(--text-faint); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 3px; }
 
 /* Aktives Workout */
 .wo-head { position: sticky; top: 0; z-index: 30; margin: calc(-16px - env(safe-area-inset-top)) -16px 12px; padding: calc(env(safe-area-inset-top) + 10px) 16px 10px; background: color-mix(in srgb, var(--bg) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); display: flex; align-items: center; gap: 10px; }
 @media (min-width: 900px) { .wo-head { margin: calc(-16px - env(safe-area-inset-top)) -28px 12px; padding: calc(env(safe-area-inset-top) + 10px) 28px 10px; } }
-.wo-timer { font-size: calc(24px * var(--fs)); font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+.wo-timer { font-size: calc(24px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
 .wo-progress { height: 4px; border-radius: calc(4px * var(--rs)); background: var(--surface-3); overflow: hidden; margin-top: 6px; }
 .wo-progress i { display: block; height: 100%; background: var(--accent); border-radius: calc(4px * var(--rs)); transition: width .3s; }
 .ex-card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); margin-bottom: 12px; overflow: hidden; box-shadow: var(--card-shadow); }
@@ -850,13 +858,13 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-head, .set-row { display: grid; grid-template-columns: 34px minmax(0, 1fr) 70px 58px var(--rpe-col, 50px) 46px; gap: 6px; align-items: center; padding: 0 10px; }
 .no-rpe .set-head, .no-rpe .set-row { --rpe-col: 0px; }
 .no-rpe .set-rpe, .no-rpe .rpe-h { display: none; }
-.set-head { font-size: calc(10.5px * var(--fs)); font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; padding-bottom: 4px; }
+.set-head { font-size: calc(10.5px * var(--fs)); font-weight: var(--fw-x); color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; padding-bottom: 4px; }
 .set-head span:nth-child(n+3) { text-align: center; }
 .set-head .rpe-h { text-align: center; }
 .set-row { min-height: 52px; border-top: 1px solid transparent; position: relative; }
 /* Wischen: die ganze Zeile gleitet, dahinter erscheint die Aktion */
 .set-row.swiping { transform: translateX(var(--sx, 0px)); z-index: 2; background-color: var(--bg); background-image: linear-gradient(var(--surface), var(--surface)); border-radius: calc(10px * var(--rs)); box-shadow: 0 4px 14px rgba(0,0,0,.25); }
-.swipe-bg { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; pointer-events: none; color: #fff; font-weight: 800; font-size: calc(14px * var(--fs)); border-radius: calc(10px * var(--rs)); background: var(--surface-3); }
+.swipe-bg { position: absolute; z-index: 1; display: flex; align-items: center; justify-content: space-between; padding: 0 18px; pointer-events: none; color: #fff; font-weight: var(--fw-x); font-size: calc(14px * var(--fs)); border-radius: calc(10px * var(--rs)); background: var(--surface-3); }
 .swipe-bg span { display: inline-flex; align-items: center; gap: 8px; opacity: .6; transform: scale(.9); transition: opacity .15s, transform .2s cubic-bezier(.34,1.56,.64,1); }
 .swipe-bg svg { width: 22px; height: 22px; }
 .swipe-bg.sw-right { background: color-mix(in srgb, var(--accent) 60%, #000); color: #fff; }
@@ -868,7 +876,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-row.sel { background: var(--surface-2); }
 .set-row.done { background: color-mix(in srgb, var(--accent) 7%, transparent); }
 .set-row.sel.done { background: color-mix(in srgb, var(--accent) 11%, var(--surface-2)); }
-.set-num { width: 34px; height: 34px; border-radius: calc(9px * var(--rs)); border: 0; background: var(--surface-2); color: var(--text-dim); font-weight: 800; font-size: calc(14px * var(--fs)); position: relative; padding: 0; }
+.set-num { width: 34px; height: 34px; border-radius: calc(9px * var(--rs)); border: 0; background: var(--surface-2); color: var(--text-dim); font-weight: var(--fw-x); font-size: calc(14px * var(--fs)); position: relative; padding: 0; }
 .set-num::before { content: ''; position: absolute; inset: -5px; }
 .set-row.sel .set-num { background: var(--surface-3); }
 .set-num.warm { color: var(--warning); background: var(--warning-soft); }
@@ -877,7 +885,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-in:focus { border-color: var(--accent); background: var(--surface); }
 .set-in::placeholder { color: var(--text-faint); font-weight: 600; }
 .set-row.done .set-in { border-color: transparent; background: transparent; }
-.set-rpe { width: 100%; height: 40px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface-2); text-align: center; text-align-last: center; font-weight: 700; font-size: max(16px, calc(16px * var(--fs))); color: var(--text); padding: 0; -webkit-appearance: none; appearance: none; }
+.set-rpe { width: 100%; height: 40px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface-2); text-align: center; text-align-last: center; font-weight: var(--fw-b); font-size: max(16px, calc(16px * var(--fs))); color: var(--text); padding: 0; -webkit-appearance: none; appearance: none; }
 .set-row.done .set-rpe { border-color: transparent; background: transparent; }
 .set-check { width: 44px; height: 44px; border-radius: calc(12px * var(--rs)); border: 2px solid var(--border-strong); background: transparent; color: var(--text-faint); display: flex; align-items: center; justify-content: center; padding: 0; justify-self: end; }
 .set-check svg { width: 22px; height: 22px; }
@@ -885,7 +893,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-panel { padding: 8px 10px 12px; background: var(--surface-2); display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
 .set-panel .stepper { background: var(--surface); }
 .set-panel .rpe-chips { grid-column: 1 / -1; display: flex; gap: 6px; align-items: center; }
-.set-panel .rpe-chips button { flex: 1; min-height: 38px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface); font-weight: 700; color: var(--text-dim); padding: 0; }
+.set-panel .rpe-chips button { flex: 1; min-height: 38px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface); font-weight: var(--fw-b); color: var(--text-dim); padding: 0; }
 .set-panel .rpe-chips button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .set-panel .panel-actions { grid-column: 1 / -1; display: flex; gap: 8px; }
 .ex-foot { display: flex; gap: 8px; padding: 8px 10px 12px; }
@@ -904,23 +912,23 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .wo-strip { position: relative; display: flex; gap: 6px; overflow-x: auto; flex: 1; min-width: 0; padding: 2px 2px; -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 22px), transparent); scrollbar-width: none; scroll-behavior: smooth; -webkit-overflow-scrolling: touch; }
 .wo-strip::-webkit-scrollbar { display: none; }
 .ws-item { flex-shrink: 0; display: flex; align-items: center; gap: 7px; min-height: 40px; max-width: 190px; padding: 4px 11px 4px 5px; border-radius: 999px; border: var(--bw) solid var(--border); background: var(--surface); color: var(--text-dim); font-weight: 650; font-size: calc(12.5px * var(--fs)); }
-.ws-item .ws-ring { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: calc(11px * var(--fs)); font-weight: 800; color: var(--text);
+.ws-item .ws-ring { width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0; display: grid; place-items: center; font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); color: var(--text);
   background: radial-gradient(closest-side, var(--surface) 72%, transparent 74% 100%), conic-gradient(var(--accent) calc(var(--p) * 1%), var(--surface-3) 0); }
 .ws-item .ws-ring svg { width: 15px; height: 15px; }
 .ws-item .ws-name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.ws-item .ws-cnt { font-variant-numeric: tabular-nums; color: var(--text-faint); font-weight: 700; }
+.ws-item .ws-cnt { font-variant-numeric: tabular-nums; color: var(--text-faint); font-weight: var(--fw-b); }
 .ws-item.cur { border-color: var(--accent); color: var(--text); box-shadow: 0 0 0 1px var(--accent); }
 .ws-item.complete .ws-ring { background: var(--accent); color: var(--accent-ink); }
 .ws-item.ws-all { padding: 4px 12px; color: var(--accent-text); }
 .ws-item.ws-all svg { width: 16px; height: 16px; }
 
 /* Übungs-Karte: Kopf, Ziel-Leiste, Zusammenfassung */
-.ex-idx { width: 30px; height: 30px; border-radius: calc(9px * var(--rs)); flex-shrink: 0; display: grid; place-items: center; font-weight: 800; font-size: calc(13px * var(--fs)); margin-top: 1px; }
+.ex-idx { width: 30px; height: 30px; border-radius: calc(9px * var(--rs)); flex-shrink: 0; display: grid; place-items: center; font-weight: var(--fw-x); font-size: calc(13px * var(--fs)); margin-top: 1px; }
 .ex-card-head .ex-sub { font-size: calc(12px * var(--fs)); color: var(--text-faint); margin-top: 1px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ex-goal { display: flex; align-items: stretch; gap: 0; width: calc(100% - 20px); margin: 2px 10px 10px; padding: 0; border-radius: calc(12px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text); text-align: left; overflow: hidden; }
 .ex-goal .eg { flex: 1; min-width: 0; padding: 7px 10px; display: flex; flex-direction: column; gap: 1px; border-right: var(--bw) solid var(--border); }
-.ex-goal .eg small { font-size: calc(10.5px * var(--fs)); font-weight: 700; color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.ex-goal .eg b { font-size: calc(15px * var(--fs)); font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-num); }
+.ex-goal .eg small { font-size: calc(10.5px * var(--fs)); font-weight: var(--fw-b); color: var(--text-faint); text-transform: uppercase; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ex-goal .eg b { font-size: calc(15px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-family: var(--font-num); }
 .ex-goal .eg-edit { width: 42px; flex-shrink: 0; display: grid; place-items: center; color: var(--accent-text); }
 .ex-goal .eg-edit svg { width: 18px; height: 18px; }
 .ex-goal:active { filter: brightness(.96); }
@@ -929,12 +937,12 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ex-sum .dots i { width: 8px; height: 8px; border-radius: 50%; background: var(--surface-3); display: block; }
 .ex-sum .dots i.on { background: var(--accent); }
 .ex-sum b { color: var(--text); }
-.ex-sum .up { color: var(--success); font-weight: 700; }
-.ex-sum .down { color: var(--danger); font-weight: 700; }
+.ex-sum .up { color: var(--success); font-weight: var(--fw-b); }
+.ex-sum .down { color: var(--danger); font-weight: var(--fw-b); }
 .no-prev .set-head, .no-prev .set-row { grid-template-columns: 34px 0 minmax(0, 1fr) minmax(0, 1fr) var(--rpe-col, 50px) 46px; }
 .no-prev .set-prev, .no-prev .set-head span:nth-child(2) { visibility: hidden; overflow: hidden; }
 /* Satz-Typen */
-.set-num i { position: absolute; top: -5px; right: -6px; font-style: normal; font-size: calc(9.5px * var(--fs)); font-weight: 800; line-height: 1; padding: 2px 4px; border-radius: calc(6px * var(--rs)); color: #fff; }
+.set-num i { position: absolute; top: -5px; right: -6px; font-style: normal; font-size: calc(9.5px * var(--fs)); font-weight: var(--fw-x); line-height: 1; padding: 2px 4px; border-radius: calc(6px * var(--rs)); color: #fff; }
 .set-num.drop i { background: var(--info); }
 .set-num.fail i { background: var(--danger); }
 
@@ -942,12 +950,12 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .focus { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; margin-bottom: 12px; }
 .fc-head { display: flex; align-items: center; gap: 4px; padding: 10px 6px 4px; }
 .fc-head .fc-title { flex: 1; min-width: 0; text-align: center; }
-.fc-head .fc-of { font-size: calc(11.5px * var(--fs)); font-weight: 800; color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; }
-.fc-head .fc-name { font-size: calc(21px * var(--fs)); font-weight: 800; background: none; border: 0; padding: 0; color: var(--text); font-family: var(--font-display); text-transform: var(--title-transform); letter-spacing: var(--title-spacing); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; margin: 0 auto; }
+.fc-head .fc-of { font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-x); color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; }
+.fc-head .fc-name { font-size: calc(21px * var(--fs)); font-weight: var(--fw-x); background: none; border: 0; padding: 0; color: var(--text); font-family: var(--font-display); text-transform: var(--title-transform); letter-spacing: var(--title-spacing); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: block; margin: 0 auto; }
 .fc-sets { display: flex; gap: 6px; overflow-x: auto; padding: 4px 12px 10px; scrollbar-width: none; }
 .fc-sets::-webkit-scrollbar { display: none; }
 .fc-pill { flex-shrink: 0; min-width: 58px; min-height: 52px; padding: 5px 8px; border-radius: calc(12px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text-dim); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; position: relative; }
-.fc-pill b { font-size: calc(14px * var(--fs)); font-weight: 800; color: var(--text); }
+.fc-pill b { font-size: calc(14px * var(--fs)); font-weight: var(--fw-x); color: var(--text); }
 .fc-pill small { font-size: calc(11px * var(--fs)); font-weight: 650; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .fc-pill.done { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)); border-color: var(--accent-dim); }
 .fc-pill.done b::after { content: ' ✓'; color: var(--accent-text); }
@@ -957,14 +965,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .fc-pill.add svg { width: 20px; height: 20px; }
 .fc-cur { padding: 12px; background: var(--surface-2); border-top: var(--bw) solid var(--border); display: flex; flex-direction: column; gap: 10px; }
 .fc-label { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
-.fc-label b { font-size: calc(17px * var(--fs)); font-weight: 800; }
+.fc-label b { font-size: calc(17px * var(--fs)); font-weight: var(--fw-x); }
 .fc-label span { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); font-variant-numeric: tabular-nums; }
 .fc-steppers { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
 .fc-big .stepper { grid-template-columns: 40px minmax(0, 1fr) 40px; background: var(--surface); }
 .fc-big .stepper button { height: 68px; }
-.fc-big .stepper input { height: 68px; font-size: max(16px, calc(26px * var(--fs))); font-weight: 850; letter-spacing: -.03em; }
+.fc-big .stepper input { height: 68px; font-size: max(16px, calc(26px * var(--fs))); font-weight: var(--fw-x); letter-spacing: -.03em; }
 .fc-cur .rpe-chips { display: flex; gap: 6px; align-items: center; }
-.fc-cur .rpe-chips button { flex: 1; min-height: 40px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface); font-weight: 700; color: var(--text-dim); padding: 0; }
+.fc-cur .rpe-chips button { flex: 1; min-height: 40px; border-radius: calc(10px * var(--rs)); border: var(--bw) solid var(--border); background: var(--surface); font-weight: var(--fw-b); color: var(--text-dim); padding: 0; }
 .fc-cur .rpe-chips button.active { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
 .fc-done { padding: 20px 14px; text-align: center; border-top: var(--bw) solid var(--border); background: var(--surface-2); }
 .fc-done .big-check { width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: var(--accent-ink); display: grid; place-items: center; margin: 0 auto 10px; }
@@ -977,7 +985,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .fc-nav .btn span { overflow: hidden; text-overflow: ellipsis; }
 
 /* Ziel-Editor & Übersicht */
-.ge-sum { text-align: center; padding: 12px; border-radius: calc(14px * var(--rs)); background: var(--accent-soft); color: var(--accent-text); font-weight: 800; font-size: calc(18px * var(--fs)); font-variant-numeric: tabular-nums; }
+.ge-sum { text-align: center; padding: 12px; border-radius: calc(14px * var(--rs)); background: var(--accent-soft); color: var(--accent-text); font-weight: var(--fw-x); font-size: calc(18px * var(--fs)); font-variant-numeric: tabular-nums; }
 .ge-row { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: var(--bw) solid var(--border); }
 .ge-row:last-child { border-bottom: 0; }
 .ge-row .ge-l { flex: 1; min-width: 0; }
@@ -991,7 +999,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ge-pair { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
 .ge-pair .stepper { flex: 1; width: auto; min-width: 0; }
 .ge-quick { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
-.ge-quick button { min-height: 32px; padding: 0 10px; border-radius: 999px; border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text-dim); font-weight: 700; font-size: calc(12.5px * var(--fs)); }
+.ge-quick button { min-height: 32px; padding: 0 10px; border-radius: 999px; border: var(--bw) solid var(--border); background: var(--surface-2); color: var(--text-dim); font-weight: var(--fw-b); font-size: calc(12.5px * var(--fs)); }
 .ov-item { align-items: flex-start; }
 .ov-item .ex-idx { margin-top: 2px; }
 .ov-acts { display: flex; gap: 0; flex-shrink: 0; margin-right: -6px; }
@@ -999,26 +1007,26 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ov-acts .btn-icon svg { width: 19px; height: 19px; }
 .ov-done { font-size: calc(12px * var(--fs)); color: var(--accent-text); margin-top: 3px; font-variant-numeric: tabular-nums; }
 
-.wo-simple .wo-title { font-weight: 800; font-size: calc(17px * var(--fs)); }
+.wo-simple .wo-title { font-weight: var(--fw-x); font-size: calc(17px * var(--fs)); }
 .wo-simple .wo-stats { gap: 12px; }
 .wo-simple .wo-timer { font-size: calc(15px * var(--fs)); color: var(--text); }
 .wo-head .btn-icon { flex-shrink: 0; }
 .exs { padding-bottom: 0; }
 .exs-head { display: flex; align-items: flex-start; gap: 6px; padding: 12px 4px 6px 14px; }
-.exs-head .ex-name { font-size: calc(17px * var(--fs)); font-weight: 800; background: none; border: 0; padding: 0; color: var(--text); text-align: left; display: block; }
+.exs-head .ex-name { font-size: calc(17px * var(--fs)); font-weight: var(--fw-x); background: none; border: 0; padding: 0; color: var(--text); text-align: left; display: block; }
 .exs-goal { background: none; border: 0; padding: 2px 0; margin-top: 1px; color: var(--text-dim); font-size: calc(13px * var(--fs)); font-weight: 600; text-align: left; font-variant-numeric: tabular-nums; text-decoration: underline dotted; text-underline-offset: 3px; text-decoration-color: var(--text-faint); }
-.exs-count { min-width: 34px; padding-top: 10px; text-align: right; font-weight: 800; font-size: calc(14px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exs-count { min-width: 34px; padding-top: 10px; text-align: right; font-weight: var(--fw-x); font-size: calc(14px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .exs-count.ok { color: var(--accent-text); }
 .exs-count svg { width: 18px; height: 18px; }
 .exc { margin-bottom: 8px; }
 .exc-head { display: flex; align-items: center; gap: 12px; width: 100%; padding: 12px 14px; background: none; border: 0; color: inherit; font: inherit; text-align: left; cursor: pointer; }
-.exc-idx { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim); font-weight: 800; font-size: calc(13px * var(--fs)); }
+.exc-idx { flex-shrink: 0; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center; background: var(--surface-2); color: var(--text-dim); font-weight: var(--fw-x); font-size: calc(13px * var(--fs)); }
 .exc.complete .exc-idx { background: var(--accent); color: var(--accent-ink); }
 .exc-idx svg { width: 16px; height: 16px; }
 .exc-name { display: block; font-weight: 750; font-size: calc(15.5px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .exc-sub { display: block; margin-top: 1px; color: var(--text-faint); font-size: calc(12.5px * var(--fs)); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .exc.complete .exc-name { color: var(--text-dim); }
-.exc-cnt { flex-shrink: 0; font-weight: 800; font-size: calc(13px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.exc-cnt { flex-shrink: 0; font-weight: var(--fw-x); font-size: calc(13px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
 .exc-head > svg { flex-shrink: 0; width: 18px; height: 18px; color: var(--text-faint); }
 .ex-card.ex-open { border-color: var(--accent-dim); }
 .exs-last { display: flex; align-items: center; gap: 8px; padding: 0 8px 8px 14px; font-size: calc(12.5px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
@@ -1031,20 +1039,20 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exs .cd-sets .set-head, .exs .cd-sets .set-row { grid-template-columns: var(--cd-cols); gap: 6px; }
 .cd-bests { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; margin-top: 4px; }
 .cd-best { background: var(--surface-2); border-radius: calc(10px * var(--rs)); padding: 6px 8px; display: flex; flex-direction: column; min-width: 0; }
-.cd-best span { font-size: calc(11px * var(--fs)); color: var(--text-faint); font-weight: 700; text-transform: uppercase; letter-spacing: .03em; }
+.cd-best span { font-size: calc(11px * var(--fs)); color: var(--text-faint); font-weight: var(--fw-b); text-transform: uppercase; letter-spacing: .03em; }
 .cd-best b { font-size: calc(15px * var(--fs)); font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .cd-best small { font-size: calc(11px * var(--fs)); color: var(--text-faint); }
 .pin-note { display: inline-flex; align-items: center; gap: 4px; max-width: 100%; border: 0; border-radius: calc(8px * var(--rs)); padding: 5px 10px; background: color-mix(in srgb, var(--warning, #f5c542) 16%, var(--surface-2)); color: var(--text); font-size: calc(13px * var(--fs)); font-weight: 600; text-align: left; }
 .hint-chip.pin { background: color-mix(in srgb, var(--warning, #f5c542) 16%, var(--surface-2)); color: var(--text); }
 .pin-card { width: 100%; text-align: left; color: inherit; font: inherit; background: color-mix(in srgb, var(--warning, #f5c542) 10%, var(--surface-2)); border-style: dashed; }
-.cd-sum { padding: 6px 14px 2px; font-size: calc(13px * var(--fs)); font-weight: 700; color: var(--accent-text); font-variant-numeric: tabular-nums; }
+.cd-sum { padding: 6px 14px 2px; font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); color: var(--accent-text); font-variant-numeric: tabular-nums; }
 .focus .fc-cardio { margin: 8px 0 0; border: 0; box-shadow: none; background: transparent; }
 .set-fill { width: 100%; height: 40px; border: 0; border-radius: calc(10px * var(--rs)); background: color-mix(in srgb, var(--accent) 14%, transparent); color: var(--accent-text); display: flex; align-items: center; justify-content: center; padding: 0; }
 .set-fill svg { width: 18px; height: 18px; }
 .set-fill:active { transform: scale(.92); }
 .set-prev.can-fill { border: 0; background: none; padding: 0; min-height: 40px; color: var(--accent-text); font-weight: 600; text-align: left; text-decoration: underline dotted; text-underline-offset: 3px; }
 .fc-fill { display: inline-flex; align-items: center; gap: 4px; min-height: 32px; padding: 2px 4px; font-size: calc(13px * var(--fs)); }
-.hint-chip.fill { display: inline-flex; align-items: center; gap: 4px; border: 0; color: var(--accent-text); font-weight: 700; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.hint-chip.fill { display: inline-flex; align-items: center; gap: 4px; border: 0; color: var(--accent-text); font-weight: var(--fw-b); background: color-mix(in srgb, var(--accent) 14%, transparent); }
 .exs .set-head, .exs .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 48px; gap: 8px; padding: 0 12px; }
 .exs .rpe .set-head, .exs .rpe .set-row { grid-template-columns: 30px minmax(0, 1fr) minmax(0, 1fr) 64px 48px; }
 .exs .set-head span { text-align: center; }
@@ -1062,7 +1070,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .exs .set-in { height: 44px; font-size: max(16px, calc(18px * var(--fs))); }
 .exs .set-num { width: 30px; height: 30px; background: transparent; color: var(--text-faint); }
 .exs .set-check { width: 48px; height: 44px; }
-.exs-add { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; margin-top: 6px; border: 0; border-top: var(--bw) solid var(--border); background: none; color: var(--accent-text); font-weight: 700; font-size: calc(15px * var(--fs)); }
+.exs-add { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; min-height: 48px; margin-top: 6px; border: 0; border-top: var(--bw) solid var(--border); background: none; color: var(--accent-text); font-weight: var(--fw-b); font-size: calc(15px * var(--fs)); }
 .exs-add svg { width: 18px; height: 18px; }
 .mt-4 { margin-top: 4px; }
 
@@ -1074,7 +1082,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 @media (min-width: 1100px) { .ex-list { grid-template-columns: repeat(3, 1fr); } }
 .ex-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); text-align: left; width: 100%; color: var(--text); min-height: 64px; box-shadow: var(--card-shadow); }
 .ex-item:active { background: var(--surface-2); }
-.ex-item .cat-dot { width: 40px; height: 40px; border-radius: calc(12px * var(--rs)); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: calc(13px * var(--fs)); flex-shrink: 0; }
+.ex-item .cat-dot { width: 40px; height: 40px; border-radius: calc(12px * var(--rs)); display: flex; align-items: center; justify-content: center; font-weight: var(--fw-x); font-size: calc(13px * var(--fs)); flex-shrink: 0; }
 .ex-item .ex-meta { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); margin-top: 2px; }
 .ex-item .ex-right { text-align: right; font-size: calc(12px * var(--fs)); color: var(--text-dim); flex-shrink: 0; }
 .ex-item .ex-right b { display: block; font-size: calc(14px * var(--fs)); color: var(--text); font-variant-numeric: tabular-nums; }
@@ -1088,8 +1096,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .pr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
 @media (min-width: 560px) { .pr-grid { grid-template-columns: repeat(4, 1fr); } }
 .pr-box { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px 12px; }
-.pr-box span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: 700; }
-.pr-box b { display: block; font-size: calc(19px * var(--fs)); font-weight: 800; margin-top: 2px; }
+.pr-box span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
+.pr-box b { display: block; font-size: calc(19px * var(--fs)); font-weight: var(--fw-x); margin-top: 2px; }
 .pr-box em { font-style: normal; font-size: calc(11.5px * var(--fs)); color: var(--text-faint); }
 .muscle-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -1106,9 +1114,10 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .prog-controls .row { gap: 8px; }
 .chart-card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; min-width: 0; display: flex; flex-direction: column; box-shadow: var(--card-shadow); }
 .chart-card .cc-head { display: flex; align-items: center; gap: 4px; }
-.chart-card .cc-title { font-size: calc(14px * var(--fs)); font-weight: 750; flex: 1; min-width: 0; }
+.chart-card .cc-title { font-size: calc(14px * var(--fs)); font-weight: 650; flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; }
+.cc-ic { width: 16px; height: 16px; color: var(--text-dim); flex-shrink: 0; }
 .chart-card .cc-big { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap; margin: 4px 0 2px; }
-.chart-card .cc-big b { font-size: calc(26px * var(--fs)); font-weight: 800; letter-spacing: -.02em; }
+.chart-card .cc-big b { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.02em; }
 .chart-card .cc-big small { font-size: calc(13px * var(--fs)); color: var(--text-dim); font-weight: 600; }
 .chart-card .cc-sub { font-size: calc(12.5px * var(--fs)); color: var(--text-dim); }
 .chart-box { position: relative; height: 230px; margin-top: 10px; }
@@ -1124,14 +1133,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .legend button.off { opacity: .4; text-decoration: line-through; }
 .big3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 8px; }
 .big3 > div { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px; min-width: 0; }
-.big3 span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: 700; }
-.big3 b { display: block; font-size: calc(20px * var(--fs)); font-weight: 800; }
+.big3 span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
+.big3 b { display: block; font-size: calc(20px * var(--fs)); font-weight: var(--fw-x); }
 .spark { width: 100%; height: 30px; display: block; margin-top: 4px; }
 .minibars { display: flex; align-items: flex-end; gap: 3px; height: 46px; margin-top: 8px; }
 .minibars i { flex: 1; background: var(--accent); border-radius: calc(3px * var(--rs)) calc(3px * var(--rs)) 0 0; min-height: 2px; opacity: .85; display: block; }
 .minibars i.zero { background: var(--surface-3); }
 .heat7 { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-top: 10px; }
-.heat7 button { aspect-ratio: 1; border-radius: calc(10px * var(--rs)); border: 0; background: var(--surface-2); color: var(--text-dim); font-size: calc(11px * var(--fs)); font-weight: 700; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; position: relative; }
+.heat7 button { aspect-ratio: 1; border-radius: calc(10px * var(--rs)); border: 0; background: var(--surface-2); color: var(--text-dim); font-size: calc(11px * var(--fs)); font-weight: var(--fw-b); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; padding: 0; position: relative; }
 .heat7 button.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
 .gh-heat { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
 .gh-heat svg { display: block; }
@@ -1139,21 +1148,22 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .gh-legend i { width: 11px; height: 11px; border-radius: calc(3px * var(--rs)); display: inline-block; }
 .score-ring { position: relative; width: 84px; height: 84px; flex-shrink: 0; }
 .score-ring svg { transform: rotate(-90deg); width: 100%; height: 100%; }
-.score-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(22px * var(--fs)); font-weight: 800; }
+.score-ring b { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: calc(22px * var(--fs)); font-weight: var(--fw-x); }
 .ampel { display: grid; grid-template-columns: 1fr auto; gap: 0; }
 .ampel-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: var(--bw) solid var(--border); font-size: calc(14px * var(--fs)); }
 .ampel-row:last-child { border-bottom: 0; }
 .ampel-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
 .ratio-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: var(--bw) solid var(--border); }
 .ratio-row:last-child { border-bottom: 0; }
-.ratio-row b { font-size: calc(18px * var(--fs)); font-weight: 800; }
+.ratio-row b { font-size: calc(18px * var(--fs)); font-weight: var(--fw-x); }
 .ms-row { display: flex; gap: 12px; padding: 10px 0; border-bottom: var(--bw) solid var(--border); }
 .ms-row:last-child { border-bottom: 0; }
-.ms-ic { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; font-size: 20px; background: color-mix(in srgb, var(--tc) 22%, var(--surface-2)); box-shadow: inset 0 0 0 2px var(--tc); }
+.ms-ic { width: 40px; height: 40px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; color: var(--text); background: color-mix(in srgb, var(--tc) 18%, var(--surface-2)); box-shadow: inset 0 0 0 1.5px var(--tc); }
+.ms-ic svg { width: 19px; height: 19px; }
 .ms-main { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
 .ms-top { display: flex; align-items: center; gap: 8px; }
 .ms-top b { flex: 1; min-width: 0; }
-.ms-tier { font-size: calc(11px * var(--fs)); font-weight: 800; text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; color: #111; background: var(--tc); }
+.ms-tier { font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); text-transform: uppercase; letter-spacing: .05em; padding: 2px 8px; border-radius: 999px; color: #111; background: var(--tc); }
 .ms-pips { display: flex; gap: 4px; }
 .ms-pips i { flex: 1; height: 4px; border-radius: 2px; background: var(--surface-3); }
 .ms-pips i.on { background: var(--c); }
@@ -1162,10 +1172,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .ms-legend { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
 .ms-legend::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
-.badge-tile { background: var(--surface-2); border-radius: calc(14px * var(--rs)); padding: 12px 8px; text-align: center; font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text-dim); border: 1px solid transparent; }
-.badge-tile .bt-ic { font-size: calc(26px * var(--fs)); display: block; margin-bottom: 4px; filter: grayscale(1); opacity: .35; }
+.badge-tile { background: var(--surface-2); border-radius: calc(14px * var(--rs)); padding: 12px 8px; text-align: center; font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); border: 1px solid transparent; }
+.badge-tile .bt-ic { display: grid; place-items: center; margin: 0 auto 6px; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-3); color: var(--text-faint); }
+.badge-tile .bt-ic svg { width: 18px; height: 18px; }
 .badge-tile.got { color: var(--text); border-color: var(--accent-dim); background: var(--accent-soft); }
-.badge-tile.got .bt-ic { filter: none; opacity: 1; }
+.badge-tile.got .bt-ic { background: var(--accent); color: var(--accent-ink); }
 .badge-tile em { display: block; font-style: normal; font-size: calc(10.5px * var(--fs)); color: var(--text-faint); font-weight: 600; margin-top: 2px; }
 
 /* Body-Heatmap */
@@ -1179,7 +1190,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .body-map .mus:hover { filter: brightness(1.12); }
 .body-map .mus.sel { stroke: var(--text); stroke-width: 2; }
 .body-map .mlines { fill: none; stroke: var(--fig-line); stroke-width: .8; stroke-linecap: round; opacity: .65; pointer-events: none; }
-.body-map text { fill: var(--text-faint); font-size: 11px; font-weight: 700; text-anchor: middle; }
+.body-map text { fill: var(--text-faint); font-size: 11px; font-weight: var(--fw-b); text-anchor: middle; }
 .reg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 4px 14px; }
 .reg-item { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 2px 8px; padding: 6px 2px; border: 0; background: none; color: var(--text); text-align: left; font-size: calc(13px * var(--fs)); }
 .reg-item .reg-dot { width: 12px; height: 12px; border-radius: 4px; box-shadow: inset 0 0 0 1px var(--fig-line); }
@@ -1190,20 +1201,20 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 
 /* Körper / Fotos */
 .photo-strip { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
-.photo-strip button { flex-shrink: 0; width: 104px; border: 0; padding: 0; background: none; color: var(--text-dim); font-size: calc(11.5px * var(--fs)); font-weight: 700; scroll-snap-align: start; }
+.photo-strip button { flex-shrink: 0; width: 104px; border: 0; padding: 0; background: none; color: var(--text-dim); font-size: calc(11.5px * var(--fs)); font-weight: var(--fw-b); scroll-snap-align: start; }
 .photo-strip img { width: 104px; height: 138px; object-fit: cover; border-radius: calc(12px * var(--rs)); display: block; margin-bottom: 4px; background: var(--surface-2); }
 .compare { position: relative; width: 100%; max-width: 420px; margin: 0 auto; aspect-ratio: 3 / 4; border-radius: calc(14px * var(--rs)); overflow: hidden; background: var(--surface-2); touch-action: none; }
 .compare img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .compare .cmp-line { position: absolute; top: 0; bottom: 0; width: 3px; background: var(--accent); transform: translateX(-50%); pointer-events: none; }
-.compare .cmp-tag { position: absolute; top: 10px; padding: 3px 8px; border-radius: calc(8px * var(--rs)); background: rgba(0,0,0,.6); color: #fff; font-size: calc(12px * var(--fs)); font-weight: 700; }
+.compare .cmp-tag { position: absolute; top: 10px; padding: 3px 8px; border-radius: calc(8px * var(--rs)); background: rgba(0,0,0,.6); color: #fff; font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); }
 .measure-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
 @media (min-width: 560px) { .measure-grid { grid-template-columns: repeat(4, 1fr); } }
 
 /* Mehr */
 .acc-card { display: flex; align-items: center; gap: 14px; }
-.avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: calc(20px * var(--fs)); overflow: hidden; flex-shrink: 0; color: var(--text-dim); }
+.avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: var(--fw-x); font-size: calc(20px * var(--fs)); overflow: hidden; flex-shrink: 0; color: var(--text-dim); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
-.sync-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--border); font-size: calc(12px * var(--fs)); font-weight: 700; color: var(--text-dim); }
+.sync-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--border); font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); }
 .sync-pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); display: block; }
 .sync-pill.synced i { background: var(--success); }
 .sync-pill.pending i { background: var(--warning); animation: pulse 1s infinite; }
@@ -1234,10 +1245,10 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .plates-vis .bar-end { width: 40px; height: 14px; background: var(--text-faint); border-radius: calc(3px * var(--rs)); }
 .plates-vis .sleeve { width: 18px; height: 22px; background: var(--text-dim); border-radius: calc(3px * var(--rs)); }
 .plates-vis .plate { width: 14px; border-radius: calc(4px * var(--rs)); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); position: relative; }
-.plates-vis .plate em { font-style: normal; font-size: 9px; font-weight: 800; color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.plates-vis .plate em { font-style: normal; font-size: 9px; font-weight: var(--fw-x); color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
 .pl-target { display: flex; align-items: center; gap: 8px; }
 .pl-step { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); color: var(--text); }
-.pl-input { width: 100%; border: 0; background: none; text-align: center; font-size: max(16px, calc(40px * var(--fs))); font-weight: 850; color: var(--text); font-family: var(--font-num); outline: none; }
+.pl-input { width: 100%; border: 0; background: none; text-align: center; font-size: max(16px, calc(40px * var(--fs))); font-weight: var(--fw-x); color: var(--text); font-family: var(--font-num); outline: none; }
 .pl-counts { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 8px; }
 .pl-chip, .plate-pick .pp { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 999px; background: var(--surface-2); font-size: calc(15px * var(--fs)); font-weight: 600; }
 .pl-chip i, .plate-pick .pp i { width: 12px; height: 12px; border-radius: 50%; background: var(--pc); box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); }
@@ -1246,14 +1257,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .plate-pick .pp.on { opacity: 1; border-color: var(--accent); color: var(--text); background: var(--accent-soft); }
 .wu-row { gap: 6px; }
 .wu-step { display: flex; align-items: center; width: auto; flex-shrink: 0; }
-.wu-step span { min-width: 44px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; font-size: calc(14px * var(--fs)); }
+.wu-step span { min-width: 44px; text-align: center; font-weight: var(--fw-x); font-variant-numeric: tabular-nums; font-size: calc(14px * var(--fs)); }
 .wu-step button { width: 30px; }
 
 /* Kalender */
 .cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; }
-.cal .cal-h { font-size: calc(11px * var(--fs)); font-weight: 800; color: var(--text-faint); padding: 4px 0; }
+.cal .cal-h { font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); color: var(--text-faint); padding: 4px 0; }
 .cal button { aspect-ratio: 1; border: 0; border-radius: calc(10px * var(--rs)); background: transparent; color: var(--text-dim); font-weight: 650; font-size: calc(13.5px * var(--fs)); position: relative; padding: 0; }
-.cal button.has { background: var(--accent-soft); color: var(--accent-text); font-weight: 800; }
+.cal button.has { background: var(--accent-soft); color: var(--accent-text); font-weight: var(--fw-x); }
 .cal button.has::after { content: ''; position: absolute; bottom: 6px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--accent); }
 .cal button.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
 .cal button.out { opacity: .3; }
@@ -1353,17 +1364,17 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 }
 
 /* ---------- Lernio ---------- */
-[data-design="lernio"] h1, [data-design="lernio"] .hello h1 { font-weight: 700; letter-spacing: -.02em; }
+[data-design="lernio"] h1, [data-design="lernio"] .hello h1 { font-weight: var(--fw-b); letter-spacing: -.02em; }
 [data-design="lernio"] h4 { font-family: var(--font-num); color: var(--accent-text); letter-spacing: .08em; font-weight: 600; }
-[data-design="lernio"] .stat .stat-value, [data-design="lernio"] .chart-card .cc-big b { font-family: var(--font-display); font-weight: 700; }
+[data-design="lernio"] .stat .stat-value, [data-design="lernio"] .chart-card .cc-big b { font-family: var(--font-display); font-weight: var(--fw-b); }
 [data-design="lernio"] .nav-btn.active svg { background: var(--accent-soft); border-radius: 999px; padding: 3px 14px; width: 54px; height: 30px; }
 [data-design="lernio"] .nav-btn.active { color: var(--accent-text); }
 [data-design="lernio"] .side-btn.active { background: var(--accent-soft); color: var(--accent-text); }
 [data-design="lernio"] .btn-hero { box-shadow: 0 10px 24px color-mix(in srgb, var(--accent) 25%, transparent); }
-[data-design="lernio"] .section-head h2 { font-weight: 700; }
+[data-design="lernio"] .section-head h2 { font-weight: var(--fw-b); }
 
 /* ---------- Mono ---------- */
-[data-design="mono"] h1, [data-design="mono"] .hello h1 { font-weight: 850; }
+[data-design="mono"] h1, [data-design="mono"] .hello h1 { font-weight: var(--fw-x); }
 [data-design="mono"] .btn-hero { box-shadow: none; }
 [data-design="mono"] .fab { box-shadow: 0 0 0 1px var(--border-strong), 0 12px 30px rgba(0, 0, 0, .35); }
 [data-design="mono"] .toast { background: var(--text); color: var(--bg); border: 0; }
@@ -1372,10 +1383,10 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="mono"] .badge.accent { background: var(--text); color: var(--bg); }
 [data-design="mono"] .seg button.active { background: var(--text); color: var(--bg); box-shadow: none; }
 [data-design="mono"] .set-row.done { background: color-mix(in srgb, var(--text) 5%, transparent); }
-[data-design="mono"] .stat .stat-value { font-weight: 850; letter-spacing: -.04em; }
+[data-design="mono"] .stat .stat-value { font-weight: var(--fw-x); letter-spacing: -.04em; }
 
 /* ---------- Brutal ---------- */
-[data-design="brutal"] h1, [data-design="brutal"] .hello h1 { font-weight: 700; text-transform: uppercase; }
+[data-design="brutal"] h1, [data-design="brutal"] .hello h1 { font-weight: var(--fw-b); text-transform: uppercase; }
 [data-design="brutal"] h4 { color: var(--text); letter-spacing: .1em; }
 [data-design="brutal"] .section-head h2 { text-transform: uppercase; letter-spacing: -.01em; }
 [data-design="brutal"] .btn { border: var(--bw) solid var(--hard); box-shadow: 3px 3px 0 var(--hard); transition: transform .08s, box-shadow .08s; }
@@ -1456,14 +1467,14 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="iron"] body { background-image: repeating-linear-gradient(115deg, rgba(255, 255, 255, .012) 0 2px, transparent 2px 7px); }
 [data-design="iron"][data-theme="light"] body { background-image: repeating-linear-gradient(115deg, rgba(0, 0, 0, .018) 0 2px, transparent 2px 7px); }
 [data-design="iron"] :is(h1, h2, h3, .topbar-title, .cc-title, .ex-name, .li-title, .stat-label, .nav-btn span, .side-btn span, .chip, .badge, .btn, .seg button) { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .03em; }
-[data-design="iron"] :is(h1, .hello h1) { font-weight: 800; font-size: calc(32px * var(--fs)); }
-[data-design="iron"] .topbar-title { font-size: calc(24px * var(--fs)); font-weight: 800; }
+[data-design="iron"] :is(h1, .hello h1) { font-weight: var(--fw-x); font-size: calc(32px * var(--fs)); }
+[data-design="iron"] .topbar-title { font-size: calc(24px * var(--fs)); font-weight: var(--fw-x); }
 [data-design="iron"] .topbar-title small { font-family: var(--font); text-transform: none; letter-spacing: 0; }
-[data-design="iron"] .stat .stat-value, [data-design="iron"] .chart-card .cc-big b { font-size: calc(34px * var(--fs)); font-weight: 800; }
+[data-design="iron"] .stat .stat-value, [data-design="iron"] .chart-card .cc-big b { font-size: calc(34px * var(--fs)); font-weight: var(--fw-x); }
 [data-design="iron"] .stat { box-shadow: inset 0 3px 0 var(--accent); }
 [data-design="iron"] .section-head h4, [data-design="iron"] .section-head h2 { border-left: 4px solid var(--accent); padding-left: 10px; }
 [data-design="iron"] .btn { font-size: calc(16px * var(--fs)); letter-spacing: .05em; }
-[data-design="iron"] .btn-hero { background: repeating-linear-gradient(-45deg, var(--accent) 0 16px, color-mix(in srgb, var(--accent) 86%, #000) 16px 32px); font-size: calc(22px * var(--fs)); font-weight: 800; box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 30%, transparent); }
+[data-design="iron"] .btn-hero { background: repeating-linear-gradient(-45deg, var(--accent) 0 16px, color-mix(in srgb, var(--accent) 86%, #000) 16px 32px); font-size: calc(22px * var(--fs)); font-weight: var(--fw-x); box-shadow: 0 10px 28px color-mix(in srgb, var(--accent) 30%, transparent); }
 [data-design="iron"] .nav-btn.active::after { content: ''; position: absolute; top: 0; left: 28%; right: 28%; height: 3px; background: var(--accent); border-radius: 0 0 3px 3px; }
 [data-design="iron"] .side-btn.active { box-shadow: inset 3px 0 0 var(--accent); }
 [data-design="iron"] .ex-card { border-left: 3px solid var(--accent); }
@@ -1593,7 +1604,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 @media (min-width: 900px) { .design-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
 .design-tile { border: 2px solid var(--border); border-radius: calc(16px * var(--rs)); padding: 8px; background: var(--surface); text-align: left; color: var(--text); display: flex; flex-direction: column; gap: 8px; min-width: 0; position: relative; }
 .design-tile.active { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-.design-tile .dt-name { font-weight: 800; font-size: calc(14px * var(--fs)); display: flex; align-items: center; gap: 6px; }
+.design-tile .dt-name { font-weight: var(--fw-x); font-size: calc(14px * var(--fs)); display: flex; align-items: center; gap: 6px; }
 .design-tile .dt-name svg { width: 16px; height: 16px; color: var(--accent-text); margin-left: auto; }
 .design-tile .dt-desc { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); line-height: 1.3; }
 .dt-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 10px; overflow: hidden; }
@@ -1602,7 +1613,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tp { position: relative; height: 92px; padding: 7px; background: var(--wall, var(--bg)); background-color: var(--bg); color: var(--text); font-family: var(--font); overflow: hidden; display: flex; flex-direction: column; gap: 5px; }
 .tp-card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: calc(7px * var(--rs)); padding: 6px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 4px; }
 .tp[data-design="glass"] .tp-card { background: var(--glass); border-color: transparent; box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-hi); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); }
-.tp-title { font-family: var(--font-display); font-weight: 800; font-size: 12px; line-height: 1; text-transform: var(--title-transform); letter-spacing: var(--title-spacing); }
+.tp-title { font-family: var(--font-display); font-weight: var(--fw-x); font-size: 12px; line-height: 1; text-transform: var(--title-transform); letter-spacing: var(--title-spacing); }
 .tp-line { height: 4px; border-radius: 3px; background: var(--text-faint); opacity: .5; width: 70%; }
 .tp-line.s { width: 45%; }
 .tp-row { display: flex; gap: 4px; align-items: center; margin-top: auto; }
@@ -1615,7 +1626,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tp[data-design="iron"] .tp-btn { background: repeating-linear-gradient(-45deg, var(--accent) 0 5px, color-mix(in srgb, var(--accent) 80%, #000) 5px 10px); }
 .tp-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--surface-3); flex-shrink: 0; }
 .tp-dot.on { background: var(--accent); }
-.tp-mode { position: absolute; right: 5px; bottom: 4px; font-size: 9px; font-weight: 800; color: var(--text-faint); font-family: -apple-system, system-ui, sans-serif; }
+.tp-mode { position: absolute; right: 5px; bottom: 4px; font-size: 9px; font-weight: var(--fw-x); color: var(--text-faint); font-family: -apple-system, system-ui, sans-serif; }
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
 .swatch { width: 38px; height: 38px; border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); display: flex; align-items: center; justify-content: center; color: #fff; }
 .swatch.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }
@@ -1625,7 +1636,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .swatch.custom input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
 .wall-tile { width: 64px; height: 64px; border-radius: 16px; border: 0; padding: 0; background: var(--wall); background-color: var(--bg); box-shadow: inset 0 0 0 1px var(--border); flex-shrink: 0; position: relative; }
 .wall-tile.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
-.wall-tile span { position: absolute; left: 0; right: 0; bottom: -18px; font-size: 11px; font-weight: 700; color: var(--text-dim); text-align: center; }
+.wall-tile span { position: absolute; left: 0; right: 0; bottom: -18px; font-size: 11px; font-weight: var(--fw-b); color: var(--text-dim); text-align: center; }
 .wall-row { display: flex; gap: 12px; overflow-x: auto; padding: 4px 4px 22px; scrollbar-width: none; }
 .look-preview { border-radius: var(--radius); padding: 14px; }
 .look-group { margin-top: 22px; }
@@ -1724,7 +1735,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.6.0',
+  version: '1.7.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1973,6 +1984,7 @@ const ICONS = {
   home: '<path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M10 21v-6h4v6"/>',
   dumbbell: '<path d="M6.5 6.5v11M17.5 6.5v11M3.5 9v6M20.5 9v6M6.5 12h11"/>',
   book: '<path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V3H6.5A2.5 2.5 0 0 0 4 5.5z"/><path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5"/>',
+  moon: '<path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/>',
   eyeOff: '<path d="M9.9 5.1A9.7 9.7 0 0 1 12 5c6.5 0 10 7 10 7a17.6 17.6 0 0 1-2.9 3.9M6.6 6.6C3.7 8.5 2 12 2 12s3.5 7 10 7a9.7 9.7 0 0 0 5.4-1.6"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/><path d="m2 2 20 20"/>',
   chart: '<path d="M3 3v18h18"/><path d="m7 15 4-4 3 3 6-6"/>',
   grid: '<rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/>',
@@ -2038,7 +2050,7 @@ const ICONS = {
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
   fire: '<path d="M12 3c1 3.5 5 5.5 5 10a5 5 0 0 1-10 0c0-2 1-3.5 2-4.5.3 1.5 1 2.5 2 3 0-3 0-5.5 1-8.5z"/>'
 };
-const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
+const icon = (n, cls = '') => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICONS[n] || ''}</svg>`;
 const GOOGLE_ICON = '<svg viewBox="0 0 48 48" width="20" height="20" aria-hidden="true"><path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/><path fill="#FF3D00" d="m6.3 14.7 6.6 4.8C14.7 15.1 19 12 24 12c3 0 5.8 1.1 7.9 3l5.7-5.7C34 6.1 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C37 39.2 44 34 44 24c0-1.3-.1-2.4-.4-3.5z"/></svg>';
 
 /* ==========================================================================
@@ -2301,8 +2313,106 @@ const SEED_CARDIO = [
   ['tischtennis', 'Tischtennis', 'Cardio', ['Ausdauer'], 'Körpergewicht', 'cardio', 'Spiel oder Training – Dauer eintragen.', ['Table Tennis', 'Ping Pong']]
 ];
 
+/* Erweiterung Oktober: Maschinen, Kabel, Multipresse & Plate-Loaded, mehr Varianten */
+const SEED_EXERCISES_3 = [
+  ['cable_fly_sitzend', 'Seated Cable Chest Fly', 'Push', ['Brust', 'Schulter'], 'Kabel', 'kg', 'Sitzend, Rücken an der Lehne – Arme im leichten Bogen vor der Brust zusammenführen.', ['Kabel-Fliegende sitzend', 'Seated Cable Fly', 'Cable Chest Fly (Seated)']],
+  ['kabel_brustpresse', 'Kabel-Brustpresse', 'Push', ['Brust', 'Trizeps', 'Schulter'], 'Kabel', 'kg', 'Griffe auf Brusthöhe, nach vorn drücken, kontrolliert zurück.', ['Cable Chest Press', 'Standing Cable Chest Press', 'Seated Cable Chest Press']],
+  ['negativ_kh', 'Negativbankdrücken Kurzhantel', 'Push', ['Brust', 'Trizeps'], 'Kurzhantel', 'kg', 'Bank leicht negativ, Kurzhanteln auf Höhe der unteren Brust absenken.', ['Decline Dumbbell Press', 'Decline Bench Press (Dumbbell)']],
+  ['brustpresse_plate', 'Brustpresse Plate-Loaded', 'Push', ['Brust', 'Trizeps', 'Schulter'], 'Maschine', 'kg', 'Iso-lateral: jede Seite drückt für sich, Schulterblätter bleiben hinten.', ['Hammer Strength Chest Press', 'Iso-Lateral Chest Press', 'Plate Loaded Chest Press']],
+  ['negativ_brustpresse', 'Negative Brustpresse Maschine', 'Push', ['Brust', 'Trizeps'], 'Maschine', 'kg', 'Nach vorn-unten drücken, Brust bleibt oben.', ['Decline Chest Press', 'Decline Chest Press (Machine)', 'Hammer Strength Decline Press']],
+  ['kabel_fly_schraeg', 'Schrägbank-Kabel-Fly', 'Push', ['Brust', 'Schulter'], 'Kabel', 'kg', 'Schrägbank zwischen die Kabelzüge, Arme im Bogen über der oberen Brust schließen.', ['Incline Cable Fly', 'Cable Fly (Incline)']],
+  ['kabel_fly_einarmig', 'Kabel-Fly einarmig', 'Push', ['Brust'], 'Kabel', 'kg', 'Seitlich zum Kabel, Arm über die Körpermitte führen.', ['Single Arm Cable Fly', 'One Arm Cable Fly']],
+  ['squeeze_press', 'Squeeze Press', 'Push', ['Brust', 'Trizeps'], 'Kurzhantel', 'kg', 'Kurzhanteln die ganze Zeit fest aneinanderdrücken.', ['Dumbbell Squeeze Press', 'Crush Press']],
+  ['brustpresse_sitzend_eng', 'Brustpresse eng', 'Push', ['Brust', 'Trizeps'], 'Maschine', 'kg', 'Enger Griff, Ellbogen nah am Körper.', ['Close Grip Chest Press', 'Chest Press (Close Grip)']],
+  ['schulter_multipresse', 'Smith Machine Shoulder Press', 'Push', ['Schulter', 'Trizeps'], 'Maschine', 'kg', 'Sitzend vor der Stange, bis knapp unters Kinn absenken, Ellbogen leicht vor dem Körper.', ['Schulterdrücken Multipresse', 'Shoulder Press (Smith Machine)', 'Smith Shoulder Press', 'Smith Overhead Press']],
+  ['schulterpresse_plate', 'Schulterpresse Plate-Loaded', 'Push', ['Schulter', 'Trizeps'], 'Maschine', 'kg', 'Rücken fest an der Lehne, nicht ins Hohlkreuz drücken.', ['Hammer Strength Shoulder Press', 'Iso-Lateral Shoulder Press', 'Plate Loaded Shoulder Press']],
+  ['front_raise_kabel', 'Front Raise Kabel', 'Push', ['Schulter'], 'Kabel', 'kg', 'Arm gestreckt bis auf Schulterhöhe heben, langsam ablassen.', ['Cable Front Raise', 'Frontheben Kabel']],
+  ['y_raise_kabel', 'Y-Raise Kabel', 'Push', ['Schulter', 'Trapez'], 'Kabel', 'kg', 'Arme in Y-Form schräg nach oben führen, Daumen zeigen nach oben.', ['Cable Y Raise', 'Cable Y-Raise']],
+  ['seitheben_sitzend', 'Seitheben sitzend', 'Push', ['Schulter'], 'Kurzhantel', 'kg', 'Sitzend ohne Schwung, Ellbogen führen die Bewegung.', ['Seated Lateral Raise', 'Seated Dumbbell Lateral Raise']],
+  ['seitheben_lean_away', 'Seitheben Kabel weggelehnt', 'Push', ['Schulter'], 'Kabel', 'kg', 'An der Stange festhalten und weglehnen – längerer Zug in der Dehnung.', ['Lean Away Lateral Raise', 'Lean-Away Cable Lateral Raise']],
+  ['z_press', 'Z Press', 'Push', ['Schulter', 'Trizeps', 'Bauch'], 'Langhantel', 'kg', 'Auf dem Boden mit gestreckten Beinen sitzen und über Kopf drücken – ohne Abstützen.', ['Z-Press']],
+  ['kh_schulterdruecken_stehend', 'Schulterdrücken stehend (KH)', 'Push', ['Schulter', 'Trizeps', 'Bauch'], 'Kurzhantel', 'kg', 'Bauch fest, kein Hohlkreuz, Hanteln über dem Kopf zusammenführen.', ['Standing Dumbbell Shoulder Press', 'Standing Dumbbell Press']],
+  ['aussenrotation_kabel', 'Außenrotation Kabel', 'Pull', ['Schulter'], 'Kabel', 'kg', 'Ellbogen am Körper, Unterarm nach außen drehen – leicht und sauber.', ['Cable External Rotation', 'External Rotation (Cable)']],
+  ['aussenrotation_kh', 'Außenrotation Kurzhantel', 'Pull', ['Schulter'], 'Kurzhantel', 'kg', 'Seitlich liegend, Ellbogen am Körper, Hantel nach oben drehen.', ['Dumbbell External Rotation', 'Side Lying External Rotation']],
+  ['kh_skullcrusher', 'Skull Crusher Kurzhantel', 'Push', ['Trizeps'], 'Kurzhantel', 'kg', 'Oberarme senkrecht, Hanteln neben den Kopf absenken.', ['Dumbbell Skull Crusher', 'Dumbbell Lying Triceps Extension']],
+  ['jm_press', 'JM Press', 'Push', ['Trizeps', 'Brust'], 'Langhantel', 'kg', 'Mischung aus engem Bankdrücken und Skull Crusher, Stange Richtung Kinn.', ['JM Press (Barbell)']],
+  ['kickback_kabel', 'Trizeps-Kickback Kabel', 'Push', ['Trizeps'], 'Kabel', 'kg', 'Oberkörper vorgebeugt, Oberarm fix, Arm nach hinten strecken.', ['Cable Triceps Kickback', 'Cable Tricep Kickback']],
+  ['trizeps_maschine', 'Trizepsmaschine', 'Push', ['Trizeps'], 'Maschine', 'kg', 'Ellbogen auf dem Polster, unten voll strecken.', ['Triceps Extension Machine', 'Triceps Extension (Machine)', 'Seated Triceps Press']],
+  ['pushdown_untergriff', 'Trizeps-Pushdown Untergriff', 'Push', ['Trizeps'], 'Kabel', 'kg', 'Stange im Untergriff, Ellbogen bleiben am Körper.', ['Reverse Grip Pushdown', 'Reverse Grip Triceps Pushdown', 'Underhand Pushdown']],
+  ['pushdown_vgriff', 'Trizeps-Pushdown V-Griff', 'Push', ['Trizeps'], 'Kabel', 'kg', 'V-Griff nach unten drücken, oben nicht zu weit hoch.', ['V-Bar Pushdown', 'Triceps Pushdown (V-Bar)']],
+  ['dips_gewicht', 'Dips mit Gewicht', 'Push', ['Brust', 'Trizeps', 'Schulter'], 'Körpergewicht', 'kg', 'Zusatzgewicht am Gürtel, Oberkörper leicht nach vorn.', ['Weighted Dips', 'Weighted Dip']],
+  ['trap_bar_kreuzheben', 'Trap-Bar-Kreuzheben', 'Pull', ['Gesäß', 'Quadrizeps', 'Rücken', 'Beinbeuger', 'Trapez'], 'Langhantel', 'kg', 'In der Hex-Bar stehen, Brust raus, mit den Beinen nach oben drücken.', ['Trap Bar Deadlift', 'Hex Bar Deadlift', 'Hexbar Kreuzheben']],
+  ['defizit_kreuzheben', 'Defizit-Kreuzheben', 'Pull', ['Unterer Rücken', 'Beinbeuger', 'Gesäß', 'Rücken'], 'Langhantel', 'kg', 'Auf einer Erhöhung stehen – längerer Weg vom Boden.', ['Deficit Deadlift']],
+  ['kabelrudern_einarmig', 'Kabelrudern einarmig', 'Pull', ['Rücken', 'Bizeps', 'Hintere Schulter'], 'Kabel', 'kg', 'Ellbogen nah am Körper zur Hüfte ziehen, Rumpf nicht verdrehen.', ['Single Arm Cable Row', 'One Arm Cable Row', 'Single Arm Seated Cable Row']],
+  ['kabelrudern_breit', 'Kabelrudern breit', 'Pull', ['Rücken', 'Hintere Schulter', 'Trapez'], 'Kabel', 'kg', 'Breiter Griff, Ellbogen nach außen zur Brust ziehen.', ['Wide Grip Seated Cable Row', 'Wide Grip Cable Row']],
+  ['rudern_plate', 'Rudern Plate-Loaded', 'Pull', ['Rücken', 'Bizeps'], 'Maschine', 'kg', 'Brust am Polster, Schulterblätter zusammen, jede Seite für sich.', ['Hammer Strength Row', 'Iso-Lateral Row', 'Plate Loaded Row', 'Iso-Lateral Low Row']],
+  ['high_row', 'High Row Maschine', 'Pull', ['Rücken', 'Hintere Schulter', 'Bizeps'], 'Maschine', 'kg', 'Von oben schräg nach unten-hinten ziehen.', ['High Row', 'Iso-Lateral High Row', 'Hammer Strength High Row']],
+  ['low_row', 'Low Row Maschine', 'Pull', ['Rücken', 'Bizeps'], 'Maschine', 'kg', 'Zur Hüfte ziehen, Brust bleibt am Polster.', ['Low Row', 'Seated Low Row (Machine)']],
+  ['latzug_plate', 'Latzug Plate-Loaded', 'Pull', ['Rücken', 'Bizeps'], 'Maschine', 'kg', 'Ellbogen nach unten zur Hüfte ziehen, oben voll strecken.', ['Iso-Lateral Lat Pulldown', 'Hammer Strength Lat Pulldown', 'Iso-Lateral Front Lat Pulldown']],
+  ['latzug_maschine', 'Latzug Maschine', 'Pull', ['Rücken', 'Bizeps'], 'Maschine', 'kg', 'Oberschenkel fixiert, Griffe zur oberen Brust ziehen.', ['Lat Pulldown (Machine)', 'Machine Lat Pulldown']],
+  ['tbar_brustgestuetzt', 'T-Bar Rudern brustgestützt', 'Pull', ['Rücken', 'Hintere Schulter', 'Bizeps'], 'Maschine', 'kg', 'Brust auf dem Polster, ohne Schwung rudern.', ['Chest Supported T-Bar Row', 'T-Bar Row (Machine)']],
+  ['rudern_multipresse', 'Rudern Multipresse', 'Pull', ['Rücken', 'Bizeps'], 'Maschine', 'kg', 'Vorgebeugt mit geradem Rücken, Stange zum Bauch ziehen.', ['Smith Machine Row', 'Bent Over Row (Smith Machine)']],
+  ['pullover_maschine', 'Pullover Maschine', 'Pull', ['Rücken'], 'Maschine', 'kg', 'Arme im großen Bogen von oben nach unten führen.', ['Pullover Machine', 'Machine Pullover', 'Lat Pullover Machine']],
+  ['rueckenstrecker_maschine', 'Rückenstrecker Maschine', 'Pull', ['Unterer Rücken', 'Gesäß'], 'Maschine', 'kg', 'Langsam nach hinten strecken, nicht überstrecken.', ['Back Extension Machine', 'Lower Back Machine', 'Back Extension (Machine)']],
+  ['reverse_hyper', 'Reverse Hyperextension', 'Pull', ['Unterer Rücken', 'Gesäß', 'Beinbeuger'], 'Maschine', 'kg', 'Oberkörper liegt, Beine kontrolliert nach hinten-oben heben.', ['Reverse Hyper', 'Reverse Hyperextensions']],
+  ['shrug_multipresse', 'Shrugs Multipresse', 'Pull', ['Trapez'], 'Maschine', 'kg', 'Schultern gerade nach oben ziehen, kurz halten.', ['Smith Machine Shrug', 'Shrug (Smith Machine)']],
+  ['shrug_maschine', 'Shrugs Maschine', 'Pull', ['Trapez'], 'Maschine', 'kg', 'Schultern zu den Ohren, nicht mit den Armen ziehen.', ['Shrug Machine', 'Machine Shrug']],
+  ['rear_delt_row', 'Rear Delt Row (KH)', 'Pull', ['Hintere Schulter', 'Rücken'], 'Kurzhantel', 'kg', 'Ellbogen weit nach außen zur Seite ziehen.', ['Dumbbell Rear Delt Row', 'Rear Delt Row']],
+  ['klimmzug_gewicht', 'Klimmzug mit Gewicht', 'Pull', ['Rücken', 'Bizeps'], 'Körpergewicht', 'kg', 'Zusatzgewicht am Gürtel, Kinn über die Stange.', ['Weighted Pull Up', 'Weighted Pull-Up', 'Weighted Chin Up']],
+  ['incline_hammer_curl', 'Incline Dumbbell Hammer Curl', 'Pull', ['Bizeps', 'Unterarme'], 'Kurzhantel', 'kg', 'Auf der Schrägbank, Arme hängen hinter dem Körper, neutraler Griff.', ['Schrägbank Hammer Curl', 'Incline Hammer Curl', 'Hammer Curl (Incline)']],
+  ['cross_body_hammer', 'Cross-Body Hammer Curl', 'Pull', ['Bizeps', 'Unterarme'], 'Kurzhantel', 'kg', 'Hantel quer vor dem Körper zur gegenüberliegenden Schulter.', ['Crossbody Hammer Curl', 'Cross Body Curl']],
+  ['preacher_kh', 'Preacher Curl Kurzhantel', 'Pull', ['Bizeps'], 'Kurzhantel', 'kg', 'Oberarm flach auf dem Polster, unten nicht ganz ablegen.', ['Dumbbell Preacher Curl', 'Preacher Curl (Dumbbell)']],
+  ['preacher_maschine', 'Preacher Curl Maschine', 'Pull', ['Bizeps'], 'Maschine', 'kg', 'Ellbogen auf dem Polster, ohne Schwung.', ['Machine Preacher Curl']],
+  ['preacher_kabel', 'Preacher Curl Kabel', 'Pull', ['Bizeps'], 'Kabel', 'kg', 'Konstanter Zug über den ganzen Weg.', ['Cable Preacher Curl']],
+  ['zottman_curl', 'Zottman Curl', 'Pull', ['Bizeps', 'Unterarme'], 'Kurzhantel', 'kg', 'Hoch im Untergriff, oben drehen, im Obergriff langsam ab.', ['Zottman Curls']],
+  ['drag_curl', 'Drag Curl', 'Pull', ['Bizeps'], 'Langhantel', 'kg', 'Stange am Körper entlang nach oben ziehen, Ellbogen gehen nach hinten.', ['Barbell Drag Curl']],
+  ['kabel_curl_hoch', 'Kabel-Curl über Kopf', 'Pull', ['Bizeps'], 'Kabel', 'kg', 'Arme auf Schulterhöhe, Hände zum Kopf ziehen.', ['High Cable Curl', 'Overhead Cable Curl', 'Double Biceps Cable Curl']],
+  ['kabel_curl_einarmig', 'Kabel-Curl einarmig', 'Pull', ['Bizeps'], 'Kabel', 'kg', 'Oberarm ruhig, oben kurz anspannen.', ['Single Arm Cable Curl', 'One Arm Cable Curl']],
+  ['hamstring_curl_machine', 'Hamstring Curl Machine', 'Legs', ['Beinbeuger'], 'Maschine', 'kg', 'Fersen zum Gesäß ziehen, Hüfte bleibt am Polster, langsam zurück.', ['Beinbeuger Maschine', 'Hamstring Curl', 'Hamstring Curl (Machine)', 'Leg Curl Machine']],
+  ['beinpresse_horizontal', 'Beinpresse sitzend', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Horizontal sitzend, Knie folgen den Zehen, unten nicht abrunden.', ['Seated Leg Press', 'Horizontal Leg Press']],
+  ['v_squat', 'V-Squat Maschine', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Schultern unter den Polstern, tief und kontrolliert.', ['V Squat', 'V-Squat']],
+  ['reverse_hack', 'Reverse Hack Squat', 'Legs', ['Gesäß', 'Quadrizeps', 'Beinbeuger'], 'Maschine', 'kg', 'Gesicht zur Maschine, Hüfte weit nach hinten.', ['Reverse Hack Squat (Machine)']],
+  ['split_squat_multipresse', 'Split Squat Multipresse', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Schrittstellung unter der Stange, hinteres Knie Richtung Boden.', ['Smith Machine Split Squat', 'Smith Machine Lunge']],
+  ['hip_thrust_multipresse', 'Hip Thrust Multipresse', 'Legs', ['Gesäß', 'Beinbeuger'], 'Maschine', 'kg', 'Oberer Rücken auf der Bank, oben Gesäß fest anspannen.', ['Smith Machine Hip Thrust']],
+  ['hip_thrust_kh', 'Hip Thrust Kurzhantel', 'Legs', ['Gesäß', 'Beinbeuger'], 'Kurzhantel', 'kg', 'Hantel auf der Hüfte, Kinn zur Brust.', ['Dumbbell Hip Thrust']],
+  ['hip_thrust_einbeinig', 'Hip Thrust einbeinig', 'Legs', ['Gesäß', 'Beinbeuger'], 'Körpergewicht', 'reps', 'Ein Bein in der Luft, Becken bleibt gerade.', ['Single Leg Hip Thrust']],
+  ['waden_multipresse', 'Wadenheben Multipresse', 'Legs', ['Waden'], 'Maschine', 'kg', 'Fußballen auf einer Erhöhung, ganz tief und ganz hoch.', ['Smith Machine Calf Raise']],
+  ['donkey_calf', 'Donkey Calf Raise', 'Legs', ['Waden'], 'Maschine', 'kg', 'Vorgebeugt mit geradem Rücken, Fersen tief sinken lassen.', ['Donkey Calf Raises', 'Esel-Wadenheben']],
+  ['pull_through', 'Cable Pull-Through', 'Legs', ['Gesäß', 'Beinbeuger'], 'Kabel', 'kg', 'Seil zwischen den Beinen, Hüfte nach hinten schieben und nach vorn strecken.', ['Pull Through', 'Kabel Pull-Through']],
+  ['seitl_ausfall', 'Seitliche Ausfallschritte', 'Legs', ['Adduktoren', 'Quadrizeps', 'Gesäß'], 'Kurzhantel', 'kg', 'Großer Schritt zur Seite, anderes Bein bleibt gestreckt.', ['Lateral Lunge', 'Side Lunge']],
+  ['curtsy_lunge', 'Curtsy Lunge', 'Legs', ['Gesäß', 'Quadrizeps', 'Abduktoren'], 'Kurzhantel', 'kg', 'Bein diagonal hinter dem Standbein absetzen.', ['Curtsy Lunges', 'Hofknicks-Ausfallschritt']],
+  ['cossack_squat', 'Cossack Squat', 'Legs', ['Adduktoren', 'Quadrizeps', 'Gesäß'], 'Körpergewicht', 'reps', 'Weit gegrätscht zu einer Seite absinken, anderes Bein gestreckt.', ['Kosaken-Kniebeuge', 'Cossack Squats']],
+  ['jump_squat', 'Jump Squat', 'Legs', ['Quadrizeps', 'Gesäß', 'Waden'], 'Körpergewicht', 'reps', 'Aus der Hocke explosiv springen, weich landen.', ['Squat Jump', 'Sprungkniebeuge']],
+  ['kh_kniebeuge', 'Kniebeuge Kurzhantel', 'Legs', ['Quadrizeps', 'Gesäß'], 'Kurzhantel', 'kg', 'Hanteln seitlich halten, aufrecht tief beugen.', ['Dumbbell Squat']],
+  ['heel_elevated_squat', 'Kniebeuge Fersen erhöht', 'Legs', ['Quadrizeps', 'Gesäß'], 'Kurzhantel', 'kg', 'Fersen auf einer Scheibe – Knie dürfen weit nach vorn.', ['Heel Elevated Squat', 'Cyclist Squat']],
+  ['abduktion_kabel', 'Abduktion Kabel', 'Legs', ['Abduktoren', 'Gesäß'], 'Kabel', 'kg', 'Fußschlaufe, Bein seitlich wegführen, Oberkörper ruhig.', ['Cable Hip Abduction', 'Standing Cable Abduction']],
+  ['adduktion_kabel', 'Adduktion Kabel', 'Legs', ['Adduktoren'], 'Kabel', 'kg', 'Bein vor dem Standbein vorbei nach innen ziehen.', ['Cable Hip Adduction', 'Standing Cable Adduction']],
+  ['beinstrecker_einbeinig', 'Beinstrecker einbeinig', 'Legs', ['Quadrizeps'], 'Maschine', 'kg', 'Oben kurz halten, langsam ablassen.', ['Single Leg Extension', 'Single Leg Leg Extension']],
+  ['beincurl_einbeinig', 'Beincurl einbeinig', 'Legs', ['Beinbeuger'], 'Maschine', 'kg', 'Jede Seite einzeln – gut gegen Ungleichgewichte.', ['Single Leg Curl', 'Single Leg Hamstring Curl']],
+  ['glute_maschine', 'Glute Kickback Maschine', 'Legs', ['Gesäß'], 'Maschine', 'kg', 'Bein nach hinten-oben drücken, Becken bleibt gerade.', ['Glute Kickback Machine', 'Glute Machine']],
+  ['kh_rdl_einbeinig_kabel', 'Kabel-Kreuzheben einbeinig', 'Legs', ['Beinbeuger', 'Gesäß'], 'Kabel', 'kg', 'Hüfte gerade halten, Oberkörper und hinteres Bein bilden eine Linie.', ['Single Leg Cable RDL', 'Cable Single Leg Deadlift']],
+  ['oblique_rotation', 'Oblique Rotation Machine', 'Core', ['Bauch'], 'Maschine', 'kg', 'Becken fixiert, Oberkörper kontrolliert zur Seite drehen – beide Seiten gleich oft.', ['Rotationsmaschine', 'Torso Rotation', 'Torso Rotation Machine', 'Rotary Torso', 'Bauch-Rotation Maschine']],
+  ['toes_to_bar', 'Toes to Bar', 'Core', ['Bauch'], 'Körpergewicht', 'reps', 'Hängend die Füße zur Stange führen, ohne Schwung.', ['T2B', 'Hanging Toes to Bar']],
+  ['negativ_crunch', 'Negativ-Crunch', 'Core', ['Bauch'], 'Körpergewicht', 'reps', 'Auf der Negativbank, Oberkörper einrollen statt hochreißen.', ['Decline Crunch', 'Decline Sit Up', 'Decline Sit-Up']],
+  ['kabel_crunch_seitlich', 'Seitlicher Kabel-Crunch', 'Core', ['Bauch'], 'Kabel', 'kg', 'Seitlich zum Kabel, Rumpf zur Seite beugen.', ['Cable Oblique Crunch', 'Cable Side Crunch']],
+  ['landmine_rotation', 'Landmine Rotation', 'Core', ['Bauch', 'Schulter'], 'Langhantel', 'kg', 'Stange mit gestreckten Armen von Hüfte zu Hüfte führen.', ['Landmine 180', 'Landmine Twist']],
+  ['heel_touch', 'Heel Touches', 'Core', ['Bauch'], 'Körpergewicht', 'reps', 'Schultern leicht angehoben, abwechselnd zu den Fersen tippen.', ['Fersen tippen', 'Heel Taps', 'Oblique Heel Touch']],
+  ['flutter_kicks', 'Flutter Kicks', 'Core', ['Bauch'], 'Körpergewicht', 'sec', 'Unterer Rücken bleibt am Boden, Beine flattern knapp darüber.', ['Beinschere', 'Scissor Kicks']],
+  ['sit_up_gewicht', 'Sit-Up mit Gewicht', 'Core', ['Bauch'], 'Kurzhantel', 'kg', 'Scheibe an der Brust, langsam abrollen.', ['Weighted Sit Up', 'Weighted Sit-Up']],
+  ['hanging_oblique', 'Hängendes Knieheben seitlich', 'Core', ['Bauch'], 'Körpergewicht', 'reps', 'Knie abwechselnd schräg zur Seite hochziehen.', ['Hanging Oblique Knee Raise', 'Hanging Oblique Raise']],
+  ['side_bend_roman', 'Seitbeugen am Rückenstrecker', 'Core', ['Bauch'], 'Körpergewicht', 'reps', 'Seitlich im Gerät, Oberkörper seitlich absenken und heben.', ['Roman Chair Side Bend', '45 Degree Side Bend']],
+  ['plank_gewicht', 'Plank mit Gewicht', 'Core', ['Bauch'], 'Körpergewicht', 'sec', 'Scheibe auf dem oberen Rücken, Körper bleibt gerade.', ['Weighted Plank']],
+  ['ab_crunch_kabel_stehend', 'Kabel-Crunch stehend', 'Core', ['Bauch'], 'Kabel', 'kg', 'Stehend vom oberen Kabel nach unten einrollen.', ['Standing Cable Crunch']],
+  ['devil_press', 'Devil Press', 'Full Body', ['Schulter', 'Gesäß', 'Brust', 'Beinbeuger'], 'Kurzhantel', 'kg', 'Burpee auf die Hanteln, dann in einem Zug über Kopf.', ['Devils Press', "Devil's Press"]],
+  ['kb_thruster', 'Kettlebell Thruster', 'Full Body', ['Quadrizeps', 'Schulter', 'Gesäß'], 'Kettlebell', 'kg', 'Aus der Front-Kniebeuge direkt über Kopf drücken.', ['KB Thruster']],
+  ['kb_windmill', 'Kettlebell Windmill', 'Full Body', ['Bauch', 'Schulter'], 'Kettlebell', 'kg', 'Kettlebell über Kopf, Blick zur Glocke, seitlich absenken.', ['KB Windmill', 'Windmill']],
+  ['kb_press', 'Kettlebell Press', 'Push', ['Schulter', 'Trizeps'], 'Kettlebell', 'kg', 'Aus der Rack-Position strikt über Kopf drücken.', ['Kettlebell Overhead Press', 'KB Press']],
+  ['kb_row', 'Kettlebell Rudern', 'Pull', ['Rücken', 'Bizeps'], 'Kettlebell', 'kg', 'Abgestützt vorgebeugt, Kettlebell zur Hüfte ziehen.', ['Kettlebell Row', 'KB Row']],
+  ['sandbag_clean', 'Sandbag Clean', 'Full Body', ['Gesäß', 'Rücken', 'Trapez'], 'Kurzhantel', 'kg', 'Sandsack vom Boden explosiv auf die Schulter oder Brust.', ['Sandsack umsetzen', 'Sandbag to Shoulder']]
+];
+
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 4;
+const SEED_VERSION = 5;
 /** Neue Bibliotheks-Übungen bei bestehenden Konten einmalig ergänzen (nur fehlende IDs) */
 function ensureSeeds() {
   const v = S().seedVersion || 1;
@@ -2314,8 +2424,8 @@ function ensureSeeds() {
     seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
     if (added && !have.size) added = 0;
   }
-  if (v >= 2 && v < 4) {
-    // Cardio-Bibliothek ergänzen
+  if (v >= 2 && v < 5) {
+    // Neue Bibliotheks-Übungen ergänzen (Cardio, Oktober-Erweiterung)
     const have = new Set(Store.all('exercises').map(e => e.id));
     seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
   }
@@ -2341,11 +2451,11 @@ function ensureSeeds() {
   if (ops.length) Store.batch(ops).catch(fsError);
   if (v < 3) { const ap = Store.raw('plans', S().activePlanId); patch.activePlanId = isSchedule(ap) ? ap.id : ((Store.all('plans').find(isSchedule) || {}).id || ''); }
   Store.saveSettings(patch);
-  if (added) toast(`📚 ${added} neue Übungen in der Bibliothek`, 'success', { duration: 4000 });
+  if (added) toast(`${added} neue Übungen in der Bibliothek`, 'success', { duration: 4000 });
 }
 function seedExerciseDocs() {
   const now = Date.now();
-  return [...SEED_EXERCISES, ...SEED_EXERCISES_2, ...SEED_CARDIO].map(([id, name, category, muscleGroups, equipment, defaultUnit, notes, aliases]) => ({
+  return [...SEED_EXERCISES, ...SEED_EXERCISES_2, ...SEED_CARDIO, ...SEED_EXERCISES_3].map(([id, name, category, muscleGroups, equipment, defaultUnit, notes, aliases]) => ({
     id: EX_PREFIX + id, name, category, muscleGroups, equipment, isCustom: false, notes, defaultUnit, aliases: aliases || [], createdAt: now
   }));
 }
@@ -2900,7 +3010,7 @@ function toast(msg, type = 'info', opts = {}) {
   const el = document.createElement('div');
   el.className = `toast ${type}`;
   el.setAttribute('role', type === 'error' ? 'alert' : 'status');
-  el.innerHTML = `${type === 'pr' ? '' : icon(ic, 't-ic')}<span>${esc(msg)}</span>${opts.action ? `<button class="t-act">${esc(opts.action.label)}</button>` : ''}`;
+  el.innerHTML = `${icon(ic, 't-ic')}<span>${esc(msg)}</span>${opts.action ? `<button class="t-act">${esc(opts.action.label)}</button>` : ''}`;
   root.appendChild(el);
   while (root.children.length > 3) root.firstElementChild.remove();
   const dur = opts.duration || (type === 'error' ? 5500 : type === 'pr' ? 5000 : 2800);
@@ -3182,7 +3292,7 @@ const DESIGN_FONTS = {
 const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben) */
 const DESIGNS = [
-  { id: 'gymlog', name: 'Trainio', desc: 'Neon-Grün auf Graphit – das Original', surf: { dark: '#15181d', light: '#ffffff' } },
+  { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#15171b', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
   { id: 'lernio', name: 'Lernio', desc: 'Petrol & IBM Plex – wie deine Lernio-App', surf: { dark: '#151f1e', light: '#ffffff' } },
   { id: 'mono', name: 'Mono', desc: 'Schwarz-Weiß, OLED-schwarz & papierweiß', surf: { dark: '#0b0b0b', light: '#ffffff' } },
@@ -3306,7 +3416,7 @@ function lookHtml() {
         <div class="stat"><div class="stat-label">${icon('bolt')} Volumen</div><div class="stat-value">8,4 t</div><div class="stat-sub"><span class="delta up">${icon('arrowUp')}+12 %</span></div></div>
       </div>
       <div class="row mt-12"><span class="btn btn-primary grow">${icon('play')} Workout starten</span><span class="btn btn-secondary">${icon('layers')}</span></div>
-      <div class="chips mt-12"><span class="chip active">Push</span><span class="chip">Pull</span><span class="chip">Legs</span><span class="badge accent">🏆 PR</span></div>
+      <div class="chips mt-12"><span class="chip active">Push</span><span class="chip">Pull</span><span class="chip">Legs</span><span class="badge accent">${icon('trophy')} PR</span></div>
     </div>
 
     <div class="look-group"><h4>Design</h4>
@@ -3495,13 +3605,15 @@ document.addEventListener('focusout', () => {
 const visibleTabs = () => TABS.filter(([k]) => (k !== 'exercises' || F('f_exercises')) && (k !== 'progress' || F('f_progress')));
 function renderNav() {
   const live = !!Workout.cur();
+  const offline = Store.syncState() === 'offline';
+  const dot = k => (k === 'training' && live ? '<i class="nav-dot"></i>' : '') + (k === 'more' && offline ? '<i class="nav-dot off" title="Offline"></i>' : '');
   const tabs = visibleTabs();
   const act = App.peek === App.tab ? 'more' : App.tab;
   $('#bottomNav').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
   $('#bottomNav').innerHTML = tabs.map(([k, l, ic]) =>
-    `<button class="nav-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}" aria-label="${l}" ${act === k ? 'aria-current="page"' : ''}>${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('');
+    `<button class="nav-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}" aria-label="${l}${k === 'more' && offline ? ' (offline)' : ''}" ${act === k ? 'aria-current="page"' : ''}>${icon(ic)}<span>${l}</span>${dot(k)}</button>`).join('');
   $('#sidebar').innerHTML = `<div class="brand"><img src="icon-192.png" alt="">${APP.name}</div>` +
-    tabs.map(([k, l, ic]) => `<button class="side-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}">${icon(ic)}<span>${l}</span>${k === 'training' && live ? '<i class="nav-dot"></i>' : ''}</button>`).join('') +
+    tabs.map(([k, l, ic]) => `<button class="side-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}">${icon(ic)}<span>${l}</span>${dot(k)}</button>`).join('') +
     `<div class="side-foot">${APP.name} v${APP.version}</div>`;
 }
 const SYNC_LABEL = { local: 'Lokal', synced: 'Synchron', pending: 'Sync …', offline: 'Offline' };
@@ -3509,15 +3621,13 @@ function syncPill() {
   const s = Store.syncState();
   return `<button class="sync-pill ${s}" data-act="go" data-tab="more" title="Sync-Status">${'<i></i>'}${SYNC_LABEL[s]}</button>`;
 }
-/* Keine Titelleiste mehr: der aktive Tab ist unten/links markiert. Oben bleibt nur, was etwas zu sagen hat:
-   „Zurück", wenn ein Tab über „Mehr" geöffnet ist, und der Sync-Status, wenn er nicht „alles synchron" ist. */
+/* Keine Titelleiste: der aktive Tab ist unten/links markiert. Oben erscheint nur „Zurück", wenn ein Tab über
+   „Mehr" geöffnet ist. Der Sync-Status (offline/ausstehend) steckt als Punkt am „Mehr"-Tab, Details unter Konto & Sync. */
 function renderTopbar() {
   const tb = $('#topbar');
   const back = App.peek === App.tab ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="go" data-tab="more">${icon('chevL')} Mehr</button>` : '';
-  const st = Store.syncState();
-  const pill = st === 'pending' || st === 'offline' ? syncPill() : '';
-  tb.innerHTML = back || pill ? `${back}<span class="grow"></span>${pill}` : '';
-  tb.classList.toggle('empty', !back && !pill);
+  tb.innerHTML = back ? `${back}<span class="grow"></span>` : '';
+  tb.classList.toggle('empty', !back);
 }
 function renderBanner() {
   const w = Workout.cur();
@@ -3559,7 +3669,8 @@ const e1rm = (w, r) => (w > 0 && r >= 1) ? w * (1 + r / 30) : 0;  // Epley
 /* ---------- Einseitig (unilateral): reps/durationSec = links, repsR/durationSecR = rechts ---------- */
 const UNI_DEFAULT = new Set(['kh_rudern', 'konzentrations_curl', 'bulgarian', 'side_plank', 'landmine_press', 'trizeps_einarmig', 'meadows_row',
   'latzug_einarmig', 'beinpresse_einbeinig', 'reverse_lunge', 'step_up', 'pistol_squat', 'rdl_einbeinig', 'beincurl_stehend', 'kabel_kickback',
-  'copenhagen_plank', 'waden_einbeinig', 'sandbag_carry'].map(x => EX_PREFIX + x));
+  'copenhagen_plank', 'waden_einbeinig', 'sandbag_carry',
+  'kabel_fly_einarmig', 'seitheben_lean_away', 'aussenrotation_kabel', 'aussenrotation_kh', 'kickback_kabel', 'kabelrudern_einarmig', 'preacher_kh', 'kabel_curl_einarmig', 'split_squat_multipresse', 'hip_thrust_einbeinig', 'seitl_ausfall', 'curtsy_lunge', 'cossack_squat', 'abduktion_kabel', 'adduktion_kabel', 'beinstrecker_einbeinig', 'beincurl_einbeinig', 'glute_maschine', 'kh_rdl_einbeinig_kabel', 'oblique_rotation', 'kabel_crunch_seitlich', 'side_bend_roman', 'kb_windmill', 'kb_press', 'kb_row'].map(x => EX_PREFIX + x));
 /** Wdh. für Kraftwerte (e1RM, PR): bei einseitigen Sätzen zählt die schwächere Seite */
 const repsOf = s => s.repsR != null ? Math.min(+s.reps || 0, +s.repsR || 0) : +s.reps || 0;
 /** Wdh. für Volumen: beide Seiten */
@@ -4112,7 +4223,7 @@ const Workout = (() => {
     save();
     WakeLock.request();
     App.go('training');
-    toast(`${w.name} gestartet – viel Erfolg! 💪`, 'success');
+    toast(`${w.name} gestartet`, 'success');
   }
   /** Vergangenes Workout bearbeiten oder wiederholen */
   function load(doc, { edit = false } = {}) {
@@ -4283,7 +4394,7 @@ const RestTimer = (() => {
     beep();
     const sel = w.sel && w.entries[w.sel.e];
     const next = sel ? `Weiter: ${sel.exerciseName} – Satz ${w.sel.s + 1}` : 'Weiter geht\'s!';
-    if (document.visibilityState === 'hidden' && S().notifyRestDone) notify('Pause vorbei ⏱', next);
+    if (document.visibilityState === 'hidden' && S().notifyRestDone) notify('Pause vorbei', next);
     else toast(`Pause vorbei – ${next.replace('Weiter: ', '')}`, 'success');
   }
   function openBig() {
@@ -4342,7 +4453,7 @@ Views.start = {
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
     const hr = new Date().getHours(), nm = (S().displayName || (Auth.user && Auth.user() && Auth.user().displayName) || '').split(' ')[0];
     el.innerHTML = `
-      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}<b>${hr < 11 ? 'Guten Morgen' : hr < 18 ? 'Hallo' : 'Guten Abend'}${nm ? ', ' + esc(nm) : ''} 👋</b></div>
+      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}<b>${hr < 11 ? 'Guten Morgen' : hr < 18 ? 'Hallo' : 'Guten Abend'}${nm ? ', ' + esc(nm) : ''}</b></div>
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>
@@ -4356,12 +4467,12 @@ Views.start = {
           <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
         </div>
         <div class="stat">
-          <div class="stat-label">${icon('bolt')} Volumen Woche ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag.')}</div>
+          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag.')}</div>
           <div class="stat-value">${fmtTon(volNow)}</div>
-          <div class="stat-sub">${deltaHtml(volNow, volPrev) || 'vs. Vorwoche'}</div>
+          <div class="stat-sub">diese Woche ${deltaHtml(volNow, volPrev)}</div>
         </div>
         <div class="stat">
-          <div class="stat-label">${icon('trophy')} Workouts gesamt</div>
+          <div class="stat-label">${icon('trophy')} Workouts</div>
           <div class="stat-value">${ix.rows.length}</div>
           <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
         </div>
@@ -4379,7 +4490,7 @@ Views.start = {
       ${goalsCard()}
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
       ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
-        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History im Mehr-Tab.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">🏹 Arrow-Import</button>` : '')}</div>`}` : ''}
+        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History im Mehr-Tab.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`}` : ''}
     `;
   }
 };
@@ -4462,7 +4573,7 @@ function goalsCard() {
     const cur = best1RM(g.exId), p = g.kg ? Math.min(1, cur / g.kg) : 0, ok = !!g.reachedAt || cur >= g.kg - 1e-6;
     const ss = Analytics.sessionsOf(g.exId).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
     return `<button class="goal-item ${ok ? 'reached' : ''}" data-act="kgoalMenu" data-id="${esc(g.id)}">
-      <div class="goal-top"><b>${ok ? '🏆 ' : ''}${esc(Ex.name(g.exId))}</b><span>${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM</span></div>
+      <div class="goal-top"><b>${ok ? icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px;color:var(--accent-text)"') + ' ' : ''}${esc(Ex.name(g.exId))}</b><span>${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM</span></div>
       <div class="goal-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
       <div class="goal-sub">${ok ? `Erreicht${g.reachedAt ? ' am ' + fmtDate(isoDate(new Date(g.reachedAt))) : ''}${top ? ` · bester Satz ${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : ''}` : cur ? `Noch ${fmtW(g.kg - cur, 1)} · bester Satz ${top ? `${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : '–'} · ${nf(p * 100, 0)} %` : 'Noch keine Sätze für diese Übung'}</div>
     </button>`;
@@ -4488,7 +4599,7 @@ Actions.kgoalEdit = async el => {
   const kg = fromU(n);
   const g = { id: old ? old.id : autoId().slice(0, 8), exId, kg, createdAt: old ? old.createdAt : Date.now(), reachedAt: cur >= kg - 1e-6 ? (old && old.reachedAt) || Date.now() : null };
   Store.saveSettings({ goals: [...goalsList().filter(x => x.id !== g.id), g] });
-  toast(g.reachedAt ? `Ziel schon erreicht – aktuell ${fmtW(cur, 1)} 💪` : `Ziel gesetzt: ${Ex.name(exId)} ${fmtW(kg)} 1RM`, 'success');
+  toast(g.reachedAt ? `Ziel schon erreicht – aktuell ${fmtW(cur, 1)}` : `Ziel gesetzt: ${Ex.name(exId)} ${fmtW(kg)} 1RM`, 'success');
 };
 Actions.kgoalMenu = async el => {
   const g = goalsList().find(x => x.id === el.dataset.id); if (!g) return;
@@ -4880,7 +4991,7 @@ function openWorkoutDetail(id) {
   });
 }
 function workoutText(wo) {
-  const lines = [`🏋️ ${wo.planDayName || wo.name || 'Workout'} – ${fmtDate(wo.date)}`, `⏱ ${fmtDur(wo.durationSec)}`];
+  const lines = [`${wo.planDayName || wo.name || 'Workout'} – ${fmtDate(wo.date)}`, `Dauer: ${fmtDur(wo.durationSec)}`];
   let ton = 0;
   for (const en of wo.entries || []) {
     const done = (en.sets || []).filter(s => s.done !== false && !s.warmup);
@@ -4890,7 +5001,7 @@ function workoutText(wo) {
     const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
     lines.push(`• ${Ex.entryName(en)}${en.uni ? ' (L/R)' : ''}: ${done.map(s => isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))).join(', ')}`);
   }
-  if (ton) lines.splice(2, 0, `📊 ${fmtTon(ton)} Volumen`);
+  if (ton) lines.splice(2, 0, `Volumen: ${fmtTon(ton)}`);
   lines.push('', `– getrackt mit ${APP.name}`);
   return lines.join('\n');
 }
@@ -5105,7 +5216,7 @@ Actions.exFill = el => {
 
 /* ---------- Dauerhafte Übungs-Notiz (am Übungs-Dokument, erscheint in jedem Workout) ---------- */
 const pinNote = exId => ((Ex.get(exId) || {}).myNote || '').trim();
-const pinChip = (exId, cls = 'pin-note') => pinNote(exId) ? `<button class="${cls}" data-act="pinNoteEdit" data-id="${esc(exId)}" aria-label="Notiz bearbeiten">📌 ${esc(pinNote(exId))}</button>` : '';
+const pinChip = (exId, cls = 'pin-note') => pinNote(exId) ? `<button class="${cls}" data-act="pinNoteEdit" data-id="${esc(exId)}" aria-label="Notiz bearbeiten">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} ${esc(pinNote(exId))}</button>` : '';
 Actions.pinNoteEdit = async el => {
   const id = el.dataset.id, ex = Ex.get(id); if (!ex) return;
   const v = await promptDialog({ title: 'Notiz zur Übung', label: `${ex.name} – bleibt für alle zukünftigen Workouts`, value: ex.myNote || '', placeholder: 'z. B. Sitzhöhe 4, Griff eng, Polster Stufe 2' });
@@ -5165,7 +5276,7 @@ function cardioCard(en, ei, w) {
     </div>
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal ${fmtDateShort(last.date)}: ${esc(cardioTxt({ sec: last.secs, km: last.km, lvl: last.lvl || null }, info))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Übernehmen</button>` : ''}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
-    ${en.note ? `<div class="exs-last">📝 ${esc(en.note)}</div>` : ''}
+    ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
     <div class="exs-sets cd-sets" style="--cd-cols:${cols}">
       <div class="set-head"><span></span><span>Min.</span>${dist ? '<span>km</span>' : ''}${lvl ? `<span>${esc(lvlHead)}</span>` : ''}${fill ? '<span></span>' : ''}<span></span></div>
       ${rows}
@@ -5224,7 +5335,7 @@ function simpleCard(en, ei, w) {
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
-    ${en.note ? `<div class="exs-last">📝 ${esc(en.note)}</div>` : ''}
+    ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
     <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''} ${fill ? 'fill' : ''}">
       <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}${fill ? '<span></span>' : ''}<span></span></div>
@@ -5344,7 +5455,7 @@ function exerciseCard(en, ei, w) {
       ${last && canFillAny(en, last) ? `<button class="hint-chip fill" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}
       ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
-      ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
+      ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
       ${pinChip(en.exerciseId, 'hint-chip pin')}
     </div>
     <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
@@ -5366,7 +5477,7 @@ function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni = false, lo 
   return `<div class="set-row ${s.done ? 'done' : ''} ${sel ? 'sel' : ''}" ${d}>
     ${setNumHtml(s, num, d)}
     ${canFill ? `<button class="set-prev can-fill" data-act="setFill" ${d} aria-label="${esc(fmtPrev(prev))} übernehmen" title="Antippen = übernehmen">${fmtPrev(prev)}</button>`
-      : `<span class="set-prev" data-act="setSel" ${d}>${isPR ? '<span class="accent bold">🏆 PR</span>' : fmtPrev(prev)}</span>`}
+      : `<span class="set-prev" data-act="setSel" ${d}>${isPR ? `<span class="accent bold">${icon('trophy').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} PR</span>` : fmtPrev(prev)}</span>`}
     <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
     <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
     ${uni ? rInput(s, d, type, ph) : ''}
@@ -5480,7 +5591,7 @@ function focusView(w) {
       <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
         ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
         ${en.target && en.target.notes ? `<span class="hint-chip note">${esc(en.target.notes)}</span>` : ''}
-        ${en.note ? `<span class="hint-chip note">📝 ${esc(en.note)}</span>` : ''}
+        ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
       </div>
       <div class="fc-sets">${pills}<button class="fc-pill add" data-act="setAdd" data-ei="${ei}" aria-label="Satz hinzufügen">${icon('plus')}</button></div>
       ${cur}
@@ -5926,7 +6037,7 @@ Actions.setDone = el => {
     RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
   }
   if (wasLast) toast('Alle Sätze erledigt – stark! Jetzt „Beenden" tippen.', 'success');
-  else if (exDone) toast(`${en.exerciseName} geschafft 💪`, 'success');
+  else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success');
   App.renderCurrent();
   fx($(`.set-row[data-ei="${ei}"][data-si="${si}"]`), 'fx-done');
   if (exDone) fx($('#ex-' + en.uid), 'fx-complete');
@@ -6193,7 +6304,7 @@ function showSummary({ id, doc, prs }) {
   const m = Modal.open({
     title: 'Workout gespeichert',
     body: `<div class="center" style="padding:6px 0 4px">
-        <div style="font-size:52px;line-height:1">${real.length ? '🏆' : '💪'}</div>
+        <div class="sum-badge">${icon(real.length ? 'trophy' : 'checkCircle')}</div>
         <h2 class="mt-8">${esc(doc.planDayName || doc.name)}</h2>
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
@@ -6205,7 +6316,7 @@ function showSummary({ id, doc, prs }) {
         ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
       </div>
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
-      ${goalsHit.length ? `<h4 class="mt-24 mb-8">🎯 Ziel erreicht!</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${fmtW(g.kg)} 1RM</span><div class="li-sub">Geschätztes 1RM heute: ${fmtW(g.best, 1)}</div></span></div>`).join('')}</div>` : ''}
+      ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${fmtW(g.kg)} 1RM</span><div class="li-sub">Geschätztes 1RM heute: ${fmtW(g.best, 1)}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
@@ -6218,11 +6329,11 @@ function showSummary({ id, doc, prs }) {
   });
   if (goalsHit.length) {
     confetti();
-    goalsHit.forEach((g, i) => setTimeout(() => toast(`🎯 Ziel erreicht: ${Ex.name(g.exId)} ${fmtW(g.kg)} 1RM!`, 'pr'), 300 + i * 900));
+    goalsHit.forEach((g, i) => setTimeout(() => toast(`Ziel erreicht: ${Ex.name(g.exId)} ${fmtW(g.kg)} 1RM`, 'pr'), 300 + i * 900));
   }
   if (real.length) {
     if (!goalsHit.length) confetti();
-    real.slice(0, 4).forEach((p, i) => setTimeout(() => toast(`🏆 Neuer PR: ${PR.label(p)}!`, 'pr'), 500 + i * 900));
+    real.slice(0, 4).forEach((p, i) => setTimeout(() => toast(`Neuer PR: ${PR.label(p)}`, 'pr'), 500 + i * 900));
   }
 }
 
@@ -6319,7 +6430,7 @@ function openPlates(kg) {
       <div class="center">
         ${total < bar ? '<p class="warn-text">Ziel ist leichter als die Stange.</p>' : out.length
           ? `<p class="dim small">Pro Seite</p><div class="pl-counts">${Object.entries(counts).sort((a, b) => b[0] - a[0]).map(([p, n]) => `<span class="pl-chip" style="--pc:${PLATE_COLORS[p] || '#8a8f98'}"><i></i><b>${n}×</b> ${nf(+p, 2)}</span>`).join('')}</div>`
-          : '<p class="dim">Nur die Stange 🙂</p>'}
+          : '<p class="dim">Nur die Stange</p>'}
         ${rest > 0.001 ? `<p class="warn-text small mt-8">Nicht exakt möglich – nächstes machbares Gewicht: <b>${nf(exact, 2)} ${unit()}</b></p>` : ''}
       </div>
       <h4 class="mt-16 mb-8">Stange</h4>
@@ -6512,7 +6623,7 @@ function openExerciseDetail(id) {
         ${ex.isCustom ? '<span class="badge info">Eigene Übung</span>' : ''}
       </div>
       <div class="muscle-pick mt-12">${(ex.muscleGroups || []).map(mg => `<span class="chip soft active" style="min-height:30px">${esc(mg)}</span>`).join('') || '<span class="dim small">Keine Muskelgruppen hinterlegt</span>'}</div>
-      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `📌 <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Eigene Notiz hinzufügen (z. B. Sitzhöhe, Griff) – erscheint in jedem Workout</span>`}</button>
+      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Eigene Notiz hinzufügen (z. B. Sitzhöhe, Griff) – erscheint in jedem Workout</span>`}</button>
       ${ex.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)"><span class="bold">Technik-Tipp:</span> ${esc(ex.notes)}</div>` : ''}
       ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
@@ -6971,7 +7082,7 @@ Views.progress = {
     $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
     const body = $('#progBody', el);
     if (!Analytics.cur().rows.length && UI.progSub !== 'body') {
-      body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">🏹 Arrow-Import</button>` : '')}</div>`;
+      body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`;
       return;
     }
     ProgressViews[progSubs().some(x => x[0] === UI.progSub) ? UI.progSub : 'overview'](body);
@@ -7107,7 +7218,7 @@ ProgressViews.overview = body => {
   body.innerHTML = `
     <div class="charts-grid">
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">🔥 Streak</span>${infoBtn('Aufeinanderfolgende Kalenderwochen mit mindestens einem Workout. Die aktuelle Woche zählt, sobald du trainiert hast.')}</div>
+        <div class="cc-head"><span class="cc-title">${icon('flame', 'cc-ic')} Streak</span>${infoBtn('Aufeinanderfolgende Kalenderwochen mit mindestens einem Workout. Die aktuelle Woche zählt, sobald du trainiert hast.')}</div>
         <div class="cc-big"><b>${st.cur}</b><small>${st.cur === 1 ? 'Woche' : 'Wochen'} in Folge</small></div>
         <div class="cc-sub">Längster Streak: ${st.best} Wochen · diese Woche ${st.days.size}/${goal} Tage</div>
       </div>
@@ -7129,7 +7240,7 @@ ProgressViews.overview = body => {
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Konsistenz-Score</span>${infoBtn(`Workouts der letzten 4 Wochen geteilt durch geplante Workouts (Wochenziel ${goal} × 4) × 100, maximal 100. Wochenziel unter Mehr → Training änderbar.`)}</div>
         <div class="row mt-8" style="gap:16px">${scoreRing(consistency, consistency >= 75 ? c.success : consistency >= 50 ? c.warning : c.danger)}
-          <div><div class="bold">${consistency >= 90 ? 'Maschine! 🤖' : consistency >= 75 ? 'Sehr konstant' : consistency >= 50 ? 'Ausbaufähig' : 'Dranbleiben!'}</div><div class="small dim">${last28} von ${goal * 4} geplanten Workouts in 4 Wochen</div></div></div>
+          <div><div class="bold">${consistency >= 90 ? 'Hervorragend' : consistency >= 75 ? 'Sehr konstant' : consistency >= 50 ? 'Ausbaufähig' : 'Dranbleiben!'}</div><div class="small dim">${last28} von ${goal * 4} geplanten Workouts in 4 Wochen</div></div></div>
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Big 3 – geschätztes 1RM</span>${infoBtn('Bestes geschätztes 1RM (Epley) der letzten 90 Tage für Bankdrücken, Kniebeuge und Kreuzheben. Linie = Verlauf der Sessions.')}</div>
@@ -7141,14 +7252,14 @@ ProgressViews.overview = body => {
         size: 'sm', factory: () => sum(ppl) ? donut(['Push', 'Pull', 'Legs', 'Andere'], ppl, [c.series[0], c.series[1], c.series[2], c.faint], { tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null
       })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">🎯 Nächster PR-Angriff</span>${infoBtn('Übung mit der höchsten PR-Dringlichkeit: Deine Form der letzten 4 Wochen ist nah am Bestwert und du hast sie länger nicht trainiert. Vorschlag zielt auf ein ~1,5 % höheres e1RM.')}</div>
+        <div class="cc-head"><span class="cc-title">${icon('target', 'cc-ic')} Nächster PR-Angriff</span>${infoBtn('Übung mit der höchsten PR-Dringlichkeit: Deine Form der letzten 4 Wochen ist nah am Bestwert und du hast sie länger nicht trainiert. Vorschlag zielt auf ein ~1,5 % höheres e1RM.')}</div>
         ${attack ? `<div class="cc-big"><b style="font-size:20px">${esc(Ex.name(attack.exId))}</b></div>
           <div class="cc-sub">Versuche <b class="accent">${fmtW(attack.weight)} × ${attack.reps}</b> · aktueller e1RM-PR ${fmtW(attack.pr)} · zuletzt ${relDays(attack.lastDn)}</div>
           <button class="btn btn-secondary btn-sm mt-12" data-act="openExercise" data-id="${esc(attack.exId)}">Verlauf ansehen</button>`
         : '<p class="dim small mt-8">Trainiere Übungen mindestens 3× – dann schlagen wir dir hier den nächsten PR vor.</p>'}
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">🏆 Aktive PRs</span>${infoBtn('Anzahl Übungen, bei denen in den letzten 4 Wochen ein neues geschätztes 1RM gefallen ist.')}</div>
+        <div class="cc-head"><span class="cc-title">${icon('trophy', 'cc-ic')} Aktive PRs</span>${infoBtn('Anzahl Übungen, bei denen in den letzten 4 Wochen ein neues geschätztes 1RM gefallen ist.')}</div>
         <div class="cc-big"><b>${activePRs.length}</b><small>Übungen mit PR in 4 Wochen</small></div>
         <div class="cc-sub">${activePRs.slice(0, 5).map(id => esc(Ex.name(id))).join(' · ') || 'Zeit für neue Rekorde!'}</div>
       </div>
@@ -7280,13 +7391,13 @@ function renderMoreStats(el) {
     ${cb.card({ id: 'tod', title: 'Beste Tageszeit', info: 'Wann startest du deine Workouts? Importierte Workouts ohne echte Uhrzeit werden ignoriert.', size: 'sm',
       factory: () => sum(tod) ? donut(['Morgens 5–10', 'Vormittag 10–14', 'Nachmittag 14–18', 'Abend 18–24', 'Nacht 0–5'], tod, [c.series[3], c.series[0], c.series[2], c.series[6], c.faint], { tooltipFmt: v => `${v} Workouts` }) : null })}
     <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">❤️ Lieblings-Übung</span>${infoBtn('Übung mit den meisten Sessions – insgesamt und im gewählten Zeitraum.')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('heart', 'cc-ic')} Lieblings-Übung</span>${infoBtn('Übung mit den meisten Sessions – insgesamt und im gewählten Zeitraum.')}</div>
       <div class="ratio-row"><span class="grow">Insgesamt</span><b>${favAll ? esc(Ex.name(favAll[0])) : '–'}</b><span class="dim small">${favAll ? favAll[1] + '×' : ''}</span></div>
       <div class="ratio-row"><span class="grow">Im Zeitraum</span><b>${favPer ? esc(Ex.name(favPer[0])) : '–'}</b><span class="dim small">${favPer ? favPer[1] + '×' : ''}</span></div>
     </div>
     <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">👻 Verwaiste Übungen</span>${infoBtn('Übungen, die du früher regelmäßig (≥ 4×) gemacht hast, aber seit über 60 Tagen nicht mehr.')}</div>
-      ${orphans.length ? orphans.slice(0, 6).map(([id, ss]) => `<button class="ratio-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;text-align:left" data-act="openExercise" data-id="${esc(id)}"><span class="grow">${esc(Ex.name(id))}</span><span class="dim small">${ss.length}× · ${relDays(ss[ss.length - 1].dn)}</span></button>`).join('') : '<p class="dim small mt-8">Keine – du bleibst deinen Übungen treu. 👌</p>'}
+      <div class="cc-head"><span class="cc-title">${icon('history', 'cc-ic')} Verwaiste Übungen</span>${infoBtn('Übungen, die du früher regelmäßig (≥ 4×) gemacht hast, aber seit über 60 Tagen nicht mehr.')}</div>
+      ${orphans.length ? orphans.slice(0, 6).map(([id, ss]) => `<button class="ratio-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;text-align:left" data-act="openExercise" data-id="${esc(id)}"><span class="grow">${esc(Ex.name(id))}</span><span class="dim small">${ss.length}× · ${relDays(ss[ss.length - 1].dn)}</span></button>`).join('') : '<p class="dim small mt-8">Keine – du bleibst deinen Übungen treu.</p>'}
     </div>
     ${cb.card({ id: 'durh', title: 'Workout-Dauer', info: 'Verteilung der Workout-Dauer im Zeitraum (Minuten).', big: durs.length ? nf(avg(durs), 0) : '–', small: 'min Ø',
       factory: () => durs.length ? barChart(bins.map(b => b[2]), [barDS('Workouts', bins.map(([a, z]) => durs.filter(d => d >= a && d < z).length), c.accent)], { tooltipFmt: v => `${v} Workouts` }) : null })}
@@ -7297,22 +7408,22 @@ function renderMoreStats(el) {
     ${cb.card({ id: 'rpevol', title: 'RPE-Volumen', info: 'Adjustierte Tonnage: Σ (Wdh. × Gewicht × RPE/10). Berücksichtigt, wie hart die Sätze waren.',
       factory: () => { const d = rows.filter(w => w.rpeVol > 0).map(w => ({ x: w.dn, y: toU(w.rpeVol) })); return d.length > 1 ? timeLine([lineDS('RPE-Volumen', d, c.accent)], { tooltipFmt: v => fmtTon(fromU(v)) }) : null; } })}
     <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">✅ Komplett-Rate</span>${infoBtn('Anteil der geplanten Sätze, die als erledigt abgehakt wurden (im Zeitraum).')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('checkCircle', 'cc-ic')} Komplett-Rate</span>${infoBtn('Anteil der geplanten Sätze, die als erledigt abgehakt wurden (im Zeitraum).')}</div>
       <div class="row mt-8" style="gap:16px">${scoreRing(planned ? done / planned * 100 : 0, c.accent)}<div class="small dim">${done} von ${planned} Sätzen erledigt</div></div>
     </div>
     ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Anzahl neuer e1RM-Bestwerte pro Monat (letzte 12 Monate).', big: sum(prMonth), small: 'PRs in 12 Monaten',
       factory: () => barChart(months12.map(k => MONTHS[+k.slice(5) - 1]), [barDS('PRs', prMonth, c.accent)], { tooltipFmt: v => `${v} PRs` }) })}
     <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">🥇 Rekord-Workout</span>${infoBtn('Deine Session mit der höchsten Tonnage aller Zeiten.')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('trophy', 'cc-ic')} Rekord-Workout</span>${infoBtn('Deine Session mit der höchsten Tonnage aller Zeiten.')}</div>
       ${rec ? `<div class="cc-big"><b>${fmtTon(rec.ton)}</b></div><div class="cc-sub">${esc(rec.name)} · ${fmtDate(rec.date)}</div><button class="btn btn-secondary btn-sm mt-12" data-act="openWorkout" data-id="${esc(rec.id)}">Öffnen</button>` : '–'}
     </div>
     <div class="chart-card">
-      <div class="cc-head"><span class="cc-title">🍔 Wie viel hast du bewegt?</span>${infoBtn('Deine gesamte Tonnage in witzigen Einheiten: Big Mac à 230 g, Auto à 1,5 t, Elefant à 6 t.')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('scale', 'cc-ic')} Gesamt bewegt</span>${infoBtn('Deine gesamte Tonnage in witzigen Einheiten: Big Mac à 230 g, Auto à 1,5 t, Elefant à 6 t.')}</div>
       <div class="cc-big"><b>${fmtTon(totalTon)}</b><small>insgesamt</small></div>
-      <div class="cc-sub">= ${nf(totalTon / 0.23, 0)} Big Macs 🍔 · ${nf(totalTon / 1500, 1)} Autos 🚗 · ${nf(totalTon / 6000, 1)} Elefanten 🐘</div>
+      <div class="cc-sub">= ${nf(totalTon / 0.23, 0)} Big Macs · ${nf(totalTon / 1500, 1)} Autos · ${nf(totalTon / 6000, 1)} Elefanten</div>
     </div>
     <div class="chart-card wide">
-      <div class="cc-head"><span class="cc-title">🚦 Erste-Hilfe-Ampel</span>${infoBtn('Vergleicht das beste e1RM der letzten 4 Wochen mit den 4 Wochen davor. Grün: Fortschritt oder neuer PR. Gelb: Stagnation. Rot: Rückschritt > 3 %.')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('warn', 'cc-ic')} Erste-Hilfe-Ampel</span>${infoBtn('Vergleicht das beste e1RM der letzten 4 Wochen mit den 4 Wochen davor. Grün: Fortschritt oder neuer PR. Gelb: Stagnation. Rot: Rückschritt > 3 %.')}</div>
       ${ampel.length ? `<div>${ampel.map(a => `<button class="ampel-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;text-align:left" data-act="openExercise" data-id="${esc(a.id)}"><span class="ampel-dot" style="background:${ampelColor[a.st]}"></span><span class="grow">${esc(Ex.name(a.id))}</span><span class="small dim">${ampelText[a.st]}</span><span class="small num" style="min-width:110px;text-align:right">${a.recMax ? wNum(a.recMax, 1) : '–'} ← ${a.prMax ? wNum(a.prMax, 1) : '–'} ${unit()}</span></button>`).join('')}</div>` : '<p class="dim small mt-8">Trainiere Übungen regelmäßig – dann erscheint hier ihre Ampel.</p>'}
     </div>
   </div>`;
@@ -7332,27 +7443,27 @@ function milestoneList(ix) {
   const kg = v => fmtW(v, 0), t = v => nf(v / 1000, v < 10000 ? 1 : 0) + ' t';
   return [
     ['Training', [
-      ['🏋️', 'Workouts', strength.length, [10, 50, 100, 250, 500], v => nf(v, 0)],
-      ['🔥', 'Längster Streak', st.best, [4, 12, 26, 52, 104], v => nf(v, 0) + ' Wo.'],
-      ['📅', 'Workouts in einem Monat', Math.max(0, ...Object.values(months)), [8, 12, 16, 20, 25], v => nf(v, 0)],
-      ['⏱️', 'Trainingszeit', sum(rows.map(r => r.dur)) / 3600, [10, 50, 100, 250, 500], v => nf(v, 0) + ' h'],
-      ['🧭', 'Verschiedene Übungen', exCount, [10, 25, 50, 75, 100], v => nf(v, 0)]
+      ['dumbbell', 'Workouts', strength.length, [10, 50, 100, 250, 500], v => nf(v, 0)],
+      ['flame', 'Längster Streak', st.best, [4, 12, 26, 52, 104], v => nf(v, 0) + ' Wo.'],
+      ['calendar', 'Workouts in einem Monat', Math.max(0, ...Object.values(months)), [8, 12, 16, 20, 25], v => nf(v, 0)],
+      ['timer', 'Trainingszeit', sum(rows.map(r => r.dur)) / 3600, [10, 50, 100, 250, 500], v => nf(v, 0) + ' h'],
+      ['layers', 'Verschiedene Übungen', exCount, [10, 25, 50, 75, 100], v => nf(v, 0)]
     ]],
     ['Volumen', [
-      ['🧱', 'Tonnage gesamt', sum(rows.map(r => r.ton)), [10000, 100000, 500000, 1e6, 2.5e6], t],
-      ['📦', 'Sätze gesamt', sum(rows.map(r => r.sets)), [500, 2500, 5000, 10000, 25000], v => nf(v, 0)],
-      ['🔁', 'Wiederholungen gesamt', sum(rows.map(r => r.reps)), [5000, 25000, 50000, 100000, 250000], v => nf(v, 0)],
-      ['🏆', 'PRs', ix.prEvents.length, [1, 10, 25, 50, 100], v => nf(v, 0)]
+      ['bolt', 'Tonnage gesamt', sum(rows.map(r => r.ton)), [10000, 100000, 500000, 1e6, 2.5e6], t],
+      ['list', 'Sätze gesamt', sum(rows.map(r => r.sets)), [500, 2500, 5000, 10000, 25000], v => nf(v, 0)],
+      ['repeat', 'Wiederholungen gesamt', sum(rows.map(r => r.reps)), [5000, 25000, 50000, 100000, 250000], v => nf(v, 0)],
+      ['trophy', 'PRs', ix.prEvents.length, [1, 10, 25, 50, 100], v => nf(v, 0)]
     ]],
     ['Kraft (geschätztes 1RM)', [
-      ['🛋️', 'Bankdrücken', big3[0], [60, 80, 100, 120, 140], kg],
-      ['🦵', 'Kniebeuge', big3[1], [80, 100, 140, 180, 220], kg],
-      ['⚓', 'Kreuzheben', big3[2], [100, 140, 180, 220, 260], kg],
-      ['🎯', 'Big-3-Total', big3.every(v => v > 0) ? sum(big3) : 0, [300, 400, 500, 600, 700], kg]
+      ['plate', 'Bankdrücken', big3[0], [60, 80, 100, 120, 140], kg],
+      ['plate', 'Kniebeuge', big3[1], [80, 100, 140, 180, 220], kg],
+      ['plate', 'Kreuzheben', big3[2], [100, 140, 180, 220, 260], kg],
+      ['target', 'Big-3-Total', big3.every(v => v > 0) ? sum(big3) : 0, [300, 400, 500, 600, 700], kg]
     ]],
     ['Cardio', [
-      ['❤️', 'Cardio-Zeit', sum(rows.map(r => r.cSec)) / 3600, [5, 25, 50, 100, 250], v => nf(v, 0) + ' h'],
-      ['🛣️', 'Cardio-Distanz', sum(rows.map(r => r.cKm)), [25, 100, 250, 500, 1000], v => nf(v, 0) + ' km']
+      ['heart', 'Cardio-Zeit', sum(rows.map(r => r.cSec)) / 3600, [5, 25, 50, 100, 250], v => nf(v, 0) + ' h'],
+      ['flag', 'Cardio-Distanz', sum(rows.map(r => r.cKm)), [25, 100, 250, 500, 1000], v => nf(v, 0) + ' km']
     ]]
   ];
 }
@@ -7362,24 +7473,24 @@ function badgesHtml(ix) {
   const lvl = (v, th) => th.filter(x => v >= x).length;
   const got = sum(all.map(m => lvl(m[2], m[3]))), total = all.length * TIERS.length;
   const hours = ix.rows.filter(r => r.startedAt && !r.imp).map(r => new Date(r.startedAt).getHours());
-  const special = [['🌅', 'Frühaufsteher', 'vor 7 Uhr', hours.some(h => h < 7)], ['🦉', 'Nachteule', 'ab 21 Uhr', hours.some(h => h >= 21)], ['⏳', 'Marathon', '2 h+ Workout', ix.rows.some(r => r.dur >= 7200)], ['🎉', 'Erstes Workout', '', ix.rows.length > 0]];
+  const special = [['sun', 'Frühaufsteher', 'vor 7 Uhr', hours.some(h => h < 7)], ['moon', 'Nachteule', 'ab 21 Uhr', hours.some(h => h >= 21)], ['timer', 'Marathon', '2 h+ Workout', ix.rows.some(r => r.dur >= 7200)], ['flag', 'Erstes Workout', '', ix.rows.length > 0]];
   const row = ([ic, name, v, th, f]) => {
     const n = lvl(v, th), next = th[n], prev = n ? th[n - 1] : 0;
     const p = next ? clamp((v - prev) / (next - prev), 0, 1) : 1;
     const tc = n ? TIERS[n - 1][1] : 'var(--surface-3)';
     return `<div class="ms-row" style="--tc:${tc}">
-      <span class="ms-ic">${ic}</span>
+      <span class="ms-ic">${icon(ic)}</span>
       <div class="ms-main">
         <div class="ms-top"><b>${esc(name)}</b>${n ? `<span class="ms-tier">${TIERS[n - 1][0]}</span>` : ''}</div>
         <div class="ms-pips">${TIERS.map(([l, c], i) => `<i class="${i < n ? 'on' : ''}" style="--c:${c}" title="${l}: ${f(th[i])}"></i>`).join('')}</div>
         <div class="goal-bar ms-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
-        <div class="ms-sub">${f(v)} · ${next ? `noch ${f(next - v)} bis ${TIERS[n][0]} (${f(next)})` : 'Höchste Stufe erreicht 💎'}</div>
+        <div class="ms-sub">${f(v)} · ${next ? `noch ${f(next - v)} bis ${TIERS[n][0]} (${f(next)})` : 'Höchste Stufe erreicht'}</div>
       </div>
     </div>`;
   };
   return `<p class="small dim mb-8">${got} von ${total} Stufen erreicht · ${TIERS.map(([l, c]) => `<span class="ms-legend" style="--c:${c}">${l}</span>`).join(' ')}</p>
     ${groups.map(([g, ms]) => `<div class="card mb-12"><h4 class="mb-8">${esc(g)}</h4>${ms.map(row).join('')}</div>`).join('')}
-    <div class="card"><h4 class="mb-8">Spezial</h4><div class="badges-grid">${special.map(([i, l, sub, ok]) => `<div class="badge-tile ${ok ? 'got' : ''}"><span class="bt-ic">${i}</span>${esc(l)}${sub ? `<em>${esc(sub)}</em>` : ''}</div>`).join('')}</div></div>`;
+    <div class="card"><h4 class="mb-8">Spezial</h4><div class="badges-grid">${special.map(([i, l, sub, ok]) => `<div class="badge-tile ${ok ? 'got' : ''}"><span class="bt-ic">${icon(i)}</span>${esc(l)}${sub ? `<em>${esc(sub)}</em>` : ''}</div>`).join('')}</div></div>`;
 }
 
 
@@ -8288,7 +8399,7 @@ Views.more = {
       </div>
 
       <div class="section-head"><h4>Daten</h4></div>
-      ${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">🏹 Arrow-Import</button>` : ''}
+      ${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
       ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts)</span></button>` : ''}
       <div class="list mt-12">
         ${navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel')}
@@ -8583,7 +8694,7 @@ Actions.restoreJSON = () => {
     await Store.batch(ops);
     await PR.recalcAll();
     applyTheme();
-    toast('Backup wiederhergestellt ✅', 'success');
+    toast('Backup wiederhergestellt', 'success');
   };
   inp.click();
 };
@@ -8862,14 +8973,14 @@ function previewHtml(a) {
   const aliased = [...a.mapping.entries()].filter(([k, m]) => !m.isNew && norm(m.name) !== k);
   const first5 = a.items.slice(0, 5), last5 = a.items.length > 10 ? a.items.slice(-5) : a.items.slice(5);
   return `<div class="preview-box">
-      <div>✅ JSON gültig</div>
-      ${dates.length ? `<div>📅 Zeitraum: ${fmtDate(dates[0], { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${fmtDate(dates[dates.length - 1], { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>` : ''}
-      <div>🏋️ ${a.items.length} Workouts gefunden${a.items.length !== ok.length ? ` (${ok.length} werden importiert)` : ''}</div>
-      <div>📊 ${a.uniqueEx} einzigartige Übungen (${a.newExercises.length} davon neu – werden angelegt)</div>
-      <div>📈 ${a.progress.length} Körper-Einträge</div>
-      ${a.warnings.map(w => `<div class="warn-line">⚠️ ${esc(w)}</div>`).join('')}
-      ${a.broken.length ? `<div class="danger-text">❌ ${a.broken.length} fehlerhafte${a.broken.length === 1 ? 's Workout wird' : ' Workouts werden'} übersprungen:</div>${a.broken.slice(0, 8).map(b => `<div class="danger-text small">• ${esc(b.label)}: ${esc(b.errs.slice(0, 3).join('; '))}</div>`).join('')}` : ''}
-      ${a.progSkipped.map(p => `<div class="danger-text small">❌ ${esc(p)}</div>`).join('')}
+      <div>${icon('checkCircle', 'imp-ic')} JSON gültig</div>
+      ${dates.length ? `<div>${icon('calendar', 'imp-ic')} Zeitraum: ${fmtDate(dates[0], { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${fmtDate(dates[dates.length - 1], { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>` : ''}
+      <div>${icon('dumbbell', 'imp-ic')} ${a.items.length} Workouts gefunden${a.items.length !== ok.length ? ` (${ok.length} werden importiert)` : ''}</div>
+      <div>${icon('layers', 'imp-ic')} ${a.uniqueEx} einzigartige Übungen (${a.newExercises.length} davon neu – werden angelegt)</div>
+      <div>${icon('chart', 'imp-ic')} ${a.progress.length} Körper-Einträge</div>
+      ${a.warnings.map(w => `<div class="warn-line">${icon('warn', 'imp-ic')} ${esc(w)}</div>`).join('')}
+      ${a.broken.length ? `<div class="danger-text">${icon('xCircle', 'imp-ic')} ${a.broken.length} fehlerhafte${a.broken.length === 1 ? 's Workout wird' : ' Workouts werden'} übersprungen:</div>${a.broken.slice(0, 8).map(b => `<div class="danger-text small">• ${esc(b.label)}: ${esc(b.errs.slice(0, 3).join('; '))}</div>`).join('')}` : ''}
+      ${a.progSkipped.map(p => `<div class="danger-text small">${icon('xCircle', 'imp-ic')} ${esc(p)}</div>`).join('')}
     </div>
     ${a.items.length ? `<h4 class="mt-16 mb-8">Erste ${first5.length} Workouts</h4>${first5.map(listItem).join('')}${last5.length ? `<h4 class="mt-16 mb-8">Letzte ${last5.length} Workouts</h4>${last5.map(listItem).join('')}` : ''}` : ''}
     ${a.newExercises.length ? `<h4 class="mt-16 mb-8">Neue Übungen</h4><div class="chips wrap">${a.newExercises.map(e => `<span class="chip" style="cursor:default">${esc(e.name)} <span class="faint">· ${esc(e.category)}</span></span>`).join('')}</div>` : ''}
@@ -8928,7 +9039,7 @@ Actions.openArrow = () => {
       try {
         const res = await commitImport(analysis, (msg, frac) => { $('#impStatus', m.el).textContent = msg; $('#impBar', m.el).style.width = Math.round(frac * 100) + '%'; });
         m.close();
-        toast(`✅ ${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { duration: 6000 });
+        toast(`${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { duration: 6000 });
         if (res.fallback) setTimeout(() => toast(`${res.fallback} Übung${res.fallback === 1 ? '' : 'en'} mit Standardwerten angelegt – bitte in der Bibliothek prüfen`, 'warn', { duration: 6000 }), 800);
         if (analysis.broken.length) setTimeout(() => toast(`${analysis.broken.length} fehlerhafte${analysis.broken.length === 1 ? 's Workout' : ' Workouts'} übersprungen`, 'warn', { duration: 6000 }), 1600);
         App.go('progress');
@@ -8993,7 +9104,7 @@ async function commitImport(a, progress) {
     counts: { workouts: created.workouts.length, exercises: created.exercises.length, progress: created.progress.length, skippedDuplicates: a.items.length - list.length, broken: a.broken.length },
     docIds: created
   }, { replace: true });
-  progress('Fertig ✅', 1);
+  progress('Fertig', 1);
   return { workouts: created.workouts.length, exercises: a.uniqueEx, prs, fallback: a.newExercises.filter(e => !e.fromBlock).length };
 }
 
@@ -9028,7 +9139,7 @@ async function boot() {
   if (st && st !== 'last' && Views[st]) App.tab = st;
   if (Store.owner() === 'local') ensureSeeds();
   Store.subscribe('*', cs => { if (cs.includes('meta')) applyTheme(); scheduleRender(); });
-  Store.onSync(() => { renderTopbar(); if (App.tab === 'more') scheduleRender(); });
+  Store.onSync(() => { renderNav(); if (App.tab === 'more') scheduleRender(); });
   App.renderCurrent();
   updateTopH();
   // Workout-Resume nach App-Kill / Reload
@@ -9038,7 +9149,7 @@ async function boot() {
     if (!w.editingId) WakeLock.request();
   }
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; if (App.tab === 'more') scheduleRender(); });
-  window.addEventListener('appinstalled', () => { deferredInstall = null; toast(`${APP.name} installiert 🎉`, 'success'); });
+  window.addEventListener('appinstalled', () => { deferredInstall = null; toast(`${APP.name} installiert`, 'success'); });
   let wasOffline = !navigator.onLine;
   window.addEventListener('offline', () => { wasOffline = true; toast('Offline – alles wird lokal gespeichert und später synchronisiert', 'warn'); });
   window.addEventListener('online', () => { if (wasOffline) toast('Wieder online', 'success'); wasOffline = false; });

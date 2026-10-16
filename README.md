@@ -16,7 +16,7 @@ Unter **Mehr → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und D
 
 | Design | Look |
 | --- | --- |
-| Trainio | Neon-Grün auf Graphit – das Original |
+| Trainio | Ruhiges Graphit mit gedecktem Grün – klar und professionell (Standard) |
 | Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
 | Lernio | Petrol & IBM Plex – passend zur Lernio-App |
 | Mono | Schwarz-Weiß, OLED-schwarz bzw. papierweiß |
@@ -141,7 +141,8 @@ Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln a
 
 ## Übungen & Muskel-Diagramm
 
-- ~190 Übungen inkl. Maschinen, Kabel, Kettlebell, Core & Cardio. Bestehende Konten bekommen
+- Über 320 Übungen inkl. Maschinen, Kabel, Multipresse (Smith Machine), Plate-Loaded, Kettlebell, Core & Cardio –
+  gängige englische Gerätenamen sind als Suchbegriffe hinterlegt. Bestehende Konten bekommen
   neue Übungen automatisch ergänzt.
 - Body-Heatmap mit 36 Muskelregionen plus sortierte Regionen-Liste, u. a. Brust oben/mitte/unten,
   Sägemuskel, vordere/seitliche/hintere Schulter, Rotatorenmanschette, Bizeps & Brachialis,
