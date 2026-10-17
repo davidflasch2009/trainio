@@ -262,6 +262,12 @@ Duplikate (gleiches Datum + gleiche Sätze) werden übersprungen, englische Arro
 kg umgerechnet. Der letzte Import lässt sich unter **Mehr → Letzten Import rückgängig machen**
 komplett zurücknehmen.
 
+**Korrigierte Datei erneut importieren:** Gibt es schon einen Arrow-Import, bietet die Vorschau
+„Alten Arrow-Import ersetzen“ an (vorausgewählt). Dann werden die Workouts des alten Imports durch
+die neue Datei ersetzt – nichts wird doppelt. Selbst eingetragene Workouts und andere Importe
+(z. B. Gewicht aus CSV) bleiben unverändert; vom alten Import angelegte Übungen werden
+weiterverwendet, wenn die neue Datei sie enthält.
+
 ## Lokal testen
 
 ```bash

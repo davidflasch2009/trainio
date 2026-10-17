@@ -1741,7 +1741,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.9.0',
+  version: '1.9.1',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -9258,8 +9258,8 @@ function jsonErrorText(text, err) {
   return `JSON ungültig in Zeile ${line}, Spalte ${col}:\n${src.trim().slice(0, 120)}\n\n(${err.message})`;
 }
 
-/** Validiert + normalisiert den Import, ohne etwas zu schreiben */
-function analyzeImport(text) {
+/** Validiert + normalisiert den Import, ohne etwas zu schreiben. replaceId: Workouts dieses Imports werden ersetzt und zählen nicht als Duplikat */
+function analyzeImport(text, { replaceId = null } = {}) {
   if (!text.trim()) return { error: 'Bitte zuerst den JSON-Block einfügen oder eine Datei wählen.' };
   let json;
   const cleaned = text.trim().replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '');
@@ -9335,7 +9335,7 @@ function analyzeImport(text) {
   const sigOf = (date, entries, idOf) => date + '|' + entries.map(e => idOf(e) + ':' + e.sets.map(s => `${s.reps}x${round(+s.weightKg || 0, 1)}`).join(',')).join(';');
   const existingSigs = new Set(), existingLoose = new Set();
   for (const w of Store.all('workouts')) {
-    if (!isISO(w.date)) continue;
+    if (!isISO(w.date) || (replaceId && w.importId === replaceId)) continue;
     existingSigs.add(sigOf(w.date, (w.entries || []).map(e => ({ ...e, sets: (e.sets || []).filter(s => !s.warmup) })), e => e.exerciseId));
     existingLoose.add(w.date + '|' + uniq((w.entries || []).map(e => e.exerciseId)).sort().join(','));
   }
@@ -9375,16 +9375,21 @@ function analyzeImport(text) {
   return { items, mapping, newExercises, progress, warnings, broken, progSkipped, lbUsed, uniqueEx: mapping.size };
 }
 
-function previewHtml(a) {
+function previewHtml(a, prev = null, replace = false) {
   const ok = a.items.filter(w => !w.duplicate);
   const dates = a.items.map(w => w.date);
   const listItem = w => `<div class="row small" style="padding:4px 0;${w.duplicate ? 'opacity:.5;text-decoration:line-through' : ''}"><span class="num dim" style="width:76px">${fmtDate(w.date)}</span><span class="grow ellipsis bold">${esc(w.name)}</span><span class="dim">${w.entries.length} Üb. · ${sum(w.entries.map(e => e.sets.length))} Sätze</span></div>`;
   const aliased = [...a.mapping.entries()].filter(([k, m]) => !m.isNew && norm(m.name) !== k);
   const first5 = a.items.slice(0, 5), last5 = a.items.length > 10 ? a.items.slice(-5) : a.items.slice(5);
-  return `<div class="preview-box">
+  const prevN = prev ? prevImportWorkouts(prev).length : 0;
+  return `${prev ? `<label class="card row mb-12" style="gap:12px;align-items:flex-start;cursor:pointer">
+      <input type="checkbox" id="impReplace" ${replace ? 'checked' : ''} style="width:22px;height:22px;margin-top:2px;flex:0 0 auto;accent-color:var(--accent)">
+      <span><b>Alten Arrow-Import ersetzen</b><br><span class="small dim">Der Import vom ${esc(new Date(prev.importedAt).toLocaleDateString('de-DE'))} (${prevN} Workouts) wird durch diese Datei ersetzt – so entsteht nichts doppelt. Workouts, die du selbst in Trainio eingetragen hast, und andere Importe (z. B. Gewicht) bleiben unverändert.</span></span>
+    </label>` : ''}<div class="preview-box">
       <div>${icon('checkCircle', 'imp-ic')} JSON gültig</div>
       ${dates.length ? `<div>${icon('calendar', 'imp-ic')} Zeitraum: ${fmtDate(dates[0], { day: '2-digit', month: '2-digit', year: 'numeric' })} – ${fmtDate(dates[dates.length - 1], { day: '2-digit', month: '2-digit', year: 'numeric' })}</div>` : ''}
       <div>${icon('dumbbell', 'imp-ic')} ${a.items.length} Workouts gefunden${a.items.length !== ok.length ? ` (${ok.length} werden importiert)` : ''}</div>
+      ${prev && replace ? `<div>${icon('swap', 'imp-ic')} ${prevN} Workouts aus dem alten Import werden ersetzt</div>` : ''}
       <div>${icon('layers', 'imp-ic')} ${a.uniqueEx} einzigartige Übungen (${a.newExercises.length} davon neu – werden angelegt)</div>
       <div>${icon('chart', 'imp-ic')} ${a.progress.length} Körper-Einträge</div>
       ${a.warnings.map(w => `<div class="warn-line">${icon('warn', 'imp-ic')} ${esc(w)}</div>`).join('')}
@@ -9396,8 +9401,12 @@ function previewHtml(a) {
     ${aliased.length ? `<h4 class="mt-16 mb-8">Zugeordnet zu vorhandenen Übungen</h4><div class="small dim">${aliased.map(([k, m]) => `${esc(k)} → <b>${esc(m.name)}</b>`).join(' · ')}</div>` : ''}`;
 }
 
+/** Workouts eines Imports, die noch vorhanden sind */
+const prevImportWorkouts = imp => ((imp.docIds || {}).workouts || []).filter(id => Store.raw('workouts', id));
 Actions.openArrow = () => {
   let analysis = null;
+  const prevImp = Store.all('imports').filter(i => i.source === 'arrow' && !i.undoneAt && prevImportWorkouts(i).length).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0] || null;
+  let replace = !!prevImp;
   const m = Modal.open({
     title: 'Arrow-Import', size: 'full',
     body: `<p class="dim">Füge den JSON-Block aus deinem Chat hier ein. Wir zeigen dir vor dem Speichern eine Vorschau.</p>
@@ -9418,14 +9427,16 @@ Actions.openArrow = () => {
   ta.addEventListener('dragleave', () => ta.classList.remove('over'));
   ta.addEventListener('drop', async e => { e.preventDefault(); ta.classList.remove('over'); const f = e.dataTransfer.files[0]; if (f) { ta.value = await readFileText(f); invalidate(); validate(); } });
   $('#impFile', m.el).addEventListener('change', async e => { const f = e.target.files[0]; if (!f) return; ta.value = await readFileText(f); invalidate(); validate(); });
-  function validate() {
-    analysis = analyzeImport(ta.value);
+  function validate(scroll = true) {
+    analysis = analyzeImport(ta.value, { replaceId: replace && prevImp ? prevImp.id : null });
     if (analysis.error) { out.innerHTML = `<div class="import-err">${esc(analysis.error)}</div>`; analysis = null; commitBtn.disabled = true; return; }
-    out.innerHTML = previewHtml(analysis);
+    out.innerHTML = previewHtml(analysis, prevImp, replace);
+    const cbx = $('#impReplace', out);
+    if (cbx) cbx.addEventListener('change', () => { replace = cbx.checked; validate(false); });
     const n = analysis.items.filter(w => !w.duplicate).length + analysis.progress.filter(p => !p.duplicate).length;
     commitBtn.disabled = !n;
-    commitBtn.textContent = n ? 'Import bestätigen' : 'Nichts Neues zu importieren';
-    out.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    commitBtn.textContent = n ? (replace && prevImp ? 'Ersetzen & importieren' : 'Import bestätigen') : 'Nichts Neues zu importieren';
+    if (scroll) out.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   m.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-x]');
@@ -9446,9 +9457,9 @@ Actions.openArrow = () => {
       out.innerHTML = `<div class="card"><div class="bold" id="impStatus">Starte Import …</div><div class="progress-track mt-12"><i id="impBar"></i></div></div>`;
       out.scrollIntoView({ behavior: 'smooth', block: 'start' });
       try {
-        const res = await commitImport(analysis, (msg, frac) => { $('#impStatus', m.el).textContent = msg; $('#impBar', m.el).style.width = Math.round(frac * 100) + '%'; });
+        const res = await commitImport(analysis, (msg, frac) => { $('#impStatus', m.el).textContent = msg; $('#impBar', m.el).style.width = Math.round(frac * 100) + '%'; }, { replace: replace ? prevImp : null });
         m.close();
-        toast(`${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { duration: 6000 });
+        toast(`${res.replaced ? `${res.replaced} alte Workouts ersetzt · ` : ''}${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { duration: 6000 });
         if (res.fallback) setTimeout(() => toast(`${res.fallback} Übung${res.fallback === 1 ? '' : 'en'} mit Standardwerten angelegt – bitte in der Bibliothek prüfen`, 'warn', { duration: 6000 }), 800);
         if (analysis.broken.length) setTimeout(() => toast(`${analysis.broken.length} fehlerhafte${analysis.broken.length === 1 ? 's Workout' : ' Workouts'} übersprungen`, 'warn', { duration: 6000 }), 1600);
         App.go('progress');
@@ -9462,9 +9473,28 @@ Actions.openArrow = () => {
   });
 };
 
-async function commitImport(a, progress) {
+async function commitImport(a, progress, { replace = null } = {}) {
   const importId = autoId();
   const created = { exercises: [], workouts: [], progress: [] };
+  // 0) Alten Arrow-Import ersetzen: seine Workouts löschen; von ihm angelegte Übungen nur löschen,
+  //    wenn die neue Datei sie nicht mehr nutzt und sie sonst nirgends vorkommen (Workouts, Pläne)
+  let replaced = 0;
+  if (replace) {
+    const wIds = prevImportWorkouts(replace), wSet = new Set(wIds);
+    const reused = new Set([...a.mapping.values()].filter(m => m.id).map(m => m.id));
+    const usedElsewhere = new Set(Store.all('workouts').filter(w => !wSet.has(w.id)).flatMap(w => (w.entries || []).map(e => e.exerciseId)));
+    const usedInPlans = new Set(Store.all('templates').flatMap(t => (t.exercises || []).map(x => x.exerciseId)));
+    const oldEx = ((replace.docIds || {}).exercises || []).filter(id => Store.raw('exercises', id));
+    created.exercises.push(...oldEx.filter(id => reused.has(id)));
+    const delEx = oldEx.filter(id => !reused.has(id) && !usedElsewhere.has(id) && !usedInPlans.has(id));
+    progress(`Entferne ${wIds.length} Workouts des alten Imports …`, 0.01);
+    await Store.batch([
+      ...wIds.map(id => ({ type: 'del', coll: 'workouts', id })),
+      ...delEx.map(id => ({ type: 'del', coll: 'exercises', id })),
+      { type: 'put', coll: 'imports', id: replace.id, doc: { undoneAt: Date.now(), replacedBy: importId } }
+    ]);
+    replaced = wIds.length;
+  }
   // 1) Neue Übungen anlegen
   const exOps = [];
   for (const ne of a.newExercises) {
@@ -9514,7 +9544,7 @@ async function commitImport(a, progress) {
     docIds: created
   }, { replace: true });
   progress('Fertig', 1);
-  return { workouts: created.workouts.length, exercises: a.uniqueEx, prs, fallback: a.newExercises.filter(e => !e.fromBlock).length };
+  return { workouts: created.workouts.length, exercises: a.uniqueEx, prs, replaced, fallback: a.newExercises.filter(e => !e.fromBlock).length };
 }
 
 /* ==========================================================================
