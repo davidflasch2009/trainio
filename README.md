@@ -177,6 +177,11 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   Trend pro Übung, Intensitäts-Mix, Jahresvergleich.
 - **Muskeln**: Body-Heatmap, Sätze pro Muskelgruppe, Verteilung, Push vs. Pull, Beine vs. Oberkörper,
   vernachlässigte Muskeln, Muskel-Fortschritt, **Muskeln über Zeit** (gestapelt), Übungs-Vielfalt.
+- **Direkte vs. mitgeholfene Sätze**: Ein Satz zählt direkt für den Hauptmuskel der Übung (erster
+  Muskel), für die übrigen nur als „mitgeholfen“ (z. B. Bizeps beim Klimmzug). Sätze pro Muskelgruppe
+  und Muskel-Fortschritt zeigen direkt kräftig und mitgeholfen blass; für MEV/MAV/MRV und
+  „Vernachlässigt“ zählen mitgeholfene Sätze halb. Verteilung, Muskeln über Zeit, Übungs-Vielfalt sowie
+  Kraft/Volumen „Pro Muskelgruppe“ zählen nur Übungen mit diesem Hauptmuskel.
 - **Körper → Umfänge**: Veränderung in cm seit Zeitraumbeginn statt flacher Linien auf einer Skala.
 
 ## Übungen & Muskel-Diagramm

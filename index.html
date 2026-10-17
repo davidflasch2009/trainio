@@ -1741,7 +1741,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.9.2',
+  version: '1.9.3',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1977,7 +1977,9 @@ function loadScript(src) {
 
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
 function alpha(color, a) {
-  const c = color.trim();
+  const c = String(color || '').trim();
+  const m = c.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+  if (m) return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${a})`;
   if (c.startsWith('#')) {
     let h = c.slice(1);
     if (h.length === 3) h = h.split('').map(x => x + x).join('');
@@ -3690,6 +3692,8 @@ function deltaHtml(cur, prev, { invert = false, fmt = null, suffix = '', neutral
   return `<span class="delta ${cls}">${ic}${fmt ? fmt(cur - prev) : (d > 0 ? '+' : '') + nf(d * 100, 0) + ' %'}${suffix}</span>`;
 }
 const catCls = c => 'cat-' + String(c || 'Full Body').replace(/\s+/g, '');
+/** Ist m der Hauptmuskel (erster Eintrag) der Übung? */
+const isPrimary = (exOrId, m) => (((typeof exOrId === 'string' ? Ex.get(exOrId) : exOrId) || {}).muscleGroups || [])[0] === m;
 const catShort = c => ({ Push: 'PU', Pull: 'PL', Legs: 'LG', Core: 'CO', Cardio: 'CA', 'Full Body': 'FB' }[c] || '·');
 
 
@@ -3832,7 +3836,7 @@ function buildIndex(W, EX) {
       id: w.id, date: w.date, dn, name: w.planDayName || w.name || 'Freies Workout', startedAt: w.startedAt || null,
       dur: w.durationSec || 0, ton: 0, sets: 0, reps: 0, rpeSum: 0, rpeN: 0, rpeVol: 0, planned: 0, done: 0,
       cSec: 0, cKm: 0, cBy: {}, cardioOnly: false,
-      muscles: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exReps: {}, imp: !!w.importId,
+      muscles: {}, mP: {}, mS: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exReps: {}, imp: !!w.importId,
       bw: w.bodyWeightKg || null, planId: w.planId || null, estDur: !!w.durationEstimated
     };
     const times = [];
@@ -3887,7 +3891,8 @@ function buildIndex(W, EX) {
           else if (wt === maxW && r > repsAtMax) repsAtMax = r;
         }
         if (r > 0) row.bins[r <= 5 ? 0 : r <= 10 ? 1 : r <= 15 ? 2 : 3]++;
-        for (const m of (meta.muscleGroups || [])) row.muscles[m] = (row.muscles[m] || 0) + 1;
+        // Erster Muskel = Hauptmuskel (direkter Satz), weitere = helfen mit (z. B. Bizeps beim Klimmzug)
+        (meta.muscleGroups || []).forEach((m, i) => { row.muscles[m] = (row.muscles[m] || 0) + 1; const t = i ? row.mS : row.mP; t[m] = (t[m] || 0) + 1; });
         const cat = meta.category || 'Full Body';
         row.cats[cat] = (row.cats[cat] || 0) + 1;
         list.push(uniS ? { r, w: wt, rpe: s.rpe || null, sec, u: [rL, rR], us: [sL, sR] } : { r, w: wt, rpe: s.rpe || null, sec });
@@ -7053,13 +7058,13 @@ function markRunning(datasets, ri) {
   for (const d of datasets) {
     if (d.isAvg) continue;
     if (d.type === 'line') {
-      const col = d.borderColor;
+      const col = d.borderColor, ra = d.runAlpha || .35;
       d.segment = { borderDash: ctx => ctx.p1DataIndex === ri ? [4, 4] : undefined };
-      d.pointBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col, .35) : col);
+      d.pointBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col, ra) : col);
     } else {
-      const col = j => Array.isArray(d.backgroundColor) ? d.backgroundColor[j] : d.backgroundColor;
-      const bg = d.data.map((_, j) => j === ri ? alpha(col(j), .35) : col(j));
-      d.hoverBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col(j), .45) : alpha(col(j), .8));
+      const col = j => Array.isArray(d.backgroundColor) ? d.backgroundColor[j] : d.backgroundColor, ra = d.runAlpha || .35;
+      const bg = d.data.map((_, j) => j === ri ? alpha(col(j), ra) : col(j));
+      d.hoverBackgroundColor = d.data.map((_, j) => j === ri ? alpha(col(j), ra + .1) : d.runAlpha ? col(j) : alpha(col(j), .8));
       d.backgroundColor = bg;
     }
   }
@@ -7109,7 +7114,8 @@ function barChart(labels, datasets, { yFmt, tooltipFmt, horizontal = false, stac
       layout: { padding: { top: thresholds && thresholds.axis === 'x' ? 16 : 0 } },
       interaction: { mode: 'index', intersect: false },
       scales: {
-        [catAxis]: { stacked, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: horizontal ? 20 : 8 } },
+        // liegende Balken: jede Zeile beschriften (sonst fehlt bei 16 Muskelgruppen jedes zweite Label)
+        [catAxis]: { stacked, grid: { display: false }, border: { display: false }, ticks: { maxRotation: 0, autoSkip: !horizontal, maxTicksLimit: horizontal ? 40 : 8 } },
         [valAxis]: { stacked, beginAtZero: true, max: xMax, grid: { color: chartColors().grid }, border: { display: false }, ticks: { maxTicksLimit: 5, callback: yFmt, precision: intTicks ? 0 : undefined } }
       },
       plugins: {
@@ -7665,7 +7671,7 @@ ProgressViews.strength = body => {
   const exIds = Object.keys(ix.sessions).filter(id => Ex.get(id) && Ex.type(Ex.get(id)) === 'kg').sort((a, b) => ix.sessions[b].length - ix.sessions[a].length);
   if (!exIds.length) { body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Kraftdaten', 'Trainiere eine Übung mit Gewicht, um hier deinen Kraftverlauf zu sehen.')}</div>`; return; }
   const scope = ['total', 'exercise', 'muscle'].includes(UI.kraftScope) ? UI.kraftScope : 'total';
-  const musOpts = MUSCLES.filter(m => exIds.some(id => (Ex.get(id).muscleGroups || []).includes(m)));
+  const musOpts = MUSCLES.filter(m => exIds.some(id => isPrimary(id, m)));
   const muscle = musOpts.includes(UI.kraftMuscle) ? UI.kraftMuscle : musOpts[0];
   const exId = ix.sessions[UI.kraftEx] && exIds.includes(UI.kraftEx) ? UI.kraftEx : exIds[0];
   const big3Chips = BIG3.map(b => b.ids.find(id => ix.sessions[id])).filter(Boolean);
@@ -7700,8 +7706,8 @@ ProgressViews.strength = body => {
 
   /* ----- Gesamt / Pro Muskelgruppe: Prozent-Ansicht (kg verschiedener Übungen lassen sich nicht addieren) ----- */
   if (scope !== 'exercise') {
-    const ids = scope === 'muscle' ? exIds.filter(id => (Ex.get(id).muscleGroups || []).includes(muscle)) : exIds;
-    const what = scope === 'muscle' ? `deiner ${muscle}-Übungen` : 'aller Übungen';
+    const ids = scope === 'muscle' ? exIds.filter(id => isPrimary(id, muscle)) : exIds;
+    const what = scope === 'muscle' ? `deiner ${muscle}-Übungen (${muscle} als Hauptmuskel)` : 'aller Übungen';
     const gains = strengthGains(ix, ids, r);
     const idxPts = gainIndex(gains);
     const idxNow = idxPts.length ? idxPts[idxPts.length - 1].y : null;
@@ -7834,12 +7840,12 @@ function scopeItems(ix, scope) {
     const sessByW = {};
     for (const [id, ss] of Object.entries(ix.sessions)) {
       const ex = Ex.get(id);
-      if (!ex || !(ex.muscleGroups || []).includes(m)) continue;
+      if (!ex || !isPrimary(ex, m)) continue;
       for (const s of ss) (sessByW[s.wid] || (sessByW[s.wid] = [])).push(s);
     }
-    return ix.rows.filter(w => w.muscles[m]).map(w => {
+    return ix.rows.filter(w => w.mP[m]).map(w => {
       const ss = sessByW[w.id] || [];
-      return { dn: w.dn, ton: sum(ss.map(s => s.vol)), sets: w.muscles[m], reps: sum(ss.map(s => s.reps)), bins: ss.reduce((b, s) => binsOfList(s.list).map((v, i) => v + b[i]), [0, 0, 0, 0]), name: w.name };
+      return { dn: w.dn, ton: sum(ss.map(s => s.vol)), sets: w.mP[m], reps: sum(ss.map(s => s.reps)), bins: ss.reduce((b, s) => binsOfList(s.list).map((v, i) => v + b[i]), [0, 0, 0, 0]), name: w.name };
     });
   }
   return ix.rows.map(w => ({ dn: w.dn, ton: w.ton, sets: w.sets, reps: w.reps, bins: w.bins, name: w.name, restAvg: w.restAvg }));
@@ -7869,7 +7875,7 @@ ProgressViews.volume = body => {
   // Top 10
   const exVol = {};
   for (const w of ix.rows) if (w.dn >= r.from && w.dn <= r.to) for (const [id, v] of Object.entries(w.exVol)) {
-    if (scope === 'muscle' && !((Ex.get(id) || {}).muscleGroups || []).includes(UI.volMuscle)) continue;
+    if (scope === 'muscle' && !isPrimary(id, UI.volMuscle)) continue;
     exVol[id] = (exVol[id] || 0) + v;
   }
   const top10 = Object.entries(exVol).filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]).slice(0, 10);
@@ -7890,8 +7896,14 @@ ProgressViews.volume = body => {
       return { name, ws, color: c.series[i], avgTon: avg(ws.map(w => w.ton)), first, last };
     });
   const dens = durRows.filter(w => w.ton > 0 && w.dur >= 600 && !w.cardioOnly).map(w => ({ x: w.dn, y: round(toU(w.ton) / (w.dur / 60), 1), label: `${nf(toU(w.ton) / (w.dur / 60), 0)} ${unit()}/min · ${w.name}` }));
+  // Pro Muskelgruppe: mitgeholfene Sätze (Muskel ist bei der Übung nicht Hauptmuskel) blass dazu
+  const mm = UI.volMuscle, rowsR = ix.rows.filter(w => w.dn >= r.from && w.dn <= r.to);
+  const helpW = scope === 'muscle' ? weeks.map(w => sum(rowsR.filter(x => x.dn >= w && x.dn < w + 7).map(x => x.mS[mm] || 0))) : null;
+  const helpEx = {};
+  if (scope === 'muscle') for (const w of rowsR) for (const [id, n] of Object.entries(w.exSets)) { const g = (Ex.get(id) || {}).muscleGroups || []; if (g.indexOf(mm) > 0) helpEx[id] = (helpEx[id] || 0) + n; }
+  const helpTop = Object.entries(helpEx).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([id]) => Ex.name(id));
   const cb = chartBuilder();
-  const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? UI.volMuscle : 'alle Übungen';
+  const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? `Übungen mit ${UI.volMuscle} als Hauptmuskel` : 'alle Übungen';
   body.innerHTML = `
     <div class="card mt-12">
       <div class="seg">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="volScope" data-v="${k}">${l}</button>`).join('')}</div>
@@ -7902,7 +7914,14 @@ ProgressViews.volume = body => {
       ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Σ Wiederholungen × Gewicht pro Kalenderwoche (${scopeName}). Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.`,
         big: fmtTon(tot(x => x.ton)), small: 'im Zeitraum', delta: deltaHtml(tot(x => x.ton), totP(x => x.ton)), sub: prv ? prevLabel : '',
         factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { running: ri, tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
-      ${cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
+      ${scope === 'muscle' ? cb.card({ id: 'v2', title: 'Sätze pro Woche', info: `Kräftig: direkte Sätze – Übungen, bei denen ${mm} der Hauptmuskel ist. Blass: Sätze, bei denen ${mm} nur mithilft (z. B. Bizeps beim Klimmzug oder Rudern). Gestrichelt: Ø der direkten Sätze. Die laufende Woche ist heller.`,
+          big: nf(tot(x => x.sets), 0), small: 'direkte Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
+          sub: sum(helpW) ? `+ ${nf(sum(helpW), 0)} mitgeholfen${helpTop.length ? ` (${esc(helpTop.join(', '))})` : ''}` : '',
+          factory: () => inR.length || sum(helpW) ? barChart(wLabels, [
+            barDS('Direkt', setsW, c.accent, { borderRadius: 0 }),
+            barDS('Mitgeholfen', helpW, alpha(c.accent, .3), { runAlpha: .12 }),
+            avgLine(setsW)], { stacked: true, legend: true, running: ri, tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null })
+        : cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
         factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.accent), avgLine(setsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
       ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Summe aller Wiederholungen pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
         factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.accent), avgLine(repsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
@@ -8181,11 +8200,13 @@ ProgressViews.muscles = body => {
   const c = chartColors();
   const rows = Analytics.rowsIn(r);
   const nWeeks = Math.max(1, r.len / 7);
-  const setsM = {};
-  MUSCLES.forEach(m => { setsM[m] = sum(rows.map(w => w.muscles[m] || 0)); });
-  const perWeek = m => setsM[m] / nWeeks;
-  const color = m => { const k = clamp(perWeek(m) / 20, 0, 1); return { color: k <= 0 ? 'var(--surface-3)' : `color-mix(in srgb, var(--accent) ${Math.round(18 + 82 * k)}%, var(--surface-3))` }; };
-  const label = m => `${nf(perWeek(m), 1)} Sätze/Woche`;
+  // Direkte Sätze (Hauptmuskel der Übung) und mitgeholfene Sätze getrennt; für Richtwerte zählen mitgeholfene halb
+  const setsM = {}, helpM = {};
+  MUSCLES.forEach(m => { setsM[m] = sum(rows.map(w => w.mP[m] || 0)); helpM[m] = sum(rows.map(w => w.mS[m] || 0)); });
+  const pwD = m => setsM[m] / nWeeks, pwH = m => helpM[m] / nWeeks;
+  const perWeek = m => pwD(m) + pwH(m) / 2;
+  const lmText = v => v < 10 ? 'unter MEV' : v > 20 ? 'über MRV' : 'im Zielbereich';
+  const lmColor = m => perWeek(m) < 10 ? c.faint : perWeek(m) > 20 ? c.warning : c.accent;
   const cats = k => sum(rows.map(w => w.cats[k] || 0));
   const push = cats('Push'), pull = cats('Pull'), legs = cats('Legs');
   const ppRatio = push ? pull / push : null;
@@ -8199,7 +8220,7 @@ ProgressViews.muscles = body => {
   const usage = {};
   for (const [id, ss] of Object.entries(ix.sessions)) usage[id] = ss.length;
   const suggest = m => Store.all('exercises').filter(e => (e.muscleGroups || [])[0] === m || (e.muscleGroups || []).includes(m)).sort((a, b) => ((b.muscleGroups || [])[0] === m) - ((a.muscleGroups || [])[0] === m) || (usage[b.id] || 0) - (usage[a.id] || 0)).slice(0, 2);
-  const variety = MUSCLES.map(m => [m, new Set(rows.flatMap(w => w.ex.filter(id => ((Ex.get(id) || {}).muscleGroups || []).includes(m)))).size]);
+  const variety = MUSCLES.map(m => [m, new Set(rows.flatMap(w => w.ex.filter(id => isPrimary(id, m)))).size]);
   const donutData = MUSCLES.map(m => [m, setsM[m]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
   const top7 = donutData.slice(0, 7), rest = sum(donutData.slice(7).map(x => x[1]));
   const rSets = regionSets(rows);
@@ -8215,12 +8236,19 @@ ProgressViews.muscles = body => {
         <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 40%, var(--mus-off)), var(--accent) 60%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
       </div>
-      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Volume Landmarks: MEV (10) = Minimum für Wachstum, MAV (15) = optimaler Bereich, MRV (20) = maximal erholbar.',
-        factory: () => barChart(MUSCLES, [barDS('Sätze/Woche', MUSCLES.map(m => round(perWeek(m), 1)), MUSCLES.map(m => perWeek(m) < 10 ? c.faint : perWeek(m) > 20 ? c.warning : c.accent))], {
-          horizontal: true, tooltipFmt: v => `${nf(v, 1)} Sätze (${v < 10 ? 'unter MEV' : v > 20 ? 'über MRV' : 'im Zielbereich'})`,
-          thresholds: { axis: 'x', lines: [{ value: 10, label: 'MEV', color: c.dim }, { value: 15, label: 'MAV', color: c.accent }, { value: 20, label: 'MRV', color: c.warning }] }, xMax: Math.max(24, Math.ceil(Math.max(...MUSCLES.map(perWeek)) + 2))
-        }) })}
-      ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der Sätze je Muskelgruppe im Zeitraum (Top 7, Rest = Andere).', size: '',
+      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Kräftig: direkte Sätze (der Muskel ist Hauptmuskel der Übung). Blass: Sätze, bei denen er nur mithilft (z. B. Bizeps beim Klimmzug). Für die Richtwerte zählen mitgeholfene Sätze halb – die Farbe zeigt das Ergebnis. MEV (10) = Minimum für Wachstum, MAV (15) = optimaler Bereich, MRV (20) = maximal erholbar.',
+        factory: () => {
+          const cfg = barChart(MUSCLES, [
+            barDS('Direkt', MUSCLES.map(m => round(pwD(m), 1)), MUSCLES.map(lmColor), { borderRadius: 0 }),
+            barDS('Mitgeholfen', MUSCLES.map(m => round(pwH(m), 1)), MUSCLES.map(m => alpha(lmColor(m), .3)))
+          ], {
+            horizontal: true, stacked: true, legend: true, tooltipFmt: v => `${nf(v, 1)} Sätze`,
+            thresholds: { axis: 'x', lines: [{ value: 10, label: 'MEV', color: c.dim }, { value: 15, label: 'MAV', color: c.accent }, { value: 20, label: 'MRV', color: c.warning }] }, xMax: Math.max(24, Math.ceil(Math.max(...MUSCLES.map(m => pwD(m) + pwH(m))) + 2))
+          });
+          cfg.options.plugins.tooltip.callbacks.footer = items => items.length ? `zählt als ${nf(perWeek(MUSCLES[items[0].dataIndex]), 1)} (${lmText(perWeek(MUSCLES[items[0].dataIndex]))})` : '';
+          return cfg;
+        } })}
+      ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der direkten Sätze je Muskelgruppe im Zeitraum (Top 7, Rest = Andere). Jeder Satz zählt nur für den Hauptmuskel der Übung.', size: '',
         factory: () => {
           if (!top7.length) return null;
           const all = [...top7, ...(rest ? [['Andere', rest]] : [])], tot = sum(all.map(x => x[1]));
@@ -8234,18 +8262,21 @@ ProgressViews.muscles = body => {
         big: luRatio != null ? nf(luRatio, 2) : '–', small: `${legs} Beine / ${push + pull} Oberkörper`, top: `<div class="mt-8">${ratioBadge(luRatio, 0.35, 0.8)}</div>`,
         factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2) }) : null; } })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter MEV (10 Sätze/Woche) lagen – mit passenden Übungsvorschlägen.')}</div>
-        ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Alle Muskelgruppen über MEV – top! ✅</p>'}
+        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter MEV (10 Sätze/Woche) lagen – mit passenden Übungsvorschlägen. Direkte Sätze zählen voll, mitgeholfene halb.')}</div>
+        ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W${helpM[m] ? ` (${nf(pwD(m), 1)} direkt)` : ''}</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Alle Muskelgruppen über MEV – top! ✅</p>'}
       </div>
-      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit.',
+      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit. Kräftig: direkte Sätze, blass darüber: Sätze, bei denen der Muskel nur mithilft.',
         top: `<select class="select mt-8" data-ch="muscleSel" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.muscleSel ? 'selected' : ''}>${m}</option>`).join('')}</select>`,
-        factory: () => { const d = weekly(rs => sum(rs.map(w => w.muscles[UI.muscleSel] || 0))); return sum(d) ? barChart(wLabels, [{ type: 'line', label: UI.muscleSel, data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .12), fill: true, pointRadius: 3, tension: .3 }], { running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: [{ value: 10, label: 'MEV', color: c.faint }, { value: 20, label: 'MRV', color: c.warning }] } }) : null; } })}
-      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Eine Übung zählt für jede ihrer Muskelgruppen. Die laufende Woche ist blass.', size: 'lg',
+        factory: () => { const ms = UI.muscleSel, d = weekly(rs => sum(rs.map(w => w.mP[ms] || 0))), h = weekly(rs => sum(rs.map(w => w.mS[ms] || 0))); return sum(d) + sum(h) ? barChart(wLabels, [
+          { type: 'line', label: 'Direkt', data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .16), fill: 'origin', pointRadius: 3, tension: .3 },
+          { type: 'line', label: 'Mitgeholfen', data: h, borderColor: alpha(c.accent, .4), backgroundColor: alpha(c.accent, .07), fill: '-1', pointRadius: 0, borderWidth: 1.5, tension: .3, runAlpha: .2 }
+        ], { stacked: true, legend: sum(h) > 0, running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: [{ value: 10, label: 'MEV', color: c.faint }, { value: 20, label: 'MRV', color: c.warning }] } }) : null; } })}
+      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Direkte Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Jeder Satz zählt nur für den Hauptmuskel der Übung. Die laufende Woche ist blass.', size: 'lg',
         factory: () => topM.length ? barChart(wLabels, [
-          ...topM.map((m, i) => barDS(m, weekly(rs => sum(rs.map(w => w.muscles[m] || 0))), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })),
-          ...(MUSCLES.length > topM.length ? [barDS('Andere', weekly(rs => sum(rs.map(w => sum(MUSCLES.filter(m => !topM.includes(m)).map(m => w.muscles[m] || 0))))), c.faint, { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })] : [])
+          ...topM.map((m, i) => barDS(m, weekly(rs => sum(rs.map(w => w.mP[m] || 0))), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })),
+          ...(MUSCLES.length > topM.length ? [barDS('Andere', weekly(rs => sum(rs.map(w => sum(MUSCLES.filter(m => !topM.includes(m)).map(m => w.mP[m] || 0))))), c.faint, { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })] : [])
         ], { stacked: true, legend: true, running: ri, tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null })}
-      ${cb.card({ id: 'm8', title: 'Übungs-Vielfalt', info: 'Wie viele unterschiedliche Übungen pro Muskelgruppe du im Zeitraum gemacht hast (Variety Score).', size: 'lg',
+      ${cb.card({ id: 'm8', title: 'Übungs-Vielfalt', info: 'Wie viele unterschiedliche Übungen pro Muskelgruppe du im Zeitraum gemacht hast (Variety Score) – gezählt beim Hauptmuskel der Übung.', size: 'lg',
         big: new Set(rows.flatMap(w => w.ex)).size, small: 'verschiedene Übungen gesamt',
         factory: () => variety.some(x => x[1]) ? barChart(variety.map(x => x[0]), [barDS('Übungen', variety.map(x => x[1]), c.series[0])], { horizontal: true, tooltipFmt: v => `${v} Übungen` }) : null })}
     </div>`;
