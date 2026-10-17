@@ -1741,7 +1741,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.9.1',
+  version: '1.9.2',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1845,6 +1845,27 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 const norm = s => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
 const uniq = a => [...new Set(a)];
+/** Suche: Bindestriche/Satzzeichen zählen als Leerzeichen, alle Suchwörter müssen vorkommen
+ *  („t bar" findet „T-Bar Rudern brustgestützt", „tbar" ebenfalls) */
+const searchKey = s => norm(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+function textMatches(fields, q) {
+  const k = searchKey(q);
+  if (!k) return true;
+  const keys = fields.filter(Boolean).map(searchKey);
+  const kc = k.replace(/ /g, ''), single = !k.includes(' ');
+  for (const f of keys) {
+    // ein Wort: irgendwo im Feld (wie bisher); mehrere Wörter: als Phrase ab Wortanfang
+    if (single ? f.includes(k) : (' ' + f).includes(' ' + k)) return true;
+    // zusammengeschrieben („tbar") ab einem Wortanfang
+    const ws = f.split(' ');
+    for (let i = 0; i < ws.length; i++) if (ws.slice(i).join('').startsWith(kc)) return true;
+  }
+  // mehrere Wörter in beliebiger Reihenfolge, auch über Felder hinweg („rudern brust")
+  const words = k.split(' ');
+  if (words.length > 1 && words.every(w => w.length >= 2)) { const hay = keys.join(' '); return words.every(w => hay.includes(w)); }
+  return false;
+}
+const exMatches = (e, q, extra = []) => textMatches([e.name, ...(e.aliases || []), ...(e.muscleGroups || []), ...extra], q);
 /** Namens-Schlüssel unabhängig von Wortreihenfolge und Satzzeichen */
 const wordKey = s => norm(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').sort().join(' ');
 
@@ -6426,7 +6447,7 @@ function pickExercises({ multi = true, title = 'Übung wählen', cat: cat0 = 'al
     const renderList = () => {
       $('#pkCats', m.el).innerHTML = ['all', ...CATEGORIES].map(c => `<button class="chip ${cat === c ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('');
       const nq = norm(q);
-      let list = Ex.sorted().filter(e => (cat === 'all' || e.category === cat) && (!nq || norm(e.name).includes(nq) || (e.aliases || []).some(a => norm(a).includes(nq)) || (e.muscleGroups || []).some(mg => norm(mg).includes(nq))));
+      let list = Ex.sorted().filter(e => (cat === 'all' || e.category === cat) && (!nq || exMatches(e, q)));
       if (!nq && (cat === 'all' || cat === 'Cardio')) list = list.sort((a, b) => (usage[b.id] || 0) - (usage[a.id] || 0) || a.name.localeCompare(b.name, 'de'));
       $('#pkList', m.el).innerHTML = list.length ? list.map(e => `<button class="ex-item ${picked.includes(e.id) ? 'picked' : ''}" data-pick="${esc(e.id)}">
           <span class="cat-dot ${catCls(e.category)}">${catShort(e.category)}</span>
@@ -6632,7 +6653,7 @@ function renderExList() {
   let items = Store.all('exercises').filter(e =>
     (UI.exCat === 'all' || e.category === UI.exCat) &&
     (UI.exEq === 'all' || (UI.exEq === 'Eigene' ? e.isCustom : e.equipment === UI.exEq)) &&
-    (!nq || [e.name, e.equipment, e.category, ...(e.muscleGroups || []), ...(e.aliases || [])].some(x => norm(x).includes(nq))));
+    (!nq || exMatches(e, UI.exQ, [e.equipment, e.category])));
   const info = id => {
     const ss = ix.sessions[id] || [];
     return { n: ss.length, last: ss.length ? ss[ss.length - 1].dn : null, best: ss.length ? maxOf(ss, s => s.best) : 0 };
