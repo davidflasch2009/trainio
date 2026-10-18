@@ -1,0 +1,480 @@
+/* Trainio – Mehr-Tab: Konto, Einstellungen, Daten
+   Teil der App: alle js/*.js-Dateien teilen sich einen gemeinsamen Gültigkeitsbereich und werden
+   in der Reihenfolge aus index.html geladen. */
+'use strict';
+
+/* ==========================================================================
+   15. View: Mehr (Konto, Einstellungen, Daten, Tools, Über)
+   ========================================================================== */
+let deferredInstall = null;
+const isStandalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+
+function setLine(title, sub, control) {
+  return `<div class="set-line"><div class="sl-main"><div class="sl-title">${title}</div>${sub ? `<div class="sl-sub">${sub}</div>` : ''}</div>${control}</div>`;
+}
+function toggleCtl(key, extra = '') {
+  const on = key.startsWith('f_') ? S()[key] !== false : !!S()[key];
+  return `<label class="switch"><input type="checkbox" data-ch="setToggle" data-k="${key}" ${on ? 'checked' : ''} ${extra} aria-label="${key}"><span></span></label>`;
+}
+function segCtl(key, opts) {
+  return `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(S()[key]) === String(v) ? 'active' : ''}" data-act="setSeg" data-k="${key}" data-v="${v}">${l}</button>`).join('')}</div>`;
+}
+function selectCtl(key, opts) {
+  return `<select class="select" data-ch="setSelect" data-k="${key}">${opts.map(([v, l]) => `<option value="${esc(v)}" ${String(S()[key]) === String(v) ? 'selected' : ''}>${esc(l)}</option>`).join('')}</select>`;
+}
+const navRowInline = (act, ic, title, sub = '') => `<button class="list-item" data-act="${act}"><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${esc(sub)}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
+const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item ${cls}" data-act="${act}"><span class="li-icon">${icon(ic)}</span><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${sub}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
+
+Views.more = {
+  render(el) {
+    const user = Auth.user();
+    const s = S();
+    const lastImport = Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
+    const plans = Store.all('plans').sort((a, b) => a.name.localeCompare(b.name, 'de'));
+    el.innerHTML = `
+      <div class="section-head"><h4>Konto & Sync</h4></div>
+      <div class="card">
+        ${user ? `
+          <div class="acc-card">
+            <div class="avatar">${user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())}</div>
+            <div class="grow" style="min-width:0"><div class="bold ellipsis">${esc(user.name || 'Angemeldet')}</div><div class="small dim ellipsis">${esc(user.email)}</div></div>
+            ${syncPill()}
+          </div>
+          <p class="small dim mt-12">Alle Daten werden live zwischen deinen Geräten synchronisiert – auch offline getrackte Workouts, sobald wieder Netz da ist.</p>
+          <button class="btn btn-secondary btn-block mt-12" data-act="signOut">${icon('logout')} Abmelden</button>`
+        : `
+          <div class="acc-card">
+            <div class="avatar">${icon('user')}</div>
+            <div class="grow"><div class="bold">Lokaler Modus</div><div class="small dim">${Auth.configured() ? 'Melde dich an, um iPhone und Laptop zu synchronisieren.' : 'Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.'}</div></div>
+          </div>
+          <button class="btn btn-secondary btn-block mt-12" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>${GOOGLE_ICON} Mit Google anmelden</button>
+          ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
+      </div>
+
+      <div class="section-head"><h4>Training</h4></div>
+      <div class="list">
+        ${setLine('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]))}
+        ${setLine('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])))}
+        ${setLine('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])))}
+        ${setLine('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]))}
+        ${setLine('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'))}
+        ${setLine('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'))}
+        ${setLine('Ton bei Pausenende', '', toggleCtl('sound'))}
+        ${setLine('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'))}
+      </div>
+      <div class="section-head"><h4>Workout-Ansicht</h4></div>
+      <div class="list">
+        ${setLine('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]))}
+        ${setLine('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]))}
+        ${setLine('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'))}
+        ${setLine('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'))}
+        ${S().woStyle === 'detailed' ? `${setLine('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'))}
+        ${setLine('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'))}` : setLine('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'))}
+        ${setLine('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'))}
+        ${setLine('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'))}
+      </div>
+
+      <div class="section-head"><h4>Tabs</h4></div>
+      <div class="list">
+        ${setLine('Übungen-Tab', 'Bibliothek als eigener Tab', toggleCtl('f_exercises'))}
+        ${setLine('Fortschritt-Tab', 'Statistiken & Diagramme', toggleCtl('f_progress'))}
+        ${F('f_exercises') ? '' : navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten')}
+      </div>
+
+      <div class="section-head"><h4>Körper-Tab</h4></div>
+      <div class="list">
+        ${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}
+        ${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}
+        ${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}
+      </div>
+
+      <div class="section-head"><h4>Funktionen</h4></div>
+      <div class="list">${navRow('openFeatures', 'sliders', 'Funktionen ein-/ausschalten', `${FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length || 'Keine'} ausgeblendet · Tabs, Timer, PRs, Auswertungen …`)}</div>
+
+      <div class="section-head"><h4>Darstellung</h4></div>
+      <button class="card clickable look-current" data-act="openLook" style="width:100%;text-align:left;color:inherit;font:inherit">
+        ${designPair(designOf(s.design).id)}
+        <div class="grow"><div class="bold">${esc(designOf(s.design).name)}</div>
+          <div class="small dim">${esc(THEME_LABEL[s.theme] || 'Dunkel')}${Color.valid(s.accent) ? ` · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.accent};vertical-align:-1px"></span> eigene Farbe` : ''}</div>
+          <div class="small accent bold mt-8">${icon('sliders').replace('<svg', '<svg width="15" height="15" style="vertical-align:-3px"')} Design & Darstellung anpassen</div></div>
+        ${icon('chevR', 'li-chev')}
+      </button>
+      <div class="list mt-12">
+        ${setLine('Modus', '', segCtl('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'Auto']]))}
+        ${setLine('Einheit', '', segCtl('unit', [['kg', 'kg'], ['lb', 'lb']]))}
+        ${setLine('Wochenstart', '', segCtl('weekStart', [['monday', 'Mo'], ['sunday', 'So']]))}
+      </div>
+
+      <div class="section-head"><h4>Profil</h4></div>
+      <div class="list">
+        ${setLine('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
+        ${setLine('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
+        ${navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : ''))}
+        ${navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`)}
+        ${setLine('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`)}
+      </div>
+
+      <div class="section-head"><h4>Daten</h4></div>
+      ${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
+      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${lastImport.source === 'weight-csv' ? `${((lastImport.docIds || {}).progress || []).length + ((lastImport.overwritten || []).length)} Gewichtswerte` : `${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts`})</span></button>` : ''}
+      <div class="list mt-12">
+        ${navRow('bwImport', 'scale', 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App')}
+        ${navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel')}
+        ${navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report')}
+        ${navRow('backupJSON', 'download', 'Backup JSON', 'Komplettes Backup aller Daten')}
+        ${navRow('restoreJSON', 'upload', 'Restore', 'Backup-Datei wiederherstellen')}
+        ${navRow('deleteAll', 'trash', 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'danger')}
+      </div>
+
+      ${F('f_tools') ? `<div class="section-head"><h4>Tools</h4></div>
+      <div class="list">
+        ${navRow('toolPlates', 'plate', 'Scheibenrechner', 'Welche Scheiben pro Seite?')}
+        ${navRow('tool1RM', 'calc', '1RM-Rechner', 'Max schätzen + Prozent-Tabelle')}
+      </div>` : ''}
+
+      <div class="section-head"><h4>App</h4></div>
+      <div class="list">
+        ${!isStandalone() && (deferredInstall || Auth.isIOS()) ? navRow('install', 'install', 'App installieren', Auth.isIOS() ? 'Zum Home-Bildschirm hinzufügen' : 'Als eigenständige App öffnen') : ''}
+        ${navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`)}
+        ${navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge – zum Kopieren und Weiterschicken` : 'Keine Fehler aufgezeichnet')}
+        <a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>
+        <a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>
+      </div>
+      <p class="center tiny faint mt-24">${APP.name} v${APP.version} · ${Store.all('workouts').length} Workouts · ${Store.all('exercises').length} Übungen</p>`;
+  }
+};
+Actions.signIn = () => Auth.signIn();
+Actions.signOut = () => Auth.signOut();
+Actions.setSeg = el => {
+  const k = el.dataset.k;
+  let v = el.dataset.v;
+  if (k === 'weightSteps') v = +v;
+  Store.saveSettings({ [k]: v });
+};
+Changes.setSelect = el => {
+  const k = el.dataset.k;
+  const v = ['weeklyGoal', 'defaultRestSec'].includes(k) ? +el.value : el.value;
+  Store.saveSettings({ [k]: v });
+};
+Changes.setToggle = async el => {
+  const k = el.dataset.k;
+  if (k === 'notifyRestDone' && el.checked && 'Notification' in window && Notification.permission !== 'granted') {
+    const p = await Notification.requestPermission().catch(() => 'denied');
+    if (p !== 'granted') toast('Benachrichtigungen wurden nicht erlaubt – Hinweis kommt nur in der App', 'warn');
+  }
+  Store.saveSettings({ [k]: el.checked });
+  if (k === 'wakeLock') { if (el.checked && Workout.cur()) WakeLock.request(); else if (!el.checked) WakeLock.release(); }
+};
+Inputs.setName = debounce(el => Store.saveSettings({ displayName: el.value.trim() }), 500);
+Changes.setBar = el => { const v = parseNum(el.value); if (v != null && v >= 0) Store.saveSettings({ barKg: round(fromU(v), 3) }); };
+Actions.toolPlates = () => openPlates(null);
+Actions.tool1RM = () => open1RM();
+Actions.install = async () => {
+  if (deferredInstall) {
+    deferredInstall.prompt();
+    await deferredInstall.userChoice.catch(() => {});
+    deferredInstall = null;
+    App.renderCurrent();
+    return;
+  }
+  Modal.open({
+    title: 'App installieren', size: 'sm',
+    body: `<ol class="small" style="padding-left:20px;line-height:1.8">
+      <li>In Safari unten auf <b>Teilen</b> ${icon('share').replace('<svg', '<svg width="16" height="16" style="vertical-align:-3px"')} tippen</li>
+      <li><b>„Zum Home-Bildschirm"</b> wählen</li>
+      <li>Mit <b>Hinzufügen</b> bestätigen – fertig!</li></ol>
+      <p class="dim small mt-8">Danach startet ${APP.name} im Vollbild wie eine native App.</p>`
+  });
+};
+Actions.openErrLog = () => {
+  const l = ErrLog.all().slice().reverse();
+  const m = Modal.open({
+    title: 'Fehlerprotokoll', size: 'lg',
+    body: `<p class="small dim">Hier landen Fehler, die in der App aufgetreten sind (höchstens 30). Tippe auf „Kopieren" und schick den Text an den Entwickler – er enthält Version, Gerät und Fehlermeldung, aber keine Trainingsdaten.</p>
+      ${l.length ? `<div class="list mt-12">${l.map(e => `<div class="list-item" style="display:block;cursor:default">
+        <div class="small"><b>${esc(e.msg)}</b></div>
+        <div class="tiny dim mt-4">${esc(new Date(e.t).toLocaleString('de-DE'))} · v${esc(e.v)} · ${esc(e.where || '–')}${e.tab ? ' · Tab ' + esc(e.tab) : ''}</div>
+        ${e.stack ? `<pre class="tiny faint mt-4" style="white-space:pre-wrap;word-break:break-word;margin:0">${esc(e.stack)}</pre>` : ''}</div>`).join('')}</div>` : `<div class="card mt-12">${emptyState('checkCircle', 'Keine Fehler', 'Bisher ist nichts schiefgelaufen.')}</div>`}`,
+    foot: `${l.length ? `<button class="btn btn-danger-ghost" data-x="clear" style="flex:0 0 auto">${icon('trash')} Leeren</button>` : ''}<button class="btn btn-secondary" data-x="c">Schließen</button><button class="btn btn-primary" data-x="copy">${icon('copy')} Kopieren</button>`
+  });
+  m.el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    if (b.dataset.x === 'copy') {
+      const txt = ErrLog.report();
+      try { await navigator.clipboard.writeText(txt); toast('Fehlerbericht kopiert', 'success'); }
+      catch (err) { Modal.open({ title: 'Fehlerbericht', body: `<textarea class="textarea code" readonly style="min-height:320px">${esc(txt)}</textarea><p class="tiny dim mt-8">Text markieren und kopieren.</p>` }); }
+      return;
+    }
+    if (b.dataset.x === 'clear') { ErrLog.clear(); toast('Fehlerprotokoll geleert', 'success'); App.renderCurrent(); }
+    m.close();
+  });
+};
+Actions.checkUpdate = async () => {
+  try {
+    const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
+    if (!reg) return toast('Kein Service Worker aktiv', 'info');
+    await reg.update();
+    if (reg.waiting || reg.installing) toast('Update wird geladen …', 'info');
+    else toast('Du hast die neueste Version', 'success');
+  } catch (e) { toast('Update-Prüfung fehlgeschlagen', 'error'); }
+};
+
+/* ---------- Export: CSV ---------- */
+Actions.exportCSV = () => {
+  const W = Store.all('workouts').filter(w => isISO(w.date)).sort((a, b) => a.date.localeCompare(b.date) || (a.startedAt || 0) - (b.startedAt || 0));
+  if (!W.length) return toast('Noch keine Workouts zum Exportieren', 'info');
+  const q = v => { const s = v == null ? '' : String(v); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+  const dec = v => v == null || v === '' ? '' : String(round(+v, 3)).replace('.', ',');
+  const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight', 'distanceKm', 'level'];
+  const lines = [head];
+  for (const w of W) for (const en of w.entries || []) (en.sets || []).forEach((s, i) => {
+    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '', dec(s.distKm), dec(s.level)]);
+  });
+  download(`trainio-workouts-${isoDate()}.csv`, '﻿' + lines.map(r => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
+  toast(`${lines.length - 1} Sätze exportiert`, 'success');
+};
+
+/* ---------- Export: PDF (jsPDF) ---------- */
+const slug = s => String(s).toLowerCase().replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const pdfSafe = s => String(s ?? '').replace(/[–—]/g, '-').replace(/[„“”]/g, '"').replace(/[‚‘’]/g, "'").replace(/…/g, '...').replace(/•/g, '-').replace(/≈/g, '~').replace(/[^\x00-\xFF]/g, '');
+Actions.exportPDF = () => {
+  const exIds = Object.keys(Analytics.cur().sessions).filter(id => Ex.get(id)).sort((a, b) => Ex.name(a).localeCompare(Ex.name(b), 'de'));
+  const m = Modal.open({
+    title: 'Export PDF', size: 'sm',
+    body: `<div class="stack">
+      <div class="field"><span>Art</span><div class="seg" id="pdfType"><button class="active" data-t="log">Trainingsprotokoll</button><button data-t="ex">Übungs-Report</button></div></div>
+      <label class="field"><span>Zeitraum</span><select class="select" id="pdfRange">${[['all', 'Alles'], ['28', 'Letzte 4 Wochen'], ['91', 'Letzte 3 Monate'], ['182', 'Letzte 6 Monate'], ['365', 'Letztes Jahr']].map(([k, l]) => `<option value="${k}">${l}</option>`).join('')}</select></label>
+      <label class="field hidden" id="pdfExWrap"><span>Übung</span><select class="select" id="pdfEx">${exIds.map(id => `<option value="${esc(id)}" ${id === UI.kraftEx ? 'selected' : ''}>${esc(Ex.name(id))}</option>`).join('')}</select></label>
+    </div>`,
+    foot: `<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="go">${icon('download')} PDF erstellen</button>`
+  });
+  let type = 'log';
+  m.el.addEventListener('click', async e => {
+    const tb = e.target.closest('[data-t]');
+    if (tb) { type = tb.dataset.t; $$('#pdfType button', m.el).forEach(b => b.classList.toggle('active', b === tb)); $('#pdfExWrap', m.el).classList.toggle('hidden', type !== 'ex'); return; }
+    const b = e.target.closest('[data-x]');
+    if (!b) return;
+    if (b.dataset.x === 'c') return m.close();
+    const rv = $('#pdfRange', m.el).value;
+    const from = rv === 'all' ? -Infinity : todayDN() - +rv + 1;
+    b.disabled = true;
+    b.textContent = 'Erstelle …';
+    try {
+      await loadScript(CDN.jspdf);
+      if (type === 'log') await pdfWorkoutLog(from);
+      else await pdfExerciseReport($('#pdfEx', m.el).value, from);
+      m.close();
+    } catch (err) {
+      console.error(err);
+      toast('PDF fehlgeschlagen: ' + (err.message || 'jsPDF nicht geladen (offline?)'), 'error');
+      b.disabled = false; b.textContent = 'PDF erstellen';
+    }
+  });
+};
+function pdfDoc() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const st = { doc, y: 20, page: 1 };
+  st.text = (s, x, y, o) => doc.text(pdfSafe(s), x, y, o);
+  st.need = h => { if (st.y + h > 282) { footer(st); doc.addPage(); st.page++; st.y = 20; } };
+  return st;
+}
+function footer(st) {
+  const d = st.doc;
+  d.setFontSize(8); d.setTextColor(140);
+  d.text(pdfSafe(`${APP.name} · erstellt am ${fmtDate(isoDate(), { day: '2-digit', month: '2-digit', year: 'numeric' })}`), 15, 292);
+  d.text(String(st.page), 195, 292, { align: 'right' });
+  d.setTextColor(20);
+}
+function pdfCover(st, title, sub, stats) {
+  const d = st.doc;
+  const user = Auth.user();
+  d.setFillColor(11, 13, 16); d.rect(0, 0, 210, 297, 'F');
+  d.setFillColor(57, 255, 136); d.rect(15, 60, 18, 3, 'F');
+  d.setTextColor(241, 243, 245); d.setFont('helvetica', 'bold'); d.setFontSize(32);
+  st.text(APP.name, 15, 52);
+  d.setFontSize(20); st.text(title, 15, 80);
+  d.setFont('helvetica', 'normal'); d.setFontSize(12); d.setTextColor(154, 163, 175);
+  st.text(sub, 15, 90);
+  st.text((S().displayName || (user && user.name) || '') + (user && user.email ? ` · ${user.email}` : ''), 15, 98);
+  let y = 125;
+  for (const [k, v] of stats) {
+    d.setTextColor(154, 163, 175); d.setFontSize(10); st.text(k, 15, y);
+    d.setTextColor(241, 243, 245); d.setFontSize(18); d.setFont('helvetica', 'bold'); st.text(v, 15, y + 8);
+    d.setFont('helvetica', 'normal');
+    y += 20;
+  }
+  d.setTextColor(20);
+  d.addPage(); st.page++; st.y = 20;
+}
+async function pdfWorkoutLog(from) {
+  const W = Store.all('workouts').filter(w => isISO(w.date) && dayNum(w.date) >= from).sort((a, b) => a.date.localeCompare(b.date) || (a.startedAt || 0) - (b.startedAt || 0));
+  if (!W.length) throw new Error('Keine Workouts im Zeitraum');
+  const ix = Analytics.cur();
+  const rows = ix.rows.filter(r => r.dn >= from);
+  const st = pdfDoc();
+  const d = st.doc;
+  pdfCover(st, 'Trainingsprotokoll', `${fmtDate(W[0].date)} - ${fmtDate(W[W.length - 1].date)}`, [
+    ['Workouts', String(W.length)], ['Tonnage', fmtTon(sum(rows.map(r => r.ton)))], ['Sätze', nf(sum(rows.map(r => r.sets)), 0)],
+    ['PRs', String(ix.prEvents.filter(p => p.dn >= from).length)], ['Trainingszeit', fmtDur(sum(rows.map(r => r.dur)))]
+  ]);
+  for (const w of W) {
+    const row = rows.find(r => r.id === w.id);
+    st.need(24);
+    d.setFillColor(238, 241, 245); d.roundedRect(15, st.y - 5, 180, 9, 2, 2, 'F');
+    d.setFont('helvetica', 'bold'); d.setFontSize(11);
+    st.text(`${fmtDate(w.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}  ·  ${w.planDayName || w.name || 'Workout'}`, 18, st.y + 1);
+    d.setFont('helvetica', 'normal'); d.setFontSize(9); d.setTextColor(90);
+    st.text(`${fmtDur(w.durationSec)} · ${row && row.cardioOnly ? 'Cardio' : `${fmtTon(row ? row.ton : 0)} · ${row ? row.sets : 0} Sätze`}${row && row.cSec && !row.cardioOnly ? ' · Cardio ' + fmtDur(row.cSec) : ''}`, 192, st.y + 1, { align: 'right' });
+    d.setTextColor(20);
+    st.y += 10;
+    if (w.notes) { d.setFontSize(9); d.setTextColor(90); const ls = d.splitTextToSize(pdfSafe(w.notes), 175); st.need(ls.length * 4); d.text(ls, 18, st.y); st.y += ls.length * 4 + 1; d.setTextColor(20); }
+    for (const en of w.entries || []) {
+      const sets = (en.sets || []).filter(s => s.done !== false);
+      if (!sets.length) continue;
+      const isSec = Ex.type(Ex.get(en.exerciseId)) === 'sec';
+      const txt = Ex.type(Ex.get(en.exerciseId)) === 'cardio' ? cardioTxt(cardioTotals(sets), cardioInfo(Ex.get(en.exerciseId))) : sets.map(s => (s.warmup ? 'W ' : '') + (isSec ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s))) + (s.rpe ? ` @${nf(s.rpe, 1)}` : '')).join('   ');
+      d.setFontSize(9.5);
+      const lines = d.splitTextToSize(pdfSafe(txt), 120);
+      st.need(lines.length * 4.5 + 2);
+      d.setFont('helvetica', 'bold'); st.text(Ex.entryName(en), 18, st.y);
+      d.setFont('helvetica', 'normal'); d.text(lines, 75, st.y);
+      st.y += lines.length * 4.5 + 1.5;
+    }
+    st.y += 5;
+  }
+  footer(st);
+  d.save(`trainio-protokoll-${isoDate()}.pdf`);
+  toast('PDF erstellt', 'success');
+}
+async function pdfExerciseReport(exId, from) {
+  const ss = Analytics.sessionsOf(exId).filter(s => s.dn >= from);
+  if (!ss.length) throw new Error('Keine Daten für diese Übung im Zeitraum');
+  const pr = Store.raw('prs', exId);
+  const st = pdfDoc();
+  const d = st.doc;
+  d.setFont('helvetica', 'bold'); d.setFontSize(22);
+  st.text(Ex.name(exId), 15, 22);
+  d.setFont('helvetica', 'normal'); d.setFontSize(10); d.setTextColor(90);
+  st.text(`Übungs-Report · ${fmtDate(ss[0].date)} - ${fmtDate(ss[ss.length - 1].date)} · ${ss.length} Sessions`, 15, 29);
+  d.setTextColor(20);
+  const boxes = [['Bestes e1RM', pr ? fmtW(pr.best1RM) : '-'], ['Max-Gewicht', pr ? `${fmtW(pr.bestWeightKg)} × ${pr.bestReps}` : '-'], ['Bestes Volumen', pr ? fmtTon(pr.bestVolume) : '-'], ['Sessions', String(ss.length)]];
+  boxes.forEach(([k, v], i) => {
+    const x = 15 + i * 45.5;
+    d.setFillColor(238, 241, 245); d.roundedRect(x, 35, 43, 18, 2, 2, 'F');
+    d.setFontSize(8); d.setTextColor(90); st.text(k, x + 3, 41);
+    d.setFontSize(12); d.setTextColor(20); d.setFont('helvetica', 'bold'); st.text(v, x + 3, 49); d.setFont('helvetica', 'normal');
+  });
+  // Chart offscreen rendern und als Bild einbetten
+  if (await Charts.ensure()) {
+    const cv = document.createElement('canvas');
+    cv.width = 1000; cv.height = 460;
+    const pts = ss.filter(s => s.best > 0).map(s => ({ x: s.dn, y: round(toU(s.best), 1) }));
+    const vol = ss.map(s => ({ x: s.dn, y: round(toU(s.maxW), 1) }));
+    const ch = new window.Chart(cv.getContext('2d'), {
+      type: 'line',
+      data: { datasets: [
+        { label: 'e1RM', data: pts, borderColor: '#0b8f48', backgroundColor: 'rgba(11,143,72,.12)', fill: true, tension: .3, pointRadius: pts.length < 40 ? 3 : 0, borderWidth: 3 },
+        { label: 'Max-Gewicht', data: vol, borderColor: '#2a78d6', fill: false, tension: .3, pointRadius: 0, borderWidth: 2 }] },
+      plugins: [{ id: 'bg', beforeDraw: c => { const x = c.ctx; x.save(); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.restore(); } }],
+      options: { responsive: false, animation: false, devicePixelRatio: 1, plugins: { legend: { labels: { color: '#333', font: { size: 16 } } }, tooltip: { enabled: false } },
+        scales: { x: { type: 'linear', ticks: { color: '#555', font: { size: 14 }, callback: v => fmtDN(v, { day: '2-digit', month: '2-digit', year: '2-digit' }), maxTicksLimit: 8 }, grid: { display: false } },
+          y: { ticks: { color: '#555', font: { size: 14 }, callback: v => nf(v, 0) + ' ' + unit() }, grid: { color: '#e5e5e5' } } } }
+    });
+    d.addImage(cv.toDataURL('image/jpeg', 0.88), 'JPEG', 15, 60, 180, 83);
+    ch.destroy();
+    st.y = 152;
+  } else st.y = 62;
+  d.setFont('helvetica', 'bold'); d.setFontSize(9);
+  const cols = [[15, 'Datum'], [42, 'Sätze'], [140, 'Bester Satz'], [165, 'e1RM'], [195, 'Volumen']];
+  cols.forEach(([x, l], i) => st.text(l, x, st.y, i >= 2 ? { align: i === 4 ? 'right' : 'left' } : undefined));
+  d.setFont('helvetica', 'normal');
+  st.y += 5;
+  for (const s of [...ss].reverse()) {
+    const lines = d.splitTextToSize(pdfSafe(s.list.map(x => x.w ? `${wNum(x.w)}×${prevR(x)}` : `${prevR(x)}`).join('  ')), 94);
+    st.need(lines.length * 4.2 + 1.5);
+    st.text(fmtDate(s.date), 15, st.y);
+    d.text(lines, 42, st.y);
+    st.text(s.bestSet ? `${wNum(s.bestSet.w)}×${s.bestSet.r}` : '-', 140, st.y);
+    st.text(s.best ? wNum(s.best) : '-', 165, st.y);
+    st.text(fmtTon(s.vol), 195, st.y, { align: 'right' });
+    st.y += lines.length * 4.2 + 1.5;
+  }
+  footer(st);
+  d.save(`trainio-${slug(Ex.name(exId))}-${isoDate()}.pdf`);
+  toast('PDF erstellt', 'success');
+}
+
+/* ---------- Backup / Restore / Löschen ---------- */
+Actions.backupJSON = () => {
+  const data = {};
+  for (const c of COLLS) data[c] = Store.all(c);
+  download(`trainio-backup-${isoDate()}.json`, JSON.stringify({ app: 'Trainio', version: 1, exportedAt: new Date().toISOString(), data }), 'application/json');
+  toast(`Backup erstellt (${data.workouts.length} Workouts)`, 'success');
+};
+Actions.restoreJSON = () => {
+  const inp = document.createElement('input');
+  inp.type = 'file'; inp.accept = '.json,application/json';
+  inp.onchange = async () => {
+    const f = inp.files[0];
+    if (!f) return;
+    let json;
+    try { json = JSON.parse(await readFileText(f)); } catch (e) { return toast('Datei ist kein gültiges JSON', 'error'); }
+    if (!json || !['GymLog','Trainio'].includes(json.app) || !json.data || typeof json.data !== 'object') return toast('Das ist kein Trainio-Backup', 'error');
+    const counts = COLLS.map(c => [c, Array.isArray(json.data[c]) ? json.data[c].length : 0]).filter(x => x[1]);
+    const mode = await actionMenu('Backup wiederherstellen', [
+      { key: 'merge', label: 'Zusammenführen', sub: 'Backup-Daten ergänzen/überschreiben gleiche IDs', icon: 'layers' },
+      { key: 'replace', label: 'Komplett ersetzen', sub: 'Aktuelle Daten werden vorher gelöscht', icon: 'refresh', danger: true }
+    ]);
+    if (!mode) return;
+    if (!await confirmDialog({ title: 'Wirklich wiederherstellen?', text: `Backup vom ${json.exportedAt ? new Date(json.exportedAt).toLocaleString('de-DE') : '?'}: ${counts.map(([c, n]) => `${n} ${c}`).join(', ')}.`, okLabel: 'Wiederherstellen', danger: mode === 'replace' })) return;
+    const ops = [];
+    if (mode === 'replace') for (const c of COLLS) for (const d of Store.all(c)) ops.push({ type: 'del', coll: c, id: d.id });
+    for (const c of COLLS) for (const d of (json.data[c] || [])) if (d && d.id) { const { id, ...rest } = d; ops.push({ type: 'put', coll: c, id: String(id), doc: rest, replace: true }); }
+    toast('Stelle wieder her …', 'info');
+    await Store.batch(ops);
+    await PR.recalcAll();
+    applyTheme();
+    toast('Backup wiederhergestellt', 'success');
+  };
+  inp.click();
+};
+Actions.deleteAll = async () => {
+  if (!await confirmDialog({ title: 'Alle Daten löschen?', text: 'Alle Workouts, Pläne, Übungen, Körperdaten, Fotos und PRs werden gelöscht – auf allen Geräten. Mach vorher besser ein Backup.', okLabel: 'Weiter', danger: true })) return;
+  if (!await confirmDialog({ title: 'Letzte Warnung', text: 'Das kann nicht rückgängig gemacht werden.', okLabel: 'Endgültig löschen', danger: true, requireText: 'LÖSCHEN' })) return;
+  const ops = [];
+  for (const c of COLLS) for (const d of Store.all(c)) ops.push({ type: 'del', coll: c, id: d.id });
+  Workout.discard();
+  await Store.batch(ops);
+  const seeds = [...seedExerciseDocs().map(e => ({ type: 'put', coll: 'exercises', id: e.id, doc: e }))];
+  Store.saveSettings({ activePlanId: '', seedVersion: SEED_VERSION });
+  await Store.batch(seeds);
+  try { localStorage.removeItem(LS.ui); } catch (e) {}
+  applyTheme();
+  App.go('start');
+  toast('Alle Daten gelöscht – Übungs-Bibliothek neu angelegt', 'success');
+};
+Actions.undoImport = async () => {
+  const imp = Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
+  if (!imp) return;
+  const ids = imp.docIds || {};
+  const wIds = (ids.workouts || []).filter(id => Store.raw('workouts', id));
+  const pIds = (ids.progress || []).filter(id => Store.raw('progress', id));
+  const wSet = new Set(wIds);
+  const usedElsewhere = new Set(Store.all('workouts').filter(w => !wSet.has(w.id)).flatMap(w => (w.entries || []).map(e => e.exerciseId)));
+  const usedInPlans = new Set(Store.all('templates').flatMap(t => (t.exercises || []).map(x => x.exerciseId)));
+  const eIds = (ids.exercises || []).filter(id => Store.raw('exercises', id) && !usedElsewhere.has(id) && !usedInPlans.has(id));
+  if (!await confirmDialog({ title: 'Import rückgängig machen?', text: imp.source === 'weight-csv' ? `Entfernt ${pIds.length} importierte Gewichtswerte${(imp.overwritten || []).length ? ` und stellt ${imp.overwritten.length} überschriebene wieder her` : ''} (Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}).` : `Entfernt ${wIds.length} Workouts, ${eIds.length} neu angelegte Übungen und ${pIds.length} Körper-Einträge aus dem Import vom ${new Date(imp.importedAt).toLocaleString('de-DE')}.`, okLabel: 'Rückgängig machen', danger: true })) return;
+  const ops = [
+    ...wIds.map(id => ({ type: 'del', coll: 'workouts', id })),
+    ...pIds.map(id => ({ type: 'del', coll: 'progress', id })),
+    ...eIds.map(id => ({ type: 'del', coll: 'exercises', id })),
+    ...(imp.overwritten || []).filter(o => Store.raw('progress', o.id)).map(o => ({ type: 'put', coll: 'progress', id: o.id, doc: { bodyWeightKg: o.bodyWeightKg, updatedAt: Date.now() } })),
+    { type: 'put', coll: 'imports', id: imp.id, doc: { undoneAt: Date.now() } }
+  ];
+  await Store.batch(ops);
+  await PR.recalcAll();
+  toast('Import rückgängig gemacht', 'success');
+};
+
+

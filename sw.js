@@ -1,9 +1,9 @@
 /* ==========================================================================
    Trainio Service Worker
-   WICHTIG: CACHE bei JEDEM Deploy hochzählen (gymlog-v2, gymlog-v3, …),
-   sonst zeigt das iPhone ggf. noch alte Assets.
+   WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
+   setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v35';
+const CACHE = 'gymlog-v36';
 
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './apple-touch-icon.png', './icon.svg'];
 const CDN_ASSETS = [
@@ -21,7 +21,12 @@ const BYPASS = /(firestore\.googleapis\.com|googleapis\.com|identitytoolkit|secu
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
-    await cache.addAll(APP_SHELL);
+    // { cache: 'reload' }: am HTTP-Cache vorbei, damit HTML, CSS und JS sicher aus demselben Deploy stammen
+    await cache.addAll(APP_SHELL.map(u => new Request(u, { cache: 'reload' })));
+    // CSS/JS der App (mit ?v=…) direkt aus der index.html lesen und vorcachen → offline vollständig
+    const html = await (await cache.match('./index.html')).text();
+    const parts = [...html.matchAll(/(?:src|href)="((?:css|js)\/[^"]+)"/g)].map(m => './' + m[1]);
+    await cache.addAll(parts.map(u => new Request(u, { cache: 'reload' })));
     // CDN-Libs einzeln vorcachen – ein Fehler soll die Installation nicht abbrechen
     await Promise.all(CDN_ASSETS.map(url =>
       cache.add(new Request(url, { mode: 'cors' })).catch(err => console.warn('[SW] nicht vorgecacht:', url, err))
