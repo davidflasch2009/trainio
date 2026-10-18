@@ -1743,7 +1743,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.10.1',
+  version: '1.10.2',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1762,7 +1762,8 @@ const LS = {
   theme: 'gymlog.theme',
   active: 'gymlog.activeWorkout',
   ui: 'gymlog.ui',
-  look: 'gymlog.look'
+  look: 'gymlog.look',
+  errors: 'gymlog.errors'
 };
 
 const KG_PER_LB = 0.45359237;
@@ -3059,6 +3060,35 @@ function toast(msg, type = 'info', opts = {}) {
   });
 }
 
+/* ---------- Fehlerprotokoll: Fehler sichtbar machen statt still zu verschlucken ---------- */
+const ErrLog = (() => {
+  // Netzwerk/Offline/Cloud-Abbrüche: nur protokollieren, nicht als Fehler einblenden
+  const QUIET = /network|offline|failed to fetch|load failed|unavailable|deadline|ResizeObserver|Script error|client is offline|Diagramme brauchen|Script konnte nicht geladen/i;
+  let lastToast = 0;
+  const read = () => { try { return JSON.parse(localStorage.getItem(LS.errors)) || []; } catch (e) { return []; } };
+  function add(err, where = '') {
+    const msg = String((err && (err.message || err.reason)) || err || 'Unbekannter Fehler').slice(0, 300);
+    const stack = String((err && err.stack) || '').split('\n').slice(0, 6).map(l => l.trim().replace(/https?:\/\/[^\s)]+\//g, '')).join('\n');
+    let tab = ''; try { tab = App.tab || ''; } catch (x) {}   // App existiert beim Start evtl. noch nicht
+    const e = { t: Date.now(), msg, stack, where, v: APP.version, tab };
+    try { const l = read(); l.push(e); localStorage.setItem(LS.errors, JSON.stringify(l.slice(-30))); } catch (x) {}
+    console.error('[Trainio]', where, err);
+    if (QUIET.test(msg) || Date.now() - lastToast < 4000) return;
+    lastToast = Date.now();
+    toast('Da ist etwas schiefgelaufen: ' + msg.slice(0, 90), 'error', { duration: 7000, action: { label: 'Details', fn: () => Actions.openErrLog() } });
+  }
+  function report() {
+    const l = read();
+    let env = '';
+    try { env = `Bildschirm ${screen.width}×${screen.height} · ${isStandalone() ? 'als App' : 'im Browser'} · ${Auth.user() ? 'angemeldet' : 'nicht angemeldet'} · Design ${S().design}`; } catch (x) {}
+    return [`${APP.name} v${APP.version} · ${new Date().toLocaleString('de-DE')}`, navigator.userAgent, env, '',
+      ...l.slice().reverse().map(e => `[${new Date(e.t).toLocaleString('de-DE')}] v${e.v} · ${e.where || '–'} · Tab ${e.tab || '–'}\n${e.msg}${e.stack ? '\n' + e.stack : ''}`)].join('\n');
+  }
+  return { add, all: read, clear: () => { try { localStorage.removeItem(LS.errors); } catch (e) {} }, report };
+})();
+window.addEventListener('error', e => ErrLog.add(e.error || e.message, 'Fehler'));
+window.addEventListener('unhandledrejection', e => ErrLog.add(e.reason, 'Aktion'));
+
 /* ---------- Modals (Stack-fähig) ---------- */
 const Modal = (() => {
   const stack = [];
@@ -3222,19 +3252,21 @@ document.addEventListener('click', e => {
   const act = el.dataset.act, v = el.dataset.v;
   try {
     const r = fn(el, e);
-    if (SWAP_ACTS.has(act)) Promise.resolve(r).then(() => requestAnimationFrame(() => fxSwap(act, v)));
-  } catch (err) { console.error(err); toast('Fehler: ' + err.message, 'error'); }
+    if (r && typeof r.then === 'function') r.catch(err => ErrLog.add(err, act));
+    if (SWAP_ACTS.has(act)) Promise.resolve(r).then(() => requestAnimationFrame(() => fxSwap(act, v))).catch(() => {});
+  } catch (err) { ErrLog.add(err, act); }
 });
 /* Schalter: Knopf-Animation fertig laufen lassen, bevor neu gerendert wird */
 let renderHoldUntil = 0;
 document.addEventListener('change', e => { if (e.target.closest('.switch')) renderHoldUntil = Date.now() + 240; }, true);
 document.addEventListener('input', e => {
   const el = e.target.closest('[data-in]');
-  if (el && Inputs[el.dataset.in]) Inputs[el.dataset.in](el, e);
+  if (el && Inputs[el.dataset.in]) try { Inputs[el.dataset.in](el, e); } catch (err) { ErrLog.add(err, el.dataset.in); }
 });
 document.addEventListener('change', e => {
   const el = e.target.closest('[data-ch]');
-  if (el && Changes[el.dataset.ch]) Changes[el.dataset.ch](el, e);
+  if (!el || !Changes[el.dataset.ch]) return;
+  try { const r = Changes[el.dataset.ch](el, e); if (r && typeof r.then === 'function') r.catch(err => ErrLog.add(err, el.dataset.ch)); } catch (err) { ErrLog.add(err, el.dataset.ch); }
 });
 
 /* ---------- Feedback: Ton, Konfetti, Benachrichtigung, Wake-Lock ---------- */
@@ -3424,7 +3456,7 @@ function applyTheme() {
   if (changed && typeof Charts !== 'undefined') Charts.applyDefaults();
   return changed;
 }
-matchMedia('(prefers-color-scheme: light)').addEventListener('change', () => { if (S().theme === 'system' && applyTheme()) App.renderCurrent(); });
+(mq => { const f = () => { if (S().theme === 'system' && applyTheme()) App.renderCurrent(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); })(matchMedia('(prefers-color-scheme: light)'));
 setInterval(() => { if (S().theme === 'time' && applyTheme()) App.renderCurrent(); }, 60000);
 
 /* Mini-Vorschau eines Designs (liest nur dessen Tokens) */
@@ -9005,6 +9037,7 @@ Views.more = {
       <div class="list">
         ${!isStandalone() && (deferredInstall || Auth.isIOS()) ? navRow('install', 'install', 'App installieren', Auth.isIOS() ? 'Zum Home-Bildschirm hinzufügen' : 'Als eigenständige App öffnen') : ''}
         ${navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`)}
+        ${navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge – zum Kopieren und Weiterschicken` : 'Keine Fehler aufgezeichnet')}
         <a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>
         <a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>
       </div>
@@ -9052,6 +9085,29 @@ Actions.install = async () => {
       <li><b>„Zum Home-Bildschirm"</b> wählen</li>
       <li>Mit <b>Hinzufügen</b> bestätigen – fertig!</li></ol>
       <p class="dim small mt-8">Danach startet ${APP.name} im Vollbild wie eine native App.</p>`
+  });
+};
+Actions.openErrLog = () => {
+  const l = ErrLog.all().slice().reverse();
+  const m = Modal.open({
+    title: 'Fehlerprotokoll', size: 'lg',
+    body: `<p class="small dim">Hier landen Fehler, die in der App aufgetreten sind (höchstens 30). Tippe auf „Kopieren" und schick den Text an den Entwickler – er enthält Version, Gerät und Fehlermeldung, aber keine Trainingsdaten.</p>
+      ${l.length ? `<div class="list mt-12">${l.map(e => `<div class="list-item" style="display:block;cursor:default">
+        <div class="small"><b>${esc(e.msg)}</b></div>
+        <div class="tiny dim mt-4">${esc(new Date(e.t).toLocaleString('de-DE'))} · v${esc(e.v)} · ${esc(e.where || '–')}${e.tab ? ' · Tab ' + esc(e.tab) : ''}</div>
+        ${e.stack ? `<pre class="tiny faint mt-4" style="white-space:pre-wrap;word-break:break-word;margin:0">${esc(e.stack)}</pre>` : ''}</div>`).join('')}</div>` : `<div class="card mt-12">${emptyState('checkCircle', 'Keine Fehler', 'Bisher ist nichts schiefgelaufen.')}</div>`}`,
+    foot: `${l.length ? `<button class="btn btn-danger-ghost" data-x="clear" style="flex:0 0 auto">${icon('trash')} Leeren</button>` : ''}<button class="btn btn-secondary" data-x="c">Schließen</button><button class="btn btn-primary" data-x="copy">${icon('copy')} Kopieren</button>`
+  });
+  m.el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    if (b.dataset.x === 'copy') {
+      const txt = ErrLog.report();
+      try { await navigator.clipboard.writeText(txt); toast('Fehlerbericht kopiert', 'success'); }
+      catch (err) { Modal.open({ title: 'Fehlerbericht', body: `<textarea class="textarea code" readonly style="min-height:320px">${esc(txt)}</textarea><p class="tiny dim mt-8">Text markieren und kopieren.</p>` }); }
+      return;
+    }
+    if (b.dataset.x === 'clear') { ErrLog.clear(); toast('Fehlerprotokoll geleert', 'success'); App.renderCurrent(); }
+    m.close();
   });
 };
 Actions.checkUpdate = async () => {

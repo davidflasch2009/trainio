@@ -278,6 +278,13 @@ die neue Datei ersetzt – nichts wird doppelt. Selbst eingetragene Workouts und
 (z. B. Gewicht aus CSV) bleiben unverändert; vom alten Import angelegte Übungen werden
 weiterverwendet, wenn die neue Datei sie enthält.
 
+## Fehlerprotokoll
+
+Geht in der App etwas schief, erscheint eine Meldung „Da ist etwas schiefgelaufen …“ mit **Details**.
+Alle Fehler (höchstens 30) stehen unter **Mehr → Fehlerprotokoll**; „Kopieren“ erzeugt einen Bericht mit
+Version, Gerät/Browser und Fehlermeldung (ohne Trainingsdaten) zum Weiterschicken. Netzwerk- und
+Offline-Abbrüche werden nur protokolliert, nicht eingeblendet.
+
 ## Lokal testen
 
 ```bash
