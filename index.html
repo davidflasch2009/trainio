@@ -182,7 +182,8 @@
   --wall: radial-gradient(60% 50% at 10% 6%, rgba(100,116,139,.35), transparent 70%), radial-gradient(55% 45% at 94% 18%, rgba(71,85,105,.4), transparent 70%),
     radial-gradient(60% 55% at 84% 96%, rgba(148,163,184,.18), transparent 70%), linear-gradient(165deg, #0d0f13, #050608);
 }
-[data-wall="accent"] {
+/* [data-theme] erhöht die Spezifität: sonst gewinnt bei Liquid Glass die Standard-Aurora („lila") */
+[data-theme][data-wall="accent"] {
   --wall: radial-gradient(60% 50% at 8% 6%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%),
     radial-gradient(55% 45% at 95% 16%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
     radial-gradient(60% 55% at 85% 95%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 70%),
@@ -619,6 +620,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 [data-theme="light"] .seg button.active { box-shadow: 0 1px 3px rgba(16,24,40,.12); }
 .seg.tabs button { flex: 1 1 auto; padding: 0 6px; font-size: calc(13px * var(--fs)); }
 .chip.sm { min-height: 34px; padding: 0 12px; font-size: calc(13px * var(--fs)); }
+.seg.fit button { flex: 1 1 0; min-width: 0; white-space: normal; line-height: 1.15; padding: 4px 6px; }
 .seg.sm button { min-height: 32px; font-size: calc(12.5px * var(--fs)); padding: 0 10px; }
 
 /* Badges */
@@ -1741,7 +1743,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.10.0',
+  version: '1.10.1',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -7761,7 +7763,7 @@ ProgressViews.strength = body => {
   };
   const head = `
     <div class="card mt-12">
-      <div class="seg">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="kraftScope" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="kraftScope" data-v="${k}">${l}</button>`).join('')}</div>
       ${scope === 'exercise' ? `<select class="select mt-12" data-ch="kraftEx" aria-label="Übung">${exIds.map(id => `<option value="${esc(id)}" ${id === exId ? 'selected' : ''}>${esc(Ex.name(id))} (${ix.sessions[id].length}×)</option>`).join('')}</select>
       ${big3Chips.length ? `<div class="chips mt-12">${big3Chips.map(id => `<button class="chip ${id === exId ? 'active' : ''}" data-act="kraftEx" data-v="${esc(id)}">${esc(BIG3.find(b => b.ids.includes(id)).label)}</button>`).join('')}</div>` : ''}` : ''}
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="kraftMuscle" aria-label="Muskelgruppe">${musOpts.map(m => `<option ${m === muscle ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>` : ''}
@@ -7969,7 +7971,7 @@ ProgressViews.volume = body => {
   const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? `Übungen mit ${UI.volMuscle} als Hauptmuskel` : 'alle Übungen';
   body.innerHTML = `
     <div class="card mt-12">
-      <div class="seg">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="volScope" data-v="${k}">${l}</button>`).join('')}</div>
+      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="volScope" data-v="${k}">${l}</button>`).join('')}</div>
       ${scope === 'exercise' ? `<select class="select mt-12" data-ch="volEx" aria-label="Übung">${exOpts.map(id => `<option value="${esc(id)}" ${id === UI.volEx ? 'selected' : ''}>${esc(Ex.name(id))}</option>`).join('')}</select>` : ''}
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="volMuscle" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.volMuscle ? 'selected' : ''}>${m}</option>`).join('')}</select>` : ''}
     </div>
