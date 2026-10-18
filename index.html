@@ -1741,7 +1741,7 @@ const FIREBASE_CONFIG = {
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.9.3',
+  version: '1.10.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -1798,6 +1798,7 @@ const DEFAULT_SETTINGS = {
   f_measures: false,
   f_photos: false,
   bwGoal: null,
+  bwRate: null,   // Wochenziel ohne Phase: { type: 'bulk'|'cut'|'maintain', min, max } in kg/Woche
   warmupBar: true,
   platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
   platesLb: [45, 35, 25, 10, 5, 2.5],
@@ -7004,6 +7005,27 @@ const thresholdPlugin = {
   }
 };
 
+/* Zielbereich hinter Balken: je Kategorie [von, bis] oder null – benachbarte gleiche Bereiche ergeben ein durchgehendes Band */
+const rangeBandPlugin = {
+  id: 'rangeBand',
+  beforeDatasetsDraw(chart, args, opts) {
+    const rs = (opts && opts.ranges) || [];
+    if (!rs.some(Boolean)) return;
+    const { ctx, chartArea: a, scales: { x, y } } = chart;
+    const step = rs.length > 1 ? Math.abs(x.getPixelForValue(1) - x.getPixelForValue(0)) : a.right - a.left;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(a.left, a.top, a.right - a.left, a.bottom - a.top); ctx.clip();
+    rs.forEach((r, i) => {
+      if (!r) return;
+      const cx = x.getPixelForValue(i), y0 = y.getPixelForValue(r[0]), y1 = y.getPixelForValue(r[1]);
+      ctx.fillStyle = opts.color;
+      ctx.fillRect(cx - step / 2, Math.min(y0, y1), step, Math.max(1, Math.abs(y0 - y1)));
+      ctx.fillStyle = opts.edge;
+      ctx.fillRect(cx - step / 2, Math.min(y0, y1), step, 1); ctx.fillRect(cx - step / 2, Math.max(y0, y1) - 1, step, 1);
+    });
+    ctx.restore();
+  }
+};
 /* Senkrechte Hilfslinie an der angetippten Stelle (Linien-Diagramme) */
 const crosshairPlugin = {
   id: 'crosshair',
@@ -7280,9 +7302,44 @@ Actions.unitSet = el => { Store.saveSettings({ unit: el.dataset.v }); };
 const PHASE_TYPES = { bulk: ['Bulk', '#22c55e'], cut: ['Cut', '#f97316'], maintain: ['Erhalt', '#3b82f6'], other: ['Sonstiges', '#a855f7'] };
 const phases = () => (S().phases || []).slice().sort((a, b) => b.from.localeCompare(a.from));
 const phaseById = id => (S().phases || []).find(p => p.id === id) || null;
+/* ---------- Wochenziel fürs Gewicht: erlaubte Veränderung pro Woche (kg), je Phase oder allgemein ---------- */
+const RATE_DEFAULTS = { bulk: [0, 0.2], cut: [-0.5, -0.25], maintain: [-0.2, 0.2], other: null };
+const RATE_GOALS = [['bulk', 'Zunehmen'], ['cut', 'Abnehmen'], ['maintain', 'Halten']];
+const rateUnit = () => unit() === 'kg' ? 'g' : 'lb';
+const rateToInput = kg => kg == null ? '' : unit() === 'kg' ? String(Math.round(kg * 1000)) : String(round(toU(kg), 2)).replace('.', ',');
+const rateFromInput = v => { const n = parseNum(String(v || '').replace(/[−–]/g, '-')); return n == null ? null : round(unit() === 'kg' ? n / 1000 : fromU(n), 4); };
+const fmtRate = kg => (kg > 0.0005 ? '+' : kg < -0.0005 ? '−' : '') + (unit() === 'kg' ? nf(Math.abs(kg) * 1000, 0) + ' g' : nf(Math.abs(toU(kg)), 2) + ' lb');
+const rateText = (lo, hi) => `${fmtRate(lo)} bis ${fmtRate(hi)}`;
+/** Gültiger Bereich für die Woche ab ws: Phase mit Bereich (die zuletzt gestartete), sonst die allgemeine Einstellung */
+function rateRuleAt(ws) {
+  const ph = phases().find(p => p.rateMin != null && p.rateMax != null && dayNum(p.from) <= ws + 6 && (!p.to || dayNum(p.to) >= ws));
+  if (ph) return { lo: ph.rateMin, hi: ph.rateMax, phase: ph };
+  const g = S().bwRate;
+  return g && g.min != null && g.max != null ? { lo: g.min, hi: g.max, phase: null, type: g.type } : null;
+}
+/** Zwei Eingabefelder „von / bis" für den Wochen-Bereich */
+const rateFields = (lo, hi, ph = ['', '']) => `<div class="form-grid">
+    <label class="field"><span>von (${rateUnit()} pro Woche)</span><input class="input" id="rtMin" value="${esc(rateToInput(lo))}" placeholder="${esc(ph[0])}" autocomplete="off" enterkeyhint="next"></label>
+    <label class="field"><span>bis (${rateUnit()} pro Woche)</span><input class="input" id="rtMax" value="${esc(rateToInput(hi))}" placeholder="${esc(ph[1])}" autocomplete="off" enterkeyhint="done"></label>
+  </div>`;
+/** Liest „von / bis"; null = kein Bereich, false = ungültig (Hinweis wurde gezeigt) */
+function readRate(root) {
+  const a = $('#rtMin', root).value.trim(), b = $('#rtMax', root).value.trim();
+  if (!a && !b) return null;
+  const lo = rateFromInput(a), hi = rateFromInput(b);
+  if (lo == null || hi == null) { toast('Bitte beide Grenzen angeben – oder beide leer lassen', 'warn'); return false; }
+  return lo <= hi ? [lo, hi] : [hi, lo];
+}
+/** Vorschlag je Ziel in die Felder schreiben, solange sie leer sind oder noch den alten Vorschlag enthalten */
+function applyRateDefault(root, prevType, type) {
+  const mi = $('#rtMin', root), ma = $('#rtMax', root), pd = RATE_DEFAULTS[prevType], nd = RATE_DEFAULTS[type];
+  const untouched = (!mi.value && !ma.value) || (pd && mi.value === rateToInput(pd[0]) && ma.value === rateToInput(pd[1]));
+  if (untouched) { mi.value = nd ? rateToInput(nd[0]) : ''; ma.value = nd ? rateToInput(nd[1]) : ''; }
+}
 Actions.phaseEdit = el => {
   const old = el.dataset.id ? phaseById(el.dataset.id) : null;
-  const d = old ? { ...old } : { id: autoId().slice(0, 8), name: '', type: 'bulk', from: dnToISO(todayDN() - 30), to: '' };
+  const d = old ? { ...old } : { id: autoId().slice(0, 8), name: '', type: 'bulk', from: dnToISO(todayDN() - 30), to: '', rateMin: RATE_DEFAULTS.bulk[0], rateMax: RATE_DEFAULTS.bulk[1] };
+  const sug = RATE_DEFAULTS[d.type] || ['', ''];
   const m = Modal.open({
     title: old ? 'Phase bearbeiten' : 'Neue Phase', size: 'sm',
     body: `<div class="stack">
@@ -7292,12 +7349,15 @@ Actions.phaseEdit = el => {
         <label class="field"><span>Start</span><input class="input" type="date" id="phFrom" value="${esc(d.from)}"></label>
         <label class="field"><span>Ende (leer = läuft noch)</span><input class="input" type="date" id="phTo" value="${esc(d.to || '')}"></label>
       </div>
+      <div><div class="bold small mb-8">Gewicht pro Woche (optional)</div>
+        ${rateFields(d.rateMin, d.rateMax, [rateToInput(sug[0]), rateToInput(sug[1])])}
+        <p class="tiny dim mt-8">Erlaubte Veränderung des Wochendurchschnitts, z. B. Bulk 0 bis +200 g. Im Körper-Tab sind Wochen in diesem Bereich grün, darüber oder darunter orange. Leer lassen = kein Ziel.</p></div>
       <p class="tiny dim">Die Phase erscheint im Fortschritt als eigener Zeitraum – alle Auswertungen gelten dann nur für diese Zeit.</p></div>`,
     foot: `${old ? `<button class="btn btn-danger-ghost" data-x="del" style="flex:0 0 auto" aria-label="Löschen">${icon('trash')}</button>` : ''}<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
   });
   m.el.addEventListener('click', async e => {
     const t = e.target.closest('[data-t]');
-    if (t) { d.type = t.dataset.t; $$('#phType button', m.el).forEach(b => b.classList.toggle('active', b === t)); if (!$('#phName', m.el).value.trim() || Object.values(PHASE_TYPES).some(([l]) => $('#phName', m.el).value.startsWith(l))) $('#phName', m.el).value = `${PHASE_TYPES[d.type][0]} ${new Date().getFullYear()}`; return; }
+    if (t) { applyRateDefault(m.el, d.type, t.dataset.t); d.type = t.dataset.t; $$('#phType button', m.el).forEach(b => b.classList.toggle('active', b === t)); if (!$('#phName', m.el).value.trim() || Object.values(PHASE_TYPES).some(([l]) => $('#phName', m.el).value.startsWith(l))) $('#phName', m.el).value = `${PHASE_TYPES[d.type][0]} ${new Date().getFullYear()}`; return; }
     const b = e.target.closest('[data-x]'); if (!b) return;
     const list = (S().phases || []).filter(p => p.id !== d.id);
     if (b.dataset.x === 'del') {
@@ -7311,6 +7371,9 @@ Actions.phaseEdit = el => {
       d.from = $('#phFrom', m.el).value; d.to = $('#phTo', m.el).value || '';
       if (!isISO(d.from)) return toast('Bitte ein Startdatum wählen', 'warn');
       if (d.to && d.to < d.from) return toast('Ende liegt vor dem Start', 'warn');
+      const rt = readRate(m.el);
+      if (rt === false) return;
+      d.rateMin = rt ? rt[0] : null; d.rateMax = rt ? rt[1] : null;
       Store.saveSettings({ phases: [...list, d] });
       UI.period = 'ph:' + d.id; saveUI();
       toast(old ? 'Phase gespeichert' : `Phase „${d.name}" angelegt`, 'success');
@@ -8411,6 +8474,10 @@ ProgressViews.body = body => {
   bwAll.forEach(p => { const w = weekStartDN(p.dn); if (!weeks.has(w)) weeks.set(w, []); weeks.get(w).push(p.kg); });
   const wk = [...weeks.entries()].sort((x, y) => x[0] - y[0]).map(([w, v]) => ({ w, kg: avg(v) }));
   const wkDiff = wk.map((x, i) => i ? { w: x.w, d: x.kg - wk[i - 1].kg, gap: x.w - wk[i - 1].w } : null).filter(x => x && x.gap <= 14 && x.w >= weekStartDN(r.from) && x.w <= r.to);
+  // Wochenziel: Bereich je Woche (Phase oder allgemein) und Treffer
+  const rateNow = rateRuleAt(weekStartDN(todayDN()));
+  const rules = wkDiff.map(x => rateRuleAt(x.w));
+  const rateHit = wkDiff.filter((x, i) => rules[i] && x.d >= rules[i].lo - 1e-6 && x.d <= rules[i].hi + 1e-6).length;
   const startR = bwR[0], minR = bwR.length ? bwR.reduce((m, p) => p.kg < m.kg ? p : m) : null, maxR = bwR.length ? bwR.reduce((m, p) => p.kg > m.kg ? p : m) : null;
   const todayEntry = P.find(p => p.date === isoDate() && p.bodyWeightKg > 0);
   const signW = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + nf(Math.abs(toU(d)), Math.abs(d) < 1 ? 2 : 1) + ' ' + unit();
@@ -8444,14 +8511,36 @@ ProgressViews.body = body => {
           return timeLine(ds, { legend: true, tooltipFmt: v => nf(v, 1) + ' ' + unit(), thresholds: goal ? { axis: 'y', lines: [{ value: toU(goal), label: 'Ziel', color: c.dim }] } : null,
             yMin: Math.floor(Math.min(...ys) - .5), yMax: Math.ceil(Math.max(...ys) + .5) });
         } })}
-      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: 'Wochendurchschnitt im Vergleich zur Vorwoche. Blau = abgenommen, orange = zugenommen. Wochen ohne Eintrag werden übersprungen.',
+      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: rateNow || rules.some(Boolean) ? 'Wochendurchschnitt im Vergleich zur Vorwoche. Grün = im Bereich deines Wochenziels, orange = darüber oder darunter, das blasse Band zeigt den erlaubten Bereich. Das Ziel stellst du hier oder pro Phase ein (Fortschritt → „+ Phase"); in einer Phase gilt deren Bereich. Wochen ohne Eintrag werden übersprungen.' : 'Wochendurchschnitt im Vergleich zur Vorwoche. Blau = abgenommen, orange = zugenommen. Mit einem Wochenziel (Knopf oben) siehst du, welche Wochen im erlaubten Bereich lagen. Wochen ohne Eintrag werden übersprungen.',
+        top: `<div class="row mt-8"><button class="chip sm" data-act="bwRateSet">${icon('target')} ${rateNow ? `${rateNow.phase ? esc(rateNow.phase.name) : esc((RATE_GOALS.find(x => x[0] === rateNow.type) || [0, 'Ziel'])[1])}: ${esc(rateText(rateNow.lo, rateNow.hi))}` : 'Wochenziel festlegen'}</button></div>`,
         big: wkDiff.length ? signW(wkDiff[wkDiff.length - 1].d) : '–', small: wkDiff.length ? 'letzte Woche' : 'mind. 2 Wochen mit Einträgen nötig',
+        sub: rules.some(Boolean) ? `${rateHit} von ${rules.filter(Boolean).length} Wochen im Bereich` : '',
         factory: () => {
           if (!wkDiff.length) return null;
           const labels = wkDiff.map(x => 'KW ' + isoWeek(x.w).week);
-          const vals = wkDiff.map(x => round(toU(x.d), 2));
-          return barChart(labels, [barDS('Abnahme', vals.map(v => v < 0 ? v : null), c.series[0]), barDS('Zunahme', vals.map(v => v > 0 ? v : null), c.series[1])],
-            { stacked: true, legend: true, running: wkDiff.findIndex(x => x.w === weekStartDN(todayDN())), tooltipFmt: v => (v > 0 ? '+' : '') + nf(v, 2) + ' ' + unit(), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
+          const vals = wkDiff.map(x => round(toU(x.d), 3));
+          const ri = wkDiff.findIndex(x => x.w === weekStartDN(todayDN()));
+          if (!rules.some(Boolean)) return barChart(labels, [barDS('Abnahme', vals.map(v => v < 0 ? v : null), c.series[0]), barDS('Zunahme', vals.map(v => v > 0 ? v : null), c.series[1])],
+            { stacked: true, legend: true, running: ri, tooltipFmt: v => fmtRate(fromU(v)), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
+          const st = wkDiff.map((x, i) => !rules[i] ? 'none' : x.d < rules[i].lo - 1e-6 ? 'low' : x.d > rules[i].hi + 1e-6 ? 'high' : 'ok');
+          const pick = k => vals.map((v, i) => st[i] === k ? v : null);
+          const cfg = barChart(labels, [
+            barDS('Im Bereich', pick('ok'), c.success),
+            barDS('Außerhalb', vals.map((v, i) => st[i] === 'low' || st[i] === 'high' ? v : null), c.warning),
+            ...(st.includes('none') ? [barDS('Ohne Ziel', pick('none'), c.faint)] : [])
+          ], { stacked: true, legend: true, running: ri, tooltipFmt: v => fmtRate(fromU(v)), yFmt: v => (v > 0 ? '+' : '') + nf(v, 1) });
+          const ranges = rules.map(rl => rl ? [toU(rl.lo), toU(rl.hi)] : null);
+          cfg.plugins = [...(cfg.plugins || []), rangeBandPlugin];
+          cfg.options.plugins.rangeBand = { ranges, color: alpha(c.success, .13), edge: alpha(c.success, .45) };
+          const ext = ranges.filter(Boolean).flat();
+          cfg.options.scales.y.suggestedMin = Math.min(0, ...ext);
+          cfg.options.scales.y.suggestedMax = Math.max(0, ...ext);
+          cfg.options.plugins.tooltip.callbacks.footer = items => {
+            const i = items.length ? items[0].dataIndex : -1, rl = rules[i];
+            if (!rl) return i >= 0 ? 'kein Wochenziel für diese Woche' : '';
+            return `Ziel ${rateText(rl.lo, rl.hi)}${rl.phase ? ` (${rl.phase.name})` : ''} · ${st[i] === 'ok' ? 'im Bereich' : st[i] === 'high' ? 'über dem Bereich' : 'unter dem Bereich'}`;
+          };
+          return cfg;
         } })}
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">${icon('scale', 'cc-ic')} Im Zeitraum</span>${infoBtn('Kennzahlen deines Gewichts im oben gewählten Zeitraum.')}</div>
@@ -8499,6 +8588,41 @@ Actions.bwQuickSave = () => {
   if (ex) Store.put('progress', ex.id, { bodyWeightKg: kg, updatedAt: Date.now() });
   else Store.put('progress', autoId(), { date: today, bodyWeightKg: kg, bodyFatPct: null, measurements: null, photoUrl: null, photoId: null, notes: '', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true });
   toast(`${fmtW(kg)} gespeichert`, 'success');
+};
+Actions.bwRateSet = () => {
+  const g = S().bwRate || {};
+  let type = g.type || (g.min != null ? 'maintain' : '');
+  const cur = rateRuleAt(weekStartDN(todayDN()));
+  const sug = RATE_DEFAULTS[type || 'bulk'];
+  const m = Modal.open({
+    title: 'Wochenziel Gewicht', size: 'sm',
+    body: `<div class="stack">
+      ${cur && cur.phase ? `<div class="card small">Gerade gilt die Phase <b>${esc(cur.phase.name)}</b> (${esc(rateText(cur.lo, cur.hi))}). Diese Einstellung gilt für Wochen ohne Phase mit Bereich.
+        <button class="link-btn mt-4" style="padding:0;min-height:30px" data-x="phase">Phase bearbeiten</button></div>` : ''}
+      <div class="seg" id="rtType">${RATE_GOALS.map(([k, l]) => `<button data-t="${k}" class="${type === k ? 'active' : ''}">${l}</button>`).join('')}<button data-t="" class="${!type ? 'active' : ''}">Kein Ziel</button></div>
+      <div id="rtBox" ${type ? '' : 'hidden'}>${rateFields(g.min, g.max, [rateToInput(sug[0]), rateToInput(sug[1])])}
+        <p class="tiny dim mt-8">Erlaubte Veränderung deines Wochendurchschnitts zur Vorwoche. Im Diagramm „Veränderung pro Woche“ sind Wochen in diesem Bereich grün, darüber oder darunter orange.</p></div>
+    </div>`,
+    foot: `<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
+  });
+  if (type && g.min == null) applyRateDefault(m.el, null, type);
+  m.el.addEventListener('click', e => {
+    const t = e.target.closest('[data-t]');
+    if (t) { applyRateDefault(m.el, type || null, t.dataset.t || 'other'); type = t.dataset.t; $$('#rtType button', m.el).forEach(x => x.classList.toggle('active', x === t)); $('#rtBox', m.el).hidden = !type; return; }
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    if (b.dataset.x === 'phase') { m.close(); Actions.phaseEdit({ dataset: { id: cur.phase.id } }); return; }
+    if (b.dataset.x === 'ok') {
+      if (!type) Store.saveSettings({ bwRate: null });
+      else {
+        const rt = readRate(m.el);
+        if (rt === false) return;
+        if (!rt) return toast('Bitte von und bis angeben', 'warn');
+        Store.saveSettings({ bwRate: { type, min: rt[0], max: rt[1] } });
+      }
+      toast('Wochenziel gespeichert', 'success');
+    }
+    m.close();
+  });
 };
 Actions.bwGoalSet = async () => {
   const cur = S().bwGoal;

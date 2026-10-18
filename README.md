@@ -150,6 +150,11 @@ Workout öffnen (z. B. unter „Letzte Workouts") → **Bearbeiten**:
 
 Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
 Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
+**Wochenziel:** Pro Phase (Fortschritt → „+ Phase": Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
+(„Wochenziel festlegen": Zunehmen / Abnehmen / Halten) legst du fest, wie stark sich dein Wochendurchschnitt
+verändern darf, z. B. 0 bis +200 g. In „Veränderung pro Woche" sind Wochen im Bereich grün, darüber oder
+darunter orange; ein blasses Band zeigt den erlaubten Bereich. In einer Phase gilt deren Bereich, sonst die
+allgemeine Einstellung.
 **Gewicht importieren:** Körper-Tab → „CSV importieren" (oder Mehr → Daten → Gewicht importieren). Funktioniert
 mit CSV-Exporten aus Waagen-/Gewichts-Apps wie Better Weight, Withings oder Libra – Datum- und Gewichtsspalte
 werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau mit Zeitraum, vorhandene Tage
