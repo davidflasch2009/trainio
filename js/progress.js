@@ -16,13 +16,8 @@ const FEATURES = [
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
 ];
 const F = k => S()[k] !== false;
-Actions.openFeatures = () => {
-  Modal.open({
-    title: 'Funktionen', size: 'lg',
-    body: `<p class="small dim">Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.</p>
-      ${FEATURES.map(([g, items]) => `<div class="look-group"><h4>${esc(g)}</h4><div class="list">${items.map(([k, l, sub]) => setLine(esc(l), sub ? esc(sub) : '', toggleCtl(k))).join('')}</div></div>`).join('')}`
-  });
-};
+// eigene Seite im Mehr-Tab (Tabs & Funktionen)
+Actions.openFeatures = () => openMoreSub('features');
 const PROG_SUBS = [['overview', 'Übersicht'], ['strength', 'Kraft'], ['volume', 'Volumen'], ['muscles', 'Muskeln'], ['cardio', 'Cardio'], ['body', 'Körper']];
 const progSubs = () => PROG_SUBS.filter(([k]) => k === 'overview' || F('f_' + k));
 Views.progress = {

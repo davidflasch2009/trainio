@@ -584,6 +584,8 @@ const App = {
     if (!Views[tab]) return;
     if (tab !== this.peek) this.peek = null;
     const changed = tab !== this.tab;
+    // denselben Tab erneut antippen: der Tab darf selbst reagieren (z. B. Mehr → zurück zur Übersicht)
+    if (!changed && Views[tab].reselect && Views[tab].reselect()) return;
     this.tab = tab;
     UI.tab = tab;
     saveUI();
@@ -619,7 +621,7 @@ Actions.exTabToggle = async () => {
     if (!await confirmDialog({ title: 'Übungen-Tab ausblenden?', text: 'Die Bibliothek bleibt erreichbar: beim Hinzufügen von Übungen und unter Mehr → Übungs-Bibliothek.', okLabel: 'Ausblenden' })) return;
     Store.saveSettings({ f_exercises: false });
     App.go('more');
-    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs', 'success', { duration: 4500 });
+    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs & Funktionen', 'success', { duration: 4500 });
   } else {
     Store.saveSettings({ f_exercises: true });
     App.peek = null;
@@ -665,13 +667,15 @@ function renderNav() {
 const SYNC_LABEL = { local: 'Lokal', synced: 'Synchron', pending: 'Sync …', offline: 'Offline' };
 function syncPill() {
   const s = Store.syncState();
-  return `<button class="sync-pill ${s}" data-act="go" data-tab="more" title="Sync-Status">${'<i></i>'}${SYNC_LABEL[s]}</button>`;
+  return `<span class="sync-pill ${s}" title="Sync-Status"><i></i>${SYNC_LABEL[s]}</span>`;
 }
 /* Keine Titelleiste: der aktive Tab ist unten/links markiert. Oben erscheint nur „Zurück", wenn ein Tab über
-   „Mehr" geöffnet ist. Der Sync-Status (offline/ausstehend) steckt als Punkt am „Mehr"-Tab, Details unter Konto & Sync. */
+   „Mehr" geöffnet ist oder im Mehr-Tab eine Gruppe offen ist. Der Sync-Status (offline/ausstehend) steckt als
+   Punkt am „Mehr"-Tab, Details unter Mehr → Konto & Profil. */
 function renderTopbar() {
   const tb = $('#topbar');
-  const back = App.peek === App.tab ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="go" data-tab="more">${icon('chevL')} Mehr</button>` : '';
+  const back = App.peek === App.tab ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="go" data-tab="more">${icon('chevL')} Mehr</button>`
+    : Views[App.tab] && Views[App.tab].back ? Views[App.tab].back() : '';
   tb.innerHTML = back ? `${back}<span class="grow"></span>` : '';
   tb.classList.toggle('empty', !back);
 }

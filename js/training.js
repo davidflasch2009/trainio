@@ -60,7 +60,7 @@ Views.start = {
       ${goalsCard()}
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
       ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
-        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History im Mehr-Tab.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`}` : ''}
+        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History unter Mehr → Daten.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`}` : ''}
     `;
   }
 };

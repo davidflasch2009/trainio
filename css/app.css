@@ -1182,6 +1182,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 
 /* Mehr */
 .acc-card { display: flex; align-items: center; gap: 14px; }
+.more-acc { width: 100%; text-align: left; color: inherit; font: inherit; }
+.more-acc .sync-pill { flex-shrink: 0; }
+.more-title { font-family: var(--font-display); font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.02em; margin: 6px 0 4px; }
 .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: var(--fw-x); font-size: calc(20px * var(--fs)); overflow: hidden; flex-shrink: 0; color: var(--text-dim); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
 .sync-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--border); font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); }

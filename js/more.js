@@ -25,15 +25,24 @@ function selectCtl(key, opts) {
 const navRowInline = (act, ic, title, sub = '') => `<button class="list-item" data-act="${act}"><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${esc(sub)}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
 const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item ${cls}" data-act="${act}"><span class="li-icon">${icon(ic)}</span><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${sub}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
 
-Views.more = {
-  render(el) {
-    const user = Auth.user();
-    const s = S();
-    const lastImport = Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
-    const plans = Store.all('plans').sort((a, b) => a.name.localeCompare(b.name, 'de'));
-    el.innerHTML = `
-      <div class="section-head"><h4>Konto & Sync</h4></div>
-      <div class="card">
+/* Mehr-Tab: Übersicht (Suche, Konto, Gruppen) – jede Gruppe öffnet sich als eigene Seite.
+   Gruppe: { id, title, ic, sub, intro?, head?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
+   Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
+let moreSub = (history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
+const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
+const mRow = (html, t, s = '', kw = '', only = '') => ({ t, s, kw, html, only });
+const lastImportDoc = () => Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
+
+function moreGroups() {
+  const user = Auth.user();
+  const s = S();
+  const lastImport = lastImportDoc();
+  const plans = Store.all('plans').sort((a, b) => a.name.localeCompare(b.name, 'de'));
+  const libRow = F('f_exercises') ? [] : [mRow(navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten'), 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten', 'übungen bibliothek')];
+  const hidden = FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length;
+  return [
+    { id: 'account', title: 'Konto & Profil', ic: 'user', sub: 'Anmeldung, Sync, Name, Geschlecht',
+      head: `<div class="card">
         ${user ? `
           <div class="acc-card">
             <div class="avatar">${user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())}</div>
@@ -49,100 +58,181 @@ Views.more = {
           </div>
           <button class="btn btn-secondary btn-block mt-12" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>${GOOGLE_ICON} Mit Google anmelden</button>
           ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
-      </div>
-
-      <div class="section-head"><h4>Training</h4></div>
-      <div class="list">
-        ${setLine('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]))}
-        ${setLine('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])))}
-        ${setLine('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])))}
-        ${setLine('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]))}
-        ${setLine('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'))}
-        ${setLine('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'))}
-        ${setLine('Ton bei Pausenende', '', toggleCtl('sound'))}
-        ${setLine('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'))}
-      </div>
-      <div class="section-head"><h4>Workout-Ansicht</h4></div>
-      <div class="list">
-        ${setLine('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]))}
-        ${setLine('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]))}
-        ${setLine('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'))}
-        ${setLine('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'))}
-        ${S().woStyle === 'detailed' ? `${setLine('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'))}
-        ${setLine('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'))}` : setLine('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'))}
-        ${setLine('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'))}
-        ${setLine('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'))}
-      </div>
-
-      <div class="section-head"><h4>Tabs</h4></div>
-      <div class="list">
-        ${setLine('Übungen-Tab', 'Bibliothek als eigener Tab', toggleCtl('f_exercises'))}
-        ${setLine('Fortschritt-Tab', 'Statistiken & Diagramme', toggleCtl('f_progress'))}
-        ${F('f_exercises') ? '' : navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten')}
-      </div>
-
-      <div class="section-head"><h4>Körper-Tab</h4></div>
-      <div class="list">
-        ${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}
-        ${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}
-        ${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}
-      </div>
-
-      <div class="section-head"><h4>Funktionen</h4></div>
-      <div class="list">${navRow('openFeatures', 'sliders', 'Funktionen ein-/ausschalten', `${FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length || 'Keine'} ausgeblendet · Tabs, Timer, PRs, Auswertungen …`)}</div>
-
-      <div class="section-head"><h4>Darstellung</h4></div>
-      <button class="card clickable look-current" data-act="openLook" style="width:100%;text-align:left;color:inherit;font:inherit">
+      </div>`,
+      sections: [
+        ['', [mRow(user ? setLine('Google-Konto', esc(user.email), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
+          : setLine('Google-Konto', 'Lokaler Modus', `<button class="btn btn-secondary btn-sm" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>Anmelden</button>`),
+          'Google-Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google synchronisieren sync', 'search')]],
+        ['Profil', [
+          mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
+          mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil')]]
+      ] },
+    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Einheit, Gewichts-Schritte, Scheiben & Stange, Aufwärmsätze',
+      sections: [
+        ['Plan & Woche', [
+          mi('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]), 'plan programm split'),
+          mi('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])), 'ziel trainingstage'),
+          mi('Wochenstart', 'Ab welchem Tag eine Woche zählt', segCtl('weekStart', [['monday', 'Mo'], ['sunday', 'So']]), 'montag sonntag kalender')]],
+        ['Gewichte', [
+          mi('Einheit', 'Alle Gewichte in kg oder lb', segCtl('unit', [['kg', 'kg'], ['lb', 'lb']]), 'kilo pfund lbs'),
+          mi('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]), 'schritte plus minus steigerung'),
+          mi('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`, 'langhantel bar'),
+          mRow(navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`), 'Scheiben & Stange', 'Verfügbare Scheiben', 'hantelscheiben platten'),
+          mRow(navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : '')), 'Aufwärmsätze', 'Prozent und Wdh. pro Aufwärmsatz', 'aufwärmen warmup')]]
+      ] },
+    { id: 'workout', title: 'Workout', ic: 'list', sub: 'Eingabe, Ansicht, Letztes Mal, RPE, Zuklappen, Scrollen, Bildschirm an',
+      sections: [
+        ['Eingabe', [
+          mi('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]), 'schlicht ausführlich stepper'),
+          mi('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'), 'vorbelegen platzhalter'),
+          mi('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'), 'vorherige werte'),
+          s.woStyle === 'detailed' ? mi('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'), 'rir') : mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir')]],
+        ['Ansicht', [
+          mi('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]), 'liste fokus'),
+          mi('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'), 'zuklappen einklappen'),
+          ...(s.woStyle === 'detailed' ? [mi('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'), 'leiste')] : []),
+          mi('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'), 'scrollen'),
+          mi('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'), 'display sperre wake lock')]]
+      ] },
+    { id: 'rest', title: 'Pause & Timer', ic: 'timer', sub: 'Standard-Pause, Auto-Start, Benachrichtigung, Ton',
+      sections: [
+        ['', [
+          mi('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])), 'pausenzeit satzpause timer rest'),
+          mi('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'), 'timer'),
+          mi('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'), 'mitteilung push timer'),
+          mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer')]]
+      ] },
+    { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, Farben, Hell/Dunkel',
+      head: `<button class="card clickable look-current" data-act="openLook" style="width:100%;text-align:left;color:inherit;font:inherit">
         ${designPair(designOf(s.design).id)}
         <div class="grow"><div class="bold">${esc(designOf(s.design).name)}</div>
           <div class="small dim">${esc(THEME_LABEL[s.theme] || 'Dunkel')}${Color.valid(s.accent) ? ` · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.accent};vertical-align:-1px"></span> eigene Farbe` : ''}</div>
           <div class="small accent bold mt-8">${icon('sliders').replace('<svg', '<svg width="15" height="15" style="vertical-align:-3px"')} Design & Darstellung anpassen</div></div>
         ${icon('chevR', 'li-chev')}
-      </button>
-      <div class="list mt-12">
-        ${setLine('Modus', '', segCtl('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'Auto']]))}
-        ${setLine('Einheit', '', segCtl('unit', [['kg', 'kg'], ['lb', 'lb']]))}
-        ${setLine('Wochenstart', '', segCtl('weekStart', [['monday', 'Mo'], ['sunday', 'So']]))}
-      </div>
+      </button>`,
+      sections: [
+        ['', [
+          mRow(navRow('openLook', 'sliders', 'Design & Darstellung', esc(designOf(s.design).name)), 'Design & Darstellung', 'Design, Akzentfarbe, Hintergrund, Schrift', 'farbe akzent hintergrund wallpaper schrift theme liquid glass', 'search'),
+          mi('Modus', 'Hell, Dunkel oder wie das Gerät', segCtl('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'Auto']]), 'hell dunkel dark light nachtmodus')]]
+      ] },
+    { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', sub: `${hidden || 'Keine'} ausgeblendet · Tabs, Körper-Tab, Timer, PRs, Auswertungen …`,
+      intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',
+      sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub ? esc(sub) : '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
+    { id: 'data', title: 'Daten', ic: 'database', sub: 'Import, Export, Backup, Löschen',
+      sections: [
+        ['Importieren', [
+          ...(F('f_arrow') ? [mRow(navRow('openArrow', 'upload', 'Arrow-Import', 'Workouts aus der Arrow-App übernehmen'), 'Arrow-Import', 'Workouts aus der Arrow-App übernehmen', 'import', 'search')] : []),
+          ...(lastImport ? [mRow(navRow('undoImport', 'undo', 'Letzten Import rückgängig machen', esc(fmtDate(isoDate(new Date(lastImport.importedAt))))), 'Letzten Import rückgängig machen', '', 'import', 'search')] : []),
+          mRow(navRow('bwImport', 'scale', 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App'), 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App', 'körpergewicht waage import')],
+          // über der Liste: großer Arrow-Knopf + Rückgängig (wie bisher)
+          `${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
+          ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${lastImport.source === 'weight-csv' ? `${((lastImport.docIds || {}).progress || []).length + ((lastImport.overwritten || []).length)} Gewichtswerte` : `${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts`})</span></button>` : ''}`],
+        ['Exportieren & Sichern', [
+          mRow(navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel'), 'Export CSV', 'Alle Sätze flach – Excel-kompatibel', 'exportieren tabelle'),
+          mRow(navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report'), 'Export PDF', 'Trainingsprotokoll oder Übungs-Report', 'exportieren drucken'),
+          mRow(navRow('backupJSON', 'download', 'Backup JSON', 'Komplettes Backup aller Daten'), 'Backup JSON', 'Komplettes Backup aller Daten', 'sicherung sichern'),
+          mRow(navRow('restoreJSON', 'upload', 'Restore', 'Backup-Datei wiederherstellen'), 'Restore', 'Backup-Datei wiederherstellen', 'wiederherstellen backup')]],
+        ['', [mRow(navRow('deleteAll', 'trash', 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'danger'), 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'zurücksetzen reset')]]
+      ] },
+    ...(F('f_tools') ? [{ id: 'tools', title: 'Tools', ic: 'calc', sub: 'Scheibenrechner, 1RM-Rechner',
+      sections: [['', [
+        mRow(navRow('toolPlates', 'plate', 'Scheibenrechner', 'Welche Scheiben pro Seite?'), 'Scheibenrechner', 'Welche Scheiben pro Seite?', 'rechner'),
+        mRow(navRow('tool1RM', 'calc', '1RM-Rechner', 'Max schätzen + Prozent-Tabelle'), '1RM-Rechner', 'Max schätzen + Prozent-Tabelle', 'rechner maximalkraft')]]] }] : []),
+    { id: 'app', title: 'App & Hilfe', ic: 'info', sub: `Version ${APP.version}, Updates, Fehlerprotokoll, Kontakt`,
+      sections: [['', [
+        ...(!isStandalone() && (deferredInstall || Auth.isIOS()) ? [mRow(navRow('install', 'install', 'App installieren', Auth.isIOS() ? 'Zum Home-Bildschirm hinzufügen' : 'Als eigenständige App öffnen'), 'App installieren', 'Zum Home-Bildschirm hinzufügen', 'home bildschirm')] : []),
+        mRow(navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`), 'Nach Updates suchen', `Version ${APP.version}`, 'update aktualisieren neue version'),
+        mRow(navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge – zum Kopieren und Weiterschicken` : 'Keine Fehler aufgezeichnet'), 'Fehlerprotokoll', '', 'fehler absturz log bug'),
+        mRow(`<a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>`, 'Repository', 'GitHub', 'quellcode code'),
+        mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
+  ];
+}
+/* Reihenfolge der Gruppen auf der Übersicht (Blöcke mit Abstand) */
+const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'features'], ['data', 'tools', 'app']];
+const plainText = h => String(h || '').replace(/<[^>]*>/g, '');
+/* Alle Suchwörter müssen vorkommen; kurze (< 4 Zeichen) nur am Wortanfang, sonst findet „rpe" auch „Körper" */
+function settingMatches(fields, q) {
+  const hay = ' ' + fields.filter(Boolean).map(searchKey).join(' ');
+  return searchKey(q).split(' ').every(w => hay.includes(w.length >= 4 ? w : ' ' + w));
+}
 
-      <div class="section-head"><h4>Profil</h4></div>
-      <div class="list">
-        ${setLine('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`)}
-        ${setLine('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]))}
-        ${navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : ''))}
-        ${navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`)}
-        ${setLine('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`)}
-      </div>
+function moreSearchHtml(q) {
+  const hits = moreGroups().map(g => [g, g.sections.flatMap(([h, items]) => items.filter(it => settingMatches([g.title, h, it.t, plainText(it.s), it.kw], q)))]).filter(([, l]) => l.length);
+  if (!hits.length) return `<div class="card mt-12">${emptyState('search', 'Nichts gefunden', `Keine Einstellung passt zu „${q.trim()}“.`)}</div>`;
+  return hits.map(([g, l]) => `<div class="section-head"><h4>${esc(g.title)}</h4><button class="btn btn-ghost btn-sm" data-act="moreSub" data-v="${g.id}">Öffnen ${icon('chevR').replace('<svg', '<svg width="15" height="15"')}</button></div>
+    <div class="list">${l.map(it => it.html).join('')}</div>`).join('');
+}
+function moreHomeHtml(groups) {
+  const user = Auth.user();
+  const by = Object.fromEntries(groups.map(g => [g.id, g]));
+  const row = g => `<button class="list-item" data-act="moreSub" data-v="${g.id}"><span class="li-icon">${icon(g.ic)}</span><span class="li-main"><span class="li-title">${g.title}</span><div class="li-sub">${g.sub}</div></span>${icon('chevR', 'li-chev')}</button>`;
+  const st = Store.syncState();
+  return `
+    <button class="card clickable acc-card more-acc mt-12" data-act="moreSub" data-v="account">
+      <div class="avatar">${user ? (user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())) : icon('user')}</div>
+      <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div><div class="small dim ellipsis">${user ? esc(user.email) : 'Anmelden für Sync · Name, Geschlecht'}</div></div>
+      ${user ? `<span class="sync-pill ${st}"><i></i>${SYNC_LABEL[st]}</span>` : ''}
+      ${icon('chevR', 'li-chev')}
+    </button>
+    ${MORE_BLOCKS.map((ids, i) => {
+      const rows = ids.filter(id => by[id]).map(id => row(by[id]));
+      if (i === 0 && !F('f_exercises')) rows.unshift(navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten'));
+      return `<div class="list mt-16">${rows.join('')}</div>`;
+    }).join('')}
+    <p class="center tiny faint mt-24">${APP.name} v${APP.version} · ${Store.all('workouts').length} Workouts · ${Store.all('exercises').length} Übungen</p>`;
+}
+function morePageHtml(g) {
+  return `<h2 class="more-title">${g.title}</h2>${g.intro ? `<p class="small dim">${g.intro}</p>` : ''}${g.head ? `<div class="mt-12">${g.head}</div>` : ''}` +
+    g.sections.map(([h, items, pre]) => {
+      const l = items.filter(it => it.only !== 'search');
+      return l.length ? `${h ? `<div class="section-head"><h4>${h}</h4></div>` : ''}${pre ? `${pre}<div class="mt-12"></div>` : ''}<div class="list ${h ? '' : 'mt-16'}">${l.map(it => it.html).join('')}</div>` : '';
+    }).join('');
+}
 
-      <div class="section-head"><h4>Daten</h4></div>
-      ${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
-      ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${lastImport.source === 'weight-csv' ? `${((lastImport.docIds || {}).progress || []).length + ((lastImport.overwritten || []).length)} Gewichtswerte` : `${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts`})</span></button>` : ''}
-      <div class="list mt-12">
-        ${navRow('bwImport', 'scale', 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App')}
-        ${navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel')}
-        ${navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report')}
-        ${navRow('backupJSON', 'download', 'Backup JSON', 'Komplettes Backup aller Daten')}
-        ${navRow('restoreJSON', 'upload', 'Restore', 'Backup-Datei wiederherstellen')}
-        ${navRow('deleteAll', 'trash', 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'danger')}
-      </div>
-
-      ${F('f_tools') ? `<div class="section-head"><h4>Tools</h4></div>
-      <div class="list">
-        ${navRow('toolPlates', 'plate', 'Scheibenrechner', 'Welche Scheiben pro Seite?')}
-        ${navRow('tool1RM', 'calc', '1RM-Rechner', 'Max schätzen + Prozent-Tabelle')}
-      </div>` : ''}
-
-      <div class="section-head"><h4>App</h4></div>
-      <div class="list">
-        ${!isStandalone() && (deferredInstall || Auth.isIOS()) ? navRow('install', 'install', 'App installieren', Auth.isIOS() ? 'Zum Home-Bildschirm hinzufügen' : 'Als eigenständige App öffnen') : ''}
-        ${navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`)}
-        ${navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge – zum Kopieren und Weiterschicken` : 'Keine Fehler aufgezeichnet')}
-        <a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>
-        <a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>
-      </div>
-      <p class="center tiny faint mt-24">${APP.name} v${APP.version} · ${Store.all('workouts').length} Workouts · ${Store.all('exercises').length} Übungen</p>`;
-  }
+Views.more = {
+  render(el) {
+    const groups = moreGroups();
+    const g = moreSub && groups.find(x => x.id === moreSub);
+    if (moreSub && !g) moreSub = null;
+    const q = moreQ.trim();
+    el.innerHTML = g ? morePageHtml(g) : `
+      <div class="search mt-8"><input class="input" id="moreQ" data-in="moreQ" type="search" placeholder="Einstellungen durchsuchen …" value="${esc(moreQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
+      <div id="moreRes">${q ? moreSearchHtml(q) : ''}</div>
+      <div id="moreHome" class="${q ? 'hidden' : ''}">${moreHomeHtml(groups)}</div>`;
+  },
+  // Zurück-Knopf oben, solange eine Gruppe offen ist
+  back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
+  // „Mehr" erneut antippen: zurück zur Übersicht bzw. Suche leeren
+  reselect: () => { if (moreSub) { closeMoreSub(); return true; } moreQ = ''; return false; }
 };
+function openMoreSub(id) {
+  if (!moreSub) moreScroll = scrollY;
+  moreSub = id;
+  try { history.pushState({ moreSub: id }, ''); } catch (e) {}
+  if (App.tab !== 'more') App.go('more'); else App.renderCurrent();
+  window.scrollTo({ top: 0 });
+}
+function closeMoreSub() {
+  if (!moreSub) return;
+  if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
+  moreSub = null;
+  App.renderCurrent();
+  window.scrollTo({ top: moreScroll });
+}
+// Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
+window.addEventListener('popstate', () => {
+  if (!moreSub) return;
+  moreSub = (history.state && history.state.moreSub) || null;
+  if (App.tab === 'more') { App.renderCurrent(); window.scrollTo({ top: moreSub ? 0 : moreScroll }); }
+});
+Actions.moreSub = el => openMoreSub(el.dataset.v);
+Actions.moreBack = () => closeMoreSub();
+Inputs.moreQ = debounce(el => {
+  moreQ = el.value;
+  const q = moreQ.trim(), res = $('#moreRes'), home = $('#moreHome');
+  if (res) res.innerHTML = q ? moreSearchHtml(q) : '';
+  if (home) home.classList.toggle('hidden', !!q);
+}, 150);
 Actions.signIn = () => Auth.signIn();
 Actions.signOut = () => Auth.signOut();
 Actions.setSeg = el => {

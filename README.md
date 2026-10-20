@@ -11,7 +11,7 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 
 ## Designs & Darstellung
 
-Unter **Mehr → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit):
 
 | Design | Look |
@@ -52,9 +52,9 @@ Konfetti und Inhalte der Startseite.
 
 ## Aufwärmsätze & Scheibenrechner
 
-- **Mehr → Aufwärmsätze**: Prozent vom Arbeitsgewicht und Wdh. pro Aufwärmsatz frei
+- **Mehr → Training → Aufwärmsätze**: Prozent vom Arbeitsgewicht und Wdh. pro Aufwärmsatz frei
   einstellen (bis zu 6 Stufen, Vorlagen Kurz/Standard/Kraft, optional zuerst leere Stange).
-- **Mehr → Scheiben & Stange**: verfügbare Scheiben (kg/lb) und Stangengewicht festlegen.
+- **Mehr → Training → Scheiben & Stange**: verfügbare Scheiben (kg/lb) und Stangengewicht festlegen.
 - Der **Scheibenrechner** zeigt die Beladung pro Seite mit Anzahl je Scheibe, Zielgewicht mit
   ±-Tasten und – falls nicht exakt ladbar – das nächste machbare Gewicht.
 
@@ -66,16 +66,16 @@ Konfetti und Inhalte der Startseite.
   Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
   „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
   ebenfalls automatisch. In der ausführlichen Ansicht: Wert in der Spalte „Letztes“ antippen.
-  Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Werte als Text vorausfüllen**.
+  Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
 - **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
-- Umschalten unter **Mehr → Workout-Ansicht** oder im Workout über ⋯.
+- Umschalten unter **Mehr → Workout** oder im Workout über ⋯.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
   gibt es dann ein Feld für links und eins für rechts – rechts leer lassen = wie links. Einstellbar im
   Workout über ⋯ → „Einseitig", in „Meine Workouts" über den L/R-Schalter und beim Bearbeiten einer Übung.
   Volumen zählt beide Seiten, Kraftwerte (e1RM, PRs) die schwächere Seite.
 - **Nur aktuelle Übung offen** (Standard): fertige und kommende Übungen sind zugeklappt
   (Name + Sätze bzw. Ziel). Ist eine Übung fertig, klappt sie zu und die nächste öffnet sich;
-  antippen öffnet jede Übung direkt. Abschaltbar unter **Mehr → Workout-Ansicht**.
+  antippen öffnet jede Übung direkt. Abschaltbar unter **Mehr → Workout**.
 
 ## Cardio
 
@@ -127,15 +127,35 @@ Im Workout über ⋯ → **„Dauerhafte Notiz“** (oder in den Übungs-Details
 Die Notiz hängt an der Übung und erscheint als 📌-Hinweis in jedem zukünftigen Workout – antippen zum Ändern.
 „Notiz nur für heute“ gilt weiterhin nur für das aktuelle Workout.
 
+## Mehr-Tab (Einstellungen)
+
+Oben ein **Suchfeld** („pause", „rpe", „backup" …): Treffer erscheinen sofort und lassen sich direkt dort
+umstellen. Darunter die Konto-Karte und die Gruppen – jede öffnet sich als eigene Seite (zurück über
+„‹ Mehr" oben, die Zurück-Taste/-Geste oder erneutes Tippen auf „Mehr"):
+
+| Gruppe | Inhalt |
+| --- | --- |
+| Konto & Profil | Google-Anmeldung, Sync-Status, Name, Geschlecht |
+| Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze |
+| Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, Ansicht, Zuklappen, Scrollen, Bildschirm an |
+| Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton |
+| Darstellung | Design & Darstellung (Designs, Farben, Hintergrund, Schrift), Hell/Dunkel/Auto |
+| Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen und Workout-Funktionen ein-/ausschalten |
+| Daten | Arrow-Import, Gewicht importieren, Rückgängig, Export CSV/PDF, Backup, Restore, Alle Daten löschen |
+| Tools | Scheibenrechner, 1RM-Rechner (wenn eingeschaltet) |
+| App & Hilfe | Installieren, Updates, Fehlerprotokoll, Repository, Kontakt |
+
+Ist der Übungen-Tab ausgeblendet, steht die Übungs-Bibliothek direkt auf der Mehr-Übersicht.
+
 ## Tabs ein-/ausblenden
 
-**Mehr → Tabs**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
+**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
 einen eigenen Knopf). Ist der Übungen-Tab aus, bleibt die Bibliothek unter **Mehr → Übungs-Bibliothek**
 und beim Hinzufügen von Übungen erreichbar.
 
 ## Funktionen ein-/ausschalten
 
-**Mehr → Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen, Pausen-Timer,
+**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen, Pausen-Timer,
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
 Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
@@ -159,7 +179,7 @@ allgemeine Einstellung.
 mit CSV-Exporten aus Waagen-/Gewichts-Apps wie Better Weight, Withings oder Libra – Datum- und Gewichtsspalte
 werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau mit Zeitraum, vorhandene Tage
 werden übersprungen oder auf Wunsch überschrieben; „Letzten Import rückgängig machen" nimmt alles wieder zurück.
-Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Körper-Tab** (oder im Körper-Tab über
+Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Tabs & Funktionen** (oder im Körper-Tab über
 „Anzeige anpassen") einschalten – vorhandene Daten bleiben erhalten.
 
 ## Diagramme
@@ -218,7 +238,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
 | `js/progress.js` | Fortschritt-Tab |
-| `js/more.js` | Mehr-Tab: Konto, Einstellungen, Daten (Export CSV/PDF/JSON) |
+| `js/more.js` | Mehr-Tab: Gruppen-Seiten, Einstellungs-Suche, Konto, Daten (Export CSV/PDF/JSON) |
 | `js/import.js` | Arrow-Import |
 | `js/boot.js` | Start der App |
 | `sw.js` | Service Worker (Offline-Cache) |
@@ -275,19 +295,19 @@ erfasst hast, kannst du beim ersten Login ins Konto übernehmen.
 ### Installieren
 
 - **iPhone (Safari):** Teilen → *Zum Home-Bildschirm*.
-- **Windows (Chrome/Edge):** Install-Symbol in der Adressleiste oder *Mehr → App installieren*.
+- **Windows (Chrome/Edge):** Install-Symbol in der Adressleiste oder *Mehr → App & Hilfe → App installieren*.
 
 ## 3. Arrow-Import
 
 1. Screenshots der Arrow-History machen.
-2. In der App: **Mehr → 🏹 Arrow-Import → „Prompt für Claude kopieren“**.
+2. In der App: **Mehr → Daten → 🏹 Arrow-Import → „Prompt für Claude kopieren“**.
 3. Prompt + Screenshots an Claude schicken, den zurückgegebenen JSON-Block in das Textfeld
    einfügen (oder als `.json` hochladen).
 4. **Validieren & Vorschau** → prüfen → **Import bestätigen**.
 
 Duplikate (gleiches Datum + gleiche Sätze) werden übersprungen, englische Arrow-Namen
 („Bench Press“, „Lat Pulldown“ …) automatisch auf die Bibliothek gemappt, `weightLb` wird in
-kg umgerechnet. Der letzte Import lässt sich unter **Mehr → Letzten Import rückgängig machen**
+kg umgerechnet. Der letzte Import lässt sich unter **Mehr → Daten → Letzten Import rückgängig machen**
 komplett zurücknehmen.
 
 **Korrigierte Datei erneut importieren:** Gibt es schon einen Arrow-Import, bietet die Vorschau
@@ -299,7 +319,7 @@ weiterverwendet, wenn die neue Datei sie enthält.
 ## Fehlerprotokoll
 
 Geht in der App etwas schief, erscheint eine Meldung „Da ist etwas schiefgelaufen …“ mit **Details**.
-Alle Fehler (höchstens 30) stehen unter **Mehr → Fehlerprotokoll**; „Kopieren“ erzeugt einen Bericht mit
+Alle Fehler (höchstens 30) stehen unter **Mehr → App & Hilfe → Fehlerprotokoll**; „Kopieren“ erzeugt einen Bericht mit
 Version, Gerät/Browser und Fehlermeldung (ohne Trainingsdaten) zum Weiterschicken. Netzwerk- und
 Offline-Abbrüche werden nur protokolliert, nicht eingeblendet.
 
