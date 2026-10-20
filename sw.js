@@ -3,7 +3,7 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v37';
+const CACHE = 'gymlog-v38';
 
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon-192.png', './icon-512.png', './icon-maskable-192.png', './icon-maskable-512.png', './apple-touch-icon.png', './icon.svg'];
 const CDN_ASSETS = [
