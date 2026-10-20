@@ -1208,6 +1208,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-line.stack .sl-main { flex-basis: 100%; }
 .set-line.stack > .seg { width: 100%; }
 .set-line.stack > .seg button { flex: 1 1 0; }
+.set-line.stack > .swatches, .set-line.stack > .wall-row { width: 100%; }
 
 /* Import */
 .import-err { background: var(--danger-soft); color: var(--danger); border-radius: calc(12px * var(--rs)); padding: 12px 14px; font-size: calc(13.5px * var(--fs)); font-weight: 600; white-space: pre-wrap; }

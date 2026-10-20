@@ -21,9 +21,8 @@ Views.start = {
     const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
-    const hr = new Date().getHours(), nm = (S().displayName || (Auth.user && Auth.user() && Auth.user().displayName) || '').split(' ')[0];
     el.innerHTML = `
-      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}<b>${hr < 11 ? 'Guten Morgen' : hr < 18 ? 'Hallo' : 'Guten Abend'}${nm ? ', ' + esc(nm) : ''}</b></div>
+      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</div>
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>

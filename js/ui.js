@@ -448,123 +448,14 @@ const designPair = id => `<div class="dt-pair">${designPreview(id, 'light')}${de
 const THEME_LABEL = { dark: 'Dunkel', light: 'Hell', system: 'System', time: 'Nach Uhrzeit' };
 
 const stackLine = (title, sub, control) => `<div class="set-line stack"><div class="sl-main"><div class="sl-title">${title}</div>${sub ? `<div class="sl-sub">${sub}</div>` : ''}</div>${control}</div>`;
-function lookHtml() {
-  const s = S();
-  const D = designOf(s.design);
-  const seg = (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-look="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
-  const sw = (k, label, sub = '') => setLine(label, sub, `<label class="switch"><input type="checkbox" data-look-toggle="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`);
-  const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
-  const isPreset = ACCENTS.some(([h]) => h === accent);
-  return `
-    <div class="card look-preview">
-      <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-        <div class="stat"><div class="stat-label">${icon('flame')} Streak</div><div class="stat-value">12<small>Wochen</small></div><div class="week-dots"><i class="on"></i><i class="on"></i><i></i><i class="on today"></i><i></i><i></i><i></i></div></div>
-        <div class="stat"><div class="stat-label">${icon('bolt')} Volumen</div><div class="stat-value">8,4 t</div><div class="stat-sub"><span class="delta up">${icon('arrowUp')}+12 %</span></div></div>
-      </div>
-      <div class="row mt-12"><span class="btn btn-primary grow">${icon('play')} Workout starten</span><span class="btn btn-secondary">${icon('layers')}</span></div>
-      <div class="chips mt-12"><span class="chip active">Push</span><span class="chip">Pull</span><span class="chip">Legs</span><span class="badge accent">${icon('trophy')} PR</span></div>
-    </div>
-
-    <div class="look-group"><h4>Design</h4>
-      <div class="design-grid">${DESIGNS.map(d => `
-        <button class="design-tile ${d.id === D.id ? 'active' : ''}" data-look="design" data-v="${d.id}" aria-pressed="${d.id === D.id}">
-          ${designPair(d.id)}
-          <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
-          <span class="dt-desc">${esc(d.desc)}</span>
-        </button>`).join('')}</div>
-    </div>
-
-    <div class="look-group"><h4>Modus</h4>
-      ${seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']])}
-      <p class="tiny dim mt-8">„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.</p>
-    </div>
-
-    <div class="look-group"><h4>Akzentfarbe</h4>
-      <div class="swatches">
-        <button class="swatch def ${accent ? '' : 'active'}" data-look="accent" data-v="" aria-label="Design-Standard" title="Design-Standard">${accent ? '' : icon('check')}</button>
-        ${ACCENTS.map(([h, n]) => `<button class="swatch ${accent === h ? 'active' : ''}" style="background:${h};color:${Color.contrast('#fff', h) > 2.2 ? '#fff' : '#111'}" data-look="accent" data-v="${h}" aria-label="${n}" title="${n}">${accent === h ? icon('check') : ''}</button>`).join('')}
-        <label class="swatch custom ${accent && !isPreset ? 'active' : ''}" title="Eigene Farbe" ${accent && !isPreset ? `style="background:${accent};color:#fff"` : ''}>${icon('plus')}<input type="color" data-look-color value="${accent || '#39ff88'}" aria-label="Eigene Farbe"></label>
-      </div>
-      <p class="tiny dim mt-8">Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.</p>
-    </div>
-
-    ${D.id === 'glass' ? `<div class="look-group"><h4>Glas-Hintergrund</h4>
-      <div class="wall-row">${WALLS.map(([k, n]) => `<button class="wall-tile ${s.wall === k ? 'active' : ''}" data-theme="${resolvedTheme()}" data-wall="${k}" data-look="wall" data-v="${k}" aria-label="${n}"><span>${n}</span></button>`).join('')}</div>
-      <div class="list mt-8">${stackLine('Glas-Unschärfe', 'Stärker = mehr Glas, aber mehr Akku', seg('glassBlur', [['off', 'Aus'], ['light', 'Leicht'], ['normal', 'Normal'], ['strong', 'Stark']]))}</div>
-    </div>` : ''}
-
-    <div class="look-group"><h4>Feinschliff</h4>
-      <div class="list">
-        ${stackLine('Ecken', '', seg('radius', [['auto', 'Design'], ['sharp', 'Eckig'], ['medium', 'Mittel'], ['round', 'Rund']]))}
-        ${setLine('Schrift', '', `<select class="select" data-look-select="font">${[['auto', 'Design-Schrift'], ['system', 'System'], ['rounded', 'Abgerundet'], ['serif', 'Serif'], ['mono', 'Monospace'], ['condensed', 'Schmal (Condensed)']].map(([v, l]) => `<option value="${v}" ${s.font === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`)}
-        ${stackLine('Textgröße', '', seg('textSize', [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']]))}
-        ${stackLine('Dichte', 'Abstände & Höhe von Zeilen', seg('density', [['compact', 'Kompakt'], ['normal', 'Normal'], ['comfy', 'Luftig']]))}
-        ${sw('contrast', 'Hoher Kontrast', 'Kräftigere Nebentexte & Rahmen')}
-      </div>
-    </div>
-
-    <div class="look-group"><h4>Navigation</h4>
-      <div class="list">
-        ${stackLine('Tab-Leiste', 'Nur auf dem Handy', seg('navStyle', [['auto', 'Design'], ['classic', 'Klassisch'], ['floating', 'Schwebend']]))}
-        ${sw('navLabels', 'Beschriftung unter Icons')}
-        ${stackLine('Beim Öffnen', 'Welcher Tab zuerst erscheint', seg('startTab', [['start', 'Start'], ['training', 'Training'], ['last', 'Zuletzt']]))}
-      </div>
-    </div>
-
-    <div class="look-group"><h4>Bewegung & Feedback</h4>
-      <div class="list">
-        ${stackLine('Animationen', '', seg('motion', [['full', 'Voll'], ['reduced', 'Reduziert'], ['off', 'Aus']]))}
-        ${sw('haptics', 'Vibration', 'Kurzes Feedback bei Satz & Pause (Android)')}
-        ${sw('confetti', 'Konfetti bei neuen PRs')}
-      </div>
-    </div>
-
-    <div class="look-group"><h4>Startseite</h4>
-      <div class="list">
-        ${sw('homeStats', 'Statistik-Kacheln')}
-        ${stackLine('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]))}
-      </div>
-    </div>
-
-    <button class="btn btn-secondary btn-block mt-24" data-look="reset">${icon('undo')} Darstellung zurücksetzen</button>`;
-}
 const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'startTab', 'motion', 'haptics', 'confetti', 'homeStats', 'homeRecent'];
 function setLook(k, v) {
   if (k === 'homeRecent') v = +v;
   Store.saveSettings({ [k]: v });
   applyTheme();
 }
-Actions.openLook = () => {
-  Object.values(DESIGN_FONTS).forEach(ensureFont);
-  const m = Modal.open({ title: 'Design & Darstellung', size: 'full', body: lookHtml() });
-  const rerender = () => { const sc = m.body.scrollTop; m.setBody(lookHtml()); m.body.scrollTop = sc; };
-  m.body.addEventListener('click', async e => {
-    const b = e.target.closest('[data-look]');
-    if (!b) return;
-    const k = b.dataset.look;
-    if (k === 'reset') {
-      if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;
-      const patch = {};
-      LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; });
-      Store.saveSettings(patch);
-      applyTheme();
-      toast('Darstellung zurückgesetzt', 'success');
-    } else setLook(k, b.dataset.v);
-    rerender();
-  });
-  m.body.addEventListener('change', e => {
-    const t = e.target;
-    if (t.matches('[data-look-toggle]')) { setLook(t.dataset.lookToggle, t.checked); rerender(); }
-    else if (t.matches('[data-look-select]')) { setLook(t.dataset.lookSelect, t.value); rerender(); }
-    else if (t.matches('[data-look-color]')) { setLook('accent', t.value.toLowerCase()); rerender(); }
-  });
-  // Farbwähler live (ohne Re-Render, sonst schließt sich der Picker)
-  m.body.addEventListener('input', e => {
-    if (!e.target.matches('[data-look-color]')) return;
-    const D = designOf(S().design), mode = resolvedTheme();
-    document.documentElement.style.cssText = accentCss(e.target.value, mode, D.surf[mode]) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
-  });
-};
+/* Die Darstellungs-Einstellungen selbst stehen im Mehr-Tab (Gruppe „Darstellung“, js/more.js) */
+Actions.openLook = () => openMoreSub('look');
 
 
 /* ---------- App-Shell: Navigation, Topbar, Banner, Rendering ---------- */

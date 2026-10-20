@@ -11,7 +11,7 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung → Design & Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit):
 
 | Design | Look |
@@ -139,7 +139,7 @@ umstellen. Darunter die Konto-Karte und die Gruppen – jede öffnet sich als ei
 | Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze |
 | Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, Ansicht, Zuklappen, Scrollen, Bildschirm an |
 | Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton |
-| Darstellung | Design & Darstellung (Designs, Farben, Hintergrund, Schrift), Hell/Dunkel/Auto |
+| Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite |
 | Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen und Workout-Funktionen ein-/ausschalten |
 | Daten | Arrow-Import, Gewicht importieren, Rückgängig, Export CSV/PDF, Backup, Restore, Alle Daten löschen |
 | Tools | Scheibenrechner, 1RM-Rechner (wenn eingeschaltet) |

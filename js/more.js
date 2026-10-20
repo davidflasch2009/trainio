@@ -26,7 +26,7 @@ const navRowInline = (act, ic, title, sub = '') => `<button class="list-item" da
 const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item ${cls}" data-act="${act}"><span class="li-icon">${icon(ic)}</span><span class="li-main"><span class="li-title">${title}</span>${sub ? `<div class="li-sub">${sub}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
 
 /* Mehr-Tab: Übersicht (Suche, Konto, Gruppen) – jede Gruppe öffnet sich als eigene Seite.
-   Gruppe: { id, title, ic, sub, intro?, head?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
+   Gruppe: { id, title, ic, sub, intro?, head?, foot?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
    Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
 let moreSub = (history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
 const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
@@ -102,19 +102,7 @@ function moreGroups() {
           mi('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'), 'mitteilung push timer'),
           mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer')]]
       ] },
-    { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, Farben, Hell/Dunkel',
-      head: `<button class="card clickable look-current" data-act="openLook" style="width:100%;text-align:left;color:inherit;font:inherit">
-        ${designPair(designOf(s.design).id)}
-        <div class="grow"><div class="bold">${esc(designOf(s.design).name)}</div>
-          <div class="small dim">${esc(THEME_LABEL[s.theme] || 'Dunkel')}${Color.valid(s.accent) ? ` · <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:${s.accent};vertical-align:-1px"></span> eigene Farbe` : ''}</div>
-          <div class="small accent bold mt-8">${icon('sliders').replace('<svg', '<svg width="15" height="15" style="vertical-align:-3px"')} Design & Darstellung anpassen</div></div>
-        ${icon('chevR', 'li-chev')}
-      </button>`,
-      sections: [
-        ['', [
-          mRow(navRow('openLook', 'sliders', 'Design & Darstellung', esc(designOf(s.design).name)), 'Design & Darstellung', 'Design, Akzentfarbe, Hintergrund, Schrift', 'farbe akzent hintergrund wallpaper schrift theme liquid glass', 'search'),
-          mi('Modus', 'Hell, Dunkel oder wie das Gerät', segCtl('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'Auto']]), 'hell dunkel dark light nachtmodus')]]
-      ] },
+    lookGroup(s),
     { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', sub: `${hidden || 'Keine'} ausgeblendet · Tabs, Körper-Tab, Timer, PRs, Auswertungen …`,
       intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',
       sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub ? esc(sub) : '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
@@ -147,6 +135,81 @@ function moreGroups() {
         mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
   ];
 }
+/* Darstellung (früher ein eigenes Fenster): Vorschau oben, darunter Design, Modus, Farben, Feinschliff … */
+function lookGroup(s) {
+  const D = designOf(s.design);
+  const seg = (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-act="lookSet" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
+  const sw = (k, label) => `<label class="switch"><input type="checkbox" data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`;
+  const st = (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(t, sub, ctl) });
+  const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
+  const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
+  const isPreset = ACCENTS.some(([h]) => h === accent);
+  return { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, Farben, Modus, Schrift, Navigation, Startseite',
+    head: `<div class="card look-preview">
+      <div class="stat-grid" style="grid-template-columns:1fr 1fr">
+        <div class="stat"><div class="stat-label">${icon('flame')} Streak</div><div class="stat-value">12<small>Wochen</small></div><div class="week-dots"><i class="on"></i><i class="on"></i><i></i><i class="on today"></i><i></i><i></i><i></i></div></div>
+        <div class="stat"><div class="stat-label">${icon('bolt')} Volumen</div><div class="stat-value">8,4 t</div><div class="stat-sub"><span class="delta up">${icon('arrowUp')}+12 %</span></div></div>
+      </div>
+      <div class="row mt-12"><span class="btn btn-primary grow">${icon('play')} Workout starten</span><span class="btn btn-secondary">${icon('layers')}</span></div>
+      <div class="chips mt-12"><span class="chip active">Push</span><span class="chip">Pull</span><span class="chip">Legs</span><span class="badge accent">${icon('trophy')} PR</span></div>
+    </div>`,
+    sections: [
+      ['Design', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon">${icon('sun')}</span><span class="li-main"><span class="li-title">Design</span><div class="li-sub">${esc(D.name)}</div></span>${icon('chevR', 'li-chev')}</button>`,
+          'Design', D.name, 'theme ' + DESIGNS.map(d => d.name).join(' '), 'search')],
+        `<div class="design-grid">${DESIGNS.map(d => `
+          <button class="design-tile ${d.id === D.id ? 'active' : ''}" data-act="lookSet" data-k="design" data-v="${d.id}" aria-pressed="${d.id === D.id}">
+            ${designPair(d.id)}
+            <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
+            <span class="dt-desc">${esc(d.desc)}</span>
+          </button>`).join('')}</div>`],
+      ['Farben & Modus', [
+        st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
+        st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
+          <button class="swatch def ${accent ? '' : 'active'}" data-act="lookSet" data-k="accent" data-v="" aria-label="Design-Standard" title="Design-Standard">${accent ? '' : icon('check')}</button>
+          ${ACCENTS.map(([h, n]) => `<button class="swatch ${accent === h ? 'active' : ''}" style="background:${h};color:${Color.contrast('#fff', h) > 2.2 ? '#fff' : '#111'}" data-act="lookSet" data-k="accent" data-v="${h}" aria-label="${n}" title="${n}">${accent === h ? icon('check') : ''}</button>`).join('')}
+          <label class="swatch custom ${accent && !isPreset ? 'active' : ''}" title="Eigene Farbe" ${accent && !isPreset ? `style="background:${accent};color:#fff"` : ''}>${icon('plus')}<input type="color" data-in="lookColor" data-ch="lookColor" value="${accent || '#39ff88'}" aria-label="Eigene Farbe"></label>
+        </div>`, 'farbe eigene farbe'),
+        ...(D.id === 'glass' ? [
+          st('Glas-Hintergrund', '', `<div class="wall-row">${WALLS.map(([k, n]) => `<button class="wall-tile ${s.wall === k ? 'active' : ''}" data-theme="${resolvedTheme()}" data-wall="${k}" data-act="lookSet" data-k="wall" data-v="${k}" aria-label="${n}"><span>${n}</span></button>`).join('')}</div>`, 'wallpaper liquid glass'),
+          st('Glas-Unschärfe', 'Stärker = mehr Glas, aber mehr Akku', seg('glassBlur', [['off', 'Aus'], ['light', 'Leicht'], ['normal', 'Normal'], ['strong', 'Stark']]), 'blur liquid glass')] : [])]],
+      ['Feinschliff', [
+        st('Ecken', '', seg('radius', [['auto', 'Design'], ['sharp', 'Eckig'], ['medium', 'Mittel'], ['round', 'Rund']]), 'rund eckig radius'),
+        mi('Schrift', '', `<select class="select" data-ch="lookSelect" data-k="font">${[['auto', 'Design-Schrift'], ['system', 'System'], ['rounded', 'Abgerundet'], ['serif', 'Serif'], ['mono', 'Monospace'], ['condensed', 'Schmal (Condensed)']].map(([v, l]) => `<option value="${v}" ${s.font === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`, 'schriftart font'),
+        st('Textgröße', '', seg('textSize', [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']]), 'schriftgröße'),
+        st('Dichte', 'Abstände & Höhe von Zeilen', seg('density', [['compact', 'Kompakt'], ['normal', 'Normal'], ['comfy', 'Luftig']]), 'kompakt luftig abstand'),
+        tg('contrast', 'Hoher Kontrast', 'Kräftigere Nebentexte & Rahmen')]],
+      ['Navigation', [
+        st('Tab-Leiste', 'Nur auf dem Handy', seg('navStyle', [['auto', 'Design'], ['classic', 'Klassisch'], ['floating', 'Schwebend']]), 'leiste unten schwebend'),
+        tg('navLabels', 'Beschriftung unter Icons', '', 'tab leiste text'),
+        st('Beim Öffnen', 'Welcher Tab zuerst erscheint', seg('startTab', [['start', 'Start'], ['training', 'Training'], ['last', 'Zuletzt']]), 'start tab')]],
+      ['Bewegung & Feedback', [
+        st('Animationen', '', seg('motion', [['full', 'Voll'], ['reduced', 'Reduziert'], ['off', 'Aus']]), 'bewegung'),
+        tg('haptics', 'Vibration', 'Kurzes Feedback bei Satz & Pause (Android)', 'haptik'),
+        tg('confetti', 'Konfetti bei neuen PRs', '', 'rekord feiern')]],
+      ['Startseite', [
+        tg('homeStats', 'Statistik-Kacheln', '', 'start'),
+        st('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]), 'start')]]
+    ],
+    foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
+}
+Actions.lookSet = el => setLook(el.dataset.k, el.dataset.v);
+Changes.lookToggle = el => setLook(el.dataset.k, el.checked);
+Changes.lookSelect = el => setLook(el.dataset.k, el.value);
+Changes.lookColor = el => setLook('accent', el.value.toLowerCase());
+// Farbwähler live (ohne Speichern/Re-Render, sonst schließt sich der Picker)
+Inputs.lookColor = el => {
+  const D = designOf(S().design), mode = resolvedTheme();
+  document.documentElement.style.cssText = accentCss(el.value, mode, D.surf[mode]) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
+};
+Actions.lookReset = async () => {
+  if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;
+  const patch = {};
+  LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; });
+  Store.saveSettings(patch);
+  applyTheme();
+  toast('Darstellung zurückgesetzt', 'success');
+};
+
 /* Reihenfolge der Gruppen auf der Übersicht (Blöcke mit Abstand) */
 const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'features'], ['data', 'tools', 'app']];
 const plainText = h => String(h || '').replace(/<[^>]*>/g, '');
@@ -185,8 +248,9 @@ function morePageHtml(g) {
   return `<h2 class="more-title">${g.title}</h2>${g.intro ? `<p class="small dim">${g.intro}</p>` : ''}${g.head ? `<div class="mt-12">${g.head}</div>` : ''}` +
     g.sections.map(([h, items, pre]) => {
       const l = items.filter(it => it.only !== 'search');
-      return l.length ? `${h ? `<div class="section-head"><h4>${h}</h4></div>` : ''}${pre ? `${pre}<div class="mt-12"></div>` : ''}<div class="list ${h ? '' : 'mt-16'}">${l.map(it => it.html).join('')}</div>` : '';
-    }).join('');
+      if (!l.length && !pre) return '';
+      return `${h ? `<div class="section-head"><h4>${h}</h4></div>` : ''}${pre ? pre + (l.length ? '<div class="mt-12"></div>' : '') : ''}${l.length ? `<div class="list ${h ? '' : 'mt-16'}">${l.map(it => it.html).join('')}</div>` : ''}`;
+    }).join('') + (g.foot || '');
 }
 
 Views.more = {
@@ -194,6 +258,7 @@ Views.more = {
     const groups = moreGroups();
     const g = moreSub && groups.find(x => x.id === moreSub);
     if (moreSub && !g) moreSub = null;
+    if (g && g.id === 'look') Object.values(DESIGN_FONTS).forEach(ensureFont);   // Schriften für die Design-Kacheln
     const q = moreQ.trim();
     el.innerHTML = g ? morePageHtml(g) : `
       <div class="search mt-8"><input class="input" id="moreQ" data-in="moreQ" type="search" placeholder="Einstellungen durchsuchen …" value="${esc(moreQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
