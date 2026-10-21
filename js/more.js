@@ -104,6 +104,9 @@ function moreGroups() {
           mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer')]]
       ] },
     lookGroup(s),
+    { id: 'toasts', title: 'Meldungen', ic: 'info', sub: 'Hinweise oben im Bildschirm ein- oder ausschalten',
+      intro: 'Kurze Meldungen oben im Bildschirm. Fehler, Hinweise wie „Bitte ein Gewicht eintragen" und Meldungen mit Knopf (z. B. „Rückgängig") kommen immer. Antippen oder nach oben bzw. zur Seite wischen schließt eine Meldung sofort.',
+      sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, esc(sub), toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
     { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', sub: `${hidden || 'Keine'} ausgeblendet · Tabs, Körper-Tab, Timer, PRs, Auswertungen …`,
       intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',
       sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub ? esc(sub) : '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
@@ -212,7 +215,7 @@ Actions.lookReset = async () => {
 };
 
 /* Reihenfolge der Gruppen auf der Übersicht (Blöcke mit Abstand) */
-const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'features'], ['data', 'tools', 'app']];
+const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'toasts', 'features'], ['data', 'tools', 'app']];
 const plainText = h => String(h || '').replace(/<[^>]*>/g, '');
 /* Alle Suchwörter müssen vorkommen; kurze (< 4 Zeichen) nur am Wortanfang, sonst findet „rpe" auch „Körper" */
 function settingMatches(fields, q) {
@@ -368,7 +371,7 @@ Actions.openErrLog = () => {
     const b = e.target.closest('[data-x]'); if (!b) return;
     if (b.dataset.x === 'copy') {
       const txt = ErrLog.report();
-      try { await navigator.clipboard.writeText(txt); toast('Fehlerbericht kopiert', 'success'); }
+      try { await navigator.clipboard.writeText(txt); toast('Fehlerbericht kopiert', 'success', { cat: 'always' }); }
       catch (err) { Modal.open({ title: 'Fehlerbericht', body: `<textarea class="textarea code" readonly style="min-height:320px">${esc(txt)}</textarea><p class="tiny dim mt-8">Text markieren und kopieren.</p>` }); }
       return;
     }
@@ -379,17 +382,17 @@ Actions.openErrLog = () => {
 Actions.checkUpdate = async () => {
   try {
     const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if (!reg) return toast('Kein Service Worker aktiv', 'info');
+    if (!reg) return toast('Kein Service Worker aktiv', 'info', { cat: 'always' });
     await reg.update();
-    if (reg.waiting || reg.installing) toast('Update wird geladen …', 'info');
-    else toast('Du hast die neueste Version', 'success');
+    if (reg.waiting || reg.installing) toast('Update wird geladen …', 'info', { cat: 'always' });
+    else toast('Du hast die neueste Version', 'success', { cat: 'always' });
   } catch (e) { toast('Update-Prüfung fehlgeschlagen', 'error'); }
 };
 
 /* ---------- Export: CSV ---------- */
 Actions.exportCSV = () => {
   const W = Store.all('workouts').filter(w => isISO(w.date)).sort((a, b) => a.date.localeCompare(b.date) || (a.startedAt || 0) - (b.startedAt || 0));
-  if (!W.length) return toast('Noch keine Workouts zum Exportieren', 'info');
+  if (!W.length) return toast('Noch keine Workouts zum Exportieren', 'info', { cat: 'always' });
   const q = v => { const s = v == null ? '' : String(v); return /[;"\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
   const dec = v => v == null || v === '' ? '' : String(round(+v, 3)).replace('.', ',');
   const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight', 'distanceKm', 'level'];
@@ -598,7 +601,7 @@ Actions.restoreJSON = () => {
     const ops = [];
     if (mode === 'replace') for (const c of COLLS) for (const d of Store.all(c)) ops.push({ type: 'del', coll: c, id: d.id });
     for (const c of COLLS) for (const d of (json.data[c] || [])) if (d && d.id) { const { id, ...rest } = d; ops.push({ type: 'put', coll: c, id: String(id), doc: rest, replace: true }); }
-    toast('Stelle wieder her …', 'info');
+    toast('Stelle wieder her …', 'info', { cat: 'always' });
     await Store.batch(ops);
     await PR.recalcAll();
     applyTheme();

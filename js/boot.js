@@ -16,7 +16,7 @@ function registerSW() {
     location.reload();
   });
   navigator.serviceWorker.register('sw.js').then(reg => {
-    const offer = sw => toast('Neue Version verfügbar', 'info', { duration: 20000, action: { label: 'Neu laden', fn: () => sw.postMessage({ type: 'SKIP_WAITING' }) } });
+    const offer = sw => toast('Neue Version verfügbar', 'info', { cat: 'update', duration: 20000, action: { label: 'Neu laden', fn: () => sw.postMessage({ type: 'SKIP_WAITING' }) } });
     if (reg.waiting && navigator.serviceWorker.controller) offer(reg.waiting);
     reg.addEventListener('updatefound', () => {
       const sw = reg.installing;
@@ -42,14 +42,14 @@ async function boot() {
   // Workout-Resume nach App-Kill / Reload
   const w = Workout.cur();
   if (w) {
-    toast(`„${w.name}" wiederhergestellt – weiter geht's`, 'info');
+    toast(`„${w.name}" wiederhergestellt – weiter geht's`, 'info', { cat: 'workout' });
     if (!w.editingId) WakeLock.request();
   }
   window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredInstall = e; if (App.tab === 'more') scheduleRender(); });
   window.addEventListener('appinstalled', () => { deferredInstall = null; toast(`${APP.name} installiert`, 'success'); });
   let wasOffline = !navigator.onLine;
-  window.addEventListener('offline', () => { wasOffline = true; toast('Offline – alles wird lokal gespeichert und später synchronisiert', 'warn'); });
-  window.addEventListener('online', () => { if (wasOffline) toast('Wieder online', 'success'); wasOffline = false; });
+  window.addEventListener('offline', () => { wasOffline = true; toast('Offline – alles wird lokal gespeichert und später synchronisiert', 'warn', { cat: 'sync' }); });
+  window.addEventListener('online', () => { if (wasOffline) toast('Wieder online', 'success', { cat: 'sync' }); wasOffline = false; });
   registerSW();
   Auth.init();
 }

@@ -18,9 +18,25 @@ const UI = (() => {
 const saveUI = debounce(() => { try { localStorage.setItem(LS.ui, JSON.stringify(UI)); } catch (e) {} }, 250);
 
 /* ---------- Toasts ---------- */
+/* Meldungs-Gruppen, einzeln schaltbar unter Mehr → Meldungen. Fehler/Warnungen, Meldungen mit Knopf (z. B.
+   „Rückgängig") und cat: 'always' kommen immer. Ohne Angabe: 'pr' bei PR-Toasts, sonst 'confirm'. */
+const TOAST_CATS = [
+  ['confirm', 'Bestätigungen', '„Gespeichert", „Gelöscht", „Dupliziert" …'],
+  ['workout', 'Workout-Ablauf', '„… gestartet", „Übung abgeschlossen", „Pause vorbei" …'],
+  ['pr', 'PRs & Ziele', '„Neuer PR", „Ziel erreicht"'],
+  ['sync', 'Verbindung & Sync', '„Offline", „Wieder online", Firebase'],
+  ['update', 'App-Updates', '„Neue Version verfügbar"']
+];
+function toastCat(type, opts) {
+  if (opts.cat) return opts.cat;
+  if (type === 'error' || type === 'warn' || opts.action) return 'always';
+  return type === 'pr' ? 'pr' : 'confirm';
+}
 function toast(msg, type = 'info', opts = {}) {
   const root = $('#toastRoot');
   if (!root) return;
+  const cat = toastCat(type, opts);
+  if (cat !== 'always' && S()['toast_' + cat] === false) return;
   const ic = { success: 'checkCircle', error: 'xCircle', warn: 'warn', info: 'info', pr: 'trophy' }[type] || 'info';
   const el = document.createElement('div');
   el.className = `toast ${type}`;
@@ -31,10 +47,41 @@ function toast(msg, type = 'info', opts = {}) {
   const dur = opts.duration || (type === 'error' ? 5500 : type === 'pr' ? 5000 : 2800);
   const remove = () => { el.classList.add('out'); setTimeout(() => el.remove(), 220); };
   const t = setTimeout(remove, dur);
+  let swiped = false;
   el.addEventListener('click', e => {
+    if (swiped) return;
     if (e.target.closest('.t-act') && opts.action) opts.action.fn();
     clearTimeout(t); remove();
   });
+  // Wegwischen: nach oben oder zur Seite; die Meldung folgt dem Finger, kurzes Ziehen federt zurück
+  let x0 = null, y0 = 0, dx = 0, dy = 0;
+  el.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = dy = 0; el.style.transition = 'none'; }, { passive: true });
+  el.addEventListener('touchmove', e => {
+    if (x0 == null) return;
+    dx = e.touches[0].clientX - x0; dy = Math.min(0, e.touches[0].clientY - y0);
+    if (Math.abs(dx) < 4 && dy > -4) return;
+    e.preventDefault();
+    const side = Math.abs(dx) > Math.abs(dy);
+    el.style.transform = side ? `translateX(${dx}px)` : `translateY(${dy}px)`;
+    el.style.opacity = String(1 - Math.min(.8, (side ? Math.abs(dx) / el.offsetWidth : -dy / 60)));
+  }, { passive: false });
+  const end = () => {
+    if (x0 == null) return;
+    x0 = null;
+    const side = Math.abs(dx) > Math.abs(dy), far = side ? Math.abs(dx) > Math.min(110, el.offsetWidth * .3) : dy < -28;
+    el.style.transition = 'transform .2s var(--ease-out), opacity .2s';
+    if (far) {
+      swiped = true; clearTimeout(t);
+      el.style.transform = side ? `translateX(${Math.sign(dx) * (el.offsetWidth + 40)}px)` : 'translateY(-140%)';
+      el.style.opacity = '0';
+      setTimeout(() => el.remove(), 200);
+    } else if (Math.abs(dx) > 4 || dy < -4) {
+      swiped = true; setTimeout(() => { swiped = false; }, 60);   // kein Antipp-Schließen nach kurzem Ziehen
+      el.style.transform = ''; el.style.opacity = '';
+    }
+  };
+  el.addEventListener('touchend', end);
+  el.addEventListener('touchcancel', end);
 }
 
 /* ---------- Fehlerprotokoll: Fehler sichtbar machen statt still zu verschlucken ---------- */
@@ -580,7 +627,7 @@ Actions.exTabToggle = async () => {
     if (!await confirmDialog({ title: 'Übungen-Tab ausblenden?', text: 'Die Bibliothek bleibt erreichbar: beim Hinzufügen von Übungen und unter Mehr → Übungs-Bibliothek.', okLabel: 'Ausblenden' })) return;
     Store.saveSettings({ f_exercises: false });
     App.go('more');
-    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs & Funktionen', 'success', { duration: 4500 });
+    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs & Funktionen', 'success', { cat: 'always', duration: 4500 });
   } else {
     Store.saveSettings({ f_exercises: true });
     App.peek = null;

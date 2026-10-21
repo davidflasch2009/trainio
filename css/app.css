@@ -706,6 +706,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
   box-shadow: var(--shadow); font-weight: 600; font-size: calc(14px * var(--fs)); animation: toastIn .25s ease;
 }
 .toast.out { animation: toastOut .2s ease forwards; }
+.toast { touch-action: none; user-select: none; -webkit-user-select: none; }
 .toast .t-ic { width: 22px; height: 22px; flex-shrink: 0; }
 .toast.success .t-ic { color: var(--success); }
 .toast.error { border-color: var(--danger); }

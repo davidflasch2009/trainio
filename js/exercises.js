@@ -337,7 +337,7 @@ function openExerciseDetail(id) {
       Workout.autoSelect(); Workout.save();
       m.close();
       App.go('training');
-      toast(`${ex.name} hinzugefügt`, 'success');
+      toast(`${ex.name} hinzugefügt`, 'success', { cat: 'workout' });
     } else if (x === 'del') {
       const usedPlans = Store.all('templates').filter(t => (t.exercises || []).some(y => y.exerciseId === id));
       const ok = await confirmDialog({

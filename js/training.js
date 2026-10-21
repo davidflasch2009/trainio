@@ -277,7 +277,7 @@ function tplCard(t, p) {
 Actions.tplStart = el => Workout.start({ templateId: el.dataset.id });
 Actions.tplNew = () => openTemplateEditor(null);
 Actions.planNew = () => {
-  if (!Tpl.all().length) { toast('Erstelle zuerst ein Workout', 'info'); return openTemplateEditor(null); }
+  if (!Tpl.all().length) { toast('Erstelle zuerst ein Workout', 'info', { cat: 'always' }); return openTemplateEditor(null); }
   openScheduleEditor(null);
 };
 Actions.planEdit = el => openScheduleEditor(Store.raw('plans', el.dataset.id));
@@ -766,7 +766,7 @@ async function shareWorkout(wo) {
   try {
     if (navigator.share) { await navigator.share({ title: APP.name, text }); return; }
     await navigator.clipboard.writeText(text);
-    toast('In die Zwischenablage kopiert', 'success');
+    toast('In die Zwischenablage kopiert', 'success', { cat: 'always' });
   } catch (e) { if (e.name !== 'AbortError') toast('Teilen nicht möglich', 'error'); }
 }
 
@@ -1007,7 +1007,7 @@ Actions.exFill = el => {
   Workout.save();
   App.renderCurrent();
   fx($$(`.set-in[data-ei="${el.dataset.ei}"], .fc-in[data-ei="${el.dataset.ei}"]`), 'fx-fill');
-  toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success');
+  toast(`${n} ${n === 1 ? 'Satz' : 'Sätze'} vom letzten Mal übernommen`, 'success', { cat: 'workout' });
 };
 
 /* ---------- Dauerhafte Übungs-Notiz (am Übungs-Dokument, erscheint in jedem Workout) ---------- */
@@ -1844,8 +1844,8 @@ Actions.setDone = el => {
     const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null;
     RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
   }
-  if (wasLast) toast('Alle Sätze erledigt – stark! Unten „Workout beenden" tippen.', 'success');
-  else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success');
+  if (wasLast) toast('Alle Sätze erledigt – stark! Unten „Workout beenden" tippen.', 'success', { cat: 'workout' });
+  else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success', { cat: 'workout' });
   App.renderCurrent();
   fx($(`.set-row[data-ei="${ei}"][data-si="${si}"]`), 'fx-done');
   if (exDone) fx($('#ex-' + en.uid), 'fx-complete');
@@ -2013,7 +2013,7 @@ Actions.exMenu = async el => {
     // als Standard der Übung merken – beim nächsten Mal wieder so
     const ex = Ex.get(en.exerciseId);
     if (ex && Ex.isUni(ex) !== en.uni) Store.put('exercises', ex.id, { unilateral: en.uni, updatedAt: Date.now() });
-    toast(en.uni ? `${en.exerciseName}: links & rechts getrennt` : `${en.exerciseName}: beidseitig`, 'success');
+    toast(en.uni ? `${en.exerciseName}: links & rechts getrennt` : `${en.exerciseName}: beidseitig`, 'success', { cat: 'workout' });
   } else if (k === 'pin') {
     await Actions.pinNoteEdit({ dataset: { id: en.exerciseId } });
   } else if (k === 'note') {
@@ -2060,12 +2060,12 @@ Actions.warmup = el => {
     if (p === 0 && target - bar < 10) continue;
     sets.push(Workout.newSet({ weightKg: kg, reps: r, warmup: true }));
   }
-  if (!sets.length) return toast('Gewicht zu leicht für Aufwärmsätze', 'info');
+  if (!sets.length) return toast('Gewicht zu leicht für Aufwärmsätze', 'info', { cat: 'always' });
   en.sets.unshift(...sets);
   Workout.autoSelect();
   Workout.save();
   App.renderCurrent();
-  toast(`${sets.length} Aufwärmsätze hinzugefügt`, 'success');
+  toast(`${sets.length} Aufwärmsätze hinzugefügt`, 'success', { cat: 'workout' });
 };
 Actions.woAddEx = async () => {
   const ids = await pickExercises({ multi: true, title: 'Übungen hinzufügen' });
@@ -2094,7 +2094,7 @@ Actions.woCancel = async () => {
   if (!ok) return;
   Workout.discard();
   App.renderCurrent();
-  toast(w.editingId ? 'Änderungen verworfen' : 'Workout verworfen', 'info');
+  toast(w.editingId ? 'Änderungen verworfen' : 'Workout verworfen', 'info', { cat: 'workout' });
 };
 Actions.woFinish = async () => {
   const w = Workout.cur();

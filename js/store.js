@@ -444,7 +444,7 @@ const Auth = (() => {
     } catch (e) {
       status = 'failed';
       Store.emitSync();
-      toast('Firebase nicht erreichbar – lokaler Modus, Sync folgt beim nächsten Start', 'warn');
+      toast('Firebase nicht erreichbar – lokaler Modus, Sync folgt beim nächsten Start', 'warn', { cat: 'sync' });
       return;
     }
     try {

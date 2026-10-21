@@ -303,7 +303,7 @@ Actions.openArrow = () => {
     if (x === 'cancel') return m.close();
     if (x === 'example') { ta.value = JSON.stringify(ARROW_EXAMPLE, null, 2); invalidate(); return; }
     if (x === 'prompt') {
-      try { await navigator.clipboard.writeText(ARROW_PROMPT); toast('Prompt kopiert – zusammen mit den Screenshots an Claude schicken', 'success'); }
+      try { await navigator.clipboard.writeText(ARROW_PROMPT); toast('Prompt kopiert – zusammen mit den Screenshots an Claude schicken', 'success', { cat: 'always' }); }
       catch (err) { Modal.open({ title: 'Prompt für Claude', body: `<textarea class="textarea code" readonly style="min-height:360px">${esc(ARROW_PROMPT)}</textarea>` }); }
       return;
     }
@@ -317,7 +317,7 @@ Actions.openArrow = () => {
       try {
         const res = await commitImport(analysis, (msg, frac) => { $('#impStatus', m.el).textContent = msg; $('#impBar', m.el).style.width = Math.round(frac * 100) + '%'; }, { replace: replace ? prevImp : null });
         m.close();
-        toast(`${res.replaced ? `${res.replaced} alte Workouts ersetzt · ` : ''}${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { duration: 6000 });
+        toast(`${res.replaced ? `${res.replaced} alte Workouts ersetzt · ` : ''}${res.workouts} Workouts, ${res.exercises} Übungen und ${res.prs} PRs importiert`, 'success', { cat: 'always', duration: 6000 });
         if (res.fallback) setTimeout(() => toast(`${res.fallback} Übung${res.fallback === 1 ? '' : 'en'} mit Standardwerten angelegt – bitte in der Bibliothek prüfen`, 'warn', { duration: 6000 }), 800);
         if (analysis.broken.length) setTimeout(() => toast(`${analysis.broken.length} fehlerhafte${analysis.broken.length === 1 ? 's Workout' : ' Workouts'} übersprungen`, 'warn', { duration: 6000 }), 1600);
         App.go('progress');

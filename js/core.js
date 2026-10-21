@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.16.0',
+  version: '1.17.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -57,6 +57,8 @@ const DEFAULT_SETTINGS = {
   sex: 'm',
   sound: true,
   wakeLock: true,
+  // Meldungen oben (Toasts) je Gruppe – Bestätigungen standardmäßig aus
+  toast_confirm: false, toast_workout: true, toast_pr: true, toast_sync: true, toast_update: true,
   prefillText: false,
   displayName: '',
   barKg: 20,

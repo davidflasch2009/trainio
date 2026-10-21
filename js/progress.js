@@ -1525,12 +1525,12 @@ Actions.bwImport = () => {
         ops.push({ type: 'put', coll: 'progress', id, replace: true, doc: { date: r.date, bodyWeightKg: r.kg, bodyFatPct: null, measurements: null, photoUrl: null, photoId: null, notes: '', importId, createdAt: now, updatedAt: now } });
       }
     }
-    if (!ops.length) { toast('Nichts Neues – alle Tage sind schon vorhanden', 'info'); return m.close(); }
+    if (!ops.length) { toast('Nichts Neues – alle Tage sind schon vorhanden', 'info', { cat: 'always' }); return m.close(); }
     go.disabled = true;
     await Store.batch(ops);
     Store.put('imports', importId, { source: 'weight-csv', importedAt: now, undoneAt: null, counts: { progress: created.length, overwritten: overwritten.length }, docIds: { workouts: [], exercises: [], progress: created }, overwritten }, { replace: true });
     m.close();
-    toast(`${created.length} Gewichtswerte importiert${overwritten.length ? `, ${overwritten.length} überschrieben` : ''}`, 'success', { duration: 4500 });
+    toast(`${created.length} Gewichtswerte importiert${overwritten.length ? `, ${overwritten.length} überschrieben` : ''}`, 'success', { cat: 'always', duration: 4500 });
   });
 };
 Actions.bodyCfg = () => Modal.open({ title: 'Körper-Tab anpassen', size: 'sm', body: `<p class="small dim">Das Gewicht ist immer da. Schalte zusätzlich ein, was du erfassen willst – vorhandene Daten bleiben erhalten.</p>

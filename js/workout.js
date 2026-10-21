@@ -78,7 +78,7 @@ const Workout = (() => {
     save();
     WakeLock.request();
     App.go('training');
-    toast(`${w.name} gestartet`, 'success');
+    toast(`${w.name} gestartet`, 'success', { cat: 'workout' });
   }
   /** Vergangenes Workout bearbeiten oder wiederholen */
   function load(doc, { edit = false } = {}) {
@@ -256,7 +256,7 @@ const RestTimer = (() => {
     const sel = w.sel && w.entries[w.sel.e];
     const next = sel ? `Weiter: ${sel.exerciseName} – Satz ${w.sel.s + 1}` : 'Weiter geht\'s!';
     if (document.visibilityState === 'hidden' && S().notifyRestDone) notify('Pause vorbei', next);
-    else toast(`Pause vorbei – ${next.replace('Weiter: ', '')}`, 'success');
+    else toast(`Pause vorbei – ${next.replace('Weiter: ', '')}`, 'success', { cat: 'workout' });
   }
   function openBig() {
     const w = Workout.cur();

@@ -13,6 +13,13 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 > oben privat genutzt werden. Fehler und Ideen gern als [Issue](https://github.com/davidflasch2009/trainio/issues).
 > Kopieren, Verändern, Weitergeben, selbst Hosten oder kommerzielle Nutzung nur mit Erlaubnis – siehe [LICENSE](LICENSE).
 
+## Meldungen
+
+Kurze Meldungen oben im Bildschirm lassen sich unter **Mehr → Meldungen** je Gruppe abschalten: Bestätigungen
+(„Gespeichert", „Gelöscht" … – standardmäßig aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates.
+Fehler, Hinweise („Bitte ein Gewicht eintragen") und Meldungen mit Knopf („Rückgängig") kommen immer. Jede Meldung
+schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurzes Ziehen federt zurück).
+
 ## Animationen
 
 Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und „Bewegung reduzieren“
@@ -158,6 +165,7 @@ schließt sich die Gruppe und die Suche wird geleert):
 | Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, Ansicht, Zuklappen, Scrollen, Bildschirm an |
 | Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton |
 | Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite |
+| Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
 | Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen und Workout-Funktionen ein-/ausschalten |
 | Daten | Arrow-Import, Gewicht importieren, Rückgängig, Export CSV/PDF, Backup, Restore, Alle Daten löschen |
 | Tools | Scheibenrechner, 1RM-Rechner (wenn eingeschaltet) |
