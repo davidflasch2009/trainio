@@ -54,7 +54,6 @@ Views.start = {
       <div class="mt-16">
         ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
-        <button class="btn btn-secondary btn-block mt-8" data-act="startCardio">${icon('heart')} ${w ? 'Cardio hinzufügen' : 'Cardio starten'}</button>
       </div>
       ${goalsCard()}
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
@@ -87,8 +86,8 @@ Actions.startSheet = async () => {
     n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), sub: `laut „${n.plan.name}"`, icon: 'play', featured: true },
     Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', sub: 'Übungen aus der Bibliothek wählen & los', icon: 'list' },
+    { key: 'cardio', label: 'Cardio', sub: 'Laufen, Rad, Stepper, Schwimmen …', icon: 'heart', featured: 'plain' },
     { key: 'free', label: 'Leeres Workout', sub: 'Ohne Plan, Übungen unterwegs hinzufügen', icon: 'plus' },
-    { key: 'cardio', label: 'Cardio', sub: 'Laufen, Rad, Stepper, Schwimmen …', icon: 'heart' },
     Store.all('workouts').length ? { key: 'repeat', label: 'Letztes Workout wiederholen', icon: 'repeat' } : null
   ]);
   if (k === 'next') Workout.start({ templateId: n.template.id });
@@ -805,6 +804,7 @@ function renderActiveWorkout(el, w) {
       </div>
       <div class="wo-body">
         ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+        ${!focus && st.total && st.done === st.total ? `<button class="btn btn-primary btn-block btn-lg mb-12" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>` : ''}
         <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
       </div>`;
     updateTopH();
@@ -845,7 +845,7 @@ function renderActiveWorkout(el, w) {
         <label class="field full"><span>Notizen</span><textarea class="textarea" data-in="woNotes" placeholder="Wie lief's? Schlaf, Energie, Technik …" style="min-height:72px">${esc(w.notes || '')}</textarea></label>
       </div>
     </div>${F('f_woExtras') ? '' : '</div>'}
-    <button class="btn btn-primary btn-block btn-lg mt-16" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>
+    <button class="btn btn-primary btn-block btn-lg mt-16" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>
     <button class="btn btn-danger-ghost btn-block mt-12" data-act="woCancel">${icon('x')} ${w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen'}</button>
     </div>`;
   updateTopH();
@@ -1802,7 +1802,7 @@ Actions.setDone = el => {
     const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null;
     RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
   }
-  if (wasLast) toast('Alle Sätze erledigt – stark! Jetzt „Beenden" tippen.', 'success');
+  if (wasLast) toast('Alle Sätze erledigt – stark! Unten „Workout beenden" tippen.', 'success');
   else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success');
   App.renderCurrent();
   fx($(`.set-row[data-ei="${ei}"][data-si="${si}"]`), 'fx-done');
@@ -1811,6 +1811,8 @@ Actions.setDone = el => {
   const nextE = woCollapse() ? openIndex(w) : w.sel.e;
   if (!focus && exDone && nextE >= 0 && nextE !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[nextE]));
   else if (focus && w.focusE !== ei) window.scrollTo({ top: 0, behavior: 'smooth' });
+  // Letzter Satz abgehakt: zum „Workout beenden"-Knopf unten scrollen
+  if (wasLast && !focus && S().autoScroll !== false) requestAnimationFrame(() => { const b = $('#woFinishEnd'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
 };
 /* ---------- Wischgesten auf Satz-Zeilen: → abhaken, ← löschen (mit Rückgängig) ---------- */
 function deleteSetWithUndo(ei, si) {
@@ -1898,6 +1900,20 @@ Actions.setAdd = el => {
   App.renderCurrent();
   fx($(`.set-row[data-ei="${el.dataset.ei}"][data-si="${en.sets.length - 1}"], .fc-pill[data-ei="${el.dataset.ei}"][data-si="${en.sets.length - 1}"]`), 'fx-up');
 };
+/** Drop-Satz anhängen: Gewicht ca. 20 % unter dem letzten Arbeitssatz, abgerundet aufs Gewichts-Inkrement */
+Actions.dropAdd = el => {
+  const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
+  const last = [...en.sets].reverse().find(s => !s.warmup);
+  const st = S().weightSteps, kg = last && last.weightKg ? last.weightKg : null;
+  const ns = Workout.newSet({ weightKg: kg != null ? fromU(Math.max(0, Math.floor(toU(kg) * 0.8 / st) * st)) : null, durationSec: last ? last.durationSec : null });
+  ns.kind = 'drop';
+  en.sets.push(ns);
+  w.sel = { e: ei, s: en.sets.length - 1 };
+  w.focusE = ei;
+  Workout.save();
+  App.renderCurrent();
+  fx($(`.set-row[data-ei="${ei}"][data-si="${en.sets.length - 1}"], .fc-pill[data-ei="${ei}"][data-si="${en.sets.length - 1}"]`), 'fx-up');
+};
 Actions.setMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei, si = +el.dataset.si;
   const en = w.entries[ei], s = en.sets[si];
@@ -1931,6 +1947,7 @@ Actions.exMenu = async el => {
     !isCardio && { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
     canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', sub: 'Platzhalter als Werte in alle leeren Sätze', icon: 'fillIn' },
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
+    F('f_setTypes') && !isCardio && { key: 'drop', label: 'Drop-Satz hinzufügen', sub: 'Direkt weiter mit ca. 20 % weniger Gewicht', icon: 'arrowDown' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
     !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
     { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', sub: 'Bleibt bei der Übung – z. B. Sitzhöhe, Griff', icon: 'flag' },
@@ -1946,6 +1963,7 @@ Actions.exMenu = async el => {
   if (k === 'goal') return openGoalEditor(ei);
   if (k === 'fill') return Actions.exFill({ dataset: { ei } });
   if (k === 'warm') return Actions.warmup({ dataset: { ei } });
+  if (k === 'drop') return Actions.dropAdd({ dataset: { ei } });
   if (k === 'plates') return openPlates(goalWeight(en));
   if (k === 'uni') {
     en.uni = !en.uni;

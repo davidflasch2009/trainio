@@ -90,7 +90,8 @@ Konfetti und Inhalte der Startseite.
   Teile eintragen (z. B. 5 min warm, 20 min schnell).
 - **Dauer eingeben**: `30` = 30 min, `30,5` = 30:30, `30:15` = 30 min 15 s, `1:05:00` = 1 h 5 min.
 - **Letztes Mal** steht als Platzhalter in den Feldern, „Übernehmen“ trägt es ein.
-- **Cardio starten** auf dem Start-Tab (eigene Einheit) bzw. **Cardio**-Knopf im laufenden Workout
+- **Cardio** über „Workout starten“ auf dem Start-Tab (eigene Einheit, direkt unter dem heutigen Workout)
+  bzw. **Cardio**-Knopf im laufenden Workout
   (z. B. nach dem Krafttraining). Zuletzt genutzte Arten stehen oben.
 - **48 Cardio-Arten**: Laufband, draußen laufen, Gehen, Wandern, Nordic Walking, Rad (Ergometer, draußen,
   Spinning, MTB), Rudern, SkiErg, Crosstrainer, Stepper, Schwimmen, Kajak/SUP, Inliner, Langlauf, HIIT,
@@ -179,6 +180,13 @@ Plan-Menü → „Plan analysieren"). Grundlage sind die geplanten Arbeitssätze
   Workouts über 25 Sätze bzw. 90 min
 
 Jeder Punkt bekommt ✓ oder ⚠, bei ⚠ mit einem konkreten Tipp (z. B. „Ca. 9 Bein-Sätze mehr pro Woche").
+
+## Im Workout
+
+- **Drop-Satz:** ⋯ an der Übung → „Drop-Satz hinzufügen“ hängt einen Satz mit „D“ an, Gewicht ca. 20 % unter
+  dem letzten Satz (abgerundet aufs Gewichts-Inkrement). „Bis zum Muskelversagen“ gibt es über die Satznummer.
+- **Workout beenden:** Sobald alle Sätze abgehakt sind, erscheint unten ein großer „Workout beenden“-Knopf
+  (in der schlichten Eingabe; die ausführliche hat ihn immer), mit automatischem Scrollen dorthin.
 
 ## Workouts nachträglich bearbeiten
 

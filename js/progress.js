@@ -1163,7 +1163,7 @@ ProgressViews.cardio = body => {
   const c = chartColors();
   const cIds = Object.keys(ix.sessions).filter(id => ix.sessions[id][0] && ix.sessions[id][0].cardio);
   if (!cIds.length) {
-    body.innerHTML = `<div class="card mt-16">${emptyState('heart', 'Noch kein Cardio', 'Starte eine Cardio-Einheit auf dem Start-Tab oder füge Cardio im Workout hinzu – Dauer, Distanz und Tempo landen dann hier.', `<button class="btn btn-primary" data-act="startCardio">${icon('heart')} Cardio starten</button>`)}</div>`;
+    body.innerHTML = `<div class="card mt-16">${emptyState('heart', 'Noch kein Cardio', 'Starte Cardio über „Workout starten“ auf dem Start-Tab oder füge Cardio im Workout hinzu – Dauer, Distanz und Tempo landen dann hier.', `<button class="btn btn-primary" data-act="startCardio">${icon('heart')} Cardio starten</button>`)}</div>`;
     return;
   }
   const rowsR = Analytics.rowsIn(r), rowsP = prv ? Analytics.rowsIn(prv) : null;

@@ -161,7 +161,8 @@ function actionMenu(title, items) {
     const m = Modal.open({
       title, size: 'sm',
       body: (() => {
-        const all = items.filter(Boolean), feat = all.filter(it => it.featured), rest = all.filter(it => !it.featured);
+        // featured: true = hervorgehoben in Akzentfarbe, 'plain' = abgesetzt, aber neutral; der Rest als Liste darunter
+        const all = items.filter(Boolean), feat = all.filter(it => it.featured === true), solo = all.filter(it => it.featured === 'plain'), rest = all.filter(it => !it.featured);
         const row = (it, cls = '') => `
         <button class="list-item ${cls} ${it.danger ? 'danger' : ''}" data-k="${esc(it.key)}">
           <span class="li-icon">${icon(it.icon || 'chevR')}</span>
@@ -169,7 +170,7 @@ function actionMenu(title, items) {
           ${cls ? icon('chevR', 'li-chev') : ''}
         </button>`;
         // Hervorgehobene Einträge (z. B. heutiges Workout) abgesetzt über der Liste
-        return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${rest.length ? `<div class="list fx-stagger${feat.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
+        return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${solo.map((it, i) => row(it, `am-solo fx-up${feat.length || i ? ' mt-8' : ''}`)).join('')}${rest.length ? `<div class="list fx-stagger${feat.length || solo.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
       })(),
       onClose: () => resolve(res)
     });
