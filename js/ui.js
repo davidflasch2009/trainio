@@ -478,6 +478,8 @@ const App = {
     const changed = tab !== this.tab;
     // denselben Tab erneut antippen: der Tab darf selbst reagieren (z. B. Mehr → zurück zur Übersicht)
     if (!changed && Views[tab].reselect && Views[tab].reselect()) return;
+    // Tab verlassen: der alte Tab darf aufräumen (z. B. Mehr → offene Gruppe schließen)
+    if (changed && Views[this.tab] && Views[this.tab].leave) Views[this.tab].leave();
     this.tab = tab;
     UI.tab = tab;
     saveUI();

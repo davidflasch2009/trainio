@@ -268,7 +268,14 @@ Views.more = {
   // Zurück-Knopf oben, solange eine Gruppe offen ist
   back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
   // „Mehr" erneut antippen: zurück zur Übersicht bzw. Suche leeren
-  reselect: () => { if (moreSub) { closeMoreSub(); return true; } moreQ = ''; return false; }
+  reselect: () => { if (moreSub) { closeMoreSub(); return true; } moreQ = ''; return false; },
+  // anderer Tab: offene Gruppe schließen und Suche leeren – beim Zurückkommen startet Mehr bei der Übersicht
+  leave: () => {
+    moreQ = ''; moreScroll = 0;
+    if (!moreSub) return;
+    moreSub = null;
+    if (history.state && history.state.moreSub) history.back();   // Verlaufs-Eintrag der Gruppe wieder entfernen
+  }
 };
 function openMoreSub(id) {
   if (!moreSub) moreScroll = scrollY;

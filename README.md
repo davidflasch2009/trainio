@@ -136,7 +136,8 @@ Die Notiz hängt an der Übung und erscheint als 📌-Hinweis in jedem zukünfti
 
 Oben ein **Suchfeld** („pause", „rpe", „backup" …): Treffer erscheinen sofort und lassen sich direkt dort
 umstellen. Darunter die Konto-Karte und die Gruppen – jede öffnet sich als eigene Seite (zurück über
-„‹ Mehr" oben, die Zurück-Taste/-Geste oder erneutes Tippen auf „Mehr"):
+„‹ Mehr" oben, die Zurück-Taste/-Geste oder erneutes Tippen auf „Mehr"; beim Wechsel auf einen anderen Tab
+schließt sich die Gruppe und die Suche wird geleert):
 
 | Gruppe | Inhalt |
 | --- | --- |
