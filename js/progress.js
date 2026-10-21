@@ -172,14 +172,16 @@ ProgressViews.overview = body => {
   const t = todayDN();
   const st = Analytics.streak();
   const cw = weekStartDN(t);
-  // Wochen-/Monatsvergleich: jeweils bis zum gleichen Tag der Vorperiode, damit die Hälfte der Woche nicht wie ein Einbruch aussieht
+  // Wochen-/Monatsvergleich: jeweils bis zum gleichen Tag der Vorperiode, damit die Hälfte der Woche nicht wie ein Einbruch aussieht.
+  // Heute zählt erst, wenn heute ein Workout gespeichert ist (sonst stünde das Workout der Vorwoche schon drin, deins noch nicht).
+  const e = Analytics.cmpEnd();
   const statsIn = (a, b) => { const rs = ix.rows.filter(r => r.dn >= a && r.dn <= b); return { n: rs.length, sets: sum(rs.map(r => r.sets)), ton: sum(rs.map(r => r.ton)), prs: ix.prEvents.filter(p => p.dn >= a && p.dn <= b).length }; };
-  const wkNow = statsIn(cw, t), wkPrev = statsIn(cw - 7, cw - 7 + (t - cw)), wkFull = statsIn(cw - 7, cw - 1);
+  const wkNow = statsIn(cw, e), wkPrev = statsIn(cw - 7, cw - 7 + (e - cw)), wkFull = statsIn(cw - 7, cw - 1);
   const nowD = new Date();
   const ms = dayNum(`${nowD.getFullYear()}-${pad(nowD.getMonth() + 1)}-01`);
   const pmD = new Date(nowD.getFullYear(), nowD.getMonth() - 1, 1);
   const pms = dayNum(`${pmD.getFullYear()}-${pad(pmD.getMonth() + 1)}-01`);
-  const moNow = statsIn(ms, t), moPrev = statsIn(pms, Math.min(ms - 1, pms + (t - ms))), moFull = statsIn(pms, ms - 1);
+  const moNow = statsIn(ms, e), moPrev = statsIn(pms, Math.min(ms - 1, pms + (e - ms))), moFull = statsIn(pms, ms - 1);
   const bwAvg = (a, b) => { const v = Analytics.bwSeries().filter(p => p.dn >= a && p.dn <= b); return v.length ? avg(v.map(p => p.kg)) : null; };
   const bwNow = bwAvg(ms, t), bwPrev = bwAvg(pms, ms - 1);
   const cmpRows = (a, b) => [
@@ -188,7 +190,8 @@ ProgressViews.overview = body => {
     ['Volumen', fmtTon(a.ton), fmtTon(b.ton), deltaHtml(a.ton, b.ton)],
     ['PRs', nf(a.prs, 0), nf(b.prs, 0), deltaHtml(a.prs, b.prs, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) })]
   ];
-  const wdName = WD_SHORT[dowOfDN(t)];
+  const wdName = WD_SHORT[dowOfDN(e)];
+  const todayNote = e < t ? ' · heute zählt, sobald dein Workout gespeichert ist' : '';
   const monthName = d => d.toLocaleDateString('de-DE', { month: 'long' });
   // 12-Wochen-Minibars (laufende Woche blass, Ø nur aus abgeschlossenen Wochen)
   const weeks12 = Array.from({ length: 12 }, (_, i) => cw - (11 - i) * 7);
@@ -201,7 +204,7 @@ ProgressViews.overview = body => {
   const curMonth = daysInMonth(monthKey(now.getFullYear(), now.getMonth()));
   const prev6 = Array.from({ length: 6 }, (_, i) => { const d = new Date(now.getFullYear(), now.getMonth() - 1 - i, 1); return daysInMonth(monthKey(d.getFullYear(), d.getMonth())); });
   const avg6 = avg(prev6);
-  const monthFrac = now.getDate() / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const monthFrac = Math.max(0, e - ms + 1) / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const expected = avg6 * monthFrac;
   const goal = weeklyTarget();
   // P/P/L letzte 4 Wochen
@@ -233,18 +236,18 @@ ProgressViews.overview = body => {
         <div class="minibars" role="img" aria-label="Workouts pro Woche, letzte 12 Wochen">${wCounts.map((n, i) => `<i class="${n ? '' : 'zero'}${i === 11 ? ' run' : ''}" style="height:${Math.max(4, n / mxW * 100)}%" title="KW ${isoWeek(weeks12[i]).week}: ${n}${i === 11 ? ' (läuft noch)' : ''}"></i>`).join('')}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn(`Diese Woche bis heute im Vergleich zur Vorwoche bis zum gleichen Wochentag (${wdName}) – so ist der Vergleich fair, auch mitten in der Woche. Volumen = Σ Wiederholungen × Gewicht aller erledigten Arbeitssätze.`)}</div>
-        ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev), `Vorwoche bis ${wdName} · ganze Vorwoche: ${wkFull.n} Workouts, ${fmtTon(wkFull.ton)}`)}
+        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn(`Diese Woche im Vergleich zur Vorwoche bis zum gleichen Wochentag – so ist der Vergleich fair, auch mitten in der Woche. Der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast; vorher wird in beiden Wochen bis gestern verglichen. Volumen = Σ Wiederholungen × Gewicht aller erledigten Arbeitssätze.`)}</div>
+        ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev), `${e < cw ? 'Noch kein abgeschlossener Tag diese Woche' : `Vorwoche bis ${wdName}`}${todayNote} · ganze Vorwoche: ${wkFull.n} ${wkFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(wkFull.ton)}`)}
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Unterschiedliche Tage mit Training im aktuellen Monat. Verglichen wird mit dem anteiligen Durchschnitt der letzten 6 Monate bis zum heutigen Tag.')}</div>
+        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Unterschiedliche Tage mit Training im aktuellen Monat. Verglichen wird mit dem anteiligen Durchschnitt der letzten 6 Monate bis zum heutigen Tag (heute zählt erst nach deinem Workout).')}</div>
         <div class="cc-big"><b>${curMonth}</b><small>Ø ${nf(avg6, 1)} / Monat (6 M.)</small>${now.getDate() >= 3 ? deltaHtml(curMonth, expected) : ''}</div>
         <div class="cc-sub">Soll bis heute (anteilig): ${nf(expected, 1)} Tage · Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} bis heute im Vergleich zum ${monthName(pmD)} bis zum gleichen Tag. Körpergewicht: Durchschnitt aller Einträge im ganzen Monat.`)}</div>
+        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} im Vergleich zum ${monthName(pmD)} bis zum gleichen Tag. Der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast. Körpergewicht: Durchschnitt aller Einträge im ganzen Monat.`)}</div>
         ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
-          `${monthName(pmD)} bis zum ${nowD.getDate()}. · ganzer Monat: ${moFull.n} Workouts, ${fmtTon(moFull.ton)}`)}
+          `${e < ms ? 'Noch kein abgeschlossener Tag diesen Monat' : `${monthName(pmD)} bis zum ${e - ms + 1}.`}${todayNote} · ganzer Monat: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}`)}
       </div>
       ${cb.card({
         id: 'ppl', title: 'Push / Pull / Legs Balance', info: 'Verteilung deiner Arbeitssätze nach Kategorie in den letzten 4 Wochen. „Andere" = Core, Cardio, Full Body.',

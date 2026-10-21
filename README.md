@@ -206,7 +206,8 @@ Antippen, jedes Diagramm im Vollbild mit Tabelle. Die **laufende Woche** (bzw. d
 bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe Woche nicht wie ein Einbruch aus.
 
 - **Übersicht**: Streak, Workouts gesamt, **Wochenvergleich** und **Monatsrückblick** (jeweils bis zum gleichen
-  Tag der Vorperiode), Trainingstage im Monat, Push/Pull/Legs, PR-Angriff, aktive PRs, letzte 7 Tage,
+  Tag der Vorperiode; der heutige Tag zählt erst, wenn heute ein Workout gespeichert ist – vorher wird bis
+  gestern verglichen, auch bei der Volumen-Kachel auf der Startseite), Trainingstage im Monat, Push/Pull/Legs, PR-Angriff, aktive PRs, letzte 7 Tage,
   Jahres-Kalender; darunter immer sichtbar „Mehr Stats" (Lieblings-Übung, Workout-Dauer, Sätze pro Workout,
   PRs pro Monat, Rekord-Workout, Gesamt bewegt, Erste-Hilfe-Ampel) und die Meilensteine.
 - **Kraft** mit Filter **Gesamt / Pro Übung / Pro Muskelgruppe**: Gesamt und Muskelgruppe zeigen den

@@ -12,9 +12,9 @@ Views.start = {
     const st = Analytics.streak();
     const t = todayDN();
     const cw = weekStartDN(t);
-    const elapsed = t - cw;
     const volNow = Analytics.volumeBetween(cw, t);
-    const volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + elapsed);
+    // Vorwoche bis zum gleichen Tag – heute erst, wenn heute ein Workout gespeichert ist
+    const volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + (Analytics.cmpEnd() - cw));
     const next = Analytics.nextPlanDay();
     const w = Workout.cur();
     const goal = weeklyTarget();
@@ -36,7 +36,7 @@ Views.start = {
           <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
         </div>
         <div class="stat">
-          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag.')}</div>
+          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag – der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast.')}</div>
           <div class="stat-value">${fmtTon(volNow)}</div>
           <div class="stat-sub">diese Woche ${deltaHtml(volNow, volPrev)}</div>
         </div>

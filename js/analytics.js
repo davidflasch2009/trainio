@@ -315,6 +315,8 @@ const Analytics = (() => {
     const thisWeekDays = new Set(rows.filter(r => r.dn >= cw).map(r => r.dn));
     return { cur: curS, best, thisWeek: rows.filter(r => r.dn >= cw).length, days: thisWeekDays };
   }
+  /** Letzter Tag für Vergleiche „bis zum gleichen Tag“: heute erst, wenn heute ein Workout gespeichert ist – sonst bis gestern */
+  function cmpEnd() { const t = todayDN(); return cur().rows.some(w => w.dn === t) ? t : t - 1; }
   function volumeBetween(a, b) { return sum(cur().rows.filter(w => w.dn >= a && w.dn <= b).map(w => w.ton)); }
   /** Nächstes geplantes Workout laut Wochenplan (heute, falls noch nicht trainiert) */
   function nextPlanDay() {
@@ -344,7 +346,7 @@ const Analytics = (() => {
     Store.put('meta', 'analyticsCache', { byWeek, byExerciseId, byMuscle, workouts: ix.rows.length, lastRecalc: Date.now() }, { replace: true });
   }, 2500);
 
-  return { cur, bwSeries, bwAt, sessionsOf, range, prevRange, rowsIn, weeksOf, streak, volumeBetween, nextPlanDay, persistCache };
+  return { cur, bwSeries, bwAt, sessionsOf, range, prevRange, rowsIn, weeksOf, streak, cmpEnd, volumeBetween, nextPlanDay, persistCache };
 })();
 
 /* ---------- Personal Records ---------- */
