@@ -94,9 +94,45 @@ const Modal = (() => {
     };
     $('.modal-backdrop', wrap).addEventListener('click', () => close(m));
     $('[data-modal-close]', wrap).addEventListener('click', () => close(m));
+    sheetSwipe(m);
     stack.push(m);
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
     return m;
+  }
+  /** Bottom-Sheet (Handy) nach unten wegwischen: am Kopf jederzeit, im Inhalt nur ganz oben gescrollt */
+  function sheetSwipe(m) {
+    const bd = $('.modal-backdrop', m.wrap);
+    let y0 = null, x0 = 0, dy = 0, t0 = 0, head = false, lock = null;
+    m.el.addEventListener('touchstart', e => {
+      y0 = null;
+      if (innerWidth >= 700 || e.touches.length !== 1) return;
+      head = !!e.target.closest('.modal-head');
+      if (!head && !(e.target.closest('.modal-body') && m.body.scrollTop <= 0)) return;
+      if (!head && e.target.closest('input, textarea, select, .chips, .wall-row, .seg, .fc-sets, .design-grid')) return;
+      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = Date.now(); lock = null;
+    }, { passive: true });
+    m.el.addEventListener('touchmove', e => {
+      if (y0 == null) return;
+      const d = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
+      if (lock == null && (Math.abs(d) > 6 || Math.abs(dx) > 6)) lock = Math.abs(d) > Math.abs(dx) && d > 0 ? 'y' : 'no';
+      if (lock !== 'y' || (!head && m.body.scrollTop > 0)) { if (lock === 'no') y0 = null; return; }
+      e.preventDefault();
+      dy = Math.max(0, d);
+      m.el.style.transition = 'none';
+      m.el.style.transform = `translateY(${dy}px)`;
+      bd.style.transition = 'none';
+      bd.style.opacity = String(Math.max(0, 1 - dy / Math.max(1, m.el.offsetHeight)));
+    }, { passive: false });
+    const end = () => {
+      if (y0 == null) return;
+      y0 = null;
+      m.el.style.transition = ''; bd.style.transition = ''; bd.style.opacity = '';
+      const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5;
+      m.el.style.transform = '';
+      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) close(m);
+    };
+    m.el.addEventListener('touchend', end);
+    m.el.addEventListener('touchcancel', end);
   }
   function close(m, value) {
     if (!m || m.closed) return;
@@ -206,6 +242,30 @@ function fx(el, cls) {
   if (!el) return;
   (el.length != null && !el.tagName ? Array.from(el) : [el]).forEach(n => { n.classList.remove(cls); void n.offsetWidth; n.classList.add(cls); n.addEventListener('animationend', function done(ev) { if (ev.target === n) { n.classList.remove(cls); n.removeEventListener('animationend', done); } }); });
 }
+/** Volle Animationen? (Einstellung „Animationen: Voll" und kein „Bewegung reduzieren" im System) */
+const motionFull = () => S().motion === 'full' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Zahlen hochzählen: die Zahl am Anfang des ersten Textknotens läuft von 0 auf ihren Wert („8,4 t", „1.234 kg", „12") */
+function countUp(els, dur = 700, delay = 0) {
+  if (!motionFull()) return;
+  (els.length != null && !els.tagName ? Array.from(els) : [els]).forEach(el => {
+    const tn = el && [...el.childNodes].find(n => n.nodeType === 3 && /\d/.test(n.nodeValue));
+    if (!tn || tn.nodeValue.includes(':')) return;   // Uhrzeiten/Dauern („1:05 h") nicht zählen
+    const txt = tn.nodeValue, m = txt.match(/^(\s*)(\d{1,3}(?:\.\d{3})+(?:,\d+)?|\d+(?:,\d+)?)/);
+    if (!m) return;
+    const raw = m[2], dec = (raw.split(',')[1] || '').length, target = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+    if (!(target > 0)) return;
+    const pre = m[1], post = txt.slice(m[0].length), t0 = performance.now();
+    const step = now => {
+      if (!tn.isConnected) return;
+      const p = Math.max(0, Math.min(1, (now - t0 - delay) / dur));
+      tn.nodeValue = p < 1 ? pre + nf(target * (1 - Math.pow(1 - p, 3)), dec) + post : txt;
+      if (p < 1) requestAnimationFrame(step);
+    };
+    tn.nodeValue = pre + '0' + post;
+    requestAnimationFrame(step);
+  });
+}
+const COUNT_SEL = '.stat-value, .cc-big > b';
 /* Ansicht wechseln (Segment, Chips, Unter-Tabs): Inhalt unter dem Schalter sanft einblenden */
 const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'kraftScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'histMore', 'setSeg']);
 function fxSwap(act, v) {
@@ -480,6 +540,9 @@ const App = {
     if (!changed && Views[tab].reselect && Views[tab].reselect()) return;
     // Tab verlassen: der alte Tab darf aufräumen (z. B. Mehr → offene Gruppe schließen)
     if (changed && Views[this.tab] && Views[this.tab].leave) Views[this.tab].leave();
+    // Richtung für die Einblendung: Tab weiter rechts in der Leiste → von rechts, sonst von links
+    const order = visibleTabs().map(t => t[0]), from = order.indexOf(this.tab), to = order.indexOf(tab);
+    const dir = from < 0 || to < 0 || to > from ? 'fwd' : 'back';
     this.tab = tab;
     UI.tab = tab;
     saveUI();
@@ -488,6 +551,8 @@ const App = {
     if (changed) {
       window.scrollTo({ top: 0 });
       fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
+      fx($('#tab-' + tab), 'fx-pg-' + dir);
+      countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
     }
   },
   renderAll() {

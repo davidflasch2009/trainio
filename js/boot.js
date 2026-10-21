@@ -36,6 +36,8 @@ async function boot() {
   Store.subscribe('*', cs => { if (cs.includes('meta')) applyTheme(); scheduleRender(); });
   Store.onSync(() => { renderNav(); if (App.tab === 'more') scheduleRender(); });
   App.renderCurrent();
+  fx($('#tab-' + App.tab), 'fx-up');
+  countUp($$(`#tab-${App.tab} :is(${COUNT_SEL})`));
   updateTopH();
   // Workout-Resume nach App-Kill / Reload
   const w = Workout.cur();

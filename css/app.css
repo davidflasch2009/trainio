@@ -426,7 +426,8 @@ body.is-scrolled #sbShade { opacity: 1; }
   padding: 16px max(16px, env(safe-area-inset-right)) calc(var(--nav-space) + 28px) max(16px, env(safe-area-inset-left));
 }
 body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
-.tab { display: none; animation: tabIn .3s cubic-bezier(.2, .8, .2, 1); }
+/* Einblenden beim Tab-Wechsel macht App.go (fx-pg-fwd/back mit Richtung), beim Start fx-up */
+.tab { display: none; }
 .tab.active { display: block; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes tabIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
@@ -752,7 +753,15 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
   max-width: 560px; margin: 0 auto; background: var(--surface-3); border: var(--bw) solid var(--border-strong); border-radius: calc(18px * var(--rs));
   box-shadow: var(--shadow); overflow: hidden; animation: restIn .38s var(--ease-spring, ease);
 }
-.rest-dock .rest-bar { height: 4px; background: var(--accent); transform-origin: left; transition: transform 1s linear; }
+.rest-mini { width: 34px; height: 34px; padding: 0; border: 0; background: none; flex-shrink: 0; margin-left: -4px; }
+.rest-dock .rest-mini + .rest-time { min-width: 0; font-size: calc(24px * var(--fs)); }
+.rest-dock #restLbl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.rest-mini svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.rest-mini .ring-bg { stroke: var(--surface-3); }
+.rest-mini .ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.rest-dock.ending .rest-time, .rest-dock.ending .rest-mini, .rest-big.ending .rest-ring { animation: restPulse 1s ease-in-out infinite; }
+.rest-dock.ending .rest-time { color: var(--accent-text); }
+@keyframes restPulse { 0%, 100% { transform: scale(1); } 30% { transform: scale(1.1); } }
 .rest-dock .rest-row { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 14px; }
 .rest-dock .rest-time { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; min-width: 78px; background: none; border: 0; text-align: left; padding: 0; color: var(--text); }
 .rest-dock .rest-label { flex: 1; min-width: 0; font-size: calc(12px * var(--fs)); color: var(--text-dim); line-height: 1.25; }
@@ -1690,6 +1699,24 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 @keyframes fxComplete { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
 @keyframes fxFill { 0% { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { background-color: var(--surface-2); box-shadow: 0 0 0 0 transparent; } }
 @keyframes fxBump { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
+/* Seiten-/Tab-Wechsel mit Richtung: von rechts (weiter) bzw. von links (zurück) */
+.main-col { overflow-x: clip; }
+.tab.fx-pg-fwd, .fx-pg-fwd { animation: pgFwd .3s var(--ease-out) both; }
+.tab.fx-pg-back, .fx-pg-back { animation: pgBack .3s var(--ease-out) both; }
+@keyframes pgFwd { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
+@keyframes pgBack { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+/* Workout-Fortschritt: weich füllen, bei 100 % einmal aufleuchten */
+.wo-progress { overflow: visible; }
+.wo-progress i { transition: width .55s var(--ease-out); }
+.fx-glow { animation: fxGlow 1.1s var(--ease-out); }
+@keyframes fxGlow { 0% { box-shadow: 0 0 0 0 transparent; filter: none; } 35% { box-shadow: 0 0 14px 2px color-mix(in srgb, var(--accent) 70%, transparent); filter: brightness(1.35); } 100% { box-shadow: 0 0 0 0 transparent; filter: none; } }
+/* Workout-Abschluss: Abzeichen springt, Symbol zeichnet sich, PRs glänzen nacheinander */
+.sum-draw { animation: fxPop .55s var(--ease-spring) both; }
+.sum-draw svg * { stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawStroke .7s .2s var(--ease-out) forwards; }
+@keyframes drawStroke { to { stroke-dashoffset: 0; } }
+.sum-prs .pr-shine { position: relative; overflow: hidden; animation: fxUp .4s var(--ease-out) both; animation-delay: calc(.35s + var(--i) * .18s); }
+.sum-prs .pr-shine::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 70%); transform: translateX(-100%); animation: prShine 1s var(--ease-out) forwards; animation-delay: calc(.6s + var(--i) * .18s); }
+@keyframes prShine { to { transform: translateX(100%); } }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }

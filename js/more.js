@@ -29,6 +29,7 @@ const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item
    Gruppe: { id, title, ic, sub, intro?, head?, foot?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
    Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
 let moreSub = (history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
+let moreAnim = null;   // 'fwd' = Gruppe gleitet von rechts herein, 'back' = Übersicht von links
 const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
 const mRow = (html, t, s = '', kw = '', only = '') => ({ t, s, kw, html, only });
 const lastImportDoc = () => Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
@@ -264,6 +265,7 @@ Views.more = {
       <div class="search mt-8"><input class="input" id="moreQ" data-in="moreQ" type="search" placeholder="Einstellungen durchsuchen …" value="${esc(moreQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
       <div id="moreRes">${q ? moreSearchHtml(q) : ''}</div>
       <div id="moreHome" class="${q ? 'hidden' : ''}">${moreHomeHtml(groups)}</div>`;
+    if (moreAnim) { fx(el, 'fx-pg-' + moreAnim); moreAnim = null; }
   },
   // Zurück-Knopf oben, solange eine Gruppe offen ist
   back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
@@ -280,6 +282,7 @@ Views.more = {
 function openMoreSub(id) {
   if (!moreSub) moreScroll = scrollY;
   moreSub = id;
+  moreAnim = 'fwd';
   try { history.pushState({ moreSub: id }, ''); } catch (e) {}
   if (App.tab !== 'more') App.go('more'); else App.renderCurrent();
   window.scrollTo({ top: 0 });
@@ -288,6 +291,7 @@ function closeMoreSub() {
   if (!moreSub) return;
   if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
   moreSub = null;
+  moreAnim = 'back';
   App.renderCurrent();
   window.scrollTo({ top: moreScroll });
 }
@@ -295,7 +299,8 @@ function closeMoreSub() {
 window.addEventListener('popstate', () => {
   if (!moreSub) return;
   moreSub = (history.state && history.state.moreSub) || null;
-  if (App.tab === 'more') { App.renderCurrent(); window.scrollTo({ top: moreSub ? 0 : moreScroll }); }
+  if (App.tab === 'more') {
+    moreAnim = moreSub ? 'fwd' : 'back'; App.renderCurrent(); window.scrollTo({ top: moreSub ? 0 : moreScroll }); }
 });
 Actions.moreSub = el => openMoreSub(el.dataset.v);
 Actions.moreBack = () => closeMoreSub();

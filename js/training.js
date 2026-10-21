@@ -788,6 +788,7 @@ function lastSessionFor(exId, w) {
 const woSimple = () => S().woStyle !== 'detailed';
 function renderActiveWorkout(el, w) {
   const st = liveStats(w);
+  const hBefore = cardHeights(el);
   const focus = S().woView === 'focus' && F('f_focus') && w.entries.length > 0;
   if (woSimple()) {
     el.innerHTML = `
@@ -809,6 +810,8 @@ function renderActiveWorkout(el, w) {
       </div>`;
     updateTopH();
     fxOpenCard(el);
+    animCardHeights(el, hBefore);
+    animWoProgress(el, w, st);
     return;
   }
   el.innerHTML = `
@@ -850,9 +853,45 @@ function renderActiveWorkout(el, w) {
     </div>`;
   updateTopH();
   fxOpenCard(el);
+  animCardHeights(el, hBefore);
+  animWoProgress(el, w, st);
   // Aktuelle Übung in der Leiste sichtbar halten
   const strip = $('#woStrip', el), cur = strip && $('.ws-item.cur', strip);
   if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
+}
+
+/* ---------- Sanfte Übergänge im Workout ---------- */
+/** Übungs-Karten: Höhenänderung (Zu-/Aufklappen, Satz dazu) gleitet statt zu springen */
+const cardHeights = root => Object.fromEntries($$('.ex-card', root).map(c => [c.id, c.offsetHeight]));
+const cardDelta = new Map();   // laufende Animationen: Karten-ID → Höhenunterschied (für scrollToExercise)
+function animCardHeights(root, before) {
+  if (!motionFull()) return;
+  $$('.ex-card', root).forEach(c => {
+    const h0 = before[c.id], h1 = c.offsetHeight;
+    if (h0 == null || Math.abs(h1 - h0) < 3) return;
+    c.style.height = h0 + 'px'; c.style.overflow = 'hidden';
+    void c.offsetHeight;
+    c.style.transition = 'height .34s cubic-bezier(.2, .8, .2, 1)';
+    c.style.height = h1 + 'px';
+    cardDelta.set(c.id, h1 - h0);
+    let t;
+    const end = e => { if (e && e.target !== c) return; clearTimeout(t); c.style.height = c.style.overflow = c.style.transition = ''; cardDelta.delete(c.id); c.removeEventListener('transitionend', end); };
+    c.addEventListener('transitionend', end);
+    t = setTimeout(end, 500);
+  });
+}
+/** Fortschrittsbalken im Workout-Kopf: vom alten Stand weich auf den neuen, bei 100 % einmal aufleuchten */
+let lastWoPct = null;
+function animWoProgress(el, w, st) {
+  const bar = $('.wo-progress i', el);
+  const p = st.total ? st.done / st.total * 100 : 0;
+  const prev = lastWoPct && lastWoPct.id === (w.id || w.startedAt) ? lastWoPct.p : null;
+  lastWoPct = { id: w.id || w.startedAt, p };
+  if (!bar || prev == null || prev === p) return;
+  bar.style.transition = 'none'; bar.style.width = prev + '%';
+  void bar.offsetWidth;
+  bar.style.transition = ''; bar.style.width = p + '%';
+  if (p >= 100 && prev < 100) fx(bar, 'fx-glow');
 }
 
 /** Wechselt die offene Übung (oder die Fokus-Übung), blendet sie sanft ein */
@@ -1409,7 +1448,10 @@ function scrollToExercise(en) {
   const card = $('#ex-' + en.uid);
   const head = $('.wo-head');
   if (!card) return;
-  const top = card.getBoundingClientRect().top + scrollY - (head ? head.getBoundingClientRect().bottom : 120) - 8;
+  // Karten darüber, die gerade noch zu-/aufklappen, schon mit ihrer Endhöhe einrechnen
+  let shift = 0;
+  for (const [id, d] of cardDelta) { const c = document.getElementById(id); if (c && c !== card && (c.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING)) shift += d; }
+  const top = card.getBoundingClientRect().top + shift + scrollY - (head ? head.getBoundingClientRect().bottom : 120) - 8;
   window.scrollTo({ top: Math.max(0, top), behavior: S().motion === 'full' ? 'smooth' : 'auto' });
 }
 /** Nächster offener Satz: erst in derselben Übung, dann in den folgenden, dann von vorn */
@@ -2088,22 +2130,25 @@ function showSummary({ id, doc, prs }) {
   const m = Modal.open({
     title: 'Workout gespeichert',
     body: `<div class="center" style="padding:6px 0 4px">
-        <div class="sum-badge">${icon(real.length ? 'trophy' : 'checkCircle')}</div>
+        <div class="sum-badge sum-draw">${icon(real.length ? 'trophy' : 'checkCircle')}</div>
         <h2 class="mt-8">${esc(doc.planDayName || doc.name)}</h2>
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
-      <div class="pr-grid mt-16">
+      <div class="pr-grid mt-16 fx-stagger">
         <div class="pr-box"><span>Dauer</span><b>${fmtDur(doc.durationSec)}</b></div>
         ${done.length || !ct.n ? `<div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
         <div class="pr-box"><span>Sätze</span><b>${done.length}</b></div>
         <div class="pr-box"><span>Ø RPE</span><b>${rpes.length ? nf(avg(rpes), 1) : '–'}</b></div>` : ''}
         ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
       </div>
-      ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list">${real.map(p => `<div class="list-item"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
+      ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list sum-prs">${real.map((p, i) => `<div class="list-item pr-shine" style="--i:${i}"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
       ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${fmtW(g.kg)} 1RM</span><div class="li-sub">Geschätztes 1RM heute: ${fmtW(g.best, 1)}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
+  // Abschluss-Moment: Haken zeichnet sich, Zahlen zählen hoch, PRs erscheinen nacheinander mit Glanz
+  $$('.sum-draw svg *', m.el).forEach(n => n.setAttribute('pathLength', '1'));
+  countUp($$('.pr-box b', m.el), 900, 150);
   m.el.addEventListener('click', e => {
     const b = e.target.closest('[data-x]');
     if (!b) return;

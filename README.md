@@ -13,6 +13,18 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 > oben privat genutzt werden. Fehler und Ideen gern als [Issue](https://github.com/davidflasch2009/trainio/issues).
 > Kopieren, Verändern, Weitergeben, selbst Hosten oder kommerzielle Nutzung nur mit Erlaubnis – siehe [LICENSE](LICENSE).
 
+## Animationen
+
+Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und „Bewegung reduzieren“
+des Systems:
+- **Tab-Wechsel mit Richtung** (weiter rechts in der Leiste → von rechts, sonst von links); Gruppen im Mehr-Tab
+  gleiten von rechts herein und beim Zurückgehen von links.
+- **Menüs von unten** (Workout starten, ⋯ usw.) lassen sich auf dem Handy nach unten wegwischen.
+- **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss).
+- **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
+  und leuchtet bei 100 % auf; Pausen-Timer mit ablaufendem Ring, die letzten 3 Sekunden pulsieren.
+- **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, neue PRs erscheinen nacheinander mit Glanz.
+
 ## Designs & Darstellung
 
 Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**

@@ -212,9 +212,10 @@ const RestTimer = (() => {
     if (!w || !w.rest) { dock.innerHTML = ''; document.body.classList.remove('has-rest'); return; }
     document.body.classList.add('has-rest');
     // Einblend-Animation nur beim ersten Erscheinen, nicht bei jedem Neu-Rendern
+    const RL = 2 * Math.PI * 17;
     dock.innerHTML = `<div class="rest-dock" id="restBox" ${dock.firstElementChild ? 'style="animation:none"' : ''}>
-      <div class="rest-bar" id="restBar"></div>
       <div class="rest-row">
+        <button class="rest-mini" data-act="restBig" aria-label="Großer Countdown"><svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="17" fill="none" stroke-width="4"/><circle id="restMini" class="ring-fg" cx="20" cy="20" r="17" fill="none" stroke-width="4" stroke-dasharray="${RL}" data-len="${RL}"/></svg></button>
         <button class="rest-time" data-act="restBig" id="restTime" aria-label="Großer Countdown">0:00</button>
         <div class="rest-label"><b>Pause</b><br><span id="restLbl">${esc(w.rest.label)}</span></div>
         <button class="btn btn-sm btn-secondary" data-act="restAdj" data-d="-15">−15</button>
@@ -230,14 +231,19 @@ const RestTimer = (() => {
     const txt = rem > 0 ? fmtClock(Math.ceil(rem)) : '+' + fmtClock(-rem);
     const t = $('#restTime');
     if (t) t.textContent = rem > 0 ? txt : 'Los!';
-    const bar = $('#restBar');
-    if (bar) bar.style.transform = `scaleX(${clamp(rem / w.rest.total, 0, 1)})`;
+    const frac = clamp(rem / w.rest.total, 0, 1);
+    const mini = $('#restMini');
+    if (mini) mini.style.strokeDashoffset = String(mini.dataset.len * (1 - frac));
+    // letzte 3 Sekunden: Zeit und Ring pulsieren im Sekundentakt
+    const ending = rem > 0 && rem <= 3.05;
     const box = $('#restBox');
-    if (box) box.classList.toggle('done', rem <= 0);
+    if (box) { box.classList.toggle('done', rem <= 0); box.classList.toggle('ending', ending); }
+    const bigBox = $('.rest-big');
+    if (bigBox) bigBox.classList.toggle('ending', ending);
     const big = $('#restBigTxt');
     if (big) big.textContent = rem > 0 ? fmtClock(Math.ceil(rem)) : 'Los!';
     const ring = $('#restRing');
-    if (ring) ring.style.strokeDashoffset = String(ring.dataset.len * (1 - clamp(rem / w.rest.total, 0, 1)));
+    if (ring) ring.style.strokeDashoffset = String(ring.dataset.len * (1 - frac));
     if (rem <= 0 && firedFor !== w.rest.endsAt) {
       firedFor = w.rest.endsAt;
       done(w);
