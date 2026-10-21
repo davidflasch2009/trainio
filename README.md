@@ -9,6 +9,10 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 - Mit Firebase: Google-Login + Sync zwischen iPhone und Laptop (Firestore, offline-fähig).
 - Diagramme: Chart.js 4 · PDF-Export: jsPDF 2 · beide lazy per CDN geladen.
 
+> **Lizenz: Alle Rechte vorbehalten.** Der Code ist zum Ansehen öffentlich, und die App darf unter dem Link
+> oben privat genutzt werden. Fehler und Ideen gern als [Issue](https://github.com/davidflasch2009/trainio/issues).
+> Kopieren, Verändern, Weitergeben, selbst Hosten oder kommerzielle Nutzung nur mit Erlaubnis – siehe [LICENSE](LICENSE).
+
 ## Designs & Darstellung
 
 Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
@@ -349,3 +353,9 @@ python -m http.server 8000
 ```
 
 Der Service Worker läuft nur über `http://localhost` oder `https://`, nicht über `file://`.
+
+## Lizenz
+
+Alle Rechte vorbehalten – Details in [LICENSE](LICENSE). Erlaubt sind Ansehen des Codes, private Nutzung der
+App unter https://davidflasch2009.github.io/trainio/ und Issues mit Fehlern oder Vorschlägen; alles andere
+(kopieren, verändern, weitergeben, selbst hosten, kommerziell nutzen) nur mit Erlaubnis.
