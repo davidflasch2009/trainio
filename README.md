@@ -159,6 +159,23 @@ und beim Hinzufügen von Übungen erreichbar.
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
 Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
+## Plan-Analyse
+
+Beim Erstellen/Bearbeiten eines Trainingsplans steht unten eine **Live-Analyse**, die sich bei jeder
+Tag-Zuweisung aktualisiert; „Ganze Analyse" öffnet die Übersicht (auch über Training → „Analyse" oder
+Plan-Menü → „Plan analysieren"). Grundlage sind die geplanten Arbeitssätze der Workouts (ohne Cardio):
+
+- **Push / Pull** – Pull-Sätze ÷ Push-Sätze, ausgewogen 0,8–1,2
+- **Beine / Oberkörper** – Bein-Sätze ÷ (Push + Pull), ausgewogen 0,4–0,8
+- **Frequenz** – an wie vielen Tagen ein Muskel als Hauptmuskel trainiert wird (Brust, Rücken, Schulter,
+  Bizeps, Trizeps, Quadrizeps, Beinbeuger sollten 2× pro Woche vorkommen)
+- **Erholung** – Warnung, wenn derselbe Muskel an zwei Tagen hintereinander je 3+ Sätze bekommt
+  (auch So → Mo; Bauch, Unterarme und Waden ausgenommen)
+- **Umfang & Dauer** – Tage, Sätze, Übungen und Minuten pro Workout; Warnung ohne Ruhetag oder bei
+  Workouts über 25 Sätze bzw. 90 min
+
+Jeder Punkt bekommt ✓ oder ⚠, bei ⚠ mit einem konkreten Tipp (z. B. „Ca. 9 Bein-Sätze mehr pro Woche").
+
 ## Workouts nachträglich bearbeiten
 
 Workout öffnen (z. B. unter „Letzte Workouts") → **Bearbeiten**:

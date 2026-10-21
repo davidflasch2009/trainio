@@ -243,7 +243,7 @@ function renderPlans(el) {
   const td = dowMon(todayDN());
   const next = Analytics.nextPlanDay();
   el.innerHTML = `
-    <div class="section-head" style="margin-top:4px"><h2>Trainingsplan</h2>${p ? `<button class="link-btn" data-act="planEdit" data-id="${esc(p.id)}">Bearbeiten</button>` : ''}</div>
+    <div class="section-head" style="margin-top:4px"><h2>Trainingsplan</h2>${p ? `<span class="row" style="gap:14px"><button class="link-btn" data-act="planAnalyze" data-id="${esc(p.id)}">Analyse</button><button class="link-btn" data-act="planEdit" data-id="${esc(p.id)}">Bearbeiten</button></span>` : ''}</div>
     ${p ? `<div class="card">
         <div class="row between"><b class="ellipsis">${esc(p.name)}</b><span class="small dim">${planDaysCount(p)} Trainingstage</span></div>
         <div class="week-plan mt-12">${p.schedule.map((id, i) => {
@@ -306,11 +306,13 @@ Actions.planMenu = async el => {
   const p = Store.raw('plans', el.dataset.id); if (!p) return;
   const k = await actionMenu(p.name, [
     p.id !== S().activePlanId && { key: 'active', label: 'Als aktiven Plan setzen', icon: 'flag' },
+    { key: 'analyze', label: 'Plan analysieren', icon: 'chart' },
     { key: 'edit', label: 'Bearbeiten', icon: 'edit' },
     { key: 'dup', label: 'Duplizieren', icon: 'copy' },
     { key: 'del', label: 'Löschen', icon: 'trash', danger: true }
   ]);
   if (k === 'active') Actions.planActivate({ dataset: { id: p.id } });
+  else if (k === 'analyze') openPlanAnalysis(p);
   else if (k === 'edit') openScheduleEditor(p);
   else if (k === 'dup') { const id = autoId(); Store.put('plans', id, { ...JSON.parse(JSON.stringify(p)), id: undefined, name: p.name + ' (Kopie)', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true }); toast('Plan dupliziert', 'success'); }
   else if (k === 'del') {
@@ -407,7 +409,8 @@ function openScheduleEditor(plan) {
           <div class="sl-main"><div class="sl-title">${WEEKDAYS[i]}</div></div>
           <select class="select" data-wd="${i}" aria-label="${WEEKDAYS[i]}"><option value="">Ruhetag</option>${tpls.map(t => `<option value="${esc(t.id)}" ${t.id === id ? 'selected' : ''}>${esc(t.name)}</option>`).join('')}</select>
           <button class="btn-icon" data-new="${i}" aria-label="Neues Workout für ${WEEKDAYS[i]}" title="Neues Workout">${icon('plus')}</button>
-        </div>`).join('')}</div>`);
+        </div>`).join('')}</div>
+      ${planSummaryHtml(analyzePlan(draft.schedule))}`);
   };
   render();
   m.body.addEventListener('change', e => { const s = e.target.closest('[data-wd]'); if (s) { draft.schedule[+s.dataset.wd] = s.value || null; render(); } });
@@ -417,6 +420,7 @@ function openScheduleEditor(plan) {
     if (nb) { const wd = +nb.dataset.new; openTemplateEditor(null, { onSave: id => { if (id) draft.schedule[wd] = id; render(); } }); return; }
     const x = e.target.closest('[data-x]'); if (!x) return;
     if (x.dataset.x === 'cancel') return m.close();
+    if (x.dataset.x === 'analyze') return openPlanAnalysis(draft);
     if (!draft.name.trim()) { toast('Bitte einen Namen eingeben', 'warn'); return; }
     if (!draft.schedule.some(id => Tpl.get(id))) { toast('Mindestens einem Tag ein Workout zuweisen', 'warn'); return; }
     const id = plan ? plan.id : autoId();
@@ -426,6 +430,133 @@ function openScheduleEditor(plan) {
     toast('Trainingsplan gespeichert', 'success');
   });
 }
+
+/* ---------- Plan-Analyse: Balance, Frequenz, Erholung, Umfang – aus den geplanten Sätzen ----------
+   Gezählt werden Arbeitssätze (ohne Cardio). Kategorie Push/Pull/Legs wie im Fortschritt-Tab; für Frequenz und
+   Erholung zählt nur der Hauptmuskel der Übung (erster Eintrag), Hilfsmuskeln nicht. */
+const PLAN_MAJOR = ['Brust', 'Rücken', 'Schulter', 'Bizeps', 'Trizeps', 'Quadrizeps', 'Beinbeuger'];
+const PLAN_QUICK = ['Bauch', 'Unterarme', 'Waden'];   // erholen sich schnell – keine Warnung an Folgetagen
+const PLAN_MAX_SETS = 25, PLAN_MAX_MIN = 90;
+const nSets = (n, w) => `${n} ${w}-${n === 1 ? 'Satz' : 'Sätze'}`;
+const nList = a => a.length > 1 ? a.slice(0, -1).join(', ') + ' und ' + a[a.length - 1] : a.join('');
+function analyzePlan(schedule) {
+  const days = (schedule || []).map((id, i) => { const t = Tpl.get(id); return t ? { i, t } : null; }).filter(Boolean);
+  const cats = { Push: 0, Pull: 0, Legs: 0 };
+  const dayMus = Array.from({ length: 7 }, () => ({}));
+  for (const { i, t } of days) for (const x of t.exercises || []) {
+    const e = Ex.get(x.exerciseId), n = +x.sets || 0;
+    if (!e || !n || isCardioId(x.exerciseId)) continue;
+    if (cats[e.category] != null) cats[e.category] += n;
+    const m = (e.muscleGroups || [])[0];
+    if (m) dayMus[i][m] = (dayMus[i][m] || 0) + n;
+  }
+  const push = cats.Push, pull = cats.Pull, legs = cats.Legs, upper = push + pull;
+  const res = { days, push, pull, legs, checks: {} };
+  // Push / Pull: Pull-Sätze ÷ Push-Sätze, ausgewogen 0,8–1,2
+  const pp = push ? pull / push : null;
+  res.checks.pp = !push && !pull ? { ok: null, val: null, text: 'Keine Push- oder Pull-Übungen im Plan.' }
+    : !push ? { ok: false, val: null, tip: 'Keine Push-Übungen – ergänze z. B. Bankdrücken oder Schulterdrücken.' }
+    : { ok: pp >= 0.8 && pp <= 1.2, val: pp,
+      tip: pp < 0.8 ? `Ca. ${nSets(Math.ceil(0.8 * push - pull), 'Pull')} mehr pro Woche (z. B. Rudern, Latzug) – oder weniger Push.`
+        : pp > 1.2 ? `Ca. ${nSets(Math.ceil(pull / 1.2 - push), 'Push')} mehr pro Woche (z. B. Bankdrücken, Schulterdrücken) – oder weniger Pull.` : '' };
+  // Beine / Oberkörper: Bein-Sätze ÷ (Push + Pull), ausgewogen 0,4–0,8
+  const lu = upper ? legs / upper : null;
+  res.checks.lu = !upper && !legs ? { ok: null, val: null, text: 'Keine Oberkörper- oder Beinübungen im Plan.' }
+    : !upper ? { ok: false, val: null, tip: 'Keine Oberkörper-Übungen im Plan.' }
+    : { ok: lu >= 0.4 && lu <= 0.8, val: lu,
+      tip: lu < 0.4 ? `Ca. ${nSets(Math.ceil(0.4 * upper - legs), 'Bein')} mehr pro Woche (z. B. Kniebeuge, Beinbeuger) – oder einen Beintag ergänzen.`
+        : lu > 0.8 ? `Ca. ${nSets(Math.ceil(legs / 0.8 - upper), 'Oberkörper')} mehr pro Woche – oder weniger Beine.` : '' };
+  // Frequenz: an wie vielen Tagen ist ein Muskel Hauptmuskel? Ideal 2× pro Woche
+  const freq = {};
+  MUSCLES.forEach(m => { freq[m] = dayMus.filter(d => d[m]).length; });
+  const once = PLAN_MAJOR.filter(m => freq[m] === 1), none = PLAN_MAJOR.filter(m => !freq[m]);
+  res.freq = freq;
+  res.checks.freq = !days.length ? { ok: null } : { ok: !once.length && !none.length,
+    tip: [once.length ? `${nList(once)} ${once.length > 1 ? 'werden' : 'wird'} nur 1× pro Woche direkt trainiert – verteile die Sätze auf zwei Tage.` : '',
+      none.length ? `${nList(none)} ${none.length > 1 ? 'kommen' : 'kommt'} im Plan nicht als Hauptmuskel vor.` : ''].filter(Boolean).join(' ') };
+  // Erholung: derselbe Muskel mit je ≥ 3 Sätzen an zwei Tagen hintereinander (auch So → Mo)
+  const recov = [];
+  for (let i = 0; i < 7; i++) {
+    const j = (i + 1) % 7;
+    for (const m of Object.keys(dayMus[i])) if (!PLAN_QUICK.includes(m) && dayMus[i][m] >= 3 && (dayMus[j][m] || 0) >= 3) recov.push({ m, a: i, b: j, n: [dayMus[i][m], dayMus[j][m]] });
+  }
+  res.recov = recov;
+  res.checks.recov = !days.length ? { ok: null } : { ok: !recov.length,
+    tip: recov.length ? 'Plane zwischen zwei harten Einheiten für denselben Muskel ca. 48 h Pause ein – tausche die Tage oder lege einen Ruhetag dazwischen.' : '' };
+  // Umfang & Dauer
+  res.per = days.map(({ i, t }) => ({ i, t, ex: (t.exercises || []).length, sets: tplSets(t), min: planDayMinutes(t) }));
+  const long = res.per.filter(d => d.sets > PLAN_MAX_SETS || d.min > PLAN_MAX_MIN);
+  res.sets = sum(res.per.map(d => d.sets)); res.min = sum(res.per.map(d => d.min));
+  res.checks.vol = !days.length ? { ok: null } : { ok: !long.length && days.length < 7,
+    tip: [days.length >= 7 ? 'Kein Ruhetag – plane mindestens einen Tag Pause pro Woche ein.' : '',
+      long.length ? `${nList(long.map(d => `${esc(d.t.name)} (${WD_KURZ[d.i]})`))} ${long.length > 1 ? 'sind' : 'ist'} sehr lang (über ${PLAN_MAX_SETS} Sätze oder ${PLAN_MAX_MIN} min) – auf zwei Tage aufteilen?` : ''].filter(Boolean).join(' ') };
+  return res;
+}
+const PLAN_CHECKS = [['pp', 'Push / Pull'], ['lu', 'Beine / Oberkörper'], ['freq', 'Frequenz'], ['recov', 'Erholung'], ['vol', 'Umfang']];
+const paMark = ok => ok == null ? '<span class="pa-mark na">–</span>' : ok ? `<span class="pa-mark ok">${icon('check')}</span>` : `<span class="pa-mark warn">${icon('warn')}</span>`;
+/** Kurzfassung im Plan-Editor – aktualisiert sich bei jeder Änderung */
+function planSummaryHtml(a) {
+  if (!a.days.length) return `<div class="card plan-sum mt-12"><p class="small dim">Weise den Tagen Workouts zu – dann erscheint hier die Plan-Analyse.</p></div>`;
+  const c = a.checks;
+  return `<div class="card plan-sum mt-12">
+    <div class="row between"><b>Analyse</b><span class="small dim">${a.sets} Sätze · ca. ${nf(a.min / 60, 1)} h pro Woche</span></div>
+    <div class="pa-pills mt-8">${PLAN_CHECKS.map(([k, l]) => `<span class="pa-pill ${c[k].ok == null ? '' : c[k].ok ? 'ok' : 'warn'}">${paMark(c[k].ok)}${l}${c[k].val != null ? ` <b>${nf(c[k].val, 2)}</b>` : ''}</span>`).join('')}</div>
+    <button class="btn btn-secondary btn-sm btn-block mt-12" data-x="analyze">${icon('chart')} Ganze Analyse ${icon('chevR')}</button>
+  </div>`;
+}
+/** Waagerechte Skala mit erlaubtem Bereich (gestrichelt) und Markierung für den Plan-Wert */
+function paGauge(v, lo, hi, max, ok) {
+  const pc = x => Math.max(0, Math.min(100, x / max * 100));
+  return `<div class="pa-gauge ${ok ? '' : 'warn'}"><i style="left:${pc(lo)}%;width:${pc(hi) - pc(lo)}%"></i>${v != null ? `<b style="left:${pc(v)}%"></b>` : ''}</div>
+    <div class="pa-ticks tiny faint"><span style="left:0">0</span><span style="left:${pc(lo)}%">${nf(lo, 1)}</span><span style="left:${pc(hi)}%">${nf(hi, 1)}</span><span style="left:100%">${nf(max, 1)}</span></div>`;
+}
+function openPlanAnalysis(plan) {
+  const a = analyzePlan(plan && plan.schedule);
+  const c = a.checks;
+  const head = (k, l, extra = '') => `<div class="row between"><b>${l}</b><span class="row" style="gap:8px">${extra}${paMark(c[k].ok)}</span></div>`;
+  const tip = k => c[k].tip ? `<p class="small pa-tip mt-8">${icon('info')} ${c[k].tip}</p>` : c[k].text ? `<p class="small dim mt-8">${c[k].text}</p>` : '';
+  const freqChips = MUSCLES.filter(m => a.freq[m] || PLAN_MAJOR.includes(m)).sort((x, y) => a.freq[y] - a.freq[x])
+    .map(m => `<span class="pa-chip ${a.freq[m] >= 2 ? 'ok' : a.freq[m] ? 'low' : 'none'}">${esc(m)} <b>${a.freq[m]}×</b></span>`).join('');
+  Modal.open({ title: `Analyse: ${(plan && plan.name) || 'Trainingsplan'}`, size: 'lg',
+    body: !a.days.length ? emptyState('calendar', 'Noch keine Trainingstage', 'Weise den Wochentagen Workouts zu, dann kann der Plan analysiert werden.') : `
+      <div class="week-plan">${(plan.schedule || []).map((id, i) => { const t = Tpl.get(id); return `<div class="wp-day ${t ? 'has' : ''}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></div>`; }).join('')}</div>
+      <p class="small dim mt-12">${a.days.length} Trainingstage · ${7 - a.days.length} Ruhetage · ${a.sets} Sätze · ca. ${nf(a.min / 60, 1)} h pro Woche</p>
+
+      <div class="section-head"><h4>Balance</h4></div>
+      <div class="card">
+        ${head('pp', 'Push / Pull', c.pp.val != null ? `<span class="pa-val">${nf(c.pp.val, 2)}</span>` : '')}
+        <div class="small dim">${a.pull} Pull-Sätze / ${a.push} Push-Sätze pro Woche · ausgewogen 0,8–1,2</div>
+        ${c.pp.val != null ? paGauge(c.pp.val, 0.8, 1.2, 2, c.pp.ok) : ''}${tip('pp')}
+      </div>
+      <div class="card mt-12">
+        ${head('lu', 'Beine / Oberkörper', c.lu.val != null ? `<span class="pa-val">${nf(c.lu.val, 2)}</span>` : '')}
+        <div class="small dim">${a.legs} Bein-Sätze / ${a.push + a.pull} Oberkörper-Sätze pro Woche · ausgewogen 0,4–0,8</div>
+        ${c.lu.val != null ? paGauge(c.lu.val, 0.4, 0.8, 1.5, c.lu.ok) : ''}${tip('lu')}
+      </div>
+
+      <div class="section-head"><h4>Frequenz & Erholung</h4></div>
+      <div class="card">
+        ${head('freq', 'Frequenz')}
+        <div class="small dim">An wie vielen Tagen pro Woche ein Muskel direkt (als Hauptmuskel) trainiert wird – ideal 2×.</div>
+        <div class="pa-chips mt-8">${freqChips}</div>${tip('freq')}
+      </div>
+      <div class="card mt-12">
+        ${head('recov', 'Erholung')}
+        ${a.recov.length ? `<div class="col mt-8" style="gap:4px">${a.recov.map(r => `<div class="small"><b>${esc(r.m)}</b> <span class="dim">${WD_KURZ[r.a]} → ${WD_KURZ[r.b]} (${r.n[0]} + ${r.n[1]} Sätze)</span></div>`).join('')}</div>`
+          : '<div class="small dim">Kein Muskel wird an zwei Tagen hintereinander hart belastet (je 3+ Sätze).</div>'}${tip('recov')}
+      </div>
+
+      <div class="section-head"><h4>Umfang & Dauer</h4></div>
+      <div class="card">
+        ${head('vol', 'Umfang')}
+        <table class="tbl mt-8"><thead><tr><th>Tag</th><th>Workout</th><th class="r">Übungen</th><th class="r">Sätze</th><th class="r">min</th></tr></thead><tbody>
+          ${a.per.map(d => `<tr class="${d.sets > PLAN_MAX_SETS || d.min > PLAN_MAX_MIN ? 'pa-long' : ''}"><td>${WD_KURZ[d.i]}</td><td>${esc(d.t.name)}</td><td class="r">${d.ex}</td><td class="r">${d.sets}</td><td class="r">${d.min}</td></tr>`).join('')}
+          <tr class="pa-sum"><td colspan="2">Ø pro Workout</td><td class="r">${nf(avg(a.per.map(d => d.ex)), 1)}</td><td class="r">${nf(avg(a.per.map(d => d.sets)), 1)}</td><td class="r">${Math.round(avg(a.per.map(d => d.min)))}</td></tr>
+        </tbody></table>${tip('vol')}
+      </div>
+      <p class="tiny faint mt-12">Grundlage sind die geplanten Arbeitssätze deiner Workouts (ohne Cardio). Hilfsmuskeln zählen für Frequenz und Erholung nicht mit.</p>` });
+}
+Actions.planAnalyze = el => openPlanAnalysis(Store.raw('plans', el.dataset.id));
 
 /* Eigenes Workout: Übungen aus der Bibliothek wählen → sofort starten */
 Actions.composeWorkout = async () => {
