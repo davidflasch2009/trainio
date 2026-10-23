@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.25.3',
+  version: '1.26.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -310,7 +310,19 @@ function linReg(points) {
   const res = sum(points.map(p => (p.y - (slope * p.x + intercept)) ** 2));
   return { slope, intercept, r2: tot ? 1 - res / tot : 1 };
 }
-const vibrate = p => { try { if (S().haptics !== false && navigator.vibrate) navigator.vibrate(p); } catch (e) {} };
+/* iPhone: Web-Apps können nicht vibrieren – ab iOS 18 erzeugt das Umschalten eines (unsichtbaren) iOS-Schalters
+   ein kurzes Tippen. Wirkt nur direkt nach einer Berührung (z. B. Haken setzen), sonst passiert einfach nichts. */
+const isIOSDevice = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function iosTap() {
+  const l = document.createElement('label'), i = document.createElement('input');
+  l.setAttribute('aria-hidden', 'true'); l.style.display = 'none';
+  i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1;
+  // nicht bis zu den App-Klick-Handlern durchreichen (Popover/Dropdown schließen …)
+  const stop = e => e.stopPropagation();
+  l.addEventListener('click', stop); l.addEventListener('change', stop); l.addEventListener('input', stop);
+  l.appendChild(i); document.head.appendChild(l); l.click(); l.remove();
+}
+const vibrate = p => { try { if (S().haptics === false) return; if (navigator.vibrate) navigator.vibrate(p); else if (isIOSDevice) iosTap(); } catch (e) {} };
 
 /* ---------- Icons (inline SVG) ---------- */
 const ICONS = {

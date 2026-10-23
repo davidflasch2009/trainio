@@ -14,7 +14,7 @@ function setLine(title, sub, control) {
 }
 function toggleCtl(key, extra = '') {
   const on = key.startsWith('f_') ? S()[key] !== false : !!S()[key];
-  return `<label class="switch"><input type="checkbox" data-ch="setToggle" data-k="${key}" ${on ? 'checked' : ''} ${extra} aria-label="${key}"><span></span></label>`;
+  return `<label class="switch"><input type="checkbox" switch data-ch="setToggle" data-k="${key}" ${on ? 'checked' : ''} ${extra} aria-label="${key}"><span></span></label>`;
 }
 function segCtl(key, opts) {
   return `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(S()[key]) === String(v) ? 'active' : ''}" data-act="setSeg" data-k="${key}" data-v="${v}">${l}</button>`).join('')}</div>`;
@@ -160,7 +160,7 @@ function moreGroups() {
 function lookGroup(s) {
   const D = designOf(s.design);
   const seg = (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-act="lookSet" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
-  const sw = (k, label) => `<label class="switch"><input type="checkbox" data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`;
+  const sw = (k, label) => `<label class="switch"><input type="checkbox" switch data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`;
   const st = (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(t, sub, ctl) });
   const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
   const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
@@ -208,7 +208,7 @@ function lookGroup(s) {
         st('Beim Öffnen', 'Welcher Tab zuerst erscheint', seg('startTab', [['start', 'Start'], ['training', 'Training'], ['last', 'Zuletzt']]), 'start tab')]],
       ['Bewegung & Feedback', [
         st('Animationen', '', seg('motion', [['full', 'Voll'], ['reduced', 'Reduziert'], ['off', 'Aus']]), 'bewegung'),
-        tg('haptics', 'Vibration', 'Kurzes Feedback bei Satz & Pause (Android)', 'haptik'),
+        tg('haptics', 'Vibration', 'Kurzes Feedback bei Satz, Pause & Schaltern (iPhone ab iOS 18)', 'haptik vibrieren'),
         tg('confetti', 'Konfetti bei neuen PRs', '', 'rekord feiern')]],
       ['Startseite', [
         tg('homeStats', 'Statistik-Kacheln', '', 'start'),
@@ -363,6 +363,7 @@ Views.more = {
       r.scrollLeft = r.dataset.row in keep ? keep[r.dataset.row] : a ? a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2 : 0;
     });
     if (moreAnim) { fx(el, 'fx-pg-' + moreAnim); moreAnim = null; }
+    Motion.topTitle(g ? g.title : '');
   },
   // Zurück-Knopf oben, solange eine Gruppe offen ist
   back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
@@ -378,26 +379,24 @@ Views.more = {
 };
 function openMoreSub(id) {
   if (!moreSub) moreScroll = scrollY;
-  moreSub = id;
-  moreAnim = 'fwd';
   try { history.pushState({ moreSub: id }, ''); } catch (e) {}
-  if (App.tab !== 'more') App.go('more'); else App.renderCurrent();
-  window.scrollTo({ top: 0 });
+  if (App.tab !== 'more') { moreSub = id; moreAnim = Motion.can() ? null : 'fwd'; App.go('more'); window.scrollTo({ top: 0 }); return; }
+  moreAnim = Motion.can() || Motion.quiet ? null : 'fwd';
+  Motion.go('push', () => { moreSub = id; App.renderCurrent(); window.scrollTo({ top: 0 }); });
 }
 function closeMoreSub() {
   if (!moreSub) return;
   if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
-  moreSub = null;
-  moreAnim = 'back';
-  App.renderCurrent();
-  window.scrollTo({ top: moreScroll });
+  moreAnim = Motion.can() || Motion.quiet ? null : 'back';
+  Motion.go('pop', () => { moreSub = null; App.renderCurrent(); window.scrollTo({ top: moreScroll }); });
 }
 // Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
 window.addEventListener('popstate', () => {
   if (!moreSub) return;
-  moreSub = (history.state && history.state.moreSub) || null;
-  if (App.tab === 'more') {
-    moreAnim = moreSub ? 'fwd' : 'back'; App.renderCurrent(); window.scrollTo({ top: moreSub ? 0 : moreScroll }); }
+  const next = (history.state && history.state.moreSub) || null;
+  if (App.tab !== 'more') { moreSub = next; return; }
+  moreAnim = Motion.can() || Motion.quiet ? null : next ? 'fwd' : 'back';
+  Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); window.scrollTo({ top: next ? 0 : moreScroll }); });
 });
 Actions.moreSub = el => openMoreSub(el.dataset.v);
 Actions.moreBack = () => closeMoreSub();

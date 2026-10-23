@@ -785,7 +785,7 @@ function openGoalEditor(ei) {
           <div class="ge-quick" style="width:100%">${(type === 'sec' ? [[30], [45], [60], [90]] : [[5], [8], [10], [12], [6, 8], [8, 12], [12, 15]]).map(([a, b]) => `<button data-q="${a}-${b || ''}">${a}${b ? '–' + b : ''}</button>`).join('')}</div></div>
         <div class="ge-row"><div class="ge-l"><b>${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</b><small>Schritt ${nf(S().weightSteps, 2)} ${unit()}</small></div>${stepper('w', st.w != null ? String(st.w).replace('.', ',') : '', 'Gewicht')}</div>
         <div class="ge-row"><div class="ge-l"><b>Pause</b><small>nach jedem Satz</small></div>${stepper('rest', fmtClock(st.rest), 'Pause')}</div>
-        <div class="ge-row"><div class="ge-l"><b>Für alle offenen Sätze übernehmen</b><small>Gewicht & ${bName} eintragen</small></div><label class="switch"><input type="checkbox" id="geApply" ${st.apply ? 'checked' : ''}><span></span></label></div>
+        <div class="ge-row"><div class="ge-l"><b>Für alle offenen Sätze übernehmen</b><small>Gewicht & ${bName} eintragen</small></div><label class="switch"><input type="checkbox" switch id="geApply" ${st.apply ? 'checked' : ''}><span></span></label></div>
       </div>
       <label class="field mt-12"><span>Notiz zur Übung</span><input class="input" id="geNote" value="${esc(st.note)}" placeholder="z. B. Sitzhöhe 4, enger Griff"></label>`;
     let saved = false;

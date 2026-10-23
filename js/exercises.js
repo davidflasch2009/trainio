@@ -200,7 +200,7 @@ Actions.openWarmupCfg = () => {
           <button class="btn-icon" data-wdel="${i}" aria-label="Entfernen">${icon('x')}</button>
         </div>`).join('') || '<div class="list-item dim small">Keine Aufwärmsätze</div>'}</div>
       <button class="btn btn-secondary btn-block mt-8" data-wadd ${steps.length >= 6 ? 'disabled' : ''}>${icon('plus')} Satz hinzufügen</button>
-      <div class="list mt-12">${setLine('Zuerst leere Stange', `Bei Langhantel: ${wNum(S().barKg)} ${unit()} × 10`, `<label class="switch"><input type="checkbox" id="wuBar" ${bar ? 'checked' : ''}><span></span></label>`)}</div>`);
+      <div class="list mt-12">${setLine('Zuerst leere Stange', `Bei Langhantel: ${wNum(S().barKg)} ${unit()} × 10`, `<label class="switch"><input type="checkbox" switch id="wuBar" ${bar ? 'checked' : ''}><span></span></label>`)}</div>`);
   };
   draw();
   m.el.addEventListener('change', e => { if (e.target.id === 'wuBar') bar = e.target.checked; });
@@ -497,7 +497,7 @@ function openExerciseForm(ex, preset = {}) {
         ${Ex.type(d) === 'cardio' ? `<div class="field"><span>Cardio-Felder</span>
           <div class="seg">${Object.entries({ dist: 'Dauer + Distanz', level: 'Dauer + Stufe', time: 'Nur Dauer' }).map(([k, l]) => `<button data-cm="${k}" class="${cardioInfo(d).mode === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>` : ''}
         <div class="list"><div class="set-line"><div class="sl-main"><div class="sl-title">Einseitig (links & rechts)</div><div class="sl-sub">Wdh. für jede Seite getrennt erfassen – z. B. Bulgarian Split Squat, einarmiges Rudern</div></div>
-          <label class="switch"><input type="checkbox" data-uni ${Ex.isUni(d) ? 'checked' : ''} aria-label="Einseitig"><span></span></label></div></div>
+          <label class="switch"><input type="checkbox" switch data-uni ${Ex.isUni(d) ? 'checked' : ''} aria-label="Einseitig"><span></span></label></div></div>
         <div class="field"><span>Muskelgruppen</span>
           <div class="muscle-pick">${[...MUSCLES, 'Ausdauer'].map(mg => `<button class="chip soft ${d.muscleGroups.includes(mg) ? 'active' : ''}" data-m="${esc(mg)}">${esc(mg)}</button>`).join('')}</div></div>
         <label class="field"><span>Technik-Notiz</span><textarea class="textarea" data-f="notes" placeholder="1 Satz Technik-Tipp">${esc(d.notes || '')}</textarea></label>

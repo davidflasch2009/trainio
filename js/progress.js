@@ -1521,7 +1521,7 @@ Actions.bwImport = () => {
         <div class="mt-8">${sparkline(ks.map(toU), cssVar('--accent'))}</div>
       </div>
       ${dup ? `<label class="set-line mt-8" style="padding:8px 0"><div class="sl-main"><div class="sl-title">${dup} ${dup === 1 ? 'Tag' : 'Tage'} schon vorhanden</div><div class="sl-sub">Aus: überspringen · An: mit Werten aus der Datei überschreiben</div></div>
-        <span class="switch"><input type="checkbox" id="bwiOver" aria-label="Vorhandene überschreiben"><span></span></span></label>` : ''}`;
+        <span class="switch"><input type="checkbox" switch id="bwiOver" aria-label="Vorhandene überschreiben"><span></span></span></label>` : ''}`;
     const label = n => { go.disabled = !n; go.innerHTML = n ? `${icon('check')} ${n} importieren` : 'Alles schon vorhanden'; };
     label(parsed.rows.length - dup);
     const over = $('#bwiOver', m.el);

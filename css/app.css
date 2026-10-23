@@ -1687,3 +1687,73 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
 }
+
+/* ==========================================================================
+   Bewegung wie iOS: Seitenübergänge, Sheets, Rückfragen, Karten-Stapel, Zurück-Wischen (js/motion.js)
+   ========================================================================== */
+:root { --ease-ios: cubic-bezier(.32, .72, 0, 1); }
+
+/* Seitenübergänge (View Transitions): Leisten bleiben stehen, nur der Inhalt wechselt.
+   Tippen geht während des Übergangs direkt an die neue Seite. */
+#bottomNav { view-transition-name: nav; }
+.sidebar { view-transition-name: sidebar; }
+.topbar { view-transition-name: topbar; }
+.rest-dock { view-transition-name: rest; }
+::view-transition { pointer-events: none; }
+::view-transition-group(*) { animation-duration: .34s; animation-timing-function: var(--ease-ios); }
+/* Tab-Wechsel: alter Inhalt blendet weich aus, neuer ein */
+:root[data-vt="tab"]::view-transition-old(root) { animation: vtFadeOut .16s ease-out both; }
+:root[data-vt="tab"]::view-transition-new(root) { animation: vtFadeIn .26s ease-out .04s both; }
+@keyframes vtFadeOut { to { opacity: 0; } }
+@keyframes vtFadeIn { from { opacity: 0; } }
+/* Unterseite (Push): neue Seite schiebt sich von rechts darüber, die alte weicht nach links aus – zurück umgekehrt */
+:root:is([data-vt="push"], [data-vt="pop"])::view-transition-old(root),
+:root:is([data-vt="push"], [data-vt="pop"])::view-transition-new(root) { mix-blend-mode: normal; animation-duration: .44s; animation-timing-function: var(--ease-ios); animation-fill-mode: both; }
+:root[data-vt="push"]::view-transition-old(root) { animation-name: vtBehind; }
+:root[data-vt="push"]::view-transition-new(root) { animation-name: vtFromRight; }
+:root[data-vt="pop"]::view-transition-old(root) { animation-name: vtToRight; z-index: 1; }
+:root[data-vt="pop"]::view-transition-new(root) { animation-name: vtFromBehind; }
+@keyframes vtBehind { to { transform: translateX(-28%); opacity: .6; } }
+@keyframes vtFromBehind { from { transform: translateX(-28%); opacity: .6; } }
+@keyframes vtFromRight { from { transform: translateX(100%); } }
+@keyframes vtToRight { to { transform: translateX(100%); } }
+
+/* Sheets: Kurve wie iOS, Schließen etwas schneller */
+.modal { transition: transform .5s var(--ease-ios); }
+.modal-backdrop { transition: opacity .3s; }
+.modal-wrap.closing .modal { transition-duration: .32s; }
+@media (min-width: 700px) {
+  .modal { transition: transform .3s var(--ease-ios), opacity .2s; }
+}
+
+/* Rückfragen als iOS-Alert: mittig, springen weich auf */
+.modal-wrap:has(> .modal.alert) { align-items: center; padding: 24px; }
+.modal.alert { width: min(100%, 340px); max-width: 340px; border-radius: calc(20px * var(--rs)); border-bottom: var(--bw) solid var(--border);
+  transform: scale(1.1); opacity: 0; transition: transform .34s var(--ease-ios), opacity .2s ease-out; }
+.modal-wrap.open .modal.alert { transform: none; opacity: 1; }
+.modal-wrap.closing .modal.alert { transform: scale(.97); opacity: 0; transition-duration: .2s; }
+.modal.alert .modal-head::before { display: none; }
+.modal.alert .modal-foot { padding-bottom: 12px; border-radius: 0 0 calc(20px * var(--rs)) calc(20px * var(--rs)); }
+.modal.alert .alert-stack { display: flex; flex-direction: column-reverse; gap: 8px; width: 100%; }
+
+/* Karten-Stapel (Handy): hinter einem Menü wird die Seite etwas kleiner, rundherum dunkel */
+:root:has(body:is(.sheet-stack, .sheet-unstack)), body:is(.sheet-stack, .sheet-unstack) { background: #000; }
+body:is(.sheet-stack, .sheet-unstack) :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
+body.sheet-stack :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transform: scale(.93); }
+body:is(.sheet-stack, .sheet-unstack) #app { background: var(--bg); }
+body.sheet-stack #app { border-radius: 14px; }
+[data-design="glass"] body:is(.sheet-stack, .sheet-unstack) #app { background: transparent; }
+[data-design="glass"] body:is(.sheet-stack, .sheet-unstack)::before { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
+[data-design="glass"] body.sheet-stack::before { transform: scale(.93); border-radius: 14px; }
+
+/* Kleiner Titel in der Leiste, sobald der große Titel weggescrollt ist */
+.topbar-mini { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); max-width: 52%; line-height: 36px; font-weight: var(--fw-b); font-size: calc(16px * var(--fs));
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s; pointer-events: none; }
+.topbar.show-title .topbar-mini { opacity: 1; }
+
+/* Zurück-Wischen vom linken Rand: Seite folgt dem Finger, dahinter die vorige Seite */
+#view.edge-drag { position: relative; z-index: 2; background: var(--bg); min-height: 100dvh; box-shadow: -14px 0 34px rgba(0, 0, 0, .22); will-change: transform; }
+.edge-under { position: fixed; inset: 0; z-index: 1; overflow: hidden; background: var(--bg); pointer-events: none; will-change: transform; }
+[data-design="glass"] :is(#view.edge-drag, .edge-under) { background: var(--wall), var(--bg); background-attachment: fixed; }
+.edge-under::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--shade, .12); }
+:is(#view, .edge-under).edge-anim { transition: transform .3s var(--ease-ios); }

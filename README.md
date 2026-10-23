@@ -65,11 +65,20 @@ schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurze
 
 ## Animationen
 
-Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und „Bewegung reduzieren“
-des Systems:
-- **Tab-Wechsel mit Richtung** (weiter rechts in der Leiste → von rechts, sonst von links); Gruppen im Mehr-Tab
-  gleiten von rechts herein und beim Zurückgehen von links.
-- **Menüs von unten** (Workout starten, ⋯ usw.) lassen sich auf dem Handy nach unten wegwischen.
+Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und
+„Bewegung reduzieren“ des Systems:
+- **Tab-Wechsel:** Der alte Inhalt blendet weich aus, der neue ein; Tab-Leiste und obere Leiste bleiben stehen
+  (View Transitions – ältere Browser: Einblenden mit Richtung wie früher).
+- **Unterseiten wie iOS:** Gruppen im Mehr-Tab (und die Übungs-Bibliothek über Mehr) schieben sich von rechts
+  über die Übersicht, die nach links ausweicht; zurück umgekehrt. Ist der große Titel weggescrollt, steht er klein
+  in der oberen Leiste. In der installierten iPhone-App: **vom linken Rand nach rechts wischen** = zurück, die Seite
+  folgt dem Finger, dahinter ist die Übersicht zu sehen.
+- **Menüs von unten** (Workout starten, ⋯ usw.) gleiten mit der iOS-Kurve herein; auf dem Handy wird die Seite
+  dahinter etwas kleiner und rundherum dunkel (Karten-Stapel). Nach unten wegwischen schließt sie.
+- **Rückfragen** („Workout beenden?“, „Löschen?“ …) erscheinen mittig wie iOS-Alerts; bei langen Beschriftungen
+  stehen die Knöpfe untereinander.
+- **Haptik auf dem iPhone:** Web-Apps können dort nicht vibrieren – ab iOS 18 gibt ein unsichtbarer iOS-Schalter
+  ein kurzes Tippen (Satz abhaken, Stepper, Schalter in den Einstellungen). Abschaltbar über „Vibration“.
 - **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss).
 - **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
   und leuchtet bei 100 % auf; Pausen-Timer mit ablaufendem Ring, die letzten 3 Sekunden pulsieren.

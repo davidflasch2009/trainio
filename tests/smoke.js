@@ -107,6 +107,8 @@ async function mobileFlow(page) {
   // Workout über „Workout starten" → heutiges Plan-Workout
   await page.click('#bottomNav [data-tab="start"]');
   await page.click('[data-act="startSheet"]');
+  await pause(page, 100);
+  check(await page.evaluate(() => document.body.classList.contains('sheet-stack')), 'Menü von unten: Seite dahinter wird kleiner (Karten-Stapel)');
   await page.click('.modal .am-featured');
   await pause(page, 400);
   check(await page.evaluate(() => { const w = Workout.cur(); return w && w.name === 'Push' && w.entries.length === 2; }), 'Workout „Push" startet mit 2 Übungen');
@@ -132,6 +134,7 @@ async function mobileFlow(page) {
 
   // Workout beenden → speichern, Zusammenfassung mit Score
   await page.click('[data-act="woFinish"] >> visible=true');
+  check(await page.evaluate(() => !!document.querySelector('.modal.alert')), 'Rückfrage erscheint als Alert');
   await page.click('.modal [data-x="ok"]');
   await pause(page, 600);
   const saved = await page.evaluate(() => { const w = Store.all('workouts'); return { n: w.length, cur: !!Workout.cur(), sets: w[0] && w[0].entries[0].sets.filter(s => s.done).length, modal: !!document.querySelector('.modal'), score: w[0] && Analytics.score(w[0].id) }; });

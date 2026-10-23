@@ -139,10 +139,12 @@ const Modal = (() => {
         f.innerHTML = html;
       }
     };
+    m.alert = /\balert\b/.test(cls);
     $('.modal-backdrop', wrap).addEventListener('click', () => close(m));
     $('[data-modal-close]', wrap).addEventListener('click', () => close(m));
-    sheetSwipe(m);
+    if (!m.alert) sheetSwipe(m);
     stack.push(m);
+    Motion.stack(stack.some(x => !x.alert));
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
     return m;
   }
@@ -187,9 +189,11 @@ const Modal = (() => {
     const i = stack.indexOf(m);
     if (i >= 0) stack.splice(i, 1);
     m.wrap.classList.remove('open');
+    m.wrap.classList.add('closing');
     if (typeof Charts !== 'undefined') Charts.destroyIn(m.wrap);
-    setTimeout(() => m.wrap.remove(), 260);
+    setTimeout(() => m.wrap.remove(), 340);
     if (!stack.length) document.body.classList.remove('modal-open');
+    Motion.stack(stack.some(x => !x.alert));
     if (m.onClose) m.onClose(value);
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && stack.length) close(stack[stack.length - 1]); });
@@ -200,12 +204,13 @@ const Modal = (() => {
 function confirmDialog({ title, text = '', html = '', okLabel = 'OK', cancelLabel = 'Abbrechen', danger = false, requireText = null }) {
   return new Promise(resolve => {
     let result = false;
+    const tall = okLabel.length + cancelLabel.length > 22;   // lange Beschriftungen: Knöpfe untereinander (wie iOS), Abbrechen unten
     const m = Modal.open({
-      title, size: 'sm',
+      title, size: 'sm', cls: 'alert',
       body: `${text ? `<p class="dim">${esc(text)}</p>` : ''}${html}
         ${requireText ? `<div class="field mt-16"><span>Zur Bestätigung „${esc(requireText)}" eintippen</span><input class="input" id="cfmInput" autocomplete="off" autocapitalize="characters"></div>` : ''}`,
-      foot: `<button class="btn btn-secondary" data-x="cancel">${esc(cancelLabel)}</button>
-             <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-x="ok" ${requireText ? 'disabled' : ''}>${esc(okLabel)}</button>`,
+      foot: `${tall ? '<div class="alert-stack">' : ''}<button class="btn btn-secondary" data-x="cancel">${esc(cancelLabel)}</button>
+             <button class="btn ${danger ? 'btn-danger' : 'btn-primary'}" data-x="ok" ${requireText ? 'disabled' : ''}>${esc(okLabel)}</button>${tall ? '</div>' : ''}`,
       onClose: () => resolve(result)
     });
     m.el.addEventListener('click', e => {
@@ -716,17 +721,23 @@ const App = {
     // Richtung für die Einblendung: Tab weiter rechts in der Leiste → von rechts, sonst von links
     const order = visibleTabs().map(t => t[0]), from = order.indexOf(this.tab), to = order.indexOf(tab);
     const dir = from < 0 || to < 0 || to > from ? 'fwd' : 'back';
-    this.tab = tab;
-    UI.tab = tab;
-    saveUI();
-    $('#popover').hidden = true;
-    this.renderCurrent();
-    if (changed) {
-      window.scrollTo({ top: 0 });
-      fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
-      fx($('#tab-' + tab), 'fx-pg-' + dir);
-      countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
-    }
+    // Bibliothek über „Mehr" öffnen/schließen wirkt wie eine Unterseite (iOS-Push), sonst Tab-Wechsel
+    const kind = !changed ? null : tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : 'tab';
+    const quiet = Motion.quiet, vt = changed && Motion.can();
+    const apply = () => {
+      this.tab = tab;
+      UI.tab = tab;
+      saveUI();
+      $('#popover').hidden = true;
+      this.renderCurrent();
+      if (changed) {
+        window.scrollTo({ top: 0 });
+        fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
+        if (!vt && !quiet) fx($('#tab-' + tab), 'fx-pg-' + dir);
+        countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
+      }
+    };
+    if (changed) Motion.go(kind, apply); else apply();
   },
   renderAll() {
     this.renderCurrent();
