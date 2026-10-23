@@ -64,20 +64,20 @@ des Systems:
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung** gibt es 6 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit):
 
 | Design | Look |
 | --- | --- |
 | Trainio | Ruhiges Graphit mit gedecktem Grün – klar und professionell (Standard) |
 | Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
-| Lernio | Petrol & IBM Plex – passend zur Lernio-App |
-| Mono | Schwarz-Weiß, OLED-schwarz bzw. papierweiß |
-| Brutal | Neo-Brutalismus: dicke Kanten, harte Schatten, Sticker-Farben |
-| Soft | Weiche Schatten, alles rund |
 | Iron | Industrial-Gym: Stahl, Orange, Condensed-Schrift |
-| Neon | Synthwave mit Glow & Raster |
-| Terminal | Monospace, Phosphor-Grün / Papier |
+| Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
+| Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
+| Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
+
+Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
+hat, landet automatisch bei Trainio.
 
 Dazu einstellbar: Akzentfarbe (12 Vorgaben oder eigene Farbe – Kontrast wird automatisch
 angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, hoher Kontrast,

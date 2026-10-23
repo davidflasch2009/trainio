@@ -39,6 +39,8 @@ async function boot() {
   if (S().progPeriod && S().progPeriod !== 'last') UI.period = S().progPeriod;
   // Icon über „Auf dem Home-Bildschirm übernehmen" gewählt (?icon=N) → als Einstellung merken
   if (window.__iconFromUrl && window.__iconFromUrl !== S().appIcon) Store.saveSettings({ appIcon: window.__iconFromUrl });
+  // Entfernte Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) → Trainio
+  if (!DESIGNS.some(d => d.id === S().design)) { Store.saveSettings({ design: 'gymlog' }); applyTheme(); }
   App.renderCurrent();
   fx($('#tab-' + App.tab), 'fx-up');
   countUp($$(`#tab-${App.tab} :is(${COUNT_SEL})`));

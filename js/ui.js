@@ -443,25 +443,19 @@ const WakeLock = (() => {
 /* ---------- Darstellung: Designs × Hell/Dunkel, Akzent, Feinschliff ---------- */
 const GF = 'https://fonts.googleapis.com/css2?display=swap&family=';
 const DESIGN_FONTS = {
-  lernio: GF + 'Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700;12..96,800&family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600;700',
-  brutal: GF + 'Space+Grotesk:wght@400;500;600;700',
-  soft: GF + 'Nunito:wght@400;600;700;800;900',
   iron: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700',
-  neon: GF + 'Orbitron:wght@600;700;800',
-  terminal: GF + 'JetBrains+Mono:wght@400;500;700;800'
+  carbon: GF + 'Titillium+Web:wght@400;600;700',
+  paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600'
 };
 const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben) */
 const DESIGNS = [
-  { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#15171b', light: '#ffffff' } },
+  { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#141518', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
-  { id: 'lernio', name: 'Lernio', desc: 'Petrol & IBM Plex – wie deine Lernio-App', surf: { dark: '#151f1e', light: '#ffffff' } },
-  { id: 'mono', name: 'Mono', desc: 'Schwarz-Weiß, OLED-schwarz & papierweiß', surf: { dark: '#0b0b0b', light: '#ffffff' } },
-  { id: 'brutal', name: 'Brutal', desc: 'Dicke Kanten, harte Schatten, Sticker-Farben', surf: { dark: '#1d1d1d', light: '#fffdf7' } },
-  { id: 'soft', name: 'Soft', desc: 'Weiche Schatten, alles rund', surf: { dark: '#252a35', light: '#e8ecf2' } },
-  { id: 'iron', name: 'Iron', desc: 'Industrial-Gym: Stahl, Orange, Condensed', surf: { dark: '#191b1d', light: '#f6f5f2' } },
-  { id: 'neon', name: 'Neon', desc: 'Synthwave: Pink, Cyan, Glow & Raster', surf: { dark: '#160a31', light: '#ffffff' } },
-  { id: 'terminal', name: 'Terminal', desc: 'Monospace, Phosphor-Grün & Papier', surf: { dark: '#06140a', light: '#fbf9f3' } }
+  { id: 'iron', name: 'Iron', desc: 'Industrial-Gym: Stahl, Orange, Condensed', surf: { dark: '#17191b', light: '#f9f8f5' } },
+  { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
+  { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
+  { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } }
 ];
 const designOf = id => DESIGNS.find(d => d.id === id) || DESIGNS[0];
 const ACCENTS = [['#39ff88', 'Neon'], ['#a3e635', 'Lime'], ['#10b981', 'Smaragd'], ['#14b8a6', 'Türkis'], ['#06b6d4', 'Cyan'], ['#0a84ff', 'Blau'],
@@ -484,7 +478,7 @@ function accentCss(hex, mode, surf) {
   for (let t = .06; Color.contrast(text, surf) < 4.5 && t <= 1; t += .06) text = Color.mix(hex, toward, t);
   const ink = Color.contrast('#ffffff', hex) >= Color.contrast('#0b0d10', hex) ? '#ffffff' : '#0b0d10';
   const [r, g, b] = Color.rgb(hex);
-  return `--accent:${hex};--accent-text:${text};--accent-ink:${ink};--btn-ink:${ink};--accent-soft:rgba(${r},${g},${b},${mode === 'dark' ? .16 : .13});--accent-dim:${Color.mix(hex, surf, .42)};`;
+  return `--accent:${hex};--accent-text:${text};--accent-ink:${ink};--btn-ink:${ink};--btn-bg:${hex};--btn-fg:${ink};--accent-soft:rgba(${r},${g},${b},${mode === 'dark' ? .16 : .13});--accent-dim:${Color.mix(hex, surf, .42)};`;
 }
 
 function resolvedTheme() {
@@ -568,7 +562,7 @@ setInterval(() => { if (S().theme === 'time' && applyTheme()) App.renderCurrent(
 /* Mini-Vorschau eines Designs (liest nur dessen Tokens) */
 function designPreview(id, mode) {
   return `<div class="tp" data-design="${id}" data-theme="${mode}" aria-hidden="true">
-    <div class="tp-title">${id === 'terminal' ? '&gt; trainio' : 'Trainio'}</div>
+    <div class="tp-title">Trainio</div>
     <div class="tp-card"><div class="tp-line"></div><div class="tp-line s"></div>
       <div class="tp-row"><span class="tp-dot on"></span><span class="tp-dot"></span><span class="tp-btn"></span></div></div>
     <span class="tp-mode">${mode === 'dark' ? '☾' : '☀'}</span></div>`;
