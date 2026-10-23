@@ -315,6 +315,54 @@ const Analytics = (() => {
     const thisWeekDays = new Set(rows.filter(r => r.dn >= cw).map(r => r.dn));
     return { cur: curS, best, thisWeek: rows.filter(r => r.dn >= cw).length, days: thisWeekDays };
   }
+  /* Workout-Score 0–100 aus dem Index (gilt damit auch für alte und importierte Workouts):
+     Fortschritt 45 + Erledigt 35 + Anstrengung 20; fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet.
+     PR-Bonus: +3 je neuem e1RM-Rekord, höchstens +9; Ergebnis höchstens 100.
+     Mit echten Daten abgestimmt: Ø ca. 85, eine 100 bei etwa jedem 8. Workout. */
+  const SCORE_W = { prog: 45, done: 35, rpe: 20 };
+  const scoreCache = new WeakMap();
+  /** Pro Übung: Veränderung zur letzten Session (60 % e1RM + 40 % Volumen bzw. Wdh./Zeit/Distanz) → Anteil 0–1:
+      deutlich besser (≥ +2,5 %) 1 · etwas besser 0,85 · gleich (±0,5 %) 0,6 · etwas schlechter 0,35 · bis −8 % 0,15 · darunter 0 */
+  const progFrac = d => d >= 0.025 ? 1 : d >= 0.005 ? 0.85 : d >= -0.005 ? 0.6 : d >= -0.03 ? 0.35 : d >= -0.08 ? 0.15 : 0;
+  const rpeFrac = r => r >= 7 && r <= 9 ? 1 : r < 7 ? Math.max(0, 1 - (7 - r) * 0.35) : Math.max(0, 1 - (r - 9) * 0.3);
+  function score(wid) {
+    const ix = cur();
+    let memo = scoreCache.get(ix);
+    if (!memo) scoreCache.set(ix, memo = {});
+    if (wid in memo) return memo[wid];
+    const row = ix.rows.find(r => r.id === wid);
+    if (!row || (!row.planned && !row.cSec && !row.cKm)) return (memo[wid] = null);
+    const ch = (a, b) => b > 0 && a > 0 ? a / b - 1 : null;
+    let pW = 0, pS = 0;
+    const rpes = [];
+    for (const exId of [...row.ex, ...Object.keys(row.cBy || {})]) {
+      const ss = ix.sessions[exId] || [];
+      const i = ss.findIndex(s => s.wid === wid);
+      if (i < 0) continue;
+      const curS = ss[i];
+      if (!curS.cardio) curS.list.forEach(x => { if (x.rpe) rpes.push(+x.rpe); });
+      let prev = null;
+      for (let k = i - 1; k >= 0; k--) if (ss[k].wid !== wid) { prev = ss[k]; break; }
+      if (!prev) continue;
+      const c = (curS.cardio ? [ch(curS.km, prev.km), ch(curS.secs, prev.secs)] : [ch(curS.best, prev.best), ch(curS.vol, prev.vol)]).filter(x => x != null);
+      if (!c.length && !curS.cardio) c.push(...[ch(curS.reps, prev.reps), ch(curS.secs, prev.secs)].filter(x => x != null));
+      if (!c.length) continue;
+      const wt = curS.sets || 1;
+      let f = progFrac(c.length > 1 ? 0.6 * c[0] + 0.4 * c[1] : c[0]);
+      // stärkerer Top-Satz zählt mindestens wie „gleich“, auch wenn das Volumen (weniger Sätze) gesunken ist
+      if (!curS.cardio && c.length > 1 && c[0] >= 0.005) f = Math.max(f, 0.6);
+      pW += wt; pS += f * wt;
+    }
+    const parts = {
+      prog: pW ? pS / pW : null,
+      done: row.planned ? row.done / row.planned : 1,
+      rpe: rpes.length ? avg(rpes.map(rpeFrac)) : null
+    };
+    let got = 0, max = 0;
+    for (const k of Object.keys(SCORE_W)) if (parts[k] != null) { got += parts[k] * SCORE_W[k]; max += SCORE_W[k]; }
+    const prs = ix.prEvents.filter(p => p.wid === wid).length, bonus = Math.min(9, prs * 3);
+    return (memo[wid] = { score: Math.min(100, Math.round(got / max * 100 + bonus)), parts, prs, bonus, scaled: max < 100 });
+  }
   /** Letzter Tag für Vergleiche „bis zum gleichen Tag“: heute erst, wenn heute ein Workout gespeichert ist – sonst bis gestern */
   function cmpEnd() { const t = todayDN(); return cur().rows.some(w => w.dn === t) ? t : t - 1; }
   function volumeBetween(a, b) { return sum(cur().rows.filter(w => w.dn >= a && w.dn <= b).map(w => w.ton)); }
@@ -346,7 +394,7 @@ const Analytics = (() => {
     Store.put('meta', 'analyticsCache', { byWeek, byExerciseId, byMuscle, workouts: ix.rows.length, lastRecalc: Date.now() }, { replace: true });
   }, 2500);
 
-  return { cur, bwSeries, bwAt, sessionsOf, range, prevRange, rowsIn, weeksOf, streak, cmpEnd, volumeBetween, nextPlanDay, persistCache };
+  return { cur, bwSeries, bwAt, sessionsOf, range, prevRange, rowsIn, weeksOf, streak, score, SCORE_W, cmpEnd, volumeBetween, nextPlanDay, persistCache };
 })();
 
 /* ---------- Personal Records ---------- */

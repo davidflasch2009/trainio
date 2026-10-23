@@ -249,6 +249,22 @@ ProgressViews.overview = body => {
         ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
           `${e < ms ? 'Noch kein abgeschlossener Tag diesen Monat' : `${monthName(pmD)} bis zum ${e - ms + 1}.`}${todayNote} · ganzer Monat: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}`)}
       </div>
+      ${(() => {
+        // Workout-Score im Zeitraum: Punkte je Workout + Ø der letzten 3 Wochen
+        const rS = Analytics.range(), sOf = rs => rs.map(x => ({ x, s: Analytics.score(x.id) })).filter(o => o.s);
+        const cur = sOf(Analytics.rowsIn(rS)), prv = sOf(Analytics.rowsIn(Analytics.prevRange(rS)));
+        const a = cur.length ? avg(cur.map(o => o.s.score)) : null, b = prv.length ? avg(prv.map(o => o.s.score)) : null;
+        return cb.card({ id: 'score', wide: true, title: 'Workout-Score', info: 'Score 0–100 je Workout: Fortschritt gegenüber dem letzten Mal (45), erledigte Sätze (35) und Anstrengung laut RPE (20); fehlt ein Teil, wird hochgerechnet. Neue e1RM-Rekorde geben +3 (höchstens +9). Punkte = einzelne Workouts, Linie = Ø der letzten 3 Wochen.',
+          big: a != null ? nf(a, 0) : '–', small: 'Ø im Zeitraum', delta: a != null && b != null ? deltaHtml(a, b, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }) : '',
+          factory: () => {
+            if (cur.length < 2) return null;
+            const pts = cur.map(o => ({ x: o.x.dn, y: o.s.score, label: `${o.s.score} · ${o.x.name}` }));
+            return timeLine([
+              lineDS('Workout', pts, c.faint, { showLine: false, fill: false, pointRadius: 3, pointBackgroundColor: c.faint, pointBorderWidth: 0 }),
+              lineDS('Ø 3 Wochen', timeAvg(pts), c.accent, { fill: false, pointRadius: 0 })
+            ], { legend: true, yMin: 0, yMax: 100, tooltipFmt: v => nf(v, 0) });
+          } });
+      })()}
       ${cb.card({
         id: 'ppl', title: 'Push / Pull / Legs Balance', info: 'Verteilung deiner Arbeitssätze nach Kategorie in den letzten 4 Wochen. „Andere" = Core, Cardio, Full Body.',
         size: 'sm', factory: () => sum(ppl) ? donut(['Push', 'Pull', 'Legs', 'Andere'], ppl, [c.series[0], c.series[1], c.series[2], c.faint], { tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null

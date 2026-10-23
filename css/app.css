@@ -1109,6 +1109,27 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .cat-Cardio { background: color-mix(in srgb, var(--c5) 18%, transparent); color: var(--c5); }
 .cat-FullBody { background: color-mix(in srgb, var(--c7) 20%, transparent); color: var(--c7); }
 .pr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+/* Workout-Score: Ring füllt sich in der Akzentfarbe, Zahl in der Mitte */
+.score-ring { position: relative; width: 156px; height: 156px; margin: 0 auto; }
+.score-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); display: block; }
+.score-ring .ring-bg { stroke: var(--surface-3); }
+.score-ring .ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1.4s var(--ease-out); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 35%, transparent)); }
+.score-ring .score-mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+.score-ring .score-num { font-family: var(--font-display); font-size: calc(44px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
+.score-ring .score-of { font-size: calc(10.5px * var(--fs)); font-weight: var(--fw-b); color: var(--text-faint); text-transform: uppercase; letter-spacing: .1em; line-height: 1; }
+.score-ring.sm { width: 112px; height: 112px; }
+.score-ring.sm .score-num { font-size: calc(30px * var(--fs)); }
+.score-ring.sm .score-of { font-size: calc(9.5px * var(--fs)); }
+.score-bd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
+.sb-item { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 9px 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.sb-item span { font-size: calc(12px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
+.sb-item b { font-size: calc(17px * var(--fs)); font-variant-numeric: tabular-nums; }
+.sb-item b small { font-size: calc(12px * var(--fs)); color: var(--text-faint); font-weight: 600; }
+.sb-item small { font-size: calc(11.5px * var(--fs)); color: var(--text-faint); }
+.sb-item i { display: block; height: 4px; border-radius: 4px; background: var(--surface-3); margin-top: 6px; position: relative; overflow: hidden; }
+.sb-item i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--accent); border-radius: inherit; }
+.sb-item.na b { color: var(--text-faint); }
+.wd-score { padding: 4px 0 2px; }
 @media (min-width: 560px) { .pr-grid { grid-template-columns: repeat(4, 1fr); } }
 .pr-box { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px 12px; }
 .pr-box span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }

@@ -636,10 +636,12 @@ function openWorkoutDetail(id) {
   const editMeta = () => openWorkoutMeta(id, () => { m.close(); openWorkoutDetail(id); });
   const row = Analytics.cur().rows.find(r => r.id === id);
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
+  const sc = Analytics.score(id);
   const m = Modal.open({
     title: wo.planDayName || wo.name || 'Workout', size: 'lg',
     body: `
       <button class="wd-when" data-x="meta" aria-label="Datum, Uhrzeit und Dauer bearbeiten">${esc(fmtDateLong(wo.date))}${parseISO(wo.date).getFullYear() !== new Date().getFullYear() ? ' ' + parseISO(wo.date).getFullYear() : ''}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''} ${icon('edit')}</button>
+      ${sc ? `<div class="wd-score mt-12">${scoreRingHtml(sc, true)}${scoreBreakdownHtml(sc)}</div>` : ''}
       <div class="pr-grid mt-12">
         <button class="pr-box wd-edit" data-x="meta" aria-label="Dauer bearbeiten"><span>Dauer ${icon('edit')}</span><b>${fmtDur(wo.durationSec)}</b></button>
         ${row && row.cardioOnly ? '' : `<div class="pr-box"><span>Volumen</span><b>${fmtTon(row ? row.ton : 0)}</b></div>
@@ -675,6 +677,7 @@ function openWorkoutDetail(id) {
       <button class="btn btn-secondary" data-x="edit" style="flex:1 1 auto;padding:0 12px">Bearbeiten</button>
       <button class="btn btn-primary" data-x="repeat" style="flex:1 1 auto;padding:0 12px">Wiederholen</button>`
   });
+  animScoreRing(m.el);
   m.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-x]');
     if (!b) return;
@@ -2116,7 +2119,32 @@ Actions.woFinish = async () => {
 };
 
 /* ---------- Session-Zusammenfassung ---------- */
+/* ---------- Workout-Score: Ring (füllt sich, Zahl zählt hoch) + Aufschlüsselung ---------- */
+function scoreRingHtml(sc, small = false) {
+  const R = 52, L = 2 * Math.PI * R;
+  return `<div class="score-ring ${small ? 'sm' : ''}" data-score="${sc.score}" role="img" aria-label="Workout-Score ${sc.score} von 100">
+    <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10" stroke-dasharray="${L}" style="stroke-dashoffset:${L}" data-len="${L}"/></svg>
+    <div class="score-mid"><b class="score-num">${sc.score}</b><span class="score-of">Score</span></div></div>`;
+}
+function scoreBreakdownHtml(sc) {
+  const W = Analytics.SCORE_W;
+  const item = (k, l, why) => sc.parts[k] == null
+    ? `<div class="sb-item na"><span>${l}</span><b>–</b><small>${why}</small></div>`
+    : `<div class="sb-item"><span>${l}</span><b>${Math.round(sc.parts[k] * W[k])}<small> / ${W[k]}</small></b><i style="--p:${Math.round(sc.parts[k] * 100)}%"></i></div>`;
+  return `<div class="score-bd">${item('prog', 'Fortschritt', 'keine Vergleichswerte')}${item('done', 'Erledigt', '')}${item('rpe', 'Anstrengung', 'kein RPE eingetragen')}
+    <div class="sb-item"><span>PR-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer Rekord' : 'neue Rekorde'}` : 'kein neuer Rekord'}</small></div></div>
+    ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}`;
+}
+/** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen */
+function animScoreRing(root, delay = 250) {
+  const r = $('.score-ring', root); if (!r) return;
+  const fg = $('.ring-fg', r), target = String(+fg.dataset.len * (1 - (+r.dataset.score) / 100));
+  if (!motionFull()) { fg.style.transition = 'none'; fg.style.strokeDashoffset = target; return; }
+  countUp($('.score-num', r), 1400, delay);
+  setTimeout(() => requestAnimationFrame(() => { fg.style.strokeDashoffset = target; }), delay);
+}
 function showSummary({ id, doc, prs }) {
+  const sc = Analytics.score(id);
   const goalsHit = checkGoals(doc);
   const isC = e => Ex.type(Ex.get(e.exerciseId)) === 'cardio';
   const done = doc.entries.filter(e => !isC(e)).flatMap(e => e.sets.filter(s => s.done && !s.warmup));
@@ -2130,10 +2158,11 @@ function showSummary({ id, doc, prs }) {
   const m = Modal.open({
     title: 'Workout gespeichert',
     body: `<div class="center" style="padding:6px 0 4px">
-        <div class="sum-badge sum-draw">${icon(real.length ? 'trophy' : 'checkCircle')}</div>
+        ${sc ? scoreRingHtml(sc) : `<div class="sum-badge sum-draw">${icon(real.length ? 'trophy' : 'checkCircle')}</div>`}
         <h2 class="mt-8">${esc(doc.planDayName || doc.name)}</h2>
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
+      ${sc ? scoreBreakdownHtml(sc) : ''}
       <div class="pr-grid mt-16 fx-stagger">
         <div class="pr-box"><span>Dauer</span><b>${fmtDur(doc.durationSec)}</b></div>
         ${done.length || !ct.n ? `<div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
@@ -2148,6 +2177,7 @@ function showSummary({ id, doc, prs }) {
   });
   // Abschluss-Moment: Haken zeichnet sich, Zahlen zählen hoch, PRs erscheinen nacheinander mit Glanz
   $$('.sum-draw svg *', m.el).forEach(n => n.setAttribute('pathLength', '1'));
+  animScoreRing(m.el);
   countUp($$('.pr-box b', m.el), 900, 150);
   m.el.addEventListener('click', e => {
     const b = e.target.closest('[data-x]');

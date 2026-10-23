@@ -13,6 +13,21 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 > oben privat genutzt werden. Fehler und Ideen gern als [Issue](https://github.com/davidflasch2009/trainio/issues).
 > Kopieren, Verändern, Weitergeben, selbst Hosten oder kommerzielle Nutzung nur mit Erlaubnis – siehe [LICENSE](LICENSE).
 
+## Workout-Score
+
+Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch.
+Darunter die Aufschlüsselung:
+- **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen; Cardio: Distanz
+  und Dauer). Deutlich besser (≥ +2,5 %) volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
+  bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
+- **Erledigt (35):** erledigte Arbeitssätze ÷ geplante.
+- **Anstrengung (20):** RPE je Satz, volle Punkte bei RPE 7–9.
+- **PR-Bonus:** +3 je neuem e1RM-Rekord, höchstens +9 (Score bleibt bei max. 100).
+
+Fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet. Der Score wird aus den gespeicherten
+Workouts berechnet – auch alte und importierte haben einen. Zu sehen beim Abschluss, im Workout-Detail und als
+Verlauf in Fortschritt → Übersicht („Workout-Score“).
+
 ## Meldungen
 
 Kurze Meldungen oben im Bildschirm lassen sich unter **Mehr → Meldungen** je Gruppe abschalten: Bestätigungen
