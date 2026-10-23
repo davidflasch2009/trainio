@@ -12,7 +12,7 @@ const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
   ['Fortschritt', [['f_score', 'Workout-Score', 'Ring beim Abschluss, im Workout-Detail und im Fortschritt'], ['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
   ['Körper-Tab', [['f_bodyFat', 'Körperfett & fettfreie Masse'], ['f_measures', 'Umfänge & Verhältnisse', 'Brust, Taille, Arm … in cm'], ['f_photos', 'Fortschrittsfotos']]],
-  ['Workout', [['f_rest', 'Pausen-Timer'], ['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
+  ['Workout', [['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
 ];
 const F = k => S()[k] !== false;

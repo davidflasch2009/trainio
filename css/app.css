@@ -1233,6 +1233,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .more-title { font-family: var(--font-display); font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.02em; margin: 6px 0 4px; }
 .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-3); display: flex; align-items: center; justify-content: center; font-weight: var(--fw-x); font-size: calc(20px * var(--fs)); overflow: hidden; flex-shrink: 0; color: var(--text-dim); }
 .avatar img { width: 100%; height: 100%; object-fit: cover; }
+.prov-t { display: inline-flex; align-items: center; gap: 10px; }
+.prov-t svg { flex-shrink: 0; }
 .sync-pill { display: inline-flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 999px; background: var(--surface-2); border: var(--bw) solid var(--border); font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); }
 .sync-pill i { width: 8px; height: 8px; border-radius: 50%; background: var(--text-faint); display: block; }
 .sync-pill.synced i { background: var(--success); }
@@ -1266,6 +1268,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .plates-vis .sleeve { width: 18px; height: 22px; background: var(--text-dim); border-radius: calc(3px * var(--rs)); }
 .plates-vis .plate { width: 14px; border-radius: calc(4px * var(--rs)); display: flex; align-items: center; justify-content: center; box-shadow: inset 0 0 0 1px rgba(0,0,0,.25); position: relative; }
 .plates-vis .plate em { font-style: normal; font-size: 9px; font-weight: var(--fw-x); color: #fff; writing-mode: vertical-rl; transform: rotate(180deg); text-shadow: 0 1px 2px rgba(0,0,0,.6); }
+.pl-ctx { display: flex; align-items: center; gap: 8px; margin: -4px 0 12px; padding: 6px; border-radius: var(--radius-sm); background: var(--surface-2); }
+.pl-ctx .btn-icon:disabled { opacity: .3; }
 .pl-target { display: flex; align-items: center; gap: 8px; }
 .pl-step { width: 52px; height: 52px; border-radius: 50%; background: var(--surface-2); color: var(--text); }
 .pl-input { width: 100%; border: 0; background: none; text-align: center; font-size: max(16px, calc(40px * var(--fs))); font-weight: var(--fw-x); color: var(--text); font-family: var(--font-num); outline: none; }

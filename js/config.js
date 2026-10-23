@@ -16,3 +16,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "455774047701",
   appId: "1:455774047701:web:c52ea2a32b288c52f6c15c"
 };
+
+/* Anmeldewege in dieser Reihenfolge – jeder muss in Firebase (Authentication → Sign-in method) aktiviert sein.
+   Möglich: 'google', 'github' (Einrichtung siehe README). */
+const AUTH_PROVIDERS = ['google', 'github'];

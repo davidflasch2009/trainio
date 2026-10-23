@@ -70,11 +70,67 @@ function platesFor(totalU, barU, plates) {
   for (const p of plates) { while (per >= p - 1e-9) { out.push(p); per = round(per - p, 4); } }
   return { out, rest: round(per * 2, 3) };
 }
-function openPlates(kg) {
+/* ---------- Scheibenrechner im Workout: Gewicht des aktuellen Satzes ---------- */
+const PLATE_SRC = { last: 'wie letztes Mal', goal: 'Ziel', prev: 'wie Satz davor' };
+/** Satz für den Scheibenrechner: erster offener Satz der Übung (ohne Übung: der ausgewählten bzw. ersten offenen Gewichts-Übung) */
+function plateTarget(w, ei = null) {
+  const isKg = i => i >= 0 && !!w.entries[i] && Ex.type(Ex.get(w.entries[i].exerciseId)) === 'kg';
+  const hasOpen = i => w.entries[i].sets.some(s => !s.done);
+  if (ei == null) {
+    ei = w.sel && isKg(w.sel.e) && hasOpen(w.sel.e) ? w.sel.e : w.entries.findIndex((_, i) => isKg(i) && hasOpen(i));
+    if (ei < 0) return null;
+  }
+  if (!isKg(ei) || !w.entries[ei].sets.length) return null;
+  const sets = w.entries[ei].sets, si = sets.findIndex(s => !s.done);
+  return { ei, si: si < 0 ? sets.length - 1 : si };
+}
+/** Gewicht eines Satzes wie im Eingabefeld: eingetragen → letztes Mal (Platzhalter) → Ziel → Satz davor */
+function plateWeightOf(w, ei, si) {
+  const en = w.entries[ei], s = en.sets[si];
+  if (s.weightKg != null) return { kg: s.weightKg, src: 'set' };
+  const prev = S().woPrev !== false ? prevForSet(en, si, lastSessionFor(en.exerciseId, w)) : null;
+  if (prev && prev.w) return { kg: prev.w, src: 'last' };
+  const g = s.warmup ? null : goalWeight(en);
+  if (g) return { kg: g, src: 'goal' };
+  for (let i = si - 1; i >= 0; i--) if (en.sets[i].weightKg != null && !!en.sets[i].warmup === !!s.warmup) return { kg: en.sets[i].weightKg, src: 'prev' };
+  return { kg: null, src: null };
+}
+function plateSetLabel(en, si) {
+  const s = en.sets[si];
+  if (s.warmup) return 'Aufwärmsatz';
+  const no = en.sets.slice(0, si + 1).filter(x => !x.warmup).length;
+  return `Satz ${no}${s.kind === 'drop' ? ' · Drop' : ''}`;
+}
+
+/** Scheibenrechner – mit ctx { ei, si } für einen Satz im laufenden Workout (◀ ▶ wechselt den Satz, Gewicht übernehmen) */
+function openPlates(kg, ctx = null) {
   const step = S().weightSteps || 2.5;
-  let total = kg ? round(toU(kg), 2) : (unit() === 'lb' ? 135 : 60);
+  const def = unit() === 'lb' ? 135 : 60;
+  let total = kg ? round(toU(kg), 2) : def;
   let bar = round(toU(S().barKg), 1);
+  let src = null, srcU = null;   // woher das Gewicht des Satzes stammt (Platzhalter, Ziel …) und welcher Wert
+  const ctxSet = () => { const w = Workout.cur(), en = ctx && w && w.entries[ctx.ei]; return en && en.sets[ctx.si] ? { w, en, s: en.sets[ctx.si] } : null; };
+  const loadSet = () => { const c = ctxSet(); if (!c) return; const p = plateWeightOf(c.w, ctx.ei, ctx.si); src = p.src; if (p.kg != null) total = srcU = round(toU(p.kg), 2); };
+  if (ctx) loadSet();
   const m = Modal.open({ title: 'Scheibenrechner', size: 'sm', body: '' });
+  const ctxHtml = () => {
+    const c = ctxSet();
+    if (!c) return '';
+    const n = c.en.sets.length, label = plateSetLabel(c.en, ctx.si);
+    return `<div class="pl-ctx">
+        <button class="btn-icon" data-pn="-1" ${ctx.si <= 0 ? 'disabled' : ''} aria-label="Satz davor">${icon('chevL')}</button>
+        <div class="grow center" style="min-width:0"><div class="bold ellipsis">${esc(c.en.exerciseName)}</div>
+          <div class="tiny dim">${esc(label)} von ${n}${c.s.done ? ' · erledigt' : ''}${PLATE_SRC[src] && Math.abs(total - srcU) < 1e-6 ? ` · ${PLATE_SRC[src]}` : ''}</div></div>
+        <button class="btn-icon" data-pn="1" ${ctx.si >= n - 1 ? 'disabled' : ''} aria-label="Nächster Satz">${icon('chevR')}</button>
+      </div>`;
+  };
+  const applyHtml = () => {
+    const c = ctxSet();
+    if (!c) return '';
+    const label = esc(plateSetLabel(c.en, ctx.si).replace(' · Drop', ''));
+    if (c.s.weightKg != null && Math.abs(toU(c.s.weightKg) - total) < 1e-6) return `<p class="center tiny dim mt-12">${icon('check').replace('<svg', '<svg width="14" height="14"')} ${label}: ${nf(total, 2)} ${unit()} eingetragen</p>`;
+    return `<button class="btn btn-primary btn-block mt-12" data-plapply>${icon('check')} ${nf(total, 2)} ${unit()} für ${label} übernehmen</button>`;
+  };
   const draw = () => {
     const plates = availPlates();
     const { out, rest } = platesFor(total, bar, plates);
@@ -82,7 +138,7 @@ function openPlates(kg) {
     const counts = {};
     out.forEach(p => { counts[p] = (counts[p] || 0) + 1; });
     const exact = round(total - rest, 2);
-    m.setBody(`
+    m.setBody(`${ctxHtml()}
       <div class="pl-target">
         <button class="btn-icon pl-step" data-pd="-1" aria-label="Weniger">${icon('minus')}</button>
         <div class="grow center"><input class="pl-input" id="plT" inputmode="decimal" value="${String(total).replace('.', ',')}" aria-label="Zielgewicht"><div class="tiny dim">${unit()} gesamt</div></div>
@@ -99,6 +155,7 @@ function openPlates(kg) {
           : '<p class="dim">Nur die Stange</p>'}
         ${rest > 0.001 ? `<p class="warn-text small mt-8">Nicht exakt möglich – nächstes machbares Gewicht: <b>${nf(exact, 2)} ${unit()}</b></p>` : ''}
       </div>
+      ${applyHtml()}
       <h4 class="mt-16 mb-8">Stange</h4>
       <div class="chips wrap">${uniq([...(unit() === 'lb' ? [45, 35, 25] : [20, 15, 10]), bar]).filter(v => v > 0).sort((a, b) => b - a).map(v => `<button class="chip sm ${bar === v ? 'active' : ''}" data-plb="${v}">${nf(v, 1)} ${unit()}</button>`).join('')}<button class="chip sm ${bar === 0 ? 'active' : ''}" data-plb="0">Ohne</button></div>
       <button class="btn btn-ghost btn-sm mt-12" data-act="openPlatesCfg">${icon('sliders')} Verfügbare Scheiben: ${plates.map(x => nf(x, 2)).join(' · ')}</button>`);
@@ -106,8 +163,19 @@ function openPlates(kg) {
   draw();
   m.el.addEventListener('change', e => { if (e.target.id === 'plT') { total = Math.max(0, parseNum(e.target.value) || 0); draw(); } });
   m.el.addEventListener('click', e => {
-    const t = e.target.closest('[data-pd],[data-plb]'); if (!t) return;
+    const t = e.target.closest('[data-pd],[data-plb],[data-pn],[data-plapply]'); if (!t || t.disabled) return;
     if (t.dataset.pd) total = Math.max(0, round(total + +t.dataset.pd * step * 2, 2));
+    else if (t.dataset.pn) {
+      const c = ctxSet(); if (!c) return;
+      ctx.si = clamp(ctx.si + +t.dataset.pn, 0, c.en.sets.length - 1);
+      loadSet();
+    } else if (t.hasAttribute('data-plapply')) {
+      const c = ctxSet(); if (!c) return;
+      c.s.weightKg = round(fromU(total), 3);
+      src = null;
+      Workout.save();
+      App.renderCurrent();
+    }
     else bar = +t.dataset.plb;
     vibrate(6);
     draw();
@@ -178,7 +246,7 @@ Actions.openPlatesCfg = () => {
     draw();
   });
 };
-Actions.plates = el => { const s = el.dataset.ei != null ? setAt(el) : null; openPlates(s ? (s.weightKg || null) : null); };
+Actions.plates = el => openPlates(null, el.dataset.ei != null && Workout.cur() ? { ei: +el.dataset.ei, si: +el.dataset.si } : null);
 function open1RM() {
   const m = Modal.open({ title: '1RM-Rechner', size: 'sm', body: '' });
   let w = 80, r = 5;

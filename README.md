@@ -6,7 +6,7 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 (`index.html` + `css/app.css` + `js/*.js`, direkt so auslieferbar).
 
 - Läuft sofort im **lokalen Modus** (Daten im Browser), auch ohne Firebase.
-- Mit Firebase: Google-Login + Sync zwischen iPhone und Laptop (Firestore, offline-fähig).
+- Mit Firebase: Anmeldung mit Google oder GitHub + Sync zwischen iPhone und Laptop (Firestore, offline-fähig).
 - Diagramme: Chart.js 4 · PDF-Export: jsPDF 2 · beide lazy per CDN geladen.
 
 > **Lizenz: Alle Rechte vorbehalten.** Der Code ist zum Ansehen öffentlich, und die App darf unter dem Link
@@ -123,6 +123,11 @@ Konfetti und Inhalte der Startseite.
 - **Mehr → Training → Scheiben & Stange**: verfügbare Scheiben (kg/lb) und Stangengewicht festlegen.
 - Der **Scheibenrechner** zeigt die Beladung pro Seite mit Anzahl je Scheibe, Zielgewicht mit
   ±-Tasten und – falls nicht exakt ladbar – das nächste machbare Gewicht.
+- **Im Workout** öffnet er sich mit dem **aktuellen Satz** (erster offener Satz der Übung): Ist bei Bankdrücken
+  Satz 1 erledigt, steht sofort das Gewicht von Satz 2 drin – eingetragen, sonst wie im Feld vorgeschlagen
+  (letztes Mal, Ziel, Satz davor). Mit ‹ › wechselst du den Satz, „… für Satz 2 übernehmen“ trägt ein
+  geändertes Gewicht direkt ein. Gilt für ⋯ an der Übung, „Scheiben“ am Satz und **Mehr → Tools**, solange ein
+  Workout läuft.
 
 ## Workout-Eingabe
 
@@ -208,10 +213,10 @@ schließt sich die Gruppe und die Suche wird geleert):
 
 | Gruppe | Inhalt |
 | --- | --- |
-| Konto & Profil | Google-Anmeldung, Sync-Status, Name, Geschlecht |
+| Konto & Profil | Anmeldung (Google, GitHub), **Anmeldewege verknüpfen/trennen**, Sync-Status, Name, Geschlecht |
 | Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Start-Zeitraum im Fortschritt** |
 | Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
-| Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
+| Pause & Timer | Standard-Pause, **Pausen-Timer** an/aus (startet nach jedem Satz), Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
 | Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (Auswahl + Reihenfolge, auch Ø Score) |
 | Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
 | Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen (inkl. **Workout-Score**) und Workout-Funktionen ein-/ausschalten |
@@ -239,7 +244,7 @@ und beim Hinzufügen von Übungen erreichbar.
 
 ## Funktionen ein-/ausschalten
 
-**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen, Pausen-Timer,
+**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen,
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
 Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
 
@@ -382,6 +387,23 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 
 Solange dort noch `DEINE_API_KEY` steht, läuft die App im lokalen Modus. Daten, die du lokal
 erfasst hast, kannst du beim ersten Login ins Konto übernehmen.
+
+### Anmelden mit GitHub (einmalig)
+
+1. GitHub → **Settings → Developer settings → OAuth Apps → New OAuth App**:
+   - *Homepage URL:* `https://davidflasch2009.github.io/trainio/`
+   - *Authorization callback URL:* `https://trainio-32d4b.firebaseapp.com/__/auth/handler`
+     (steht auch in Firebase beim GitHub-Anbieter)
+2. Client ID kopieren und ein **Client Secret** erzeugen.
+3. Firebase → **Authentication → Sign-in method → Neuen Anbieter hinzufügen → GitHub** → aktivieren,
+   Client ID + Secret eintragen, speichern.
+4. Welche Anmeldewege die App anbietet, steht in `js/config.js` bei `AUTH_PROVIDERS` (`['google', 'github']`).
+
+Jeder Anmeldeweg ist ein eigenes Konto. Angemeldet lassen sich unter **Mehr → Konto & Profil → Anmeldewege**
+weitere Wege **verknüpfen** (führen dann zu denselben Daten) oder wieder trennen. Meldet sich jemand mit GitHub an,
+dessen E-Mail schon ein Konto hat (Firebase-Standard „ein Konto pro E-Mail“), bietet die App an, sich wie bisher
+anzumelden und GitHub dabei zu verknüpfen. Ein GitHub-Konto, das schon ein eigenes Trainio-Konto hat, lässt sich
+nicht nachträglich verknüpfen (Daten würden sonst vermischt).
 
 ## 2. Deployment (GitHub Pages)
 

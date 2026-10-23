@@ -2159,7 +2159,7 @@ Actions.setDone = el => {
     }
   }
   Workout.save();
-  if (!wasLast && !w.editingId && S().autoRest !== false && F('f_rest') && type !== 'cardio') {
+  if (!wasLast && !w.editingId && S().autoRest !== false && type !== 'cardio') {
     const normal = en.target.restSec || S().defaultRestSec, ws = S().restWarmSec, ds = S().restDropSec;
     const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null, nxtSet = nxt ? nxt.sets[w.sel.s] : null;
     // nach Aufwärmsätzen höchstens die eingestellte Pause; vor einem Drop-Satz die Drop-Pause (0 = gar keine)
@@ -2329,7 +2329,7 @@ Actions.exMenu = async el => {
   if (k === 'fill') return Actions.exFill({ dataset: { ei } });
   if (k === 'warm') return Actions.warmup({ dataset: { ei } });
   if (k === 'drop') return Actions.dropAdd({ dataset: { ei } });
-  if (k === 'plates') return openPlates(goalWeight(en));
+  if (k === 'plates') { const t = plateTarget(w, ei); return t ? openPlates(null, t) : openPlates(goalWeight(en)); }
   if (k === 'uni') {
     en.uni = !en.uni;
     if (!en.uni) en.sets.forEach(x => { x.repsR = null; x.durationSecR = null; });

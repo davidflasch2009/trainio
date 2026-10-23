@@ -424,17 +424,39 @@ function fsError(e) {
 }
 
 /* ==========================================================================
-   4. Auth (Google Sign-In) & Firebase-Initialisierung
+   4. Auth (Google, GitHub …) & Firebase-Initialisierung
+   Jeder Anmeldeweg ist ein eigenes Konto; angemeldet lassen sich weitere verknüpfen
+   (führen dann zu denselben Daten). Welche angeboten werden: AUTH_PROVIDERS in js/config.js.
    ========================================================================== */
+const PROVIDERS = {
+  google: { id: 'google.com', label: 'Google', icon: GOOGLE_ICON,
+    make() { const p = new firebase.auth.GoogleAuthProvider(); p.setCustomParameters({ prompt: 'select_account' }); return p; } },
+  github: { id: 'github.com', label: 'GitHub', icon: GITHUB_ICON,
+    make() { const p = new firebase.auth.GithubAuthProvider(); p.addScope('user:email'); return p; } }
+};
+const providerKey = id => Object.keys(PROVIDERS).find(k => PROVIDERS[k].id === id) || null;
+
 const Auth = (() => {
   let user = null;
   let enabled = false;
   let status = 'init'; // init | unconfigured | ready | failed
+  let pendingLink = null; // { cred, email } – nach der Anmeldung mit dem bisherigen Weg verknüpfen
+  const LINK_KEY = 'gymlog.pendingLink';
+  const CANCELLED = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
+  const REDIRECT = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/internal-error'];
+  // Fehler mit eigener Behandlung – auch auf dem iPhone kein Redirect-Versuch
+  const HANDLED = ['auth/account-exists-with-different-credential', 'auth/credential-already-in-use', 'auth/email-already-in-use',
+    'auth/provider-already-linked', 'auth/operation-not-allowed', 'auth/unauthorized-domain', 'auth/network-request-failed'];
   const configured = () => {
     const k = String(FIREBASE_CONFIG.apiKey || '');
     return !!k && !k.startsWith('DEINE') && !String(FIREBASE_CONFIG.projectId || '').startsWith('DEIN');
   };
   const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  const providers = () => (typeof AUTH_PROVIDERS !== 'undefined' ? AUTH_PROVIDERS : ['google']).filter(k => PROVIDERS[k]);
+  const toUser = u => ({
+    uid: u.uid, name: u.displayName || '', email: u.email || (u.providerData.find(p => p && p.email) || {}).email || '', photo: u.photoURL || '',
+    providers: u.providerData.map(p => p && providerKey(p.providerId)).filter(Boolean)
+  });
 
   async function init() {
     if (!configured()) { status = 'unconfigured'; Store.emitSync(); return; }
@@ -454,7 +476,9 @@ const Auth = (() => {
       catch (e) { console.warn('Offline-Persistence nicht verfügbar:', e.code || e); }
       enabled = true;
       status = 'ready';
-      firebase.auth().getRedirectResult().catch(e => toast(authMsg(e), 'error'));
+      firebase.auth().getRedirectResult().then(r => {
+        if (r && r.operationType === 'link' && r.user) linked(r.user, providerKey(r.credential && r.credential.providerId));
+      }).catch(e => authError(e, true));
       firebase.auth().onAuthStateChanged(onUser);
     } catch (e) {
       status = 'failed';
@@ -463,7 +487,8 @@ const Auth = (() => {
   }
   async function onUser(u) {
     if (u) {
-      user = { uid: u.uid, name: u.displayName || '', email: u.email || '', photo: u.photoURL || '' };
+      user = toUser(u);
+      linkPending(u);
       try {
         await Store.attach(u.uid, { askMerge });
         Store.whenSynced(ensureSeeds);
@@ -479,26 +504,102 @@ const Auth = (() => {
     const n = Store.all('workouts').length;
     return confirmDialog({
       title: 'Lokale Daten übernehmen?',
-      text: `Du hast ohne Konto ${n} Workout${n === 1 ? '' : 's'} und weitere Daten erfasst. Sollen sie in dein Google-Konto übernommen werden? Sonst werden sie auf diesem Gerät verworfen.`,
+      text: `Du hast ohne Konto ${n} Workout${n === 1 ? '' : 's'} und weitere Daten erfasst. Sollen sie in dein Konto übernommen werden? Sonst werden sie auf diesem Gerät verworfen.`,
       okLabel: 'Übernehmen', cancelLabel: 'Verwerfen'
     });
   }
-  async function signIn() {
-    if (!configured()) { toast('Firebase ist noch nicht konfiguriert – siehe README', 'warn'); return; }
-    if (!enabled) { toast('Firebase lädt noch oder ist offline', 'warn'); return; }
-    const provider = new firebase.auth.GoogleAuthProvider();
-    provider.setCustomParameters({ prompt: 'select_account' });
-    try {
-      await firebase.auth().signInWithPopup(provider);
-    } catch (e) {
-      const cancelled = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'].includes(e.code);
-      const fallback = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/internal-error'].includes(e.code);
-      if (!cancelled && (fallback || isIOS())) {
-        // iOS Safari / Standalone-PWA: Popup scheitert oft → Redirect-Flow
-        try { await firebase.auth().signInWithRedirect(provider); }
-        catch (e2) { toast(authMsg(e2), 'error'); }
-      } else if (!cancelled) toast(authMsg(e), 'error');
+  /** Popup – scheitert es (iOS-Standalone, blockiert), Redirect. false = abgebrochen bzw. Seite wird umgeleitet */
+  async function viaPopup(popup, redirect) {
+    try { await popup(); return true; }
+    catch (e) {
+      if (CANCELLED.includes(e.code)) return false;
+      if (REDIRECT.includes(e.code) || (isIOS() && !HANDLED.includes(e.code))) { await redirect(); return false; }
+      throw e;
     }
+  }
+  function ready() {
+    if (!configured()) { toast('Firebase ist noch nicht konfiguriert – siehe README', 'warn'); return false; }
+    if (!enabled) { toast('Firebase lädt noch oder ist offline', 'warn'); return false; }
+    return true;
+  }
+  async function signIn(key = 'google') {
+    const pv = PROVIDERS[key];
+    if (!pv || !ready()) return;
+    const provider = pv.make();
+    try { await viaPopup(() => firebase.auth().signInWithPopup(provider), () => firebase.auth().signInWithRedirect(provider)); }
+    catch (e) { authError(e); }
+  }
+  function authError(e, quiet = false) {
+    if (e && e.code === 'auth/account-exists-with-different-credential') return offerLink(e);
+    if (quiet && e && CANCELLED.includes(e.code)) return;
+    toast(authMsg(e), 'error');
+  }
+  /** Gleiche E-Mail hat schon ein Konto (anderer Anmeldeweg): dort anmelden, dann diesen Weg verknüpfen */
+  async function offerLink(e) {
+    const cred = e.credential || null, email = e.email || (e.customData && e.customData.email) || '';
+    const tried = PROVIDERS[providerKey(cred && cred.providerId)];
+    const others = providers().filter(k => !tried || PROVIDERS[k] !== tried);
+    if (!cred || !tried || !others.length) return toast('Mit dieser E-Mail gibt es schon ein Konto – bitte mit dem bisherigen Anmeldeweg anmelden.', 'warn', { duration: 6000 });
+    const text = `Mit ${email || 'dieser E-Mail'} gibt es schon ein Trainio-Konto. Melde dich einmal wie bisher an – danach ist ${tried.label} damit verknüpft und führt zu denselben Daten.`;
+    if (!await confirmDialog({ title: 'Konto gibt es schon', text, okLabel: others.length > 1 ? 'Weiter' : `Mit ${PROVIDERS[others[0]].label} anmelden` })) return;
+    const key = others.length > 1 ? await actionMenu('Womit hast du dich bisher angemeldet?', others.map(k => ({ key: k, label: PROVIDERS[k].label, icon: 'user' }))) : others[0];
+    if (!key) return;
+    pendingLink = { cred, email };
+    // überlebt den Redirect-Login (iPhone)
+    try { sessionStorage.setItem(LINK_KEY, JSON.stringify({ cred: cred.toJSON(), email, at: Date.now() })); } catch (x) {}
+    signIn(key);
+  }
+  async function linkPending(u) {
+    let p = pendingLink;
+    pendingLink = null;
+    try {
+      const raw = sessionStorage.getItem(LINK_KEY);
+      sessionStorage.removeItem(LINK_KEY);
+      const o = raw && JSON.parse(raw);
+      if (!p && o && Date.now() - o.at < 10 * 60000) p = { cred: firebase.auth.OAuthProvider.credentialFromJSON(o.cred), email: o.email };
+    } catch (x) {}
+    if (!p || !p.cred) return;
+    const pv = PROVIDERS[providerKey(p.cred.providerId)], label = pv ? pv.label : 'Der Anmeldeweg';
+    if (p.email && u.email && norm(p.email) !== norm(u.email)) {
+      toast(`Angemeldet mit ${u.email} – ${label} wurde nicht verknüpft, weil es zu ${p.email} gehört.`, 'warn', { duration: 7000 });
+      return;
+    }
+    try { const r = await u.linkWithCredential(p.cred); linked(r.user || u, providerKey(p.cred.providerId)); }
+    catch (e) { toast(linkMsg(e, label), 'error', { duration: 7000 }); }
+  }
+  async function linked(u, key) {
+    try { await u.reload(); } catch (e) {}
+    const cu = firebase.auth().currentUser;
+    if (cu) user = toUser(cu);
+    App.renderAll();
+    toast(`${PROVIDERS[key] ? PROVIDERS[key].label : 'Anmeldeweg'} verknüpft – führt jetzt zu denselben Daten`, 'success');
+  }
+  /** Angemeldet: weiteren Anmeldeweg mit diesem Konto verknüpfen */
+  async function link(key) {
+    const pv = PROVIDERS[key], cu = enabled && firebase.auth().currentUser;
+    if (!pv || !cu) return;
+    const provider = pv.make();
+    try { if (await viaPopup(() => cu.linkWithPopup(provider), () => cu.linkWithRedirect(provider))) linked(cu, key); }
+    catch (e) { toast(linkMsg(e, pv.label), 'error', { duration: 7000 }); }
+  }
+  async function unlink(key) {
+    const pv = PROVIDERS[key], cu = enabled && firebase.auth().currentUser;
+    if (!pv || !cu) return;
+    if (cu.providerData.length < 2) { toast('Der einzige Anmeldeweg lässt sich nicht trennen', 'warn'); return; }
+    const ok = await confirmDialog({ title: `${pv.label} trennen?`, text: `Danach kommst du mit ${pv.label} nicht mehr in dieses Konto. Deine Daten bleiben erhalten.`, okLabel: 'Trennen', danger: true });
+    if (!ok) return;
+    try {
+      await cu.unlink(pv.id);
+      user = toUser(firebase.auth().currentUser || cu);
+      App.renderAll();
+      toast(`${pv.label} getrennt`, 'success');
+    } catch (e) { toast(authMsg(e), 'error'); }
+  }
+  function linkMsg(e, label) {
+    if (e && ['auth/credential-already-in-use', 'auth/email-already-in-use', 'auth/account-exists-with-different-credential'].includes(e.code))
+      return `Dieses ${label}-Konto gehört schon zu einem anderen Trainio-Konto mit eigenen Daten. Verknüpfen geht nur mit einem Anmeldeweg, der noch kein Konto hat.`;
+    if (e && e.code === 'auth/provider-already-linked') return `${label} ist schon verknüpft.`;
+    return authMsg(e);
   }
   async function signOut() {
     const ok = await confirmDialog({ title: 'Abmelden?', text: 'Deine Daten bleiben in der Cloud. Die lokale Kopie auf diesem Gerät wird entfernt.', okLabel: 'Abmelden', danger: true });
@@ -512,15 +613,14 @@ const Auth = (() => {
       'auth/unauthorized-domain': 'Diese Domain ist in Firebase nicht autorisiert (Authentication → Settings → Authorized domains).',
       'auth/network-request-failed': 'Keine Verbindung – bitte später erneut versuchen.',
       'auth/popup-blocked': 'Popup wurde blockiert.',
-      'auth/operation-not-allowed': 'Google-Login ist in Firebase nicht aktiviert.'
+      'auth/operation-not-allowed': 'Dieser Anmeldeweg ist in Firebase noch nicht aktiviert (Authentication → Sign-in method).'
     };
     return 'Login-Fehler: ' + (map[e && e.code] || (e && e.message) || e);
   }
   return {
-    init, signIn, signOut, configured, isIOS,
+    init, signIn, signOut, link, unlink, configured, isIOS, providers,
+    provider: k => PROVIDERS[k],
     user: () => user,
     status: () => status
   };
 })();
-
-

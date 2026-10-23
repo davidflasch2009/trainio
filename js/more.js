@@ -47,7 +47,7 @@ function moreGroups() {
         ${user ? `
           <div class="acc-card">
             <div class="avatar">${user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())}</div>
-            <div class="grow" style="min-width:0"><div class="bold ellipsis">${esc(user.name || 'Angemeldet')}</div><div class="small dim ellipsis">${esc(user.email)}</div></div>
+            <div class="grow" style="min-width:0"><div class="bold ellipsis">${esc(user.name || 'Angemeldet')}</div><div class="small dim ellipsis">${esc(accountLine(user))}</div></div>
             ${syncPill()}
           </div>
           <p class="small dim mt-12">Alle Daten werden live zwischen deinen Geräten synchronisiert – auch offline getrackte Workouts, sobald wieder Netz da ist.</p>
@@ -57,13 +57,15 @@ function moreGroups() {
             <div class="avatar">${icon('user')}</div>
             <div class="grow"><div class="bold">Lokaler Modus</div><div class="small dim">${Auth.configured() ? 'Melde dich an, um iPhone und Laptop zu synchronisieren.' : 'Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.'}</div></div>
           </div>
-          <button class="btn btn-secondary btn-block mt-12" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>${GOOGLE_ICON} Mit Google anmelden</button>
+          ${Auth.providers().map((k, i) => `<button class="btn btn-secondary btn-block ${i ? 'mt-8' : 'mt-12'}" data-act="signIn" data-p="${k}" ${Auth.configured() ? '' : 'disabled'}>${Auth.provider(k).icon} Mit ${Auth.provider(k).label} anmelden</button>`).join('')}
+          ${Auth.configured() && Auth.providers().length > 1 ? '<p class="tiny dim mt-8">Jeder Anmeldeweg ist ein eigenes Konto. Angemeldet kannst du weitere verknüpfen – sie führen dann zu denselben Daten.</p>' : ''}
           ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
       </div>`,
       sections: [
-        ['', [mRow(user ? setLine('Google-Konto', esc(user.email), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
-          : setLine('Google-Konto', 'Lokaler Modus', `<button class="btn btn-secondary btn-sm" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>Anmelden</button>`),
-          'Google-Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google synchronisieren sync', 'search')]],
+        ['', [mRow(user ? setLine('Konto', esc(accountLine(user)), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
+          : setLine('Konto', 'Lokaler Modus', `<button class="btn btn-secondary btn-sm" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>Anmelden</button>`),
+          'Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google github synchronisieren sync', 'search')]],
+        ...(user ? [['Anmeldewege', Auth.providers().map(k => providerRow(k, user)), '<p class="small dim">Verknüpfte Anmeldewege führen zum selben Konto mit denselben Daten.</p>']] : []),
         ['Profil', [
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
           mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil')]]
@@ -108,7 +110,7 @@ function moreGroups() {
       sections: [
         ['', [
           mi('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])), 'pausenzeit satzpause timer rest'),
-          mi('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'), 'timer'),
+          mi('Pausen-Timer', 'Startet automatisch nach jedem erledigten Satz', toggleCtl('autoRest'), 'timer pause automatisch starten'),
           mi('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'), 'mitteilung push timer'),
           mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer'),
           mi('Pausen-Ton', 'Klang am Pausenende – ▶ zum Probehören', `${selectCtl('restSound', REST_SOUNDS)}<button class="btn-icon" data-act="soundTest" aria-label="Probehören">${icon('play')}</button>`, 'klang sound gong glocke'),
@@ -214,6 +216,18 @@ function lookGroup(s) {
     ],
     foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
 }
+/* ---------- Konto: Anmeldewege (Google, GitHub …) verknüpfen / trennen ---------- */
+const accountLine = u => u.email || `Angemeldet mit ${u.providers.map(k => Auth.provider(k).label).join(' & ') || 'Konto'}`;
+function providerRow(k, user) {
+  const pv = Auth.provider(k), on = user.providers.includes(k), only = on && user.providers.length < 2;
+  const sub = on ? (only ? 'Verknüpft · einziger Anmeldeweg' : 'Verknüpft') : 'Nicht verknüpft';
+  const ctl = !on ? `<button class="btn btn-secondary btn-sm" data-act="linkProv" data-p="${k}">Verknüpfen</button>`
+    : only ? '' : `<button class="btn btn-ghost btn-sm" data-act="unlinkProv" data-p="${k}">Trennen</button>`;
+  return mRow(setLine(`<span class="prov-t">${pv.icon}${esc(pv.label)}</span>`, sub, ctl), pv.label, sub, 'anmeldeweg anmelden verknüpfen trennen login konto ' + k);
+}
+Actions.linkProv = el => Auth.link(el.dataset.p);
+Actions.unlinkProv = el => Auth.unlink(el.dataset.p);
+
 /* ---------- Startseiten-Kacheln: an/aus + Reihenfolge ---------- */
 const tilesOn = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0])).filter(k => HOME_TILES.some(x => x[0] === k));
 function tileChooserHtml() {
@@ -310,7 +324,7 @@ function moreHomeHtml(groups) {
   return `
     <button class="card clickable acc-card more-acc mt-12" data-act="moreSub" data-v="account">
       <div class="avatar">${user ? (user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())) : icon('user')}</div>
-      <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div><div class="small dim ellipsis">${user ? esc(user.email) : 'Anmelden für Sync · Name, Geschlecht'}</div></div>
+      <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div><div class="small dim ellipsis">${user ? esc(accountLine(user)) : 'Anmelden für Sync · Name, Geschlecht'}</div></div>
       ${user ? `<span class="sync-pill ${st}"><i></i>${SYNC_LABEL[st]}</span>` : ''}
       ${icon('chevR', 'li-chev')}
     </button>
@@ -392,7 +406,11 @@ Inputs.moreQ = debounce(el => {
   if (res) res.innerHTML = q ? moreSearchHtml(q) : '';
   if (home) home.classList.toggle('hidden', !!q);
 }, 150);
-Actions.signIn = () => Auth.signIn();
+Actions.signIn = async el => {
+  const ps = Auth.providers();
+  const k = (el && el.dataset && el.dataset.p) || (ps.length > 1 ? await actionMenu('Anmelden', ps.map(p => ({ key: p, label: `Mit ${Auth.provider(p).label} anmelden`, icon: 'user' }))) : ps[0]);
+  if (k) Auth.signIn(k);
+};
 Actions.signOut = () => Auth.signOut();
 Actions.setSeg = el => {
   const k = el.dataset.k;
@@ -424,7 +442,8 @@ Changes.defReps = el => {
 };
 Inputs.setName = debounce(el => Store.saveSettings({ displayName: el.value.trim() }), 500);
 Changes.setBar = el => { const v = parseNum(el.value); if (v != null && v >= 0) Store.saveSettings({ barKg: round(fromU(v), 3) }); };
-Actions.toolPlates = () => openPlates(null);
+// Läuft ein Workout: gleich mit dem aktuellen Satz öffnen
+Actions.toolPlates = () => { const w = Workout.cur(); openPlates(null, w ? plateTarget(w) : null); };
 Actions.tool1RM = () => open1RM();
 Actions.install = async () => {
   if (deferredInstall) {
