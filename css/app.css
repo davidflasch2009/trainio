@@ -452,7 +452,7 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
 }
 .btn-hero svg { width: 24px; height: 24px; }
 .btn-arrow {
-  background: linear-gradient(135deg, var(--accent), color-mix(in srgb, var(--accent) 55%, var(--info))); color: var(--accent-ink);
+  background: var(--accent); color: var(--accent-ink);
   min-height: 56px; font-size: calc(17px * var(--fs)); border-radius: calc(16px * var(--rs)); width: 100%;
 }
 .link-btn { background: none; border: 0; color: var(--accent-text); font-weight: var(--fw-b); font-size: calc(14px * var(--fs)); padding: 10px 4px; min-height: 44px; }
@@ -1343,16 +1343,15 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="glass"] .btn { border-radius: 999px; border-color: transparent; background: var(--glass-btn); box-shadow: inset 0 1px 0 var(--glass-hi), inset 0 0 0 .5px var(--glass-edge), 0 1px 3px rgba(20, 24, 60, .08); transition: transform .3s cubic-bezier(.34, 1.56, .64, 1), background .15s, filter .15s; }
 [data-design="glass"] .btn:hover { background: var(--glass-btn-hover); }
 [data-design="glass"] .btn:active { transform: scale(.95); }
-[data-design="glass"] :is(.btn-primary, .btn-hero, .fab, .banner) {
-  color: var(--btn-ink, #fff); background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 76%, #fff), var(--accent) 72%);
-  box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 32%, transparent), inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 -1px 0 rgba(0, 0, 0, .12);
+[data-design="glass"] :is(.btn-primary, .btn-hero, .btn-arrow, .fab, .banner) {
+  color: var(--btn-ink, #fff); background: linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 55%), var(--accent);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .45), inset 0 0 0 .5px rgba(255, 255, 255, .22), 0 1px 3px rgba(20, 24, 60, .14);
 }
 [data-design="glass"] .banner .pulse { background: var(--btn-ink, #fff); }
 [data-design="glass"] .btn-ghost { background: transparent; box-shadow: none; }
 [data-design="glass"] .btn-danger { background: var(--danger); color: #fff; }
 [data-design="glass"] .btn-danger-ghost { background: var(--danger-soft); box-shadow: none; }
 [data-design="glass"] .btn-accent-ghost { background: var(--accent-soft); box-shadow: none; }
-[data-design="glass"] .btn-arrow { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 80%, #fff), var(--accent) 55%, color-mix(in srgb, var(--accent) 60%, #a855f7)); color: #fff; }
 [data-design="glass"] .fab { border-radius: 50%; }
 [data-design="glass"] .btn-icon { border-radius: 999px; }
 [data-design="glass"] :is(.input, .select, .textarea) { background-color: var(--surface-2); border-color: transparent; border-radius: calc(14px * var(--rs)); }
@@ -1361,7 +1360,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="glass"] .seg button { border-radius: 999px; transition: background .25s, color .2s, box-shadow .25s; }
 [data-design="glass"] .seg button.active { background: var(--glass-knob); color: var(--text); box-shadow: 0 3px 8px rgba(0, 0, 0, .12), 0 0 0 .5px rgba(0, 0, 0, .04); }
 [data-design="glass"] .chip { background: var(--glass-btn); border-color: transparent; box-shadow: inset 0 1px 0 var(--glass-hi), inset 0 0 0 .5px var(--glass-edge); }
-[data-design="glass"] .chip.active { background: var(--accent); color: var(--btn-ink, #fff); box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent); }
+[data-design="glass"] .chip.active { background: var(--accent); color: var(--btn-ink, #fff); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .35); }
 [data-design="glass"] .chip.soft.active { background: var(--accent-soft); color: var(--accent-text); box-shadow: none; }
 [data-design="glass"] .switch span { background: var(--glass-off); }
 [data-design="glass"] .switch input:checked + span { background: #34c759; }
@@ -1390,7 +1389,6 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 }
 
 /* ---------- Trainio ---------- */
-[data-design="gymlog"] .btn-hero { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 90%, #fff), var(--accent)); box-shadow: 0 8px 22px -8px color-mix(in srgb, var(--accent) 70%, transparent), inset 0 1px 0 rgba(255, 255, 255, .22); }
 [data-design="gymlog"] .stat .stat-label svg { color: var(--accent-text); }
 [data-design="gymlog"] .set-row.done { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 [data-design="gymlog"][data-theme="dark"] :is(.modal, .toast, .rest-dock, .popover) { box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .04); }
@@ -1408,9 +1406,8 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="iron"] .section-head h4, [data-design="iron"] .section-head h2 { border-left: 3px solid var(--accent); padding-left: 10px; }
 [data-design="iron"] .btn { font-size: calc(16px * var(--fs)); letter-spacing: .05em; }
 [data-design="iron"] .btn-hero {
-  background: linear-gradient(180deg, rgba(255, 255, 255, .14), transparent 55%), repeating-linear-gradient(-45deg, var(--accent) 0 12px, color-mix(in srgb, var(--accent) 93%, #000) 12px 24px);
+  background: repeating-linear-gradient(-45deg, var(--accent) 0 12px, color-mix(in srgb, var(--accent) 93%, #000) 12px 24px);
   font-size: calc(20px * var(--fs)); font-weight: var(--fw-x); letter-spacing: .07em;
-  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--accent) 80%, transparent), inset 0 -2px 0 rgba(0, 0, 0, .14);
 }
 [data-design="iron"] .nav-btn.active::after { content: ''; position: absolute; top: 0; left: 30%; right: 30%; height: 2px; background: var(--accent); }
 [data-design="iron"] .side-btn.active { box-shadow: inset 3px 0 0 var(--accent); }
@@ -1464,13 +1461,11 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="carbon"] .set-head { font-family: var(--font-display); letter-spacing: .1em; }
 [data-design="carbon"] .btn-hero {
   background: linear-gradient(180deg, color-mix(in srgb, var(--btn-bg, var(--accent)) 86%, #fff), var(--btn-bg, var(--accent)) 52%, color-mix(in srgb, var(--btn-bg, var(--accent)) 84%, #000));
-  box-shadow: 0 10px 26px -10px color-mix(in srgb, var(--accent) 85%, transparent), inset 0 1px 0 rgba(255, 255, 255, .25);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .25);
   font-family: var(--font-display); text-transform: uppercase; letter-spacing: .08em; font-weight: 700;
 }
-[data-design="carbon"] .nav-btn.active::before { content: ''; position: absolute; top: 0; left: 32%; right: 32%; height: 2px; border-radius: 0 0 2px 2px; background: var(--accent); box-shadow: 0 0 10px var(--accent), 0 0 3px var(--accent); }
+[data-design="carbon"] .nav-btn.active::before { content: ''; position: absolute; top: 0; left: 32%; right: 32%; height: 2px; border-radius: 0 0 2px 2px; background: var(--accent); }
 [data-design="carbon"] .side-btn.active { box-shadow: inset 3px 0 0 var(--accent); }
-[data-design="carbon"] .wo-progress i { box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent); }
-[data-design="carbon"][data-theme="dark"] .set-row.done .set-check { box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 45%, transparent); }
 [data-design="carbon"] .ex-card-head .ex-name { font-family: var(--font-display); font-weight: 700; font-size: calc(17.5px * var(--fs)); }
 
 /* ---------- Paper ---------- */
