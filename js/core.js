@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.19.0',
+  version: '1.20.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -41,6 +41,8 @@ const MUSCLES = ['Brust', 'Schulter', 'Hintere Schulter', 'Trizeps', 'Bizeps', '
 const APP_ICONS = [['1', 'Original'], ...Array.from({ length: 9 }, (_, i) => [String(i + 2), `Icon ${i + 2}`])];
 const iconId = () => { const v = String(S().appIcon || '1'); return APP_ICONS.some(i => i[0] === v) ? v : '1'; };
 const iconSrc = (file = 'icon-192.png', id = iconId()) => `icons/${id}/${file}`;
+const defSets = () => clamp(Math.round(+S().defSets || 3), 1, 10);
+const defReps = () => String(S().defReps || '8-12');
 const UNIT_TYPES = { kg: 'Gewicht × Wdh.', reps: 'Körpergewicht (Wdh.)', sec: 'Zeit (Sek.)', cardio: 'Cardio' };
 const RPE_VALUES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const MEASURES = [
@@ -63,6 +65,14 @@ const DEFAULT_SETTINGS = {
   sound: true,
   wakeLock: true,
   appIcon: '1',
+  // Workout: Standard für neue Übungen, nächsten Satz vorbelegen, Nachfrage beim Beenden (always | open | never)
+  defSets: 3, defReps: '8-12', carryNext: true, finishConfirm: 'always',
+  // Auswertung: 1RM-Formel (epley | brzycki | avg), Standard-Zeitraum im Fortschritt ('last' = zuletzt gewählter)
+  e1rmFormula: 'epley', progPeriod: 'last',
+  // Pause: nach Aufwärmsätzen (Sek., 'same' = wie normal), nach Drop-Satz ('normal' | Sek.), Vorwarnung (Sek., 0 = aus), Ton
+  restWarmSec: 60, restDropSec: 'normal', restWarnSec: 0, restSound: 'beep',
+  // Startseite: Kacheln und Reihenfolge
+  homeTiles: ['streak', 'volume', 'workouts', 'next'],
   // Meldungen oben (Toasts) je Gruppe – Bestätigungen standardmäßig aus
   toast_confirm: false, toast_workout: true, toast_pr: true, toast_sync: true, toast_update: true,
   prefillText: false,

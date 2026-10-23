@@ -6,7 +6,14 @@
 /* ==========================================================================
    6. Übungs-Helfer, Analytics-Engine, PR-Berechnung
    ========================================================================== */
-const e1rm = (w, r) => (w > 0 && r >= 1) ? w * (1 + r / 30) : 0;  // Epley
+/** Geschätztes 1RM nach gewählter Formel: Epley w·(1 + r/30), Brzycki w·36/(37 − r) oder Mittelwert beider */
+const e1rmBy = (w, r, f) => {
+  if (!(w > 0 && r >= 1)) return 0;
+  const ep = w * (1 + r / 30), bz = r < 36 ? w * 36 / (37 - r) : ep;
+  return f === 'brzycki' ? bz : f === 'avg' ? (ep + bz) / 2 : ep;
+};
+const E1RM_FORMULAS = [['epley', 'Epley'], ['brzycki', 'Brzycki'], ['avg', 'Mittelwert']];
+const e1rm = (w, r) => e1rmBy(w, r, S().e1rmFormula);
 
 /* ---------- Einseitig (unilateral): reps/durationSec = links, repsR/durationSecR = rechts ---------- */
 const UNI_DEFAULT = new Set(['kh_rudern', 'konzentrations_curl', 'bulgarian', 'side_plank', 'landmine_press', 'trizeps_einarmig', 'meadows_row',
@@ -130,9 +137,10 @@ function exMeta() {
  * Baut den Analytics-Index aus allen Workouts. Bewusst „pure" und ohne Zugriff
  * auf äußere Variablen, damit die Funktion auch als Web Worker laufen kann.
  */
-function buildIndex(W, EX) {
+function buildIndex(W, EX, F = 'epley') {
   const dnOf = s => { const p = String(s).split('-'); return Math.round(Date.UTC(+p[0], +p[1] - 1, +p[2]) / 864e5); };
-  const e1 = (w, r) => (w > 0 && r >= 1) ? w * (1 + r / 30) : 0;
+  // 1RM-Formel (wie e1rmBy – hier eigenständig, weil die Funktion auch im Web Worker läuft)
+  const e1 = (w, r) => { if (!(w > 0 && r >= 1)) return 0; const ep = w * (1 + r / 30), bz = r < 36 ? w * 36 / (37 - r) : ep; return F === 'brzycki' ? bz : F === 'avg' ? (ep + bz) / 2 : ep; };
   const ws = W.filter(w => w && typeof w.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(w.date)).slice()
     .sort((a, b) => a.date < b.date ? -1 : a.date > b.date ? 1 : (a.startedAt || 0) - (b.startedAt || 0));
   const rows = [], sessions = {}, prEvents = [], runBest = {};
@@ -234,30 +242,31 @@ const Analytics = (() => {
   let idx = null, key = '', computing = false;
   let bw = null, bwKey = '';
   function cur() {
-    const k = Store.ver('workouts') + ':' + Store.ver('exercises');
+    const f = S().e1rmFormula || 'epley';
+    const k = Store.ver('workouts') + ':' + Store.ver('exercises') + ':' + f;
     if (idx && k === key) return idx;
     const W = Store.all('workouts');
     // Große Datenmengen (> 500 Workouts) im Web Worker neu rechnen, UI nicht blockieren
     if (idx && W.length > 500 && window.Worker && window.Blob) {
-      if (!computing) runWorker(W, exMeta(), k);
+      if (!computing) runWorker(W, exMeta(), k, f);
       return idx;
     }
-    idx = buildIndex(W, exMeta());
+    idx = buildIndex(W, exMeta(), f);
     key = k;
     return idx;
   }
-  function runWorker(W, EX, k) {
+  function runWorker(W, EX, k, F) {
     computing = true;
     let url;
     try {
-      url = URL.createObjectURL(new Blob([`${buildIndex.toString()}\nonmessage = e => postMessage(buildIndex(e.data.W, e.data.EX));`], { type: 'text/javascript' }));
+      url = URL.createObjectURL(new Blob([`${buildIndex.toString()}\nonmessage = e => postMessage(buildIndex(e.data.W, e.data.EX, e.data.F));`], { type: 'text/javascript' }));
       const wk = new Worker(url);
       wk.onmessage = e => { idx = e.data; key = k; computing = false; wk.terminate(); URL.revokeObjectURL(url); scheduleRender(); };
-      wk.onerror = () => { computing = false; wk.terminate(); URL.revokeObjectURL(url); idx = buildIndex(W, EX); key = k; scheduleRender(); };
-      wk.postMessage({ W, EX });
+      wk.onerror = () => { computing = false; wk.terminate(); URL.revokeObjectURL(url); idx = buildIndex(W, EX, F); key = k; scheduleRender(); };
+      wk.postMessage({ W, EX, F });
     } catch (e) {
       computing = false;
-      idx = buildIndex(W, EX); key = k;
+      idx = buildIndex(W, EX, F); key = k;
     }
   }
   /** Körpergewicht-Zeitreihe aus Fortschritt + Workouts */
@@ -380,7 +389,7 @@ const Analytics = (() => {
   }
   /** Kompakter Cache für Firestore (meta/analyticsCache) */
   const persistCache = debounce(() => {
-    const ix = buildIndex(Store.all('workouts'), exMeta());
+    const ix = buildIndex(Store.all('workouts'), exMeta(), S().e1rmFormula);
     const byWeek = {}, byExerciseId = {}, byMuscle = {};
     for (const w of ix.rows) {
       const k = isoWeekKey(w.dn);
@@ -498,7 +507,7 @@ const PR = {
   },
   /** Komplett neu berechnen (nach Import, Löschen, Bearbeiten) */
   async recalcAll() {
-    const ix = buildIndex(Store.all('workouts'), exMeta());
+    const ix = buildIndex(Store.all('workouts'), exMeta(), S().e1rmFormula);
     const ops = [];
     const ids = new Set(Object.keys(ix.sessions));
     for (const exId of ids) { const p = PR.compute(exId, ix); if (p) ops.push({ type: 'put', coll: 'prs', id: exId, doc: p, replace: true }); }

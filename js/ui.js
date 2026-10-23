@@ -364,25 +364,32 @@ function unlockAudio() {
 }
 document.addEventListener('touchend', unlockAudio, { once: true, passive: true });
 document.addEventListener('click', unlockAudio, { once: true });
-function beep() {
-  if (!S().sound) return;
+/* Pausen-Töne (synthetisch, keine Dateien): Auswahl unter Mehr → Pause & Timer */
+const REST_SOUNDS = [['beep', 'Piep (3×)'], ['double', 'Doppelton'], ['gong', 'Gong'], ['bell', 'Glocke']];
+function playSound(kind = S().restSound || 'beep', force = false) {
+  if (!force && !S().sound) return;
   try {
     unlockAudio();
     const ctx = audioCtx;
     if (!ctx) return;
-    [0, 0.2, 0.4].forEach((d, i) => {
-      const o = ctx.createOscillator(), g = ctx.createGain();
-      o.type = 'sine';
-      o.frequency.value = i === 2 ? 1320 : 880;
-      const t = ctx.currentTime + d;
+    const tone = (freq, d, len, vol = 0.3) => {
+      const o = ctx.createOscillator(), g = ctx.createGain(), t = ctx.currentTime + d;
+      o.type = 'sine'; o.frequency.value = freq;
       g.gain.setValueAtTime(0.0001, t);
-      g.gain.exponentialRampToValueAtTime(0.3, t + 0.02);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.17);
+      g.gain.exponentialRampToValueAtTime(vol, t + 0.015);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + len);
       o.connect(g); g.connect(ctx.destination);
-      o.start(t); o.stop(t + 0.2);
-    });
+      o.start(t); o.stop(t + len + 0.03);
+    };
+    if (kind === 'double') { tone(988, 0, 0.14); tone(988, 0.2, 0.14); }
+    else if (kind === 'gong') { tone(196, 0, 1.6, 0.35); tone(392, 0, 1.2, 0.12); tone(588, 0, 0.8, 0.06); }
+    else if (kind === 'bell') { tone(1318, 0, 1.0, 0.25); tone(2637, 0, 0.6, 0.08); tone(1976, 0.02, 0.8, 0.06); }
+    else if (kind === 'warn') tone(1046, 0, 0.12, 0.16);
+    else [0, 0.2, 0.4].forEach((d, i) => tone(i === 2 ? 1320 : 880, d, 0.17));
   } catch (e) {}
 }
+function beep() { playSound(); }
+Actions.soundTest = () => playSound(S().restSound, true);
 function confetti() {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || S().confetti === false || S().motion === 'off') return;
   const c = document.createElement('canvas');

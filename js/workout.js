@@ -179,12 +179,12 @@ const Workout = (() => {
 
 /* ---------- Rest-Timer ---------- */
 const RestTimer = (() => {
-  let firedFor = null;
+  let firedFor = null, warnedFor = null;
   function start(sec, label) {
     const w = Workout.cur();
     if (!w || !sec) return;
     w.rest = { endsAt: Date.now() + sec * 1000, total: sec, label: label || '' };
-    firedFor = null;
+    firedFor = null; warnedFor = null;
     Workout.save();
     render();
   }
@@ -201,7 +201,7 @@ const RestTimer = (() => {
     if (!w || !w.rest) return;
     w.rest.endsAt = Math.max(Date.now(), w.rest.endsAt + d * 1000);
     w.rest.total = Math.max(w.rest.total + d, 5);
-    firedFor = null;
+    firedFor = null; warnedFor = null;
     Workout.save();
     tick();
   }
@@ -244,6 +244,12 @@ const RestTimer = (() => {
     if (big) big.textContent = rem > 0 ? fmtClock(Math.ceil(rem)) : 'Los!';
     const ring = $('#restRing');
     if (ring) ring.style.strokeDashoffset = String(ring.dataset.len * (1 - frac));
+    // Vorwarnung kurz vor Pausenende (Einstellung, 0 = aus)
+    const warn = +S().restWarnSec || 0;
+    if (warn && rem > 0 && rem <= warn && w.rest.total > warn + 1 && warnedFor !== w.rest.endsAt) {
+      warnedFor = w.rest.endsAt;
+      playSound('warn'); vibrate(80);
+    }
     if (rem <= 0 && firedFor !== w.rest.endsAt) {
       firedFor = w.rest.endsAt;
       done(w);

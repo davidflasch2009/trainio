@@ -10,7 +10,7 @@ const PERIODS = [['4w', '4W'], ['3m', '3M'], ['6m', '6M'], ['1y', '1J'], ['all',
 /* ---------- Funktionen ein-/ausschalten ---------- */
 const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
-  ['Fortschritt', [['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
+  ['Fortschritt', [['f_score', 'Workout-Score', 'Ring beim Abschluss, im Workout-Detail und im Fortschritt'], ['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
   ['Körper-Tab', [['f_bodyFat', 'Körperfett & fettfreie Masse'], ['f_measures', 'Umfänge & Verhältnisse', 'Brust, Taille, Arm … in cm'], ['f_photos', 'Fortschrittsfotos']]],
   ['Workout', [['f_rest', 'Pausen-Timer'], ['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
@@ -249,7 +249,7 @@ ProgressViews.overview = body => {
         ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
           `${e < ms ? 'Noch kein abgeschlossener Tag diesen Monat' : `${monthName(pmD)} bis zum ${e - ms + 1}.`}${todayNote} · ganzer Monat: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}`)}
       </div>
-      ${(() => {
+      ${!F('f_score') ? '' : (() => {
         // Workout-Score im Zeitraum: Punkte je Workout + Ø der letzten 3 Wochen
         const rS = Analytics.range(), sOf = rs => rs.map(x => ({ x, s: Analytics.score(x.id) })).filter(o => o.s);
         const cur = sOf(Analytics.rowsIn(rS)), prv = sOf(Analytics.rowsIn(Analytics.prevRange(rS)));

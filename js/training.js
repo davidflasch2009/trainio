@@ -28,29 +28,30 @@ Views.start = {
           <h3 class="mt-8">${esc(w.name)}</h3>
           <p class="dim small">Workout läuft – tippen zum Fortsetzen</p>
         </button>` : ''}
-      ${S().homeStats === false ? '' : `<div class="stat-grid mt-16">
-        <div class="stat">
+      ${S().homeStats === false ? '' : `<div class="stat-grid mt-16">${homeTileKeys().map(k => ({
+        streak: `<div class="stat">
           <div class="stat-label">${icon('flame')} Streak ${infoBtn('Aufeinanderfolgende Wochen mit mindestens einem Workout. Die Punkte zeigen deine Trainingstage dieser Woche.')}</div>
           <div class="stat-value">${st.cur}<small>${st.cur === 1 ? 'Woche' : 'Wochen'}</small></div>
           <div class="week-dots">${dots}</div>
           <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
-        </div>
-        <div class="stat">
+        </div>`,
+        volume: `<div class="stat">
           <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag – der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast.')}</div>
           <div class="stat-value">${fmtTon(volNow)}</div>
           <div class="stat-sub">diese Woche ${deltaHtml(volNow, volPrev)}</div>
-        </div>
-        <div class="stat">
+        </div>`,
+        workouts: `<div class="stat">
           <div class="stat-label">${icon('trophy')} Workouts</div>
           <div class="stat-value">${ix.rows.length}</div>
           <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
-        </div>
-        <button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
+        </div>`,
+        score: scoreTile(ix, t),
+        next: `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
           <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
           <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
           <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>
-        </button>
-      </div>`}
+        </button>`
+      })[k]).join('')}</div>`}
       <div class="mt-16">
         ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
@@ -62,6 +63,20 @@ Views.start = {
     `;
   }
 };
+/* Startseiten-Kacheln: Auswahl und Reihenfolge unter Mehr → Darstellung → Startseite */
+const HOME_TILES = [['streak', 'Streak'], ['volume', 'Volumen'], ['workouts', 'Workouts'], ['next', 'Nächstes Training'], ['score', 'Ø Score']];
+const homeTileKeys = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0]))
+  .filter(k => HOME_TILES.some(x => x[0] === k) && (k !== 'score' || F('f_score')));
+/** Ø Workout-Score der letzten 4 Wochen + letzter Score */
+function scoreTile(ix, t) {
+  const sc = ix.rows.filter(r => r.dn > t - 28).map(r => Analytics.score(r.id)).filter(Boolean).map(s => s.score);
+  const last = ix.rows.length ? Analytics.score(ix.rows[ix.rows.length - 1].id) : null;
+  return `<div class="stat">
+    <div class="stat-label">${icon('target')} Ø Score ${infoBtn('Durchschnittlicher Workout-Score (0–100) der letzten 4 Wochen. Wie er sich zusammensetzt, steht nach jedem Workout unter dem Ring.')}</div>
+    <div class="stat-value">${sc.length ? nf(avg(sc), 0) : '–'}</div>
+    <div class="stat-sub">${last ? `letztes Workout: ${last.score}` : 'noch kein Workout'}</div>
+  </div>`;
+}
 function miniWorkoutCard(r) {
   const d = parseISO(r.date);
   return `<button class="card clickable tight mini-wo" data-act="openWorkout" data-id="${esc(r.id)}" style="width:100%;text-align:left;color:inherit;font:inherit">
@@ -372,7 +387,7 @@ function openTemplateEditor(tpl, { onSave = null } = {}) {
       case 'exAdd': {
         const ids = await pickExercises({ multi: true, title: 'Übungen hinzufügen' });
         if (!ids || !ids.length) return;
-        ids.forEach(id => a.push(isCardioId(id) ? { exerciseId: id, sets: 1, reps: '', restSec: 0, notes: '' } : { exerciseId: id, sets: 3, reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : '8-12', restSec: S().defaultRestSec, notes: '', uni: Ex.isUni(Ex.get(id)) }));
+        ids.forEach(id => a.push(isCardioId(id) ? { exerciseId: id, sets: 1, reps: '', restSec: 0, notes: '' } : { exerciseId: id, sets: defSets(), reps: Ex.type(Ex.get(id)) === 'sec' ? '60' : defReps(), restSec: S().defaultRestSec, notes: '', uni: Ex.isUni(Ex.get(id)) }));
         break;
       }
       case 'cancel': m.close(); return;
@@ -562,7 +577,7 @@ Actions.composeWorkout = async () => {
   if (Workout.cur()) return App.go('training');
   const ids = await pickExercises({ multi: true, title: 'Übungen fürs Workout wählen' });
   if (!ids || !ids.length) return;
-  Workout.start({ name: 'Eigenes Workout', entries: ids.map(id => Workout.makeEntry(id, { sets: 3 })) });
+  Workout.start({ name: 'Eigenes Workout', entries: ids.map(id => Workout.makeEntry(id, { sets: defSets() })) });
 };
 /* Aktuelles/gespeichertes Workout unter „Meine Workouts" ablegen */
 async function saveAsTemplate(entries, name) {
@@ -636,7 +651,7 @@ function openWorkoutDetail(id) {
   const editMeta = () => openWorkoutMeta(id, () => { m.close(); openWorkoutDetail(id); });
   const row = Analytics.cur().rows.find(r => r.id === id);
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
-  const sc = Analytics.score(id);
+  const sc = F('f_score') ? Analytics.score(id) : null;
   const m = Modal.open({
     title: wo.planDayName || wo.name || 'Workout', size: 'lg',
     body: `
@@ -1832,7 +1847,7 @@ Actions.setDone = el => {
   // Nächsten Satz wie diesen vorbelegen (Gewicht + Wdh. bzw. Sekunden), damit ein Tipp aufs Häkchen reicht –
   // nur Felder, die leer sind und für die es keinen Wert vom letzten Mal gibt (der bleibt als Vorschlag stehen)
   const nx = en.sets[si + 1];
-  if (nx && !nx.done && !nx.warmup && !s.warmup && type !== 'cardio') {
+  if (S().carryNext !== false && nx && !nx.done && !nx.warmup && !s.warmup && type !== 'cardio') {
     const pv = prevForSet(en, si + 1, lastSessionFor(en.exerciseId, w)) || {};
     if (nx.weightKg == null && !pv.w) nx.weightKg = s.weightKg;
     const k = type === 'sec' ? 'durationSec' : 'reps', kR = type === 'sec' ? 'durationSecR' : 'repsR';
@@ -1843,9 +1858,12 @@ Actions.setDone = el => {
   }
   Workout.save();
   if (!wasLast && !w.editingId && S().autoRest !== false && F('f_rest') && type !== 'cardio') {
-    const rest = s.warmup ? Math.min(60, en.target.restSec || S().defaultRestSec) : (en.target.restSec || S().defaultRestSec);
-    const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null;
-    RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
+    const normal = en.target.restSec || S().defaultRestSec, ws = S().restWarmSec, ds = S().restDropSec;
+    const nxt = w.sel.e >= 0 ? w.entries[w.sel.e] : null, nxtSet = nxt ? nxt.sets[w.sel.s] : null;
+    // nach Aufwärmsätzen höchstens die eingestellte Pause; vor einem Drop-Satz die Drop-Pause (0 = gar keine)
+    let rest = s.warmup ? (ws === 'same' ? normal : Math.min(+ws || 60, normal)) : normal;
+    if (nxtSet && nxtSet.kind === 'drop' && !nxtSet.done && ds !== 'normal' && ds != null) rest = +ds || 0;
+    if (rest > 0) RestTimer.start(rest, nxt ? `Als Nächstes: ${nxt.exerciseName} · Satz ${w.sel.s + 1}` : '');
   }
   if (wasLast) toast('Alle Sätze erledigt – stark! Unten „Workout beenden" tippen.', 'success', { cat: 'workout' });
   else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success', { cat: 'workout' });
@@ -2075,7 +2093,7 @@ Actions.woAddEx = async () => {
   if (!ids || !ids.length) return;
   const w = Workout.cur();
   if (!w) return;
-  ids.forEach(id => w.entries.push(Workout.makeEntry(id, { sets: 3 })));
+  ids.forEach(id => w.entries.push(Workout.makeEntry(id, { sets: defSets() })));
   Workout.autoSelect();
   Workout.save();
   App.renderCurrent();
@@ -2104,9 +2122,10 @@ Actions.woFinish = async () => {
   if (!w) return;
   const st = liveStats(w);
   const open = st.total - st.done;
+  const ask = S().finishConfirm || 'always';
   if (!st.done) {
     if (!await confirmDialog({ title: 'Noch kein Satz erledigt', text: 'Es wurde noch kein Satz abgehakt. Trotzdem speichern?', okLabel: 'Speichern' })) return;
-  } else if (!await confirmDialog({
+  } else if ((ask === 'always' || (ask === 'open' && open)) && !await confirmDialog({
     title: w.editingId ? 'Änderungen speichern?' : 'Workout beenden?',
     text: open ? `${open} ${open === 1 ? 'Satz ist' : 'Sätze sind'} noch offen und ${open === 1 ? 'wird' : 'werden'} als „nicht erledigt" gespeichert.` : 'Alle Sätze erledigt – sauber!',
     okLabel: w.editingId ? 'Speichern' : 'Beenden & speichern'
@@ -2144,7 +2163,7 @@ function animScoreRing(root, delay = 250) {
   setTimeout(() => requestAnimationFrame(() => { fg.style.strokeDashoffset = target; }), delay);
 }
 function showSummary({ id, doc, prs }) {
-  const sc = Analytics.score(id);
+  const sc = F('f_score') ? Analytics.score(id) : null;
   const goalsHit = checkGoals(doc);
   const isC = e => Ex.type(Ex.get(e.exerciseId)) === 'cardio';
   const done = doc.entries.filter(e => !isC(e)).flatMap(e => e.sets.filter(s => s.done && !s.warmup));

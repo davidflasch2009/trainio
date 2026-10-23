@@ -333,7 +333,7 @@ function openExerciseDetail(id) {
     else if (x === 'add') {
       const w = Workout.cur();
       if (!w) return;
-      w.entries.push(Workout.makeEntry(id, { sets: 3 }));
+      w.entries.push(Workout.makeEntry(id, { sets: defSets() }));
       Workout.autoSelect(); Workout.save();
       m.close();
       App.go('training');

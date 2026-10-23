@@ -68,7 +68,7 @@ function moreGroups() {
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
           mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil')]]
       ] },
-    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Einheit, Gewichts-Schritte, Scheiben & Stange, Aufwärmsätze',
+    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Einheit, Gewichte, Aufwärmsätze, 1RM-Formel, Zeitraum',
       sections: [
         ['Plan & Woche', [
           mi('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]), 'plan programm split'),
@@ -79,29 +79,43 @@ function moreGroups() {
           mi('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]), 'schritte plus minus steigerung'),
           mi('Stangengewicht', 'Scheibenrechner & Aufwärmsätze', `<input class="input num-input" data-ch="setBar" inputmode="decimal" value="${inputW(s.barKg)}" style="max-width:90px;min-width:0"><span class="small dim">${unit()}</span>`, 'langhantel bar'),
           mRow(navRowInline('openPlatesCfg', 'plate', 'Scheiben & Stange', `${(unit() === 'lb' ? S().platesLb : S().platesKg).map(x => nf(x, 2)).join(' · ')} ${unit()} · Stange ${wNum(S().barKg)}`), 'Scheiben & Stange', 'Verfügbare Scheiben', 'hantelscheiben platten'),
-          mRow(navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : '')), 'Aufwärmsätze', 'Prozent und Wdh. pro Aufwärmsatz', 'aufwärmen warmup')]]
+          mRow(navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : '')), 'Aufwärmsätze', 'Prozent und Wdh. pro Aufwärmsatz', 'aufwärmen warmup')]],
+        ['Auswertung', [
+          mi('1RM-Formel', 'Für geschätztes Maximum, Diagramme, PRs und Score', selectCtl('e1rmFormula', E1RM_FORMULAS), 'e1rm maximum epley brzycki'),
+          mi('Zeitraum im Fortschritt', 'Womit der Fortschritt-Tab startet', selectCtl('progPeriod', [['last', 'Zuletzt gewählter'], ['4w', '4 Wochen'], ['3m', '3 Monate'], ['6m', '6 Monate'], ['1y', '1 Jahr'], ['all', 'Alles']]), 'zeitraum standard periode')]]
       ] },
-    { id: 'workout', title: 'Workout', ic: 'list', sub: 'Eingabe, Ansicht, Letztes Mal, RPE, Zuklappen, Scrollen, Bildschirm an',
+    { id: 'workout', title: 'Workout', ic: 'list', sub: 'Eingabe, Vorbelegen, neue Übungen, Ansicht, Beenden',
       sections: [
         ['Eingabe', [
           mi('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]), 'schlicht ausführlich stepper'),
           mi('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'), 'vorbelegen platzhalter'),
           mi('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'), 'vorherige werte'),
-          s.woStyle === 'detailed' ? mi('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'), 'rir') : mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir')]],
+          s.woStyle === 'detailed' ? mi('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'), 'rir') : mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir'),
+          mi('Nächsten Satz vorbelegen', 'Nach dem Abhaken: Gewicht & Wdh. in den nächsten leeren Satz übernehmen', toggleCtl('carryNext'), 'übernehmen vorbelegen automatisch')]],
+        ['Neue Übungen', [
+          mi('Standard-Sätze', 'Wenn du eine Übung hinzufügst', selectCtl('defSets', [1, 2, 3, 4, 5, 6, 8, 10].map(n => [n, n + (n === 1 ? ' Satz' : ' Sätze')])), 'sätze anzahl standard'),
+          mi('Standard-Wdh.', 'Wdh.-Bereich in neuen Workouts, z. B. 8-12', `<input class="input" data-ch="defReps" value="${esc(defReps())}" inputmode="text" style="max-width:110px">`, 'wiederholungen bereich standard')]],
         ['Ansicht', [
           mi('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]), 'liste fokus'),
           mi('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'), 'zuklappen einklappen'),
           ...(s.woStyle === 'detailed' ? [mi('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'), 'leiste')] : []),
           mi('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'), 'scrollen'),
-          mi('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'), 'display sperre wake lock')]]
+          mi('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'), 'display sperre wake lock')]],
+        ['Beenden', [
+          mi('Nachfrage beim Beenden', 'Immer · nur wenn noch Sätze offen sind · nie', selectCtl('finishConfirm', [['always', 'Immer'], ['open', 'Bei offenen Sätzen'], ['never', 'Nie']]), 'bestätigen nachfragen beenden offen')]]
       ] },
-    { id: 'rest', title: 'Pause & Timer', ic: 'timer', sub: 'Standard-Pause, Auto-Start, Benachrichtigung, Ton',
+    { id: 'rest', title: 'Pause & Timer', ic: 'timer', sub: 'Standard-Pause, Auto-Start, Ton, Vorwarnung, Aufwärm-/Drop-Pause',
       sections: [
         ['', [
           mi('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])), 'pausenzeit satzpause timer rest'),
           mi('Pause automatisch starten', 'Nach jedem erledigten Satz', toggleCtl('autoRest'), 'timer'),
           mi('Pausen-Benachrichtigung', 'Push-Hinweis, wenn die App im Hintergrund ist', toggleCtl('notifyRestDone'), 'mitteilung push timer'),
-          mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer')]]
+          mi('Ton bei Pausenende', 'Kurzer Ton, wenn die Pause vorbei ist', toggleCtl('sound'), 'sound klang timer'),
+          mi('Pausen-Ton', 'Klang am Pausenende – ▶ zum Probehören', `${selectCtl('restSound', REST_SOUNDS)}<button class="btn-icon" data-act="soundTest" aria-label="Probehören">${icon('play')}</button>`, 'klang sound gong glocke'),
+          mi('Vorwarnung', 'Kurzer Ton & Vibration vor Pausenende', selectCtl('restWarnSec', [[0, 'Aus'], [5, '5 s vorher'], [10, '10 s vorher'], [15, '15 s vorher']]), 'warnung vorher countdown')]],
+        ['Besondere Sätze', [
+          mi('Nach Aufwärmsätzen', 'Höchstens so lang wie die normale Pause', selectCtl('restWarmSec', [[15, '0:15 min'], [30, '0:30 min'], [45, '0:45 min'], [60, '1:00 min'], [90, '1:30 min'], ['same', 'Wie normal']]), 'aufwärmen warmup pause'),
+          mi('Vor einem Drop-Satz', 'Zwischen Satz und Drop-Satz – meist direkt weiter', selectCtl('restDropSec', [['normal', 'Wie normal'], [0, 'Keine Pause'], [10, '0:10 min'], [15, '0:15 min'], [30, '0:30 min']]), 'drop dropsatz pause')]]
       ] },
     lookGroup(s),
     { id: 'toasts', title: 'Meldungen', ic: 'info', sub: 'Hinweise oben im Bildschirm ein- oder ausschalten',
@@ -195,10 +209,35 @@ function lookGroup(s) {
         tg('confetti', 'Konfetti bei neuen PRs', '', 'rekord feiern')]],
       ['Startseite', [
         tg('homeStats', 'Statistik-Kacheln', '', 'start'),
+        ...(s.homeStats !== false ? [st('Kacheln', 'Antippen schaltet ein oder aus, die Pfeile ändern die Reihenfolge', tileChooserHtml(), 'kacheln reihenfolge streak volumen score startseite')] : []),
         st('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]), 'start')]]
     ],
     foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
 }
+/* ---------- Startseiten-Kacheln: an/aus + Reihenfolge ---------- */
+const tilesOn = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0])).filter(k => HOME_TILES.some(x => x[0] === k));
+function tileChooserHtml() {
+  const on = tilesOn(), all = HOME_TILES.filter(([k]) => k !== 'score' || F('f_score')).map(x => x[0]);
+  const order = [...on.filter(k => all.includes(k)), ...all.filter(k => !on.includes(k))];
+  return `<div class="tile-list">${order.map(k => {
+    const active = on.includes(k), i = on.indexOf(k), name = HOME_TILES.find(x => x[0] === k)[1];
+    return `<div class="tile-row ${active ? 'on' : ''}">
+      <button class="tile-tog" data-act="tileToggle" data-k="${k}" aria-pressed="${active}">${icon(active ? 'checkCircle' : 'plus')}<span>${name}</span></button>
+      ${active ? `<button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="${name} nach oben">${icon('chevU')}</button><button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="1" ${i === on.length - 1 ? 'disabled' : ''} aria-label="${name} nach unten">${icon('chevD')}</button>` : ''}
+    </div>`;
+  }).join('')}</div>`;
+}
+Actions.tileToggle = el => {
+  const k = el.dataset.k, on = tilesOn();
+  Store.saveSettings({ homeTiles: on.includes(k) ? on.filter(x => x !== k) : [...on, k] });
+};
+Actions.tileMove = el => {
+  const on = tilesOn(), i = on.indexOf(el.dataset.k), j = i + +el.dataset.d;
+  if (i < 0 || j < 0 || j >= on.length) return;
+  [on[i], on[j]] = [on[j], on[i]];
+  Store.saveSettings({ homeTiles: on });
+};
+
 /* ---------- App-Icon ---------- */
 const iconName = (id = iconId()) => (APP_ICONS.find(i => i[0] === id) || APP_ICONS[0])[1];
 function iconHintHtml() {
@@ -358,8 +397,10 @@ Actions.setSeg = el => {
 };
 Changes.setSelect = el => {
   const k = el.dataset.k;
-  const v = ['weeklyGoal', 'defaultRestSec'].includes(k) ? +el.value : el.value;
-  Store.saveSettings({ [k]: v });
+  const num = ['weeklyGoal', 'defaultRestSec', 'defSets', 'restWarnSec'].includes(k) || (['restWarmSec', 'restDropSec'].includes(k) && /^\d+$/.test(el.value));
+  Store.saveSettings({ [k]: num ? +el.value : el.value });
+  // andere 1RM-Formel → gespeicherte Rekorde (bestes e1RM) neu berechnen
+  if (k === 'e1rmFormula') PR.recalcAll().then(() => toast('1RM neu berechnet', 'success', { cat: 'always' }));
 };
 Changes.setToggle = async el => {
   const k = el.dataset.k;
@@ -369,6 +410,12 @@ Changes.setToggle = async el => {
   }
   Store.saveSettings({ [k]: el.checked });
   if (k === 'wakeLock') { if (el.checked && Workout.cur()) WakeLock.request(); else if (!el.checked) WakeLock.release(); }
+};
+// Standard-Wdh. für neue Übungen: Zahl oder Bereich („10", „8-12")
+Changes.defReps = el => {
+  const v = el.value.trim().replace(/\s+/g, '').replace(/[–—]/g, '-');
+  if (!/^\d{1,3}(-\d{1,3})?$/.test(v)) { toast('Bitte eine Zahl oder einen Bereich wie 8-12 eintragen', 'warn'); el.value = defReps(); return; }
+  Store.saveSettings({ defReps: v });
 };
 Inputs.setName = debounce(el => Store.saveSettings({ displayName: el.value.trim() }), 500);
 Changes.setBar = el => { const v = parseNum(el.value); if (v != null && v >= 0) Store.saveSettings({ barKg: round(fromU(v), 3) }); };

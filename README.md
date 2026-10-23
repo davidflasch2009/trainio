@@ -191,12 +191,12 @@ schließt sich die Gruppe und die Suche wird geleert):
 | Gruppe | Inhalt |
 | --- | --- |
 | Konto & Profil | Google-Anmeldung, Sync-Status, Name, Geschlecht |
-| Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze |
-| Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, Ansicht, Zuklappen, Scrollen, Bildschirm an |
-| Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton |
-| Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite |
+| Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Start-Zeitraum im Fortschritt** |
+| Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
+| Pause & Timer | Standard-Pause, automatisch starten, Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
+| Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (Auswahl + Reihenfolge, auch Ø Score) |
 | Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
-| Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen und Workout-Funktionen ein-/ausschalten |
+| Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen (inkl. **Workout-Score**) und Workout-Funktionen ein-/ausschalten |
 | Daten | Arrow-Import, Gewicht importieren, Rückgängig, Export CSV/PDF, Backup, Restore, Alle Daten löschen |
 | Tools | Scheibenrechner, 1RM-Rechner (wenn eingeschaltet) |
 | App & Hilfe | Installieren, Updates, Fehlerprotokoll, Repository, Kontakt |
