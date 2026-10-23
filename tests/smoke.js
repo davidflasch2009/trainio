@@ -308,9 +308,11 @@ async function dataFlow(page) {
   console.log('Design-Wechsel mit Diagrammen');
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
-  for (let y = 0; y < 5000; y += 350) { await page.evaluate(v => Scroll.to(v), y); await pause(page, 120); }
-  const drawn = await page.evaluate(() => typeof Chart !== 'undefined' ? [...document.querySelectorAll('#tab-progress canvas')].filter(c => Chart.getChart(c)).length : -1);
-  check(drawn > 0, `Diagramme gezeichnet (${drawn})`, drawn < 0 ? 'Chart.js fehlt – npm install ausführen' : '');
+  // Alle Diagramme sind sofort gezeichnet – auch unterhalb des Bildschirms, ohne Hinscrollen (sonst unscharf auf dem iPhone)
+  const cv = await page.evaluate(() => typeof Chart === 'undefined' ? null : [...document.querySelectorAll('#tab-progress canvas')].filter(c => c.style.display !== 'none')
+    .map(c => ({ id: c.id, drawn: !!Chart.getChart(c), below: c.getBoundingClientRect().top > innerHeight, sharp: Math.abs(c.width - c.clientWidth * devicePixelRatio) < 2 })));
+  check(cv && cv.length && cv.every(c => c.drawn) && cv.some(c => c.below), `Diagramme sofort gezeichnet, auch unterhalb (${cv ? cv.length : 0})`, cv ? JSON.stringify(cv.filter(c => !c.drawn)) : 'Chart.js fehlt – npm install ausführen');
+  check(cv && cv.every(c => c.sharp), 'Diagramme mit voller Pixeldichte', cv ? JSON.stringify(cv.filter(c => !c.sharp)) : '');
   await page.evaluate(() => openMoreSub('look'));
   await pause(page, 600);
   for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="iron"]']) {
@@ -322,7 +324,6 @@ async function dataFlow(page) {
   check(look.d === 'iron' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
-  for (let y = 0; y < 5000; y += 350) { await page.evaluate(v => Scroll.to(v), y); await pause(page, 120); }
   const logged = await appErrors(page);
   check(!logged.length && !page.errors.length, 'keine Fehler beim Design-Wechsel', [...logged, ...page.errors].join(' | '));
 }

@@ -52,22 +52,25 @@ const Charts = (() => {
       if (x.canvas.isConnected && x.canvas.offsetParent) draw(id, x.factory, true); else destroy(id);
     }
   }
-  // Unterhalb des Bildschirms erst zeichnen, wenn das Diagramm in Sicht kommt – dann sieht man es aufbauen
-  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
-    if (!e.isIntersecting) return;
-    io.unobserve(e.target);
-    const id = e.target.id.slice(3), x = inst.get(id);
-    if (x && x.lazy && x.canvas === e.target) draw(id, x.factory);
-  }), { rootMargin: '0px 0px -6% 0px' }) : null;
+  /* Alle Diagramme sofort nach dem Einfügen zeichnen – auch die unterhalb des Bildschirms – und nie mitten im Scrollen.
+     Beim Hinscrollen gezeichnete Diagramme (mit pulsierendem Platzhalter) zeigte Safari auf dem iPhone in einfacher
+     statt dreifacher Auflösung, also unscharf. Läuft die Seite gerade (z. B. Neuzeichnen nach einem Sync), wird
+     gezeichnet, sobald sie steht. */
+  let lastScroll = 0, idleTimer = 0;
+  const queued = new Map();
+  Scroll.el.addEventListener('scroll', () => { lastScroll = performance.now(); }, { passive: true });
+  function flushQueued() {
+    const wait = 160 - (performance.now() - lastScroll);
+    if (wait > 0) { idleTimer = setTimeout(flushQueued, wait); return; }
+    idleTimer = 0;
+    const list = [...queued];
+    queued.clear();
+    for (const [id, factory] of list) draw(id, factory);
+  }
   function mount(id, factory) {
-    const cv = document.getElementById('cv-' + id);
-    if (!cv) return;
+    if (!document.getElementById('cv-' + id)) return;
     destroy(id);
-    if (io && motionFull() && cv.getBoundingClientRect().top > innerHeight) {
-      inst.set(id, { factory, canvas: cv, lazy: true });
-      io.observe(cv);
-      return;
-    }
+    if (performance.now() - lastScroll < 160) { queued.set(id, factory); if (!idleTimer) idleTimer = setTimeout(flushQueued, 160); return; }
     draw(id, factory);
   }
   function draw(id, factory, instant = false) {
@@ -78,7 +81,6 @@ const Charts = (() => {
     const old = window.Chart && window.Chart.getChart(cv);
     if (old) old.destroy();
     const box = cv.parentElement;
-    box.classList.remove('chart-wait');
     $$('.chart-empty', box).forEach(n => n.remove());
     if (!window.Chart) {
       box.insertAdjacentHTML('beforeend', `<div class="chart-empty">Diagramme brauchen beim ersten Mal eine Internetverbindung.</div>`);
@@ -96,8 +98,11 @@ const Charts = (() => {
     if (instant) cfg.options = Object.assign({}, cfg.options, { animation: false });
     const chart = new window.Chart(cv.getContext('2d'), cfg);
     inst.set(id, { chart, canvas: cv, factory });
+    // Sicherheitsnetz: Bildpunkte der Fläche müssen zur angezeigten Größe × Pixeldichte passen, sonst wirkt es unscharf
+    const dpr = window.devicePixelRatio || 1;
+    if (cv.clientWidth && Math.abs(cv.width - cv.clientWidth * dpr) > 2) chart.resize();
   }
-  function destroy(id) { const x = inst.get(id); if (x && x.chart) x.chart.destroy(); if (x && x.lazy && io) io.unobserve(x.canvas); inst.delete(id); }
+  function destroy(id) { const x = inst.get(id); if (x && x.chart) x.chart.destroy(); inst.delete(id); queued.delete(id); }
   function destroyIn(root) {
     for (const [id, x] of [...inst]) if (!x.canvas || !x.canvas.isConnected || (root && root.contains(x.canvas))) destroy(id);
   }
@@ -303,7 +308,7 @@ function chartBuilder() {
         ${top}
         ${big != null ? `<div class="cc-big"><b>${big}</b>${small ? `<small>${small}</small>` : ''}${delta || ''}</div>` : ''}
         ${sub ? `<div class="cc-sub">${sub}</div>` : ''}
-        ${factory ? `<div class="chart-box chart-wait ${size}"><canvas id="cv-${id}" role="img" aria-label="${esc(title)}"></canvas></div>` : ''}
+        ${factory ? `<div class="chart-box ${size}"><canvas id="cv-${id}" role="img" aria-label="${esc(title)}"></canvas></div>` : ''}
         ${extra}
       </div>`;
     },
@@ -320,7 +325,7 @@ Actions.chartExpand = el => {
   const cfg = src.factory();
   const m = Modal.open({
     title: el.dataset.title, size: 'full',
-    body: `<div class="chart-box chart-wait" style="height:min(62vh,520px)"><canvas id="cv-${el.dataset.id}__full"></canvas></div>
+    body: `<div class="chart-box" style="height:min(62vh,520px)"><canvas id="cv-${el.dataset.id}__full"></canvas></div>
       <h4 class="mt-24 mb-8">Daten als Tabelle</h4><div class="table-wrap">${chartTable(cfg)}</div>`
   });
   Charts.mount(el.dataset.id + '__full', src.factory);

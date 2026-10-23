@@ -88,7 +88,8 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   seitwärts wischen – der Inhalt folgt dem Finger, am ersten/letzten Bereich federt er nur nach. Auf Diagrammen,
   Chips, Tabellen und im Kalender behalten die eigenen Gesten Vorrang.
 - **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss) und **rollen bei + und −** wie ein Zählwerk.
-- **Diagramme** zeichnen sich erst, wenn man zu ihnen scrollt – bis dahin stehen ruhige Hilfslinien als Platzhalter.
+- **Diagramme** werden beim Öffnen sofort und in voller Bildschirmschärfe gezeichnet (nie mitten im Scrollen –
+  das machte sie auf dem iPhone unscharf) und bauen sich dabei kurz auf.
 - **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
   und leuchtet bei 100 % auf; Pausen-Timer mit ablaufendem Ring, die letzten 3 Sekunden pulsieren.
 - **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, neue PRs erscheinen nacheinander mit Glanz.
