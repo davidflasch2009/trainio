@@ -32,8 +32,8 @@ Den Namen in der Auswahl in `js/core.js` bei `APP_ICONS` anpassen. Danach `pytho
 
 Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
 je höher der Score, desto länger dauert es und desto stärker bremst die Zahl am Ende ab. **Bei 100** wird der
-Ring golden, leuchtet auf, die Zahl springt, darunter steht „Perfektes Workout“, dazu Konfetti und Vibration
-(im Workout-Detail nur Gold-Ring und „Perfekt“). Darunter die Aufschlüsselung:
+Ring golden, leuchtet auf und die Zahl springt, dazu Konfetti und Vibration (im Workout-Detail nur der
+Gold-Ring). Im Ring steht nur die Zahl. Darunter die Aufschlüsselung:
 - **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen; Cardio: Distanz
   und Dauer). Deutlich besser (≥ +2,5 %) volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
   bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
@@ -168,9 +168,14 @@ Konfetti und Inhalte der Startseite.
 - **Phasen** (Fortschritt → „+ Phase“): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
   Jede Phase ist ein eigener Zeitraum-Chip – alle Auswertungen gelten dann genau für diese Zeit
   (z. B. „Bulk 2026“ seit 1. Juli). Bearbeiten über den Stift neben der aktiven Phase.
-- **Kraftziele** (Start → „+ Ziel“): Ziel-1RM pro Übung, z. B. Bankdrücken 100 kg. Gerechnet wird mit der
-  1RM-Formel (Epley: Gewicht × (1 + Wdh./30)) aus allen gespeicherten Sätzen – 80 kg × 11 ≈ 109 kg zählt also
-  als erreicht. Fortschrittsbalken auf dem Start-Tab; erreichte Ziele werden nach dem Workout mit Konfetti gefeiert.
+- **Kraftziele** (Start → „+ Ziel“) in zwei Arten:
+  - **Gewicht × Wdh.**, z. B. Bankdrücken 8 × 100 kg: erreicht, sobald ein echter Arbeitssatz mit mindestens
+    100 kg und 8 Wdh. dabei ist (100 × 7 oder 95 × 10 zählen nicht). Fortschritt = schwerster Satz mit 8+ Wdh.
+    Vorschlag beim Anlegen: etwas mehr als dein bester passender Satz, sonst aus dem e1RM zurückgerechnet.
+  - **e1RM**, z. B. 100 kg 1RM: geschätzt mit der eingestellten 1RM-Formel aus allen gespeicherten Sätzen –
+    80 kg × 11 ≈ 109 kg zählt also als erreicht.
+
+  Fortschrittsbalken auf dem Start-Tab; erreichte Ziele werden nach dem Workout mit Konfetti gefeiert.
 
 ## Meilensteine
 
@@ -214,14 +219,20 @@ schließt sich die Gruppe und die Suche wird geleert):
 
 Ist der Übungen-Tab ausgeblendet, steht die Übungs-Bibliothek direkt auf der Mehr-Übersicht.
 
+**Auswahl-Felder** (Sortierung, Einheit, 1RM-Formel, RPE …) öffnen in jedem Browser dasselbe Dropdown im
+Design der App direkt unter dem Feld; Datum- und Uhrzeit-Felder sehen aus wie die übrigen Eingaben.
+
+**Training → Verlauf**: Monat und Jahr oben im Kalender per Dropdown wählen (die Pfeile blättern weiter
+monatsweise). Jedes Workout bekommt einen eigenen Punkt am Tag (bis 3, dann „+“) – bei mehreren Workouts an
+einem Tag fragt die App beim Antippen, welches geöffnet werden soll.
+
 Übungen-Tab und Übungs-Auswahl filtern nach **Muskelgruppe** (Brust, Rücken, Schultern, Arme, Beine, Core,
 Cardio) statt nach Push/Pull/Legs – das passt zu jedem Plan. Es zählt der Hauptmuskel (erster Eintrag),
 z. B. steht Enges Bankdrücken unter Arme. Design und App-Icon in **Darstellung** sind Reihen zum Seitwärts-Wischen.
 
 ## Tabs ein-/ausblenden
 
-**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab ein- oder ausblenden (der Übungen-Tab hat dafür auch unten
-einen eigenen Knopf). Ist der Übungen-Tab aus, bleibt die Bibliothek unter **Mehr → Übungs-Bibliothek**
+**Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab ein- oder ausblenden. Ist der Übungen-Tab aus, bleibt die Bibliothek unter **Mehr → Übungs-Bibliothek**
 und beim Hinzufügen von Übungen erreichbar.
 
 ## Funktionen ein-/ausschalten

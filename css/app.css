@@ -472,6 +472,34 @@ body.has-rest .view { padding-bottom: calc(var(--nav-space) + 96px); }
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa3af' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
 }
 .textarea { min-height: 96px; resize: vertical; line-height: 1.45; }
+/* Dropdown (js/ui.js Dropdown): Knopf im Feld-Stil + Menü unter dem Feld – in jedem Browser gleich */
+.dd-native { display: none !important; }
+.dd-btn { display: flex; align-items: center; text-align: left; cursor: pointer; color: var(--text); font-weight: inherit; }
+.dd-btn .dd-val { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-btn.dd-open { border-color: var(--accent); }
+.dd-btn:disabled { opacity: .5; cursor: default; }
+.set-rpe.dd-btn { justify-content: center; text-align: center; padding: 0 2px; }
+.set-rpe.dd-btn .dd-val { flex: 0 1 auto; }
+.dd-menu { position: fixed; z-index: 450; overflow-y: auto; overscroll-behavior: contain; padding: 5px; background: var(--surface); color: var(--text);
+  border: var(--bw) solid var(--border-strong); border-radius: calc(14px * var(--rs)); box-shadow: var(--shadow); transform-origin: top center; }
+.dd-menu.up { transform-origin: bottom center; }
+[data-design="glass"] .dd-menu { background: linear-gradient(var(--glass-sheet), var(--glass-sheet)) var(--bg); border-color: transparent; -webkit-backdrop-filter: blur(30px) saturate(190%); backdrop-filter: blur(30px) saturate(190%); box-shadow: 0 16px 50px rgba(10, 12, 40, .25), inset 0 1px 0 var(--glass-hi); }
+.dd-opt { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 42px; padding: 0 12px; border: 0; border-radius: calc(9px * var(--rs)); background: none; color: var(--text); font: inherit; font-size: calc(15px * var(--fs)); text-align: left; }
+.dd-opt span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dd-opt svg { width: 17px; height: 17px; color: var(--accent-text); }
+.dd-opt:hover, .dd-opt:focus-visible { background: var(--surface-2); outline: none; }
+.dd-opt.on { background: var(--accent-soft); color: var(--accent-text); font-weight: var(--fw-b); }
+.dd-opt:disabled { opacity: .4; }
+.dd-group { padding: 9px 12px 4px; font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); color: var(--text-faint); text-transform: uppercase; letter-spacing: .06em; }
+@keyframes ddIn { from { opacity: 0; transform: translateY(-4px) scale(.98); } }
+@keyframes ddInUp { from { opacity: 0; transform: translateY(4px) scale(.98); } }
+.dd-in { animation: ddIn .14s var(--ease-out, ease-out); }
+.dd-menu.up.dd-in { animation-name: ddInUp; }
+/* Datum & Uhrzeit: gleich hoch und linksbündig wie die anderen Felder (Safari zentriert sonst) */
+.input:is([type="date"], [type="time"], [type="datetime-local"], [type="month"]) { display: flex; align-items: center; text-align: left; min-width: 0; color-scheme: inherit; }
+.input::-webkit-date-and-time-value { text-align: left; margin: 0; }
+.input::-webkit-datetime-edit { padding: 0; }
+.input::-webkit-calendar-picker-indicator { opacity: .6; cursor: pointer; }
 .textarea.code { font-family: var(--mono); font-size: calc(13px * var(--fs)); min-height: 300px; white-space: pre; tab-size: 2; }
 .input.num-input { text-align: center; font-variant-numeric: tabular-nums; font-weight: var(--fw-b); }
 .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1056,20 +1084,17 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .score-ring .ring-fg { stroke: var(--accent); stroke-linecap: round; transition: stroke-dashoffset 1.4s var(--ease-out); filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 35%, transparent)); }
 .score-ring .score-mid { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
 .score-ring .score-num { font-family: var(--font-display); font-size: calc(44px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; letter-spacing: -.03em; line-height: 1; }
-.score-ring .score-of { font-size: calc(10.5px * var(--fs)); font-weight: var(--fw-b); color: var(--text-faint); text-transform: uppercase; letter-spacing: .1em; line-height: 1; }
 .score-ring.sm { width: 112px; height: 112px; }
-/* Score 100: Gold, Lichtimpuls, „Perfekt" */
+/* Score 100: Gold & Lichtimpuls */
 [data-theme="dark"] { --gold-text: #ffd05a; }
 [data-theme="light"] { --gold-text: #a66d00; }
 .score-ring.perfect .ring-fg { filter: drop-shadow(0 0 9px rgba(246, 187, 42, .6)); }
 .score-ring.perfect .ring-bg { stroke: color-mix(in srgb, #f6bb2a 18%, var(--surface-3)); }
-.score-ring.perfect :is(.score-num, .score-of) { color: var(--gold-text); }
+.score-ring.perfect .score-num { color: var(--gold-text); }
 .score-ring.pop .score-num { animation: scorePop .75s var(--ease-spring) both; }
 .score-ring.pop::after { content: ''; position: absolute; inset: 5px; border-radius: 50%; pointer-events: none; animation: perfectPulse 1.2s ease-out both; }
 @keyframes scorePop { 0% { transform: scale(1); } 35% { transform: scale(1.3); } 100% { transform: scale(1); } }
 @keyframes perfectPulse { from { box-shadow: 0 0 0 0 rgba(246, 187, 42, .7), 0 0 30px 6px rgba(246, 187, 42, .45); } to { box-shadow: 0 0 0 34px rgba(246, 187, 42, 0), 0 0 30px 6px rgba(246, 187, 42, 0); } }
-.score-perfect { display: inline-flex; align-items: center; gap: 6px; margin-top: 10px; padding: 6px 12px; border-radius: 999px; font-weight: var(--fw-b); font-size: calc(13px * var(--fs)); color: var(--gold-text); background: color-mix(in srgb, #f6bb2a 16%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, #f6bb2a 40%, transparent); }
-.score-perfect svg { width: 16px; height: 16px; }
 /* Teilen: Vorschau des Story-Bilds */
 .share-prev { width: min(100%, 290px, calc((100dvh - 250px) * 9 / 16)); aspect-ratio: 9 / 16; margin: 4px auto 0; border-radius: calc(18px * var(--rs)); overflow: hidden; background: var(--surface-2); display: grid; place-items: center; box-shadow: 0 10px 30px rgba(0, 0, 0, .25), 0 0 0 1px var(--border); }
 .share-prev img { width: 100%; height: 100%; display: block; }
@@ -1077,7 +1102,6 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 @keyframes spin { to { transform: rotate(360deg); } }
 .share-modal .modal-foot .btn { flex: 1 1 auto; }
 .score-ring.sm .score-num { font-size: calc(30px * var(--fs)); }
-.score-ring.sm .score-of { font-size: calc(9.5px * var(--fs)); }
 .score-bd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
 .sb-item { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 9px 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
 .sb-item span { font-size: calc(12px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
@@ -1261,7 +1285,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .cal .cal-h { font-size: calc(11px * var(--fs)); font-weight: var(--fw-x); color: var(--text-faint); padding: 4px 0; }
 .cal button { aspect-ratio: 1; border: 0; border-radius: calc(10px * var(--rs)); background: transparent; color: var(--text-dim); font-weight: 650; font-size: calc(13.5px * var(--fs)); position: relative; padding: 0; }
 .cal button.has { background: var(--accent-soft); color: var(--accent-text); font-weight: var(--fw-x); }
-.cal button.has::after { content: ''; position: absolute; bottom: 6px; left: 50%; width: 5px; height: 5px; margin-left: -2.5px; border-radius: 50%; background: var(--accent); }
+.cal-dots { position: absolute; left: 0; right: 0; bottom: 5px; display: flex; justify-content: center; align-items: center; gap: 3px; line-height: 1; }
+.cal-dots i { width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.cal-dots b { font-size: 9px; font-weight: var(--fw-x); color: var(--accent-text); margin-left: 1px; }
+.cal-pick { display: flex; gap: 6px; justify-content: center; }
+.cal-sel { width: auto; min-height: 36px; padding: 4px 30px 4px 12px; background-position: right 10px center; font-weight: var(--fw-x); font-size: calc(15px * var(--fs)); }
 .cal button.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
 .cal button.out { opacity: .3; }
 

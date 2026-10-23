@@ -217,8 +217,7 @@ Views.exercises = {
           ${[['az', 'A–Z'], ['recent', 'Zuletzt trainiert'], ['freq', 'Am häufigsten'], ['strong', 'Stärkstes e1RM']].map(([k, l]) => `<option value="${k}" ${UI.exSort === k ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
       </div>
-      <div class="ex-list mt-8" id="exList"></div>
-      <button class="btn btn-ghost btn-block mt-16 dim" data-act="exTabToggle">${icon(F('f_exercises') ? 'eyeOff' : 'plus')} ${F('f_exercises') ? 'Übungen-Tab ausblenden' : 'Als Tab in der Leiste anzeigen'}</button>`;
+      <div class="ex-list mt-8" id="exList"></div>`;
     renderExList();
   }
 };

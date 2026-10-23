@@ -354,6 +354,117 @@ document.addEventListener('change', e => {
   try { const r = Changes[el.dataset.ch](el, e); if (r && typeof r.then === 'function') r.catch(err => ErrLog.add(err, el.dataset.ch)); } catch (err) { ErrLog.add(err, el.dataset.ch); }
 });
 
+/* ---------- Dropdown: eigenes Aufklapp-Menü statt Browser-Liste (in jedem Browser gleich, passt zum Theme) ----------
+   Vor jedes <select> kommt ein Knopf; das echte <select> bleibt versteckt im DOM und hält Wert & change-Events,
+   damit alle bestehenden Handler (data-ch, Modal-Listener, .value) unverändert funktionieren. */
+const Dropdown = (() => {
+  let cur = null;   // offenes Menü: { sel, btn, menu }
+  const text = sel => { const o = sel.options[sel.selectedIndex]; return o ? o.textContent : ''; };
+  function sync(sel) {
+    const b = sel._ddBtn; if (!b) return;
+    b.querySelector('.dd-val').textContent = text(sel);
+    b.disabled = sel.disabled;
+  }
+  function enhance(sel) {
+    if (sel._ddBtn || sel.multiple || sel.size > 1) return;
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = sel.className + ' dd-btn';
+    for (const k of ['style', 'aria-label', 'title']) if (sel.hasAttribute(k)) b.setAttribute(k, sel.getAttribute(k));
+    for (const k of ['ei', 'si']) if (k in sel.dataset) b.dataset[k] = sel.dataset[k];   // Satz-Auswahl im Workout (focusin)
+    b.setAttribute('aria-haspopup', 'listbox'); b.setAttribute('aria-expanded', 'false');
+    b.innerHTML = '<span class="dd-val"></span>';
+    sel.classList.add('dd-native'); sel.tabIndex = -1;
+    sel.before(b);
+    sel._ddBtn = b; b._sel = sel;
+    sync(sel);
+  }
+  function scan(root) {
+    if (root.nodeType !== 1) return;
+    if (root.tagName === 'SELECT') enhance(root);
+    else root.querySelectorAll('select').forEach(enhance);
+  }
+  function show(b) {
+    const sel = b._sel; if (!sel || sel.disabled) return;
+    close();
+    const opt = o => `<button type="button" class="dd-opt ${o.selected ? 'on' : ''}" role="option" aria-selected="${o.selected}" data-i="${o.index}" ${o.disabled ? 'disabled' : ''}><span>${esc(o.textContent)}</span>${o.selected ? icon('check') : ''}</button>`;
+    let html = '';
+    for (const ch of sel.children) html += ch.tagName === 'OPTGROUP' ? `<div class="dd-group">${esc(ch.label)}</div>${[...ch.children].map(opt).join('')}` : opt(ch);
+    const menu = document.createElement('div');
+    menu.className = 'dd-menu'; menu.setAttribute('role', 'listbox');
+    if (b.getAttribute('aria-label')) menu.setAttribute('aria-label', b.getAttribute('aria-label'));
+    menu.innerHTML = html;
+    document.body.appendChild(menu);
+    // unter dem Feld, bei zu wenig Platz darüber; mindestens so breit wie das Feld, nie über den Rand
+    const r = b.getBoundingClientRect(), vw = innerWidth, vh = innerHeight, gap = 6;
+    menu.style.minWidth = Math.min(Math.max(r.width, 96), vw - 24) + 'px';
+    menu.style.maxWidth = (vw - 24) + 'px';
+    const below = vh - r.bottom - gap - 10, above = r.top - gap - 10, want = Math.min(menu.scrollHeight, 340);
+    const up = below < want && above > below;
+    menu.style.maxHeight = Math.max(120, Math.min(340, up ? above : below)) + 'px';
+    if (up) { menu.style.bottom = (vh - r.top + gap) + 'px'; menu.classList.add('up'); } else menu.style.top = (r.bottom + gap) + 'px';
+    menu.style.left = clamp(r.left, 12, vw - 12 - menu.offsetWidth) + 'px';
+    const on = menu.querySelector('.on');
+    if (on) menu.scrollTop = on.offsetTop - (menu.clientHeight - on.offsetHeight) / 2;
+    cur = { sel, btn: b, menu };
+    b.setAttribute('aria-expanded', 'true'); b.classList.add('dd-open');
+    if (motionFull()) fx(menu, 'dd-in');
+    (on || menu.querySelector('.dd-opt:not(:disabled)'))?.focus({ preventScroll: true });
+  }
+  function close(focusBtn) {
+    if (!cur) return;
+    const { btn, menu } = cur;
+    cur = null;
+    menu.remove();
+    btn.setAttribute('aria-expanded', 'false'); btn.classList.remove('dd-open');
+    if (focusBtn && btn.isConnected) btn.focus({ preventScroll: true });
+  }
+  function pick(i) {
+    if (!cur) return;
+    const { sel } = cur;
+    close(true);
+    if (sel.selectedIndex === i) return;
+    sel.selectedIndex = i;
+    sync(sel);
+    sel.dispatchEvent(new Event('input', { bubbles: true }));
+    sel.dispatchEvent(new Event('change', { bubbles: true }));
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.dd-btn');
+    if (b) { e.preventDefault(); if (cur && cur.btn === b) close(); else show(b); return; }
+    const o = e.target.closest('.dd-opt');
+    if (o && cur && cur.menu.contains(o)) pick(+o.dataset.i);
+  });
+  // außerhalb tippen, scrollen (außer im Menü), Größe ändern → zu
+  document.addEventListener('pointerdown', e => { if (cur && !cur.menu.contains(e.target) && !cur.btn.contains(e.target)) close(); }, true);
+  document.addEventListener('scroll', e => { if (cur && !(e.target instanceof Node && cur.menu.contains(e.target))) close(); }, true);
+  addEventListener('resize', () => close());
+  // Wert per Code geändert und change ausgelöst → Text im Knopf nachziehen
+  document.addEventListener('change', e => { if (e.target._ddBtn) sync(e.target); }, true);
+  document.addEventListener('keydown', e => {
+    if (!cur) {
+      const b = e.target.closest && e.target.closest('.dd-btn');
+      if (b && ['ArrowDown', 'ArrowUp'].includes(e.key)) { e.preventDefault(); show(b); }
+      return;
+    }
+    const opts = [...cur.menu.querySelectorAll('.dd-opt:not(:disabled)')], i = opts.indexOf(document.activeElement);
+    if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); close(true); }
+    else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = opts[clamp(i + (e.key === 'ArrowDown' ? 1 : -1), 0, opts.length - 1)]; if (n) n.focus(); }
+  });
+  // neue <select> automatisch umbauen; geänderte Optionen → Text nachziehen; Feld weg → Menü zu
+  new MutationObserver(list => {
+    for (const m of list) {
+      const t = m.target, sel = t.tagName === 'SELECT' ? t : t.parentElement && t.parentElement.tagName === 'SELECT' ? t.parentElement : t.tagName === 'OPTGROUP' ? t.parentElement : null;
+      if (sel && sel._ddBtn) sync(sel);
+      m.addedNodes.forEach(scan);
+      m.removedNodes.forEach(n => { if (n.tagName === 'SELECT' && n._ddBtn && n._ddBtn.nextSibling !== n) n._ddBtn.remove(); });
+    }
+    if (cur && !cur.btn.isConnected) close();
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  scan(document.body);
+  return { sync, close };
+})();
+
 /* ---------- Feedback: Ton, Konfetti, Benachrichtigung, Wake-Lock ---------- */
 let audioCtx = null;
 function unlockAudio() {
@@ -637,19 +748,6 @@ const App = {
 Actions.go = el => App.go(el.dataset.tab);
 /** Übungs-Bibliothek – als Tab oder (wenn ausgeblendet) über „Mehr" */
 Actions.openLibrary = () => { if (!F('f_exercises')) App.peek = 'exercises'; App.go('exercises'); };
-Actions.exTabToggle = async () => {
-  if (F('f_exercises')) {
-    if (!await confirmDialog({ title: 'Übungen-Tab ausblenden?', text: 'Die Bibliothek bleibt erreichbar: beim Hinzufügen von Übungen und unter Mehr → Übungs-Bibliothek.', okLabel: 'Ausblenden' })) return;
-    Store.saveSettings({ f_exercises: false });
-    App.go('more');
-    toast('Übungen-Tab ausgeblendet – wieder einblenden unter Mehr → Tabs & Funktionen', 'success', { cat: 'always', duration: 4500 });
-  } else {
-    Store.saveSettings({ f_exercises: true });
-    App.peek = null;
-    App.renderCurrent();
-    toast('Übungen-Tab wieder eingeblendet', 'success');
-  }
-};
 
 /* Re-Render bei Datenänderungen – aber nicht, während jemand tippt */
 let renderTimer = null, renderPending = false;

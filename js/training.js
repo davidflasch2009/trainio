@@ -146,23 +146,52 @@ Actions.startCardio = async () => {
     setTimeout(() => { const c = $('#ex-' + en.uid); if (c) c.scrollIntoView({ behavior: 'smooth', block: 'start' }); }, 60);
   } else Workout.start({ name: Ex.name(id), entries: [Workout.makeEntry(id)] });
 };
-/* ---------- Ziele: 1RM-Ziel pro Übung (Epley: Gewicht × (1 + Wdh./30)) ---------- */
+/* ---------- Ziele pro Übung: Gewicht × Wdh. (echter Satz, z. B. 8 × 100 kg) oder e1RM (geschätzt) ---------- */
 const goalsList = () => S().goals || [];
+const goalType = g => g.type === 'wr' ? 'wr' : 'e1rm';   // ältere Ziele ohne Typ sind e1RM-Ziele
+const goalLabel = g => goalType(g) === 'wr' ? `${g.reps} × ${fmtW(g.kg)}` : `${fmtW(g.kg)} 1RM`;
 /** Bestes geschätztes 1RM einer Übung aus allen gespeicherten Workouts */
 const best1RM = exId => Math.max(0, maxOf(Analytics.sessionsOf(exId).filter(x => !x.cardio), x => x.best));
+/** Schwerster Satz mit mindestens `reps` Wdh. (Arbeitssätze, erledigt) – null, wenn es keinen gibt */
+function bestForReps(exId, reps, docs = Store.all('workouts')) {
+  let best = null;
+  for (const w of docs) for (const en of w.entries || []) {
+    if (en.exerciseId !== exId) continue;
+    for (const s of en.sets || []) {
+      const kg = +s.weightKg || 0, r = repsOf(s);
+      if (s.done === false || s.warmup || !kg || r < reps) continue;
+      if (!best || kg > best.w || (kg === best.w && r > best.r)) best = { w: kg, r };
+    }
+  }
+  return best;
+}
+/** Stand eines Ziels: aktueller Wert, Fortschritt 0–1, erreicht?, bester passender Satz */
+function goalState(g) {
+  if (goalType(g) === 'wr') {
+    const b = bestForReps(g.exId, g.reps), cur = b ? b.w : 0;
+    return { cur, b, p: g.kg ? Math.min(1, cur / g.kg) : 0, ok: !!g.reachedAt || cur >= g.kg - 1e-6 };
+  }
+  const cur = best1RM(g.exId);
+  const ss = Analytics.sessionsOf(g.exId).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
+  return { cur, b: top ? { w: top.bestSet.w, r: top.bestSet.r } : null, p: g.kg ? Math.min(1, cur / g.kg) : 0, ok: !!g.reachedAt || cur >= g.kg - 1e-6 };
+}
 function goalsCard() {
   const gs = goalsList();
   const rows = gs.map(g => {
-    const cur = best1RM(g.exId), p = g.kg ? Math.min(1, cur / g.kg) : 0, ok = !!g.reachedAt || cur >= g.kg - 1e-6;
-    const ss = Analytics.sessionsOf(g.exId).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
+    const { cur, b, p, ok } = goalState(g), wr = goalType(g) === 'wr';
+    const bestTxt = b ? `bester Satz ${fmtW(b.w)} × ${b.r}` : '';
+    const right = wr ? `${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} · ${g.reps} Wdh.` : `${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM`;
+    const sub = ok ? `Erreicht${g.reachedAt ? ' am ' + fmtDate(isoDate(new Date(g.reachedAt))) : ''}${bestTxt ? ' · ' + bestTxt : ''}`
+      : cur ? `Noch ${fmtW(g.kg - cur, 1)}${wr ? ` bei ${g.reps}+ Wdh.` : ''} · ${bestTxt} · ${nf(p * 100, 0)} %`
+      : wr && Analytics.sessionsOf(g.exId).length ? `Noch kein Satz mit ${g.reps}+ Wdh.` : 'Noch keine Sätze für diese Übung';
     return `<button class="goal-item ${ok ? 'reached' : ''}" data-act="kgoalMenu" data-id="${esc(g.id)}">
-      <div class="goal-top"><b>${ok ? icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px;color:var(--accent-text)"') + ' ' : ''}${esc(Ex.name(g.exId))}</b><span>${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM</span></div>
+      <div class="goal-top"><b>${ok ? icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px;color:var(--accent-text)"') + ' ' : ''}${esc(Ex.name(g.exId))}</b><span>${right}</span></div>
       <div class="goal-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
-      <div class="goal-sub">${ok ? `Erreicht${g.reachedAt ? ' am ' + fmtDate(isoDate(new Date(g.reachedAt))) : ''}${top ? ` · bester Satz ${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : ''}` : cur ? `Noch ${fmtW(g.kg - cur, 1)} · bester Satz ${top ? `${fmtW(top.bestSet.w)} × ${top.bestSet.r}` : '–'} · ${nf(p * 100, 0)} %` : 'Noch keine Sätze für diese Übung'}</div>
+      <div class="goal-sub">${sub}</div>
     </button>`;
   }).join('');
   return `<div class="section-head"><h2>Ziele</h2><button class="link-btn" data-act="kgoalEdit">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Ziel</button></div>
-    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div><div class="small dim mt-4">z. B. Bankdrücken 100 kg 1RM – gerechnet mit der 1RM-Formel aus deinen Sätzen (80 kg × 11 ≈ 109 kg).</div></button>`}`;
+    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div><div class="small dim mt-4">z. B. Bankdrücken 8 × 100 kg – oder 100 kg 1RM, geschätzt aus deinen Sätzen (80 kg × 11 ≈ 109 kg).</div></button>`}`;
 }
 Actions.kgoalEdit = async el => {
   const old = el && el.dataset && el.dataset.id ? goalsList().find(g => g.id === el.dataset.id) : null;
@@ -171,22 +200,69 @@ Actions.kgoalEdit = async el => {
     const ids = await pickExercises({ multi: false, title: 'Übung für das Ziel' });
     if (!ids || !ids[0]) return;
     exId = ids[0];
-    if (Ex.type(Ex.get(exId)) !== 'kg') return toast('1RM-Ziele gehen nur bei Übungen mit Gewicht × Wdh.', 'warn');
+    if (Ex.type(Ex.get(exId)) !== 'kg') return toast('Ziele gehen nur bei Übungen mit Gewicht × Wdh.', 'warn');
   }
-  const cur = best1RM(exId);
-  const sug = old ? toU(old.kg) : cur ? Math.ceil(toU(cur * 1.1) / 5) * 5 : '';
-  const v = await promptDialog({ title: old ? 'Ziel ändern' : 'Neues Ziel', label: `${Ex.name(exId)} – Ziel-1RM in ${unit()}${cur ? ` (aktuell ${fmtW(cur, 1)})` : ''}`, value: String(sug), inputmode: 'decimal' });
-  const n = parseNum(v);
-  if (v == null) return;
-  if (!n || n <= 0) return toast('Bitte ein Gewicht eingeben', 'warn');
-  const kg = fromU(n);
-  const g = { id: old ? old.id : autoId().slice(0, 8), exId, kg, createdAt: old ? old.createdAt : Date.now(), reachedAt: cur >= kg - 1e-6 ? (old && old.reachedAt) || Date.now() : null };
+  const g = await goalDialog(exId, old);
+  if (!g) return;
   Store.saveSettings({ goals: [...goalsList().filter(x => x.id !== g.id), g] });
-  toast(g.reachedAt ? `Ziel schon erreicht – aktuell ${fmtW(cur, 1)}` : `Ziel gesetzt: ${Ex.name(exId)} ${fmtW(kg)} 1RM`, 'success');
+  toast(g.reachedAt && !(old && old.reachedAt) ? `Ziel schon erreicht – ${Ex.name(exId)} ${goalLabel(g)}` : `Ziel gesetzt: ${Ex.name(exId)} ${goalLabel(g)}`, 'success');
 };
+/** Formular: Art (Gewicht × Wdh. / e1RM), Wdh., Gewicht – mit Vorschlag aus den bisherigen Sätzen */
+function goalDialog(exId, old) {
+  return new Promise(resolve => {
+    let type = old ? goalType(old) : 'wr', res = null;
+    const step = unit() === 'lb' ? 5 : 2.5;
+    // Vorschlag: etwas mehr als der schwerste passende Satz – sonst aus dem e1RM zurückgerechnet (Epley)
+    const sugW = reps => { const b = bestForReps(exId, reps), c = best1RM(exId); const v = b ? toU(b.w) + step / 2 : c && reps ? toU(c) / (1 + reps / 30) : 0; return v ? Math.ceil(v / step) * step : ''; };
+    const sug1 = () => { const c = best1RM(exId); return c ? Math.ceil(toU(c * 1.1) / 5) * 5 : ''; };
+    const reps0 = old && goalType(old) === 'wr' ? old.reps : 8;
+    const m = Modal.open({
+      title: old ? 'Ziel ändern' : 'Neues Ziel', size: 'sm',
+      body: `<p class="bold">${esc(Ex.name(exId))}</p>
+        <div class="seg fit mt-12" id="gType">${[['wr', 'Gewicht × Wdh.'], ['e1rm', 'e1RM']].map(([k, l]) => `<button type="button" data-t="${k}" class="${type === k ? 'active' : ''}">${l}</button>`).join('')}</div>
+        <div class="form-grid mt-12">
+          <label class="field" id="gRepsF"><span>Wiederholungen</span><input class="input num-input" id="gReps" inputmode="numeric" value="${reps0}"></label>
+          <label class="field" id="gKgF"><span id="gKgL"></span><input class="input num-input" id="gKg" inputmode="decimal" value="${old ? String(round(toU(old.kg), 2)).replace('.', ',') : sugW(reps0)}"></label>
+        </div>
+        <p class="tiny dim mt-12" id="gHint"></p>`,
+      foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>`,
+      onClose: () => resolve(res)
+    });
+    const $m = q => $(q, m.el);
+    const draw = () => {
+      $$('#gType button', m.el).forEach(b => b.classList.toggle('active', b.dataset.t === type));
+      $m('#gRepsF').classList.toggle('hidden', type !== 'wr');
+      $m('#gKgF').style.gridColumn = type === 'wr' ? '' : '1 / -1';
+      $m('#gKgL').textContent = type === 'wr' ? `Gewicht (${unit()})` : `Ziel-1RM (${unit()})`;
+      const reps = Math.round(parseNum($m('#gReps').value) || 0), b = reps > 0 ? bestForReps(exId, reps) : null, c = best1RM(exId);
+      $m('#gHint').textContent = type === 'wr'
+        ? `Erreicht, sobald du einen Satz mit mindestens ${reps || '…'} Wdh. bei diesem Gewicht schaffst. ${b ? `Bisher schwerster Satz mit ${reps}+ Wdh.: ${fmtW(b.w)} × ${b.r}.` : `Bisher kein Satz mit ${reps || '…'}+ Wdh.`}`
+        : `Geschätztes 1RM aus deinen Sätzen (${(E1RM_FORMULAS.find(f => f[0] === S().e1rmFormula) || E1RM_FORMULAS[0])[1]}). ${c ? `Aktuell ${fmtW(c, 1)}.` : 'Noch keine Sätze.'}`;
+    };
+    draw();
+    m.el.addEventListener('input', e => { if (e.target.id === 'gReps') draw(); });
+    m.el.addEventListener('click', e => {
+      const t = e.target.closest('#gType [data-t]');
+      if (t && t.dataset.t !== type) {
+        type = t.dataset.t;
+        const kgIn = $m('#gKg');
+        kgIn.value = type === 'wr' ? sugW(Math.round(parseNum($m('#gReps').value) || 8)) : sug1();
+        draw(); return;
+      }
+      const x = e.target.closest('[data-x]'); if (!x) return;
+      if (x.dataset.x === 'cancel') return m.close();
+      const w = parseNum($m('#gKg').value), reps = Math.round(parseNum($m('#gReps').value) || 0);
+      if (!w || w <= 0) return toast('Bitte ein Gewicht eingeben', 'warn');
+      if (type === 'wr' && !(reps >= 1 && reps <= 100)) return toast('Bitte 1–100 Wiederholungen eingeben', 'warn');
+      const g = { id: old ? old.id : autoId().slice(0, 8), exId, type, kg: fromU(w), ...(type === 'wr' ? { reps } : {}), createdAt: old ? old.createdAt : Date.now(), reachedAt: null };
+      if (goalState(g).ok) g.reachedAt = old && old.reachedAt && goalType(old) === type && old.kg === g.kg && old.reps === g.reps ? old.reachedAt : Date.now();
+      res = g; m.close();
+    });
+  });
+}
 Actions.kgoalMenu = async el => {
   const g = goalsList().find(x => x.id === el.dataset.id); if (!g) return;
-  const k = await actionMenu(`${Ex.name(g.exId)} · ${fmtW(g.kg)} 1RM`, [
+  const k = await actionMenu(`${Ex.name(g.exId)} · ${goalLabel(g)}`, [
     { key: 'edit', label: 'Ziel ändern', icon: 'edit' },
     { key: 'info', label: 'Übungs-Verlauf', icon: 'chart' },
     { key: 'del', label: 'Ziel löschen', icon: 'trash', danger: true }
@@ -195,13 +271,15 @@ Actions.kgoalMenu = async el => {
   else if (k === 'info') openExerciseDetail(g.exId);
   else if (k === 'del') Store.saveSettings({ goals: goalsList().filter(x => x.id !== g.id) });
 };
-/** Nach dem Workout: neu erreichte Ziele markieren und zurückgeben */
+/** Nach dem Workout: neu erreichte Ziele markieren und zurückgeben (best = e1RM bzw. Gewicht des passenden Satzes) */
 function checkGoals(doc) {
   const hit = [];
   const goals = goalsList().map(g => {
     if (g.reachedAt) return g;
-    const best = Math.max(0, maxOf((doc.entries || []).filter(en => en.exerciseId === g.exId).flatMap(en => en.sets || []).filter(s => s.done !== false && !s.warmup), s => e1rm(+s.weightKg || 0, repsOf(s))));
-    if (best >= g.kg - 1e-6) { hit.push({ ...g, best }); return { ...g, reachedAt: Date.now() }; }
+    let best = 0, ok = false;
+    if (goalType(g) === 'wr') { const b = bestForReps(g.exId, g.reps, [doc]); best = b ? b.w : 0; ok = !!b && b.w >= g.kg - 1e-6; }
+    else { best = Math.max(0, maxOf((doc.entries || []).filter(en => en.exerciseId === g.exId).flatMap(en => en.sets || []).filter(s => s.done !== false && !s.warmup), s => e1rm(+s.weightKg || 0, repsOf(s)))); ok = best >= g.kg - 1e-6; }
+    if (ok) { hit.push({ ...g, best }); return { ...g, reachedAt: Date.now() }; }
     return g;
   });
   if (hit.length) Store.saveSettings({ goals });
@@ -607,7 +685,9 @@ function renderHistory(el) {
   for (let d = 1; d <= daysInMonth; d++) {
     const iso = `${cy}-${pad(cm + 1)}-${pad(d)}`;
     const has = byDate[iso];
-    cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${has ? `data-act="openWorkout" data-id="${esc(has[has.length - 1].id)}"` : 'disabled'} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}</button>`;
+    // ein Punkt pro Workout (max. 3, dann „+“); mehrere an einem Tag → erst auswählen
+    const act = !has ? 'disabled' : has.length === 1 ? `data-act="openWorkout" data-id="${esc(has[0].id)}"` : `data-act="calDay" data-date="${iso}"`;
+    cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${act} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}${has ? `<span class="cal-dots">${'<i></i>'.repeat(Math.min(3, has.length))}${has.length > 3 ? '<b>+</b>' : ''}</span>` : ''}</button>`;
   }
   const monthCount = Object.keys(byDate).filter(k => k.startsWith(`${cy}-${pad(cm + 1)}`)).length;
   // Gruppierung nach Monat
@@ -621,7 +701,10 @@ function renderHistory(el) {
     <div class="card">
       <div class="row between mb-8">
         <button class="btn-icon" data-act="calNav" data-d="-1" aria-label="Vorheriger Monat">${icon('chevL')}</button>
-        <div class="center"><b>${first.toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</b><div class="tiny dim">${monthCount} Trainingstage</div></div>
+        <div class="center"><div class="cal-pick">
+          <select class="select cal-sel" data-ch="calPick" data-k="m" aria-label="Monat">${MONTHS_LONG.map((n, i) => `<option value="${i}" ${i === cm ? 'selected' : ''}>${n}</option>`).join('')}</select>
+          <select class="select cal-sel" data-ch="calPick" data-k="y" aria-label="Jahr">${calYears(cy).map(y => `<option value="${y}" ${y === cy ? 'selected' : ''}>${y}</option>`).join('')}</select>
+        </div><div class="tiny dim">${monthCount} Trainingstage</div></div>
         <button class="btn-icon" data-act="calNav" data-d="1" aria-label="Nächster Monat">${icon('chevR')}</button>
       </div>
       <div class="cal">${heads.map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>
@@ -640,6 +723,31 @@ Actions.calNav = el => {
   UI.calMonth = `${y}-${m}`;
   saveUI();
   App.renderCurrent();
+};
+const MONTHS_LONG = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
+/** Jahre für die Auswahl: vom ersten Workout bis heute (mind. das gerade gezeigte) */
+function calYears(shown) {
+  const rows = Analytics.cur().rows, now = new Date().getFullYear();
+  const from = Math.min(shown, rows.length ? +rows[0].date.slice(0, 4) : now), to = Math.max(shown, now);
+  return Array.from({ length: to - from + 1 }, (_, i) => to - i);
+}
+Changes.calPick = el => {
+  const t = new Date();
+  let [y, m] = (UI.calMonth || `${t.getFullYear()}-${t.getMonth()}`).split('-').map(Number);
+  if (el.dataset.k === 'y') y = +el.value; else m = +el.value;
+  UI.calMonth = `${y}-${m}`;
+  saveUI();
+  App.renderCurrent();
+};
+/** Tag mit mehreren Workouts: erst auswählen, welches geöffnet wird */
+Actions.calDay = async el => {
+  const rows = Analytics.cur().rows.filter(r => r.date === el.dataset.date);
+  const k = await actionMenu(fmtDateLong(el.dataset.date), rows.map(r => {
+    const wo = Store.raw('workouts', r.id) || {};
+    const time = wo.startedAt ? new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr · ' : '';
+    return { key: r.id, label: wo.planDayName || wo.name || r.name, sub: time + fmtDur(wo.durationSec) + (r.cardioOnly ? ' · Cardio' : ` · ${r.sets} Sätze`), icon: r.cardioOnly ? 'heart' : 'dumbbell' };
+  }));
+  if (k) openWorkoutDetail(k);
 };
 Actions.histMore = () => { UI.histMore = true; App.renderCurrent(); };
 
@@ -933,9 +1041,7 @@ async function shareImage(wo) {
     x.save(); x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34;
     x.strokeStyle = arcCol; x.beginPath(); x.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(.005, sc.score / 100)); x.stroke(); x.restore();
     x.textAlign = 'center'; x.fillStyle = perfect ? C.gold : C.text;
-    font(fwx, Math.round(150 * k), FN.num); x.fillText(String(sc.score), cx, cy + 40 * k);
-    font('700', Math.round(30 * Math.max(.8, k)), FN.body); spacing(Math.round(6 * k) + 'px'); x.fillStyle = perfect ? C.gold : C.faint;
-    x.fillText(perfect ? 'PERFEKT' : 'SCORE', cx, cy + 96 * k); spacing('0px');
+    font(fwx, Math.round(150 * k), FN.num); x.fillText(String(sc.score), cx, cy + 54 * k);
     y = cy + R + rBot;
   } else y += 40;
   y += extra;
@@ -2101,7 +2207,7 @@ function deleteSetWithUndo(ei, si) {
   };
   document.addEventListener('touchstart', e => {
     const r = e.target.closest('.wo-body .set-row[data-ei]');
-    if (!r || e.touches.length > 1 || e.target.closest('select')) return;
+    if (!r || e.touches.length > 1 || e.target.closest('select, .dd-btn')) return;
     if (row) reset(false);
     row = r; x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; dx = 0; mode = null;
   }, { passive: true });
@@ -2339,7 +2445,7 @@ function scoreRingHtml(sc, small = false) {
   const R = 52, L = 2 * Math.PI * R;
   return `<div class="score-ring ${small ? 'sm' : ''}" data-score="${sc.score}" role="img" aria-label="Workout-Score ${sc.score} von 100">
     <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10" stroke-dasharray="${L}" style="stroke-dashoffset:${L}" data-len="${L}"/></svg>
-    <div class="score-mid"><b class="score-num">${sc.score}</b><span class="score-of">Score</span></div></div>`;
+    <div class="score-mid"><b class="score-num">${sc.score}</b></div></div>`;
 }
 function scoreBreakdownHtml(sc) {
   const W = Analytics.SCORE_W;
@@ -2374,17 +2480,15 @@ function animScoreRing(root, delay = 250, celebrate = false) {
   };
   requestAnimationFrame(step);
 }
-/** Score 100: goldener Ring, Lichtimpuls, „Perfekt" – direkt nach dem Workout zusätzlich Konfetti & Vibration */
+/** Score 100: goldener Ring mit Lichtimpuls – direkt nach dem Workout zusätzlich Konfetti & Vibration */
 function perfectScore(r, celebrate) {
   if (r.classList.contains('perfect')) return;
   const id = 'sg' + Math.random().toString(36).slice(2, 8), anim = motionFull();
   $('svg', r).insertAdjacentHTML('afterbegin', `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".45" stop-color="#f6bb2a"/><stop offset="1" stop-color="#d38800"/></linearGradient></defs>`);
   $('.ring-fg', r).style.stroke = `url(#${id})`;
-  $('.score-of', r).textContent = 'Perfekt';
   r.classList.add('perfect');
   if (anim) r.classList.add('pop');
   if (!celebrate) return;
-  r.insertAdjacentHTML('afterend', `<div class="score-perfect ${anim ? 'fx-up' : ''}">${icon('trophy')} Perfektes Workout</div>`);
   const b = r.getBoundingClientRect();
   confetti({ x: b.left + b.width / 2, y: b.top + b.height / 2, colors: ['#ffe9a8', '#f6bb2a', '#d38800', '#ffffff', cssVar('--accent')] });
   vibrate([30, 60, 90]);
@@ -2417,7 +2521,7 @@ function showSummary({ id, doc, prs }) {
         ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
       </div>
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list sum-prs">${real.map((p, i) => `<div class="list-item pr-shine" style="--i:${i}"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
-      ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${fmtW(g.kg)} 1RM</span><div class="li-sub">Geschätztes 1RM heute: ${fmtW(g.best, 1)}</div></span></div>`).join('')}</div>` : ''}
+      ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${goalLabel(g)}</span><div class="li-sub">${goalType(g) === 'wr' ? `Heute geschafft: ${fmtW(g.best)} × ${g.reps}+` : `Geschätztes 1RM heute: ${fmtW(g.best, 1)}`}</div></span></div>`).join('')}</div>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });
@@ -2434,7 +2538,7 @@ function showSummary({ id, doc, prs }) {
   });
   if (goalsHit.length) {
     confetti();
-    goalsHit.forEach((g, i) => setTimeout(() => toast(`Ziel erreicht: ${Ex.name(g.exId)} ${fmtW(g.kg)} 1RM`, 'pr'), 300 + i * 900));
+    goalsHit.forEach((g, i) => setTimeout(() => toast(`Ziel erreicht: ${Ex.name(g.exId)} ${goalLabel(g)}`, 'pr'), 300 + i * 900));
   }
   if (real.length) {
     if (!goalsHit.length) confetti();
