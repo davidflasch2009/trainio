@@ -180,9 +180,9 @@ function lookGroup(s) {
             <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
             <span class="dt-desc">${esc(d.desc)}</span>
           </button>`).join('')}</div>`],
-      ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span><div class="li-sub">${esc(iconName())}</div></span>${icon('chevR', 'li-chev')}</button>`,
+      ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span></span>${icon('chevR', 'li-chev')}</button>`,
           'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
-        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(([id, name]) => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${esc(name)}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"><span>${esc(name)}</span></button>`).join('')}</div>${iconHintHtml()}`],
+        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"></button>`).join('')}</div>${iconHintHtml()}`],
       ['Farben & Modus', [
         st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
         st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
@@ -239,7 +239,6 @@ Actions.tileMove = el => {
 };
 
 /* ---------- App-Icon ---------- */
-const iconName = (id = iconId()) => (APP_ICONS.find(i => i[0] === id) || APP_ICONS[0])[1];
 function iconHintHtml() {
   const ios = Auth.isIOS(), android = /Android/i.test(navigator.userAgent);
   if (ios && isStandalone()) return `<button class="btn btn-secondary btn-block mt-12" data-act="iconHome">${icon('install')} Auf dem Home-Bildschirm übernehmen</button>
@@ -254,7 +253,7 @@ Actions.iconHome = () => {
   const url = location.origin + location.pathname.replace(/index\.html$/, '') + '?icon=' + iconId();
   const user = Auth.user();
   const m = Modal.open({ title: 'Icon auf den Home-Bildschirm', size: 'sm',
-    body: `<div class="row" style="gap:12px;align-items:center"><img src="${iconSrc()}" alt="" style="width:56px;height:56px;border-radius:13px;flex-shrink:0"><p class="small dim">Das iPhone legt das Icon beim Hinzufügen zum Home-Bildschirm fest. So bekommst du „${esc(iconName())}“:</p></div>
+    body: `<div class="row" style="gap:12px;align-items:center"><img src="${iconSrc()}" alt="" style="width:56px;height:56px;border-radius:13px;flex-shrink:0"><p class="small dim">Das iPhone legt das Icon beim Hinzufügen zum Home-Bildschirm fest. So bekommst du dieses Icon:</p></div>
       ${user ? '' : `<div class="card mt-12" style="border-color:var(--warning)"><p class="small"><b>Achtung:</b> Du bist nicht angemeldet. Die neue App startet ohne deine Daten, und beim Löschen der alten App gehen sie verloren. Melde dich vorher an (Mehr → Konto & Profil) oder erstelle ein Backup und stelle es in der neuen App wieder her.</p>
         <button class="btn btn-secondary btn-sm mt-8" data-act="backupJSON">${icon('download')} Backup erstellen</button></div>`}
       <ol class="small mt-12" style="padding-left:20px;line-height:1.75">

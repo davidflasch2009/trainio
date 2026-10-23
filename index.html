@@ -40,7 +40,7 @@
       var m = location.search.match(/[?&]icon=(\d+)/), ic = m && m[1];
       if (ic) { localStorage.setItem('gymlog.icon', ic); window.__iconFromUrl = ic; history.replaceState(null, '', location.pathname + location.hash); }
       ic = ic || localStorage.getItem('gymlog.icon');
-      if (ic && ic !== '1' && /^\d+$/.test(ic)) {
+      if (ic && /^[2-6]$/.test(ic)) {   // gültige Icons wie APP_ICONS in js/core.js
         var g = function (id) { return document.getElementById(id); }, p = 'icons/' + ic + '/';
         g('lnkTouch').href = p + 'apple-touch-icon.png';
         g('lnkPng').href = p + 'icon-192.png';
@@ -50,7 +50,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/app.css?v=1.23.0">
+<link rel="stylesheet" href="css/app.css?v=1.24.0">
 </head>
 <body>
 <div id="app">
@@ -76,19 +76,19 @@
 <div id="popover" class="popover" hidden></div>
 <noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.23.0"></script>
-<script src="js/core.js?v=1.23.0"></script>
-<script src="js/seeds.js?v=1.23.0"></script>
-<script src="js/store.js?v=1.23.0"></script>
-<script src="js/ui.js?v=1.23.0"></script>
-<script src="js/analytics.js?v=1.23.0"></script>
-<script src="js/workout.js?v=1.23.0"></script>
-<script src="js/training.js?v=1.23.0"></script>
-<script src="js/exercises.js?v=1.23.0"></script>
-<script src="js/charts.js?v=1.23.0"></script>
-<script src="js/progress.js?v=1.23.0"></script>
-<script src="js/more.js?v=1.23.0"></script>
-<script src="js/import.js?v=1.23.0"></script>
-<script src="js/boot.js?v=1.23.0"></script>
+<script src="js/config.js?v=1.24.0"></script>
+<script src="js/core.js?v=1.24.0"></script>
+<script src="js/seeds.js?v=1.24.0"></script>
+<script src="js/store.js?v=1.24.0"></script>
+<script src="js/ui.js?v=1.24.0"></script>
+<script src="js/analytics.js?v=1.24.0"></script>
+<script src="js/workout.js?v=1.24.0"></script>
+<script src="js/training.js?v=1.24.0"></script>
+<script src="js/exercises.js?v=1.24.0"></script>
+<script src="js/charts.js?v=1.24.0"></script>
+<script src="js/progress.js?v=1.24.0"></script>
+<script src="js/more.js?v=1.24.0"></script>
+<script src="js/import.js?v=1.24.0"></script>
+<script src="js/boot.js?v=1.24.0"></script>
 </body>
 </html>

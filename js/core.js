@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.23.0',
+  version: '1.24.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -50,8 +50,8 @@ const MUSCLE_REGIONS = [
 const REGION_NAMES = MUSCLE_REGIONS.map(r => r[0]);
 /* App-Icons: je Icon ein Ordner icons/<id>/ mit icon-192/512.png, icon-maskable-192/512.png, apple-touch-icon.png
    und manifest.json. Eigene Icons: Bilder im Ordner ersetzen und hier den Namen anpassen. */
-const APP_ICONS = [['1', 'Original'], ...Array.from({ length: 9 }, (_, i) => [String(i + 2), `Icon ${i + 2}`])];
-const iconId = () => { const v = String(S().appIcon || '1'); return APP_ICONS.some(i => i[0] === v) ? v : '1'; };
+const APP_ICONS = ['1', '2', '3', '4', '5', '6'];   // ohne Namen – in der Auswahl nur das Bild
+const iconId = () => { const v = String(S().appIcon || '1'); return APP_ICONS.includes(v) ? v : '1'; };
 const iconSrc = (file = 'icon-192.png', id = iconId()) => `icons/${id}/${file}`;
 const defSets = () => clamp(Math.round(+S().defSets || 3), 1, 10);
 const defReps = () => String(S().defReps || '8-12');

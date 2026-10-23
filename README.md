@@ -15,11 +15,13 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 
 ## App-Icons
 
-Unter **Mehr → Darstellung → App-Icon** gibt es 10 Icons. Icon 1 ist das Original-Logo, 2–10 sind Platzhalter.
-**Eigene Icons einsetzen:** im Ordner `icons/<Nummer>/` die Bilder ersetzen (gleiche Dateinamen und Größen):
-`icon-192.png`, `icon-512.png` (abgerundete Kachel, Rand transparent), `icon-maskable-192.png`,
-`icon-maskable-512.png` (vollflächig, Motiv in den inneren 80 %), `apple-touch-icon.png` (180 × 180, vollflächig).
-Den Namen in der Auswahl in `js/core.js` bei `APP_ICONS` anpassen. Danach `python3 tools/release.py <version>`.
+Unter **Mehr → Darstellung → App-Icon** gibt es 6 Icons (ohne Namen, nur das Bild): das Original-Logo,
+ein silbernes T, ein T mit Wellenlinien, Känguru, Panther und Widder.
+**Weitere Icons einsetzen:** neuen Ordner `icons/<Nummer>/` mit denselben Dateien wie die anderen anlegen
+(`manifest.json` aus einem anderen Icon-Ordner kopieren): `icon-192.png`, `icon-512.png` (abgerundete Kachel,
+Rand transparent), `icon-maskable-192.png`, `icon-maskable-512.png` (vollflächig, Motiv in den inneren 80 %),
+`apple-touch-icon.png` (180 × 180, vollflächig). Dann die Nummer in `js/core.js` bei `APP_ICONS`, die Anzahl in
+`sw.js` und die erlaubten Nummern im Kopf-Skript von `index.html` ergänzen. Danach `python3 tools/release.py <version>`.
 
 - **Sofort:** Browser-Tab und Seitenleiste.
 - **iPhone:** Das Icon wird beim Hinzufügen zum Home-Bildschirm festgelegt. In der Home-Bildschirm-App führt
