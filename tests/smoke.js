@@ -44,6 +44,9 @@ function staticChecks() {
   check(dirs.length === n && dirs.every(d => files.every(f => fs.existsSync(path.join(ROOT, 'icons', d, f)))), `App-Icons: ${n} in core.js, ${dirs.length} Ordner, alle Dateien vorhanden`);
   check(read('sw.js').includes(`length: ${n} }`), 'App-Icons: Anzahl in sw.js passt');
   check(index.includes(`/^[2-${n}]$/`), 'App-Icons: erlaubte Nummern in index.html passen');
+  // In Chromium nicht nachstellbar, darum nur statisch: ohne diese Regel endet die Tab-Leiste auf iOS 26 zu hoch
+  check(/@media \(display-mode: standalone\) \{\s*html \{ min-height: min\(100lvh, calc\(100% \+ env\(safe-area-inset-top\)\)\); \}/.test(read('css/app.css')),
+    'iOS-26-Fix: Seite als installierte App mindestens bildschirmhoch');
 }
 
 /* ---------- 2. Kleiner Webserver für das Repo ---------- */

@@ -290,6 +290,13 @@ body {
 /* App-Rahmen: Das Dokument selbst scrollt nie – gescrollt wird nur in .main-col. So bleiben Tab-Leiste, obere
    Leisten und Hintergrund auf dem iPhone fest an ihrem Platz (iOS verschiebt sonst feste Elemente, v. a. nach der Tastatur). */
 html, body { height: 100%; overflow: hidden; }
+/* iOS 26 (WebKit-Fehler 301108): Als installierte App mit durchsichtiger Statusleiste ist das Fenster um die
+   Statusleisten-Höhe zu kurz, solange die Seite kürzer als der Bildschirm ist – feste Elemente (Tab-Leiste) enden dann
+   zu hoch, darunter bleibt ein Streifen. Seite mindestens bildschirmhoch machen; min() mit 100lvh verhindert, dass
+   sie dabei länger als der Bildschirm wird (z. B. bei undurchsichtiger Statusleiste). */
+@media (display-mode: standalone) {
+  html { min-height: min(100lvh, calc(100% + env(safe-area-inset-top))); }
+}
 body.modal-open { overflow: hidden; }
 h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
 h1 { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); }
