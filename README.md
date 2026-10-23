@@ -79,7 +79,14 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   stehen die Knöpfe untereinander.
 - **Haptik auf dem iPhone:** Web-Apps können dort nicht vibrieren – ab iOS 18 gibt ein unsichtbarer iOS-Schalter
   ein kurzes Tippen (Satz abhaken, Stepper, Schalter in den Einstellungen). Abschaltbar über „Vibration“.
-- **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss).
+- **Karten wachsen ins Detail:** Workouts (Startseite, Verlauf) und Übungen öffnen sich aus ihrer Karte heraus
+  und schrumpfen beim Schließen dorthin zurück. **Workout starten** zoomt ins Workout, **Beenden** wieder heraus.
+- **Wischen zwischen Bereichen:** Im Fortschritt (Übersicht, Kraft, Volumen …) und im Training (Pläne, Verlauf)
+  seitwärts wischen – der Inhalt folgt dem Finger, am ersten/letzten Bereich federt er nur nach. Auf Diagrammen,
+  Chips, Tabellen und im Kalender behalten die eigenen Gesten Vorrang.
+- **Karten erscheinen nacheinander**, wenn ein Tab geöffnet wird.
+- **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss) und **rollen bei + und −** wie ein Zählwerk.
+- **Diagramme** zeichnen sich erst, wenn man zu ihnen scrollt – bis dahin stehen ruhige Hilfslinien als Platzhalter.
 - **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
   und leuchtet bei 100 % auf; Pausen-Timer mit ablaufendem Ring, die letzten 3 Sekunden pulsieren.
 - **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, neue PRs erscheinen nacheinander mit Glanz.

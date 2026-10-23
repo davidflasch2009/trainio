@@ -13,13 +13,66 @@ const Motion = (() => {
 
   /** DOM ändern – als View Transition, sonst direkt. kind: 'tab' | 'push' | 'pop' | 'zoom' | 'morph' */
   function go(kind, update) {
-    if (!can()) { skipNext = false; update(); return false; }
+    if (!can()) { skipNext = false; update(); return null; }
     root.dataset.vt = kind;
     const t = document.startViewTransition(update);
     t.ready.catch(() => {});   // abgebrochen, weil schon der nächste Übergang startet – kein Fehler
     t.finished.catch(() => {}).finally(() => { if (root.dataset.vt === kind) delete root.dataset.vt; });
     t.updateCallbackDone.catch(e => ErrLog.add(e, 'Übergang'));
+    return t;
+  }
+
+  /* ---------- Karte wächst in ihr Fenster hinein (Workout → Detail, Übung → Details) und beim Schließen zurück ----------
+     Die Seite (#app) bekommt dabei einen eigenen Namen, damit der Karten-Stapel mitanimiert wird. */
+  const named = (els, name) => els.forEach(([el, n]) => { if (el) el.style.viewTransitionName = name ? n : ''; });
+  function morph(el, open) {
+    if (!el || !can()) return open();
+    const sel = el.dataset.act && el.dataset.id ? `[data-act="${el.dataset.act}"][data-id="${CSS.escape(el.dataset.id)}"]` : null;
+    const page = $('#app');
+    let m = null;
+    named([[el, 'morph'], [page, 'page']], true);
+    document.body.classList.add('vt-now');
+    const t = go('morph', () => {
+      el.style.viewTransitionName = '';
+      const before = Modal.top();
+      open();
+      m = Modal.top() !== before ? Modal.top() : null;
+      if (!m) return;
+      m.wrap.classList.add('open', 'no-anim');
+      m.el.style.viewTransitionName = 'morph';
+      m.morphSel = sel;
+    });
+    const done = () => { named([[el, 'morph'], [page, 'page']], false); document.body.classList.remove('vt-now'); if (m) { m.el.style.viewTransitionName = ''; m.wrap.classList.remove('no-anim'); } };
+    if (t) t.finished.finally(done); else done();
+  }
+  /** Fenster schließt zurück in seine Karte – false, wenn die Karte nicht (mehr) sichtbar ist */
+  function unmorph(m, close) {
+    const src = m.morphSel && $(m.morphSel);
+    if (!src || !can()) return false;
+    const r = src.getBoundingClientRect();
+    if (r.bottom < 0 || r.top > innerHeight || !r.width) return false;
+    const page = $('#app');
+    m.el.style.viewTransitionName = 'morph';
+    page.style.viewTransitionName = 'page';
+    document.body.classList.add('vt-now');
+    const t = go('morph', () => { m.el.style.viewTransitionName = ''; close(); src.style.viewTransitionName = 'morph'; });
+    const done = () => { src.style.viewTransitionName = ''; page.style.viewTransitionName = ''; document.body.classList.remove('vt-now'); };
+    if (t) t.finished.finally(done); else done();
     return true;
+  }
+
+  /* ---------- Karten erscheinen nacheinander (beim Öffnen eines Tabs) ---------- */
+  function stagger(tab) {
+    if (!tab || !motionFull()) return;
+    const items = [...tab.children].flatMap(c => c.matches('#progBody, #trainBody, #moreHome, .stagger-in') ? [...c.children] : [c]);
+    let i = 0;
+    for (const el of items) {
+      const r = el.getBoundingClientRect();
+      if (!r.height) continue;
+      if (r.top > innerHeight || i >= 9) break;
+      el.style.setProperty('--i', i++);
+      fx(el, 'fx-stag');
+    }
   }
 
   /* ---------- Karten-Stapel: Menü von unten → Seite dahinter wird etwas kleiner (nur Handy) ---------- */
@@ -139,8 +192,62 @@ const Motion = (() => {
   }
   edgeBack();
 
+  /* ---------- Seitwärts wischen zwischen Bereichen: Fortschritt (Übersicht, Kraft …) und Training (Pläne, Verlauf) ----------
+     Der Inhalt folgt dem Finger; am ersten/letzten Bereich federt er nur nach. Diagramme, Chips, Kalender
+     und Eingaben behalten ihre eigenen Gesten. */
+  const SWIPE_SKIP = 'input, textarea, select, canvas, .chips, .hscroll, .seg, .table-wrap, .cal, .wo-strip, .fc-sets, [data-noswipe]';
+  function areas() {
+    if (App.tab === 'progress') return { list: progSubs().map(x => x[0]), cur: UI.progSub, body: $('#progBody'), set: v => { UI.progSub = v; } };
+    if (App.tab === 'training' && !Workout.cur()) return { list: ['plans', 'history'], cur: UI.trainSub === 'history' ? 'history' : 'plans', body: $('#trainBody'), set: v => { UI.trainSub = v; } };
+    return null;
+  }
+  function subSwipe() {
+    const view = $('#view');
+    let a = null, x0 = 0, y0 = 0, dx = 0, t0 = 0, lock = null, on = false;
+    const reset = body => { body.classList.remove('sub-drag'); body.classList.add('sub-anim'); body.style.transform = ''; body.style.opacity = ''; setTimeout(() => body.classList.remove('sub-anim'), 260); };
+    view.addEventListener('touchstart', e => {
+      on = false;
+      if (e.touches.length !== 1 || Modal.count() || e.target.closest(SWIPE_SKIP)) return;
+      a = areas();
+      if (!a || !a.body || a.list.length < 2 || !a.body.contains(e.target)) return;
+      const t = e.touches[0];
+      x0 = t.clientX; y0 = t.clientY; dx = 0; t0 = Date.now(); lock = null; on = true;
+    }, { passive: true });
+    view.addEventListener('touchmove', e => {
+      if (!on) return;
+      const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
+      if (lock == null && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.3 ? 'x' : 'no';
+      if (lock !== 'x') { if (lock === 'no') on = false; return; }
+      e.preventDefault();
+      const i = a.list.indexOf(a.cur), end = (mx > 0 && i <= 0) || (mx < 0 && i >= a.list.length - 1);
+      dx = end ? mx * 0.25 : mx;
+      a.body.classList.add('sub-drag');
+      a.body.style.transform = `translateX(${dx}px)`;
+      a.body.style.opacity = String(1 - Math.min(Math.abs(dx) / innerWidth, 1) * 0.6);
+    }, { passive: false });
+    view.addEventListener('touchend', () => {
+      if (!on) return;
+      on = false;
+      if (lock !== 'x') return;
+      const body = a.body, dir = dx < 0 ? 1 : -1, j = a.list.indexOf(a.cur) + dir;
+      const fast = Math.abs(dx) / Math.max(1, Date.now() - t0) > 0.45 && Math.abs(dx) > 30;
+      if (j < 0 || j >= a.list.length || !(Math.abs(dx) > innerWidth * 0.28 || fast)) return reset(body);
+      body.classList.remove('sub-drag'); body.classList.add('sub-anim');
+      body.style.transform = `translateX(${-dir * innerWidth * 0.5}px)`; body.style.opacity = '0';
+      const next = a.list[j], set = a.set;
+      setTimeout(() => {
+        set(next); saveUI(); App.renderCurrent();
+        const nb = areas() && areas().body;
+        if (nb) fx(nb, dir > 0 ? 'fx-sub-next' : 'fx-sub-prev');
+        vibrate(6);
+      }, 150);
+    });
+    view.addEventListener('touchcancel', () => { if (on && lock === 'x') reset(a.body); on = false; });
+  }
+  subSwipe();
+
   return {
-    can, go, stack, topTitle, syncTitle,
+    can, go, stack, topTitle, syncTitle, morph, unmorph, stagger,
     /** nächster Übergang ohne jede Animation (nach dem Zurück-Wischen ist die Seite schon weg) */
     get quiet() { return skipNext; },
     /** nur für den Test: Zurück-Wischen auch außerhalb der iPhone-App erlauben */

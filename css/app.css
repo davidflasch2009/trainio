@@ -1757,3 +1757,51 @@ body.sheet-stack #app { border-radius: 14px; }
 [data-design="glass"] :is(#view.edge-drag, .edge-under) { background: var(--wall), var(--bg); background-attachment: fixed; }
 .edge-under::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--shade, .12); }
 :is(#view, .edge-under).edge-anim { transition: transform .3s var(--ease-ios); }
+
+/* Karte ↔ Fenster: Workout-/Übungskarte wächst ins Detail und beim Schließen zurück; die Seite dahinter animiert mit */
+:root[data-vt="morph"]::view-transition-group(morph) { animation-duration: .44s; overflow: clip; border-radius: calc(18px * var(--rs)); }
+:root[data-vt="morph"]::view-transition-old(morph), :root[data-vt="morph"]::view-transition-new(morph) { height: 100%; object-fit: none; object-position: top; }
+:root[data-vt="morph"]::view-transition-group(page) { animation-duration: .5s; }
+/* Inhalt wechselt früh – das Fenster ist schnell deckend, statt lange durchsichtig zu wirken */
+:root[data-vt="morph"]::view-transition-new(morph) { animation: vtQuickIn .44s ease-out both; }
+:root[data-vt="morph"]::view-transition-old(morph) { animation: vtQuickOut .44s ease-out both; }
+@keyframes vtQuickIn { from { opacity: 0; } 35%, to { opacity: 1; } }
+@keyframes vtQuickOut { from { opacity: 1; } 35%, to { opacity: 0; } }
+.modal-wrap.no-anim :is(.modal, .modal-backdrop) { transition: none !important; }
+body.vt-now :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transition: none !important; }
+
+/* Workout starten: Workout zoomt herein – beenden: zoomt heraus */
+:root:is([data-vt="zoom"], [data-vt="zoomout"])::view-transition-old(root),
+:root:is([data-vt="zoom"], [data-vt="zoomout"])::view-transition-new(root) { mix-blend-mode: normal; animation-duration: .42s; animation-timing-function: var(--ease-ios); animation-fill-mode: both; }
+:root[data-vt="zoom"]::view-transition-old(root) { animation-name: vtGrowAway; }
+:root[data-vt="zoom"]::view-transition-new(root) { animation-name: vtZoomIn; }
+:root[data-vt="zoomout"]::view-transition-old(root) { animation-name: vtZoomOut; z-index: 1; }
+:root[data-vt="zoomout"]::view-transition-new(root) { animation-name: vtGrowBack; }
+@keyframes vtGrowAway { to { transform: scale(1.04); } }
+@keyframes vtGrowBack { from { transform: scale(1.04); } }
+@keyframes vtZoomIn { from { opacity: 0; transform: scale(.92); } }
+@keyframes vtZoomOut { to { opacity: 0; transform: scale(.92); } }
+
+/* Karten erscheinen beim Öffnen eines Tabs nacheinander */
+.fx-stag { animation: fxUp .36s var(--ease-ios) both; animation-delay: calc(var(--i, 0) * 32ms); }
+
+/* Zahlen rollen bei + und − wie ein Zählwerk */
+.fx-roll-up { animation: rollUp .22s var(--ease-ios); }
+.fx-roll-down { animation: rollDown .22s var(--ease-ios); }
+@keyframes rollUp { from { transform: translateY(60%); opacity: 0; } }
+@keyframes rollDown { from { transform: translateY(-60%); opacity: 0; } }
+
+/* Diagramm noch nicht gezeichnet: ruhige Hilfslinien als Platzhalter */
+.chart-box.chart-wait::before { content: ''; position: absolute; inset: 10px 2px 22px; border-radius: 6px; pointer-events: none;
+  background: repeating-linear-gradient(to top, transparent 0 calc(25% - 1px), var(--border) calc(25% - 1px) 25%);
+  animation: chartWait 1.4s ease-in-out infinite alternate; }
+@keyframes chartWait { from { opacity: .3; } to { opacity: .7; } }
+
+/* Seitwärts wischen zwischen Bereichen (Fortschritt, Training) */
+#view { overflow-x: clip; }
+.sub-drag { will-change: transform, opacity; }
+.sub-anim { transition: transform .22s var(--ease-ios), opacity .22s ease-out; }
+.fx-sub-next { animation: subNext .32s var(--ease-ios) both; }
+.fx-sub-prev { animation: subPrev .32s var(--ease-ios) both; }
+@keyframes subNext { from { transform: translateX(40%); opacity: 0; } }
+@keyframes subPrev { from { transform: translateX(-40%); opacity: 0; } }

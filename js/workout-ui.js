@@ -983,7 +983,8 @@ Actions.step = el => {
   }
   vibrate(8);
   Workout.save();
-  fx($$(`[data-in^="set"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).filter(i => el.parentElement && el.parentElement.contains(i)), 'fx-bump');
+  // Zahl rollt wie ein Zählwerk: mehr → von unten, weniger → von oben
+  fx($$(`[data-in^="set"][data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).filter(i => el.parentElement && el.parentElement.contains(i)), d > 0 ? 'fx-roll-up' : 'fx-roll-down');
 };
 Actions.rpePick = el => {
   const s = setAt(el); if (!s) return;
@@ -1346,7 +1347,7 @@ Actions.woFinish = async () => {
   })) return;
   const res = Workout.finish();
   if (!res) return;
-  App.go('start');
+  App.go('start', { kind: 'zoomout' });
   if (res.editing) { toast('Workout aktualisiert', 'success'); return; }
   showSummary(res);
 };

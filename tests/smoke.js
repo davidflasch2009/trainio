@@ -63,8 +63,8 @@ function serve() {
 }
 
 /* ---------- 3. Browser ---------- */
-async function openApp(browser, base, viewport) {
-  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE' });
+async function openApp(browser, base, viewport, touch = false) {
+  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch });
   // nur die eigene Seite – Firebase, Chart.js, Schriften usw. bleiben draußen
   await ctx.route(url => !url.href.startsWith(base), r => r.abort());
   const page = await ctx.newPage();
@@ -80,6 +80,15 @@ async function openApp(browser, base, viewport) {
 const pause = (page, ms = 250) => page.waitForTimeout(ms);
 const noViewError = page => page.evaluate(() => !document.querySelector('.tab.active').innerText.includes('Fehler beim Anzeigen'));
 const appErrors = page => page.evaluate(() => ErrLog.all().map(e => e.msg || e.message || String(e)));
+/** Wischgeste mit dem Finger (Touch über CDP) */
+async function swipe(page, x1, x2, y) {
+  const cdp = page.cdp || (page.cdp = await page.context().newCDPSession(page));
+  const tp = (type, x) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x, y }] });
+  await tp('touchStart', x1);
+  for (let k = 1; k <= 10; k++) { await tp('touchMove', x1 + (x2 - x1) * k / 10); await page.waitForTimeout(16); }
+  await tp('touchEnd');
+  await page.waitForTimeout(600);
+}
 
 async function mobileFlow(page) {
   console.log('Handy (390 × 844)');
@@ -152,6 +161,12 @@ async function mobileFlow(page) {
     check(await noViewError(page), `Fortschritt → ${v}`);
   }
 
+  // Seitwärts wischen wechselt den Bereich
+  await page.click(`#tab-progress [data-act="progSub"][data-v="overview"]`);
+  await pause(page, 300);
+  await swipe(page, 320, 70, 620);
+  check(await page.evaluate(() => UI.progSub === 'strength'), 'Fortschritt: nach links wischen → nächster Bereich (Kraft)');
+
   // Training: Verlauf + Workout-Detail
   await page.click('#bottomNav [data-tab="training"]');
   await page.click('#tab-training [data-act="trainSub"][data-v="history"]');
@@ -174,6 +189,11 @@ async function mobileFlow(page) {
 
   // Mehr: jede Gruppe + Suche
   await page.click('#bottomNav [data-tab="more"]');
+  // Zurück-Wischen vom linken Rand (sonst nur in der iPhone-App aktiv)
+  await page.evaluate(() => { Motion.edgeAlways = true; openMoreSub('training'); });
+  await pause(page, 600);
+  await swipe(page, 6, 320, 420);
+  check(await page.evaluate(() => !moreSub && !document.querySelector('.edge-under')), 'Mehr: vom linken Rand wischen → zurück zur Übersicht');
   const groups = await page.evaluate(() => moreGroups().map(g => g.id));
   for (const g of groups) {
     await page.evaluate(id => openMoreSub(id), g);
@@ -220,7 +240,7 @@ async function desktopFlow(page) {
   for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
-      page = await openApp(browser, base, viewport);
+      page = await openApp(browser, base, viewport, name === 'handy');
       await flow(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';

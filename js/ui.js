@@ -178,20 +178,22 @@ const Modal = (() => {
       m.el.style.transition = ''; bd.style.transition = ''; bd.style.opacity = '';
       const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5;
       m.el.style.transform = '';
-      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) close(m);
+      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) { m.swiped = true; close(m); }
     };
     m.el.addEventListener('touchend', end);
     m.el.addEventListener('touchcancel', end);
   }
-  function close(m, value) {
+  function close(m, value, instant = false) {
     if (!m || m.closed) return;
+    // Fenster aus einer Karte: zurück in die Karte schrumpfen (nicht nach dem Wegwischen)
+    if (!instant && m.morphSel && !m.swiped && Motion.unmorph(m, () => close(m, value, true))) return;
     m.closed = true;
     const i = stack.indexOf(m);
     if (i >= 0) stack.splice(i, 1);
     m.wrap.classList.remove('open');
-    m.wrap.classList.add('closing');
     if (typeof Charts !== 'undefined') Charts.destroyIn(m.wrap);
-    setTimeout(() => m.wrap.remove(), 340);
+    if (instant) m.wrap.remove();
+    else { m.wrap.classList.add('closing'); setTimeout(() => m.wrap.remove(), 340); }
     if (!stack.length) document.body.classList.remove('modal-open');
     Motion.stack(stack.some(x => !x.alert));
     if (m.onClose) m.onClose(value);
@@ -710,7 +712,7 @@ const Views = {};
 const App = {
   tab: TABS.some(t => t[0] === UI.tab) ? UI.tab : 'start',
   peek: null,   // ausgeblendeter Tab, der gerade über „Mehr" geöffnet ist
-  go(tab) {
+  go(tab, { kind: forced = null } = {}) {
     if (!Views[tab]) return;
     if (tab !== this.peek) this.peek = null;
     const changed = tab !== this.tab;
@@ -722,7 +724,7 @@ const App = {
     const order = visibleTabs().map(t => t[0]), from = order.indexOf(this.tab), to = order.indexOf(tab);
     const dir = from < 0 || to < 0 || to > from ? 'fwd' : 'back';
     // Bibliothek über „Mehr" öffnen/schließen wirkt wie eine Unterseite (iOS-Push), sonst Tab-Wechsel
-    const kind = !changed ? null : tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : 'tab';
+    const kind = !changed ? null : forced || (tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : 'tab');
     const quiet = Motion.quiet, vt = changed && Motion.can();
     const apply = () => {
       this.tab = tab;
@@ -734,10 +736,11 @@ const App = {
         window.scrollTo({ top: 0 });
         fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
         if (!vt && !quiet) fx($('#tab-' + tab), 'fx-pg-' + dir);
+        else if (vt && kind === 'tab') Motion.stagger($('#tab-' + tab));
         countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
       }
     };
-    if (changed) Motion.go(kind, apply); else apply();
+    if (changed || forced) Motion.go(kind || forced, apply); else apply();   // z. B. Workout im Training-Tab starten → Zoom
   },
   renderAll() {
     this.renderCurrent();

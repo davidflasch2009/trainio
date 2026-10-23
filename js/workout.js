@@ -77,7 +77,7 @@ const Workout = (() => {
     autoSelect();
     save();
     WakeLock.request();
-    App.go('training');
+    App.go('training', { kind: 'zoom' });
     toast(`${w.name} gestartet`, 'success', { cat: 'workout' });
   }
   /** Vergangenes Workout bearbeiten oder wiederholen */
@@ -99,7 +99,7 @@ const Workout = (() => {
     autoSelect();
     save();
     if (!edit) WakeLock.request();
-    App.go('training');
+    App.go('training', { kind: 'zoom' });
   }
   function autoSelect() {
     if (!w) return;

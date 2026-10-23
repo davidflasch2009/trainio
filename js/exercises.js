@@ -334,7 +334,7 @@ Actions.exCat = el => { UI.exCat = el.dataset.v; saveUI(); App.renderCurrent(); 
 Actions.exEq = el => { UI.exEq = el.dataset.v; saveUI(); App.renderCurrent(); };
 Changes.exSort = el => { UI.exSort = el.value; saveUI(); renderExList(); };
 Actions.exNew = () => openExerciseForm(null, { name: UI.exQ });
-Actions.openExercise = el => openExerciseDetail(el.dataset.id);
+Actions.openExercise = el => Motion.morph(el, () => openExerciseDetail(el.dataset.id));
 
 /* ---------- Übungs-Detail ---------- */
 function openExerciseDetail(id) {
@@ -373,7 +373,7 @@ function openExerciseDetail(id) {
         </div>
         <div class="chart-card mt-16" style="padding:12px">
           <div class="seg sm">${(t === 'kg' ? [['e1rm', '1RM-Verlauf'], ['vol', 'Volumen'], ['maxw', 'Max-Gewicht']] : [['reps', t === 'sec' ? 'Dauer' : 'Wiederholungen'], ['sets', 'Sätze']]).map(([k, l]) => `<button data-x="chart" data-v="${k}" class="${exChartKey(t) === k ? 'active' : ''}">${l}</button>`).join('')}</div>
-          <div class="chart-box"><canvas id="cv-exd" role="img" aria-label="Verlauf ${esc(ex.name)}"></canvas></div>
+          <div class="chart-box chart-wait"><canvas id="cv-exd" role="img" aria-label="Verlauf ${esc(ex.name)}"></canvas></div>
         </div>
         ${prEv.length ? `<div class="mt-12 small dim">${icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px"')} ${prEv.length} PR${prEv.length === 1 ? '' : 's'} – zuletzt am ${fmtDate(prEv[prEv.length - 1].date)} (${fmtW(prEv[prEv.length - 1].w)} × ${prEv[prEv.length - 1].r})</div>` : ''}
         <h4 class="mt-24 mb-8">Alle Sätze</h4>
@@ -437,7 +437,7 @@ function cardioDetailHtml(id, ss, showAll) {
     </div>
     <div class="chart-card mt-16" style="padding:12px">
       ${keys.length > 1 ? `<div class="seg sm">${keys.map(([k, l]) => `<button data-x="chart" data-v="${k}" class="${exChartKey(t, id) === k ? 'active' : ''}">${esc(l)}</button>`).join('')}</div>` : ''}
-      <div class="chart-box"><canvas id="cv-exd" role="img" aria-label="Verlauf"></canvas></div>
+      <div class="chart-box chart-wait"><canvas id="cv-exd" role="img" aria-label="Verlauf"></canvas></div>
     </div>
     <h4 class="mt-24 mb-8">Alle Einheiten</h4>
     ${shown.map(s => `<div class="card tight mb-8" style="background:var(--surface-2)">

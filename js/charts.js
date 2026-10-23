@@ -46,13 +46,32 @@ const Charts = (() => {
     C.defaults.plugins.tooltip.titleFont = { weight: '600', size: 12 };
     C.defaults.plugins.tooltip.bodyFont = { weight: '500', size: 12.5 };
     // Re-Theme laufender Charts (Kopie der Liste – mount() entfernt und ergänzt Einträge, sonst Endlosschleife)
-    for (const [id, x] of [...inst]) if (x.chart) mount(id, x.factory);
+    for (const [id, x] of [...inst]) if (x.chart) draw(id, x.factory);
   }
+  // Unterhalb des Bildschirms erst zeichnen, wenn das Diagramm in Sicht kommt – dann sieht man es aufbauen
+  const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+    if (!e.isIntersecting) return;
+    io.unobserve(e.target);
+    const id = e.target.id.slice(3), x = inst.get(id);
+    if (x && x.lazy && x.canvas === e.target) draw(id, x.factory);
+  }), { rootMargin: '0px 0px -6% 0px' }) : null;
   function mount(id, factory) {
     const cv = document.getElementById('cv-' + id);
     if (!cv) return;
     destroy(id);
+    if (io && motionFull() && cv.getBoundingClientRect().top > innerHeight) {
+      inst.set(id, { factory, canvas: cv, lazy: true });
+      io.observe(cv);
+      return;
+    }
+    draw(id, factory);
+  }
+  function draw(id, factory) {
+    const cv = document.getElementById('cv-' + id);
+    if (!cv) return;
+    inst.delete(id);
     const box = cv.parentElement;
+    box.classList.remove('chart-wait');
     $$('.chart-empty', box).forEach(n => n.remove());
     if (!window.Chart) {
       box.insertAdjacentHTML('beforeend', `<div class="chart-empty">Diagramme brauchen beim ersten Mal eine Internetverbindung.</div>`);
@@ -70,7 +89,7 @@ const Charts = (() => {
     const chart = new window.Chart(cv.getContext('2d'), cfg);
     inst.set(id, { chart, canvas: cv, factory });
   }
-  function destroy(id) { const x = inst.get(id); if (x && x.chart) x.chart.destroy(); inst.delete(id); }
+  function destroy(id) { const x = inst.get(id); if (x && x.chart) x.chart.destroy(); if (x && x.lazy && io) io.unobserve(x.canvas); inst.delete(id); }
   function destroyIn(root) {
     for (const [id, x] of [...inst]) if (!x.canvas || !x.canvas.isConnected || (root && root.contains(x.canvas))) destroy(id);
   }
@@ -276,7 +295,7 @@ function chartBuilder() {
         ${top}
         ${big != null ? `<div class="cc-big"><b>${big}</b>${small ? `<small>${small}</small>` : ''}${delta || ''}</div>` : ''}
         ${sub ? `<div class="cc-sub">${sub}</div>` : ''}
-        ${factory ? `<div class="chart-box ${size}"><canvas id="cv-${id}" role="img" aria-label="${esc(title)}"></canvas></div>` : ''}
+        ${factory ? `<div class="chart-box chart-wait ${size}"><canvas id="cv-${id}" role="img" aria-label="${esc(title)}"></canvas></div>` : ''}
         ${extra}
       </div>`;
     },
@@ -293,7 +312,7 @@ Actions.chartExpand = el => {
   const cfg = src.factory();
   const m = Modal.open({
     title: el.dataset.title, size: 'full',
-    body: `<div class="chart-box" style="height:min(62vh,520px)"><canvas id="cv-${el.dataset.id}__full"></canvas></div>
+    body: `<div class="chart-box chart-wait" style="height:min(62vh,520px)"><canvas id="cv-${el.dataset.id}__full"></canvas></div>
       <h4 class="mt-24 mb-8">Daten als Tabelle</h4><div class="table-wrap">${chartTable(cfg)}</div>`
   });
   Charts.mount(el.dataset.id + '__full', src.factory);
