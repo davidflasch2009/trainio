@@ -45,6 +45,17 @@ Views.progress = {
     ProgressViews[progSubs().some(x => x[0] === UI.progSub) ? UI.progSub : 'overview'](body);
   }
 };
+/** Standard-Zeitraum aus den Einstellungen – null = zuletzt gewählter bleibt; gelöschte Phase → Alles */
+function defaultPeriod() {
+  const v = String(S().progPeriod || 'last');
+  if (v.startsWith('ph:')) return phaseById(v.slice(3)) ? v : 'all';
+  return PERIODS.some(([k]) => k === v && k !== 'custom') ? v : null;
+}
+function applyDefaultPeriod() {
+  const v = defaultPeriod();
+  if (v && UI.period !== v) { UI.period = v; saveUI(); }
+}
+Views.progress.leave = applyDefaultPeriod;   // beim nächsten Öffnen ist wieder der Standard gewählt
 Actions.progSub = el => { UI.progSub = el.dataset.v; saveUI(); App.renderCurrent(); };
 Actions.period = async el => {
   const v = el.dataset.v;
@@ -141,7 +152,7 @@ Actions.phaseEdit = el => {
     if (b.dataset.x === 'del') {
       if (!await confirmDialog({ title: 'Phase löschen?', text: `„${d.name}" wird entfernt. Deine Workouts bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
       Store.saveSettings({ phases: list });
-      if (UI.period === 'ph:' + d.id) { UI.period = '3m'; saveUI(); }
+      if (UI.period === 'ph:' + d.id) { UI.period = defaultPeriod() || '3m'; saveUI(); }
       m.close(); return;
     }
     if (b.dataset.x === 'ok') {

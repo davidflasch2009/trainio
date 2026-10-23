@@ -84,7 +84,8 @@ function moreGroups() {
           mRow(navRowInline('openWarmupCfg', 'flame', 'Aufwärmsätze', (S().warmupSteps || []).map(([p, r]) => `${p} %×${r}`).join(' · ') + (S().warmupBar !== false ? ' · leere Stange' : '')), 'Aufwärmsätze', 'Prozent und Wdh. pro Aufwärmsatz', 'aufwärmen warmup')]],
         ['Auswertung', [
           mi('1RM-Formel', 'Für geschätztes Maximum, Diagramme, PRs und Score', selectCtl('e1rmFormula', E1RM_FORMULAS), 'e1rm maximum epley brzycki'),
-          mi('Zeitraum im Fortschritt', 'Womit der Fortschritt-Tab startet', selectCtl('progPeriod', [['last', 'Zuletzt gewählter'], ['4w', '4 Wochen'], ['3m', '3 Monate'], ['6m', '6 Monate'], ['1y', '1 Jahr'], ['all', 'Alles']]), 'zeitraum standard periode')]]
+          mi('Zeitraum im Fortschritt', 'Ist beim Öffnen des Fortschritts ausgewählt', selectCtl('progPeriod', [['last', 'Zuletzt gewählter'], ['4w', '4 Wochen'], ['3m', '3 Monate'], ['6m', '6 Monate'], ['1y', '1 Jahr'], ['all', 'Alles'], ...phases().map(ph => ['ph:' + ph.id, `Phase: ${ph.name}`]),
+            ...(String(s.progPeriod).startsWith('ph:') && !phaseById(s.progPeriod.slice(3)) ? [[s.progPeriod, 'Alles (Phase gelöscht)']] : [])]), 'zeitraum standard periode phase fortschritt vorausgewählt')]]
       ] },
     { id: 'workout', title: 'Workout', ic: 'list', sub: 'Eingabe, Vorbelegen, neue Übungen, Ansicht, Beenden',
       sections: [
@@ -423,6 +424,7 @@ Changes.setSelect = el => {
   const num = ['weeklyGoal', 'defaultRestSec', 'defSets', 'restWarnSec'].includes(k) || (['restWarmSec', 'restDropSec'].includes(k) && /^\d+$/.test(el.value));
   Store.saveSettings({ [k]: num ? +el.value : el.value });
   // andere 1RM-Formel → gespeicherte Rekorde (bestes e1RM) neu berechnen
+  if (k === 'progPeriod') applyDefaultPeriod();
   if (k === 'e1rmFormula') PR.recalcAll().then(() => toast('1RM neu berechnet', 'success', { cat: 'always' }));
 };
 Changes.setToggle = async el => {
