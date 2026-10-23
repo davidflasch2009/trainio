@@ -645,7 +645,7 @@ Actions.woView = el => {
   if (w && el.dataset.v === 'focus') { w.focusE = w.sel.e >= 0 ? w.sel.e : 0; Workout.save(); }
   Store.saveSettings({ woView: el.dataset.v });
   App.renderCurrent();
-  window.scrollTo({ top: 0 });
+  Scroll.to(0);
 };
 Actions.focusNav = el => {
   const w = Workout.cur(); if (!w) return;
@@ -655,7 +655,7 @@ Actions.focusNav = el => {
   w.sel = { e: ei, s: fo >= 0 ? fo : w.entries[ei].sets.length - 1 };
   Workout.save();
   App.renderCurrent();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
+  Scroll.to(0, true);
 };
 Actions.woJump = el => {
   const w = Workout.cur(); if (!w) return;
@@ -683,8 +683,8 @@ function scrollToExercise(en) {
   // Karten darüber, die gerade noch zu-/aufklappen, schon mit ihrer Endhöhe einrechnen
   let shift = 0;
   for (const [id, d] of cardDelta) { const c = document.getElementById(id); if (c && c !== card && (c.compareDocumentPosition(card) & Node.DOCUMENT_POSITION_FOLLOWING)) shift += d; }
-  const top = card.getBoundingClientRect().top + shift + scrollY - (head ? head.getBoundingClientRect().bottom : 120) - 8;
-  window.scrollTo({ top: Math.max(0, top), behavior: S().motion === 'full' ? 'smooth' : 'auto' });
+  const top = Scroll.topOf(card) + shift - (head ? head.getBoundingClientRect().bottom - Scroll.el.getBoundingClientRect().top : 120) - 8;
+  Scroll.to(top, S().motion === 'full');
 }
 /** Nächster offener Satz: erst in derselben Übung, dann in den folgenden, dann von vorn */
 function nextOpenAfter(w, ei, si) {
@@ -1088,7 +1088,7 @@ Actions.setDone = el => {
   // Liste: zur nächsten Übung scrollen, wenn diese fertig ist
   const nextE = woCollapse() ? openIndex(w) : w.sel.e;
   if (!focus && exDone && nextE >= 0 && nextE !== ei && S().autoScroll !== false) requestAnimationFrame(() => scrollToExercise(w.entries[nextE]));
-  else if (focus && w.focusE !== ei) window.scrollTo({ top: 0, behavior: 'smooth' });
+  else if (focus && w.focusE !== ei) Scroll.to(0, true);
   // Letzter Satz abgehakt: zum „Workout beenden"-Knopf unten scrollen
   if (wasLast && !focus && S().autoScroll !== false) requestAnimationFrame(() => { const b = $('#woFinishEnd'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
 };

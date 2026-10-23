@@ -13,6 +13,7 @@ const Motion = (() => {
 
   /** DOM ändern – als View Transition, sonst direkt. kind: 'tab' | 'push' | 'pop' | 'zoom' | 'morph' */
   function go(kind, update) {
+    if (!skipNext && Edge.active()) Edge.cleanup();
     if (!can()) { skipNext = false; update(); return null; }
     root.dataset.vt = kind;
     const t = document.startViewTransition(update);
@@ -116,81 +117,101 @@ const Motion = (() => {
     if (!tb || !$('.topbar-mini', tb)) return;
     tb.classList.toggle('show-title', !!big && big.getBoundingClientRect().bottom < tb.getBoundingClientRect().bottom - 4);
   }
-  window.addEventListener('scroll', syncTitle, { passive: true });
+  Scroll.el.addEventListener('scroll', syncTitle, { passive: true });
 
   /* ---------- Zurück-Wischen vom linken Bildschirmrand (Unterseiten im Mehr-Tab) ----------
-     Nur in der installierten iPhone-App – im Browser und auf Android macht das System die Zurück-Geste. */
-  const edgeOn = () => edgeAlways || (isIOSDevice && isStandalone());
+     Nur in der installierten iPhone-App – im Browser und auf Android macht das System die Zurück-Geste.
+     Ab der ersten Bewegung gehört die Geste uns (nichts scrollt nebenher), ein zweiter Finger bricht ab.
+     Die ganze Inhaltsspalte folgt dem Finger, dahinter liegt die vorige Seite. */
   let edgeAlways = false;
+  const edgeOn = () => edgeAlways || (isIOSDevice && isStandalone());
   const canBack = () => (App.tab === 'more' && !!moreSub) || (!!App.peek && App.peek === App.tab);
-  function edgeBack() {
-    let x0 = 0, y0 = 0, dx = 0, t0 = 0, on = false, lock = null, page = null, under = null;
+  const Edge = (() => {
+    let g = null;   // laufende Geste: { state: 'track' | 'drag' | 'settle', x0, y0, dx, t0, page, under, raf, timer }
     const W = () => innerWidth;
     function begin() {
-      page = $('#view');
-      under = document.createElement('div');
+      const under = document.createElement('div');
       under.className = 'edge-under';
-      // Seite dahinter: Mehr-Übersicht (bei Unterseiten) – sonst nur der Hintergrund
+      // Seite dahinter: Mehr-Übersicht (bei Unterseiten) an der Stelle, an der sie verlassen wurde – sonst nur der Hintergrund
       if (App.tab === 'more' && moreSub) {
         under.innerHTML = `<div class="view"><div class="search mt-8"><input class="input" type="search" placeholder="Einstellungen durchsuchen …" tabindex="-1">${icon('search')}</div>${moreHomeHtml(moreGroups())}</div>`;
-        const inner = under.firstElementChild;
-        inner.style.transform = `translateY(${$('#topbar').offsetHeight - moreScroll}px)`;
+        under.firstElementChild.style.transform = `translateY(${-moreScroll}px)`;
       }
-      document.body.appendChild(under);
-      page.classList.add('edge-drag');
+      $('#app').prepend(under);
+      g.page = Scroll.el;
+      g.under = under;
+      g.page.classList.add('edge-drag');
     }
     function move(p) {
-      page.style.transform = `translateX(${p * W()}px)`;
-      under.style.transform = `translateX(${-30 * (1 - p)}%)`;
-      under.style.setProperty('--shade', String(0.12 * (1 - p)));
+      if (!g || !g.page) return;
+      g.page.style.transform = `translateX(${p * W()}px)`;
+      g.under.style.transform = `translateX(${-30 * (1 - p)}%)`;
+      g.under.style.setProperty('--shade', String(0.12 * (1 - p)));
     }
     function cleanup() {
-      if (page) { page.classList.remove('edge-drag', 'edge-anim'); page.style.transform = ''; }
-      if (under) under.remove();
-      page = under = null;
+      if (!g) return;
+      cancelAnimationFrame(g.raf);
+      clearTimeout(g.timer);
+      if (g.page) { g.page.classList.remove('edge-drag', 'edge-anim'); g.page.style.transform = ''; }
+      if (g.under) g.under.remove();
+      g = null;
     }
-    function finish(back) {
-      page.classList.add('edge-anim'); under.classList.add('edge-anim');
-      requestAnimationFrame(() => move(back ? 1 : 0));
-      setTimeout(() => {
+    function settle(back) {
+      if (!g || !g.page) { g = null; return; }
+      const mine = g;
+      g.state = 'settle';
+      g.page.classList.add('edge-anim');
+      g.under.classList.add('edge-anim');
+      g.raf = requestAnimationFrame(() => move(back ? 1 : 0));
+      g.timer = setTimeout(() => {
+        if (g !== mine) return;
         if (!back) return cleanup();
         skipNext = true;
         if (App.tab === 'more' && moreSub) closeMoreSub(); else App.go('more');
         // zurück per history.back() kommt asynchron → aufräumen, sobald die Unterseite weg ist
         const t1 = Date.now();
-        (function wait() { if (!canBack() || Date.now() - t1 > 600) { skipNext = false; cleanup(); } else requestAnimationFrame(wait); })();
+        (function wait() {
+          if (g !== mine) return;
+          if (!canBack() || Date.now() - t1 > 700) { skipNext = false; cleanup(); }
+          else g.raf = requestAnimationFrame(wait);
+        })();
       }, 300);
     }
     document.addEventListener('touchstart', e => {
-      on = false;
-      if (e.touches.length !== 1 || !edgeOn() || !canBack() || Modal.count() || W() >= 900 || page) return;
+      if (g && g.state === 'drag' && e.touches.length > 1) return settle(false);   // zweiter Finger: abbrechen
+      if (g || e.touches.length !== 1 || !edgeOn() || !canBack() || Modal.count() || W() >= 900) return;
       const t = e.touches[0];
-      if (t.clientX > 24) return;
-      x0 = t.clientX; y0 = t.clientY; dx = 0; t0 = Date.now(); lock = null; on = true;
+      if (t.clientX > 22) return;
+      g = { state: 'track', x0: t.clientX, y0: t.clientY, dx: 0, t0: Date.now(), page: null, under: null, raf: 0, timer: 0 };
     }, { passive: true });
     document.addEventListener('touchmove', e => {
-      if (!on) return;
-      const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
-      if (lock == null && (Math.abs(mx) > 8 || Math.abs(my) > 8)) {
-        lock = Math.abs(mx) > Math.abs(my) && mx > 0 ? 'x' : 'no';
-        if (lock === 'x') begin();
+      if (!g || g.state === 'settle') return;
+      if (e.cancelable) e.preventDefault();   // am Rand: kein Scrollen nebenher (sonst verschiebt iOS die Seite mit)
+      const t = e.touches[0], mx = t.clientX - g.x0, my = t.clientY - g.y0;
+      if (g.state === 'track') {
+        if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
+        if (!(mx > 0 && Math.abs(mx) > Math.abs(my))) { g = null; return; }   // senkrecht oder nach links: keine Zurück-Geste
+        g.state = 'drag';
+        begin();
       }
-      if (lock !== 'x') { if (lock === 'no') on = false; return; }
-      e.preventDefault();
-      dx = Math.max(0, mx);
-      move(dx / W());
+      g.dx = Math.max(0, mx);
+      move(g.dx / W());
     }, { passive: false });
     const end = cancel => {
-      if (!on) return;
-      on = false;
-      if (lock !== 'x' || !page) return;
-      const v = dx / Math.max(1, Date.now() - t0);
-      finish(!cancel && (dx > W() * 0.35 || v > 0.5));
+      if (!g || g.state === 'settle') return;
+      if (g.state === 'track') { g = null; return; }
+      const v = g.dx / Math.max(1, Date.now() - g.t0);
+      settle(!cancel && (g.dx > W() * 0.35 || v > 0.5));
     };
-    document.addEventListener('touchend', () => end(false));
+    document.addEventListener('touchend', e => { if (!e.touches.length) end(false); });
     document.addEventListener('touchcancel', () => end(true));
-  }
-  edgeBack();
+    document.addEventListener('visibilitychange', () => { if (document.hidden && g) { skipNext = false; cleanup(); } });
+    return {
+      /** läuft gerade eine Geste (Seite verschoben)? */
+      active: () => !!g && g.state !== 'track',
+      cleanup
+    };
+  })();
 
   /* ---------- Seitwärts wischen zwischen Bereichen: Fortschritt (Übersicht, Kraft …) und Training (Pläne, Verlauf) ----------
      Der Inhalt folgt dem Finger; am ersten/letzten Bereich federt er nur nach. Diagramme, Chips, Kalender

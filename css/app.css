@@ -279,14 +279,17 @@
 html { background: var(--bg); -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
 /* Handy/Tablet: Scroll-Balken rechts ausblenden (Maus-Geräte behalten ihn) */
 @media (pointer: coarse) {
-  html, body { scrollbar-width: none; }
-  html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; width: 0; height: 0; }
+  html, body, .main-col { scrollbar-width: none; }
+  html::-webkit-scrollbar, body::-webkit-scrollbar, .main-col::-webkit-scrollbar { display: none; width: 0; height: 0; }
 }
 body {
-  margin: 0; min-height: 100dvh; background: var(--bg); color: var(--text);
+  margin: 0; background: var(--bg); color: var(--text);
   font-family: var(--font); font-size: calc(15px * var(--fs)); line-height: 1.45;
-  -webkit-font-smoothing: antialiased; overscroll-behavior-y: none;
+  -webkit-font-smoothing: antialiased; overscroll-behavior: none;
 }
+/* App-Rahmen: Das Dokument selbst scrollt nie – gescrollt wird nur in .main-col. So bleiben Tab-Leiste, obere
+   Leisten und Hintergrund auf dem iPhone fest an ihrem Platz (iOS verschiebt sonst feste Elemente, v. a. nach der Tastatur). */
+html, body { height: 100%; overflow: hidden; }
 body.modal-open { overflow: hidden; }
 h1, h2, h3, h4 { margin: 0; line-height: 1.2; letter-spacing: -.01em; }
 h1 { font-size: calc(26px * var(--fs)); font-weight: var(--fw-x); }
@@ -328,8 +331,10 @@ svg { flex-shrink: 0; }
 /* ==========================================================================
    3. App-Layout (Bottom-Nav mobil, Sidebar ab 900px)
    ========================================================================== */
-#app { display: flex; min-height: 100dvh; }
-.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+#app { position: fixed; inset: 0; display: flex; }
+.main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; z-index: 1;
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
+.main-col > * { flex-shrink: 0; }
 .topbar {
   position: sticky; top: 0; z-index: 40;
   padding: calc(env(safe-area-inset-top) + 8px) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
@@ -1666,8 +1671,7 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 @keyframes fxComplete { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 100% { box-shadow: 0 0 0 14px transparent; } }
 @keyframes fxFill { 0% { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { background-color: var(--surface-2); box-shadow: 0 0 0 0 transparent; } }
 @keyframes fxBump { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
-/* Seiten-/Tab-Wechsel mit Richtung: von rechts (weiter) bzw. von links (zurück) */
-.main-col { overflow-x: clip; }
+/* Seiten-/Tab-Wechsel mit Richtung: von rechts (weiter) bzw. von links (zurück) – Überstand schneidet .main-col ab */
 .tab.fx-pg-fwd, .fx-pg-fwd { animation: pgFwd .3s var(--ease-out) both; }
 .tab.fx-pg-back, .fx-pg-back { animation: pgBack .3s var(--ease-out) both; }
 @keyframes pgFwd { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
@@ -1740,7 +1744,7 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 :root:has(body:is(.sheet-stack, .sheet-unstack)), body:is(.sheet-stack, .sheet-unstack) { background: #000; }
 body:is(.sheet-stack, .sheet-unstack) :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
 body.sheet-stack :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transform: scale(.93); }
-body:is(.sheet-stack, .sheet-unstack) #app { background: var(--bg); }
+body:is(.sheet-stack, .sheet-unstack) #app { background: var(--bg); overflow: clip; }
 body.sheet-stack #app { border-radius: 14px; }
 [data-design="glass"] body:is(.sheet-stack, .sheet-unstack) #app { background: transparent; }
 [data-design="glass"] body:is(.sheet-stack, .sheet-unstack)::before { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
@@ -1752,11 +1756,12 @@ body.sheet-stack #app { border-radius: 14px; }
 .topbar.show-title .topbar-mini { opacity: 1; }
 
 /* Zurück-Wischen vom linken Rand: Seite folgt dem Finger, dahinter die vorige Seite */
-#view.edge-drag { position: relative; z-index: 2; background: var(--bg); min-height: 100dvh; box-shadow: -14px 0 34px rgba(0, 0, 0, .22); will-change: transform; }
-.edge-under { position: fixed; inset: 0; z-index: 1; overflow: hidden; background: var(--bg); pointer-events: none; will-change: transform; }
-[data-design="glass"] :is(#view.edge-drag, .edge-under) { background: var(--wall), var(--bg); background-attachment: fixed; }
+.main-col.edge-drag { background: var(--bg); box-shadow: -14px 0 34px rgba(0, 0, 0, .22); will-change: transform; }
+.edge-under { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: var(--bg); pointer-events: none; will-change: transform; }
+.edge-under > .view { padding-top: calc(env(safe-area-inset-top) + 16px); }
+[data-design="glass"] :is(.main-col.edge-drag, .edge-under) { background: var(--wall), var(--bg); }
 .edge-under::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--shade, .12); }
-:is(#view, .edge-under).edge-anim { transition: transform .3s var(--ease-ios); }
+:is(.main-col, .edge-under).edge-anim { transition: transform .3s var(--ease-ios); }
 
 /* Karte ↔ Fenster: Workout-/Übungskarte wächst ins Detail und beim Schließen zurück; die Seite dahinter animiert mit */
 :root[data-vt="morph"]::view-transition-group(morph) { animation-duration: .44s; overflow: clip; border-radius: calc(18px * var(--rs)); }
@@ -1798,7 +1803,6 @@ body.vt-now :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { tra
 @keyframes chartWait { from { opacity: .3; } to { opacity: .7; } }
 
 /* Seitwärts wischen zwischen Bereichen (Fortschritt, Training) */
-#view { overflow-x: clip; }
 .sub-drag { will-change: transform, opacity; }
 .sub-anim { transition: transform .22s var(--ease-ios), opacity .22s ease-out; }
 .fx-sub-next { animation: subNext .32s var(--ease-ios) both; }

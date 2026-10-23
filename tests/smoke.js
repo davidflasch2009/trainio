@@ -164,6 +164,14 @@ async function mobileFlow(page) {
   // Seitwärts wischen wechselt den Bereich
   await page.click(`#tab-progress [data-act="progSub"][data-v="overview"]`);
   await pause(page, 300);
+  // Scrollen: Dokument bleibt stehen, nur die Inhaltsspalte scrollt – Tab-Leiste unten, Fortschritt-Leiste oben
+  await page.mouse.move(200, 500);
+  for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 400); await page.waitForTimeout(30); }
+  await pause(page, 300);
+  const fixed = await page.evaluate(() => ({ doc: scrollY, col: Scroll.y, nav: Math.round(document.querySelector('#bottomNav').getBoundingClientRect().bottom), vh: innerHeight, prog: Math.round(document.querySelector('.prog-controls').getBoundingClientRect().top) }));
+  check(fixed.doc === 0 && fixed.col > 0 && Math.abs(fixed.nav - fixed.vh) < 2 && fixed.prog >= 0 && fixed.prog < 40, 'Scrollen: Tab-Leiste bleibt unten, Fortschritt-Leiste haftet oben', JSON.stringify(fixed));
+  await page.evaluate(() => Scroll.to(0));
+  await pause(page, 200);
   await swipe(page, 320, 70, 620);
   check(await page.evaluate(() => UI.progSub === 'strength'), 'Fortschritt: nach links wischen → nächster Bereich (Kraft)');
 

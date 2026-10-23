@@ -17,6 +17,29 @@ const UI = (() => {
 })();
 const saveUI = debounce(() => { try { localStorage.setItem(LS.ui, JSON.stringify(UI)); } catch (e) {} }, 250);
 
+/* ---------- Scrollen: nur die Inhaltsspalte scrollt, nie das Dokument (siehe CSS „App-Rahmen") ---------- */
+const Scroll = (() => {
+  const el = document.querySelector('.main-col');
+  return {
+    el,
+    get y() { return el.scrollTop; },
+    to(top, smooth = false) { el.scrollTo({ top: Math.max(0, top), behavior: smooth ? 'smooth' : 'auto' }); },
+    /** Scroll-Position, bei der ein Element ganz oben steht */
+    topOf(node) { return node.getBoundingClientRect().top - el.getBoundingClientRect().top + el.scrollTop; }
+  };
+})();
+/* iPhone: Öffnet sich die Tastatur, schiebt iOS das ganze Dokument hoch – und vergisst manchmal, es danach
+   zurückzuschieben (Leisten stehen dann mitten im Bild). Ohne aktives Eingabefeld gehört das Dokument immer auf 0. */
+const typing = () => { const a = document.activeElement; return !!a && a.matches('input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), textarea, select, [contenteditable="true"]'); };
+function resetViewport() {
+  const vv = window.visualViewport;
+  if (typing() || (vv && vv.scale > 1.01)) return;   // beim Tippen bzw. Hineinzoomen nicht dazwischenfunken
+  if (window.scrollY || window.scrollX || (vv && Math.abs(vv.offsetTop) > 0.5)) window.scrollTo(0, 0);
+}
+window.addEventListener('scroll', resetViewport, { passive: true });
+document.addEventListener('focusout', () => setTimeout(resetViewport, 80));
+if (window.visualViewport) visualViewport.addEventListener('resize', () => setTimeout(resetViewport, 80));
+
 /* ---------- Toasts ---------- */
 /* Meldungs-Gruppen, einzeln schaltbar unter Mehr → Meldungen. Fehler/Warnungen, Meldungen mit Knopf (z. B.
    „Rückgängig") und cat: 'always' kommen immer. Ohne Angabe: 'pr' bei PR-Toasts, sonst 'confirm'. */
@@ -288,7 +311,7 @@ document.addEventListener('click', e => {
   if (b) { e.preventDefault(); e.stopPropagation(); if (!pop.hidden && pop.dataset.for === b.dataset.info) { pop.hidden = true; return; } pop.dataset.for = b.dataset.info; showPopover(b, b.dataset.info); return; }
   if (!pop.hidden && !pop.contains(e.target)) pop.hidden = true;
 }, true);
-window.addEventListener('scroll', () => { const p = $('#popover'); if (p && !p.hidden) p.hidden = true; }, { passive: true });
+document.addEventListener('scroll', () => { const p = $('#popover'); if (p && !p.hidden) p.hidden = true; }, { capture: true, passive: true });
 
 /* ---------- Bewegung: Einmal-Effekte auf frisch gerenderten Elementen ---------- */
 /** Effekt-Klasse setzen (startet neu, falls schon gesetzt). Reduziert/Aus regelt das CSS. */
@@ -733,7 +756,7 @@ const App = {
       $('#popover').hidden = true;
       this.renderCurrent();
       if (changed) {
-        window.scrollTo({ top: 0 });
+        Scroll.to(0);
         fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
         if (!vt && !quiet) fx($('#tab-' + tab), 'fx-pg-' + dir);
         else if (vt && kind === 'tab') Motion.stagger($('#tab-' + tab));
@@ -826,7 +849,7 @@ function renderFab() {
   const root = $('#fabRoot');
   root.innerHTML = App.tab === 'exercises' ? `<button class="fab" data-act="exNew" aria-label="Neue Übung">${icon('plus')}</button>` : '';
 }
-window.addEventListener('scroll', () => { $('#topbar').classList.toggle('scrolled', scrollY > 4); document.body.classList.toggle('is-scrolled', scrollY > 4); }, { passive: true });
+Scroll.el.addEventListener('scroll', () => { const s = Scroll.y > 4; $('#topbar').classList.toggle('scrolled', s); document.body.classList.toggle('is-scrolled', s); }, { passive: true });
 
 /* Gemeinsame Bausteine */
 function emptyState(ic, title, text, btn = '') {

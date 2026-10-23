@@ -378,17 +378,17 @@ Views.more = {
   }
 };
 function openMoreSub(id) {
-  if (!moreSub) moreScroll = scrollY;
+  if (!moreSub) moreScroll = Scroll.y;
   try { history.pushState({ moreSub: id }, ''); } catch (e) {}
-  if (App.tab !== 'more') { moreSub = id; moreAnim = Motion.can() ? null : 'fwd'; App.go('more'); window.scrollTo({ top: 0 }); return; }
+  if (App.tab !== 'more') { moreSub = id; moreAnim = Motion.can() ? null : 'fwd'; App.go('more'); Scroll.to(0); return; }
   moreAnim = Motion.can() || Motion.quiet ? null : 'fwd';
-  Motion.go('push', () => { moreSub = id; App.renderCurrent(); window.scrollTo({ top: 0 }); });
+  Motion.go('push', () => { moreSub = id; App.renderCurrent(); Scroll.to(0); });
 }
 function closeMoreSub() {
   if (!moreSub) return;
   if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
   moreAnim = Motion.can() || Motion.quiet ? null : 'back';
-  Motion.go('pop', () => { moreSub = null; App.renderCurrent(); window.scrollTo({ top: moreScroll }); });
+  Motion.go('pop', () => { moreSub = null; App.renderCurrent(); Scroll.to(moreScroll); });
 }
 // Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
 window.addEventListener('popstate', () => {
@@ -396,7 +396,7 @@ window.addEventListener('popstate', () => {
   const next = (history.state && history.state.moreSub) || null;
   if (App.tab !== 'more') { moreSub = next; return; }
   moreAnim = Motion.can() || Motion.quiet ? null : next ? 'fwd' : 'back';
-  Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); window.scrollTo({ top: next ? 0 : moreScroll }); });
+  Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); Scroll.to(next ? 0 : moreScroll); });
 });
 Actions.moreSub = el => openMoreSub(el.dataset.v);
 Actions.moreBack = () => closeMoreSub();
