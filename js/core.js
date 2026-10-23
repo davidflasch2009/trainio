@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.21.0',
+  version: '1.22.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -36,6 +36,18 @@ const CATEGORIES = ['Push', 'Pull', 'Legs', 'Core', 'Cardio', 'Full Body'];
 const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Kettlebell', 'Maschine', 'Kabel', 'Körpergewicht', 'Band'];
 const MUSCLES = ['Brust', 'Schulter', 'Hintere Schulter', 'Trizeps', 'Bizeps', 'Unterarme', 'Rücken', 'Trapez',
   'Unterer Rücken', 'Bauch', 'Quadrizeps', 'Beinbeuger', 'Gesäß', 'Adduktoren', 'Abduktoren', 'Waden'];
+/* Muskel-Regionen für die Übungs-Filter (Übungen-Tab, Übungs-Auswahl) – passt zu jedem Plan.
+   Es zählt der Hauptmuskel (erster Eintrag); Cardio-Übungen landen immer bei „Cardio". */
+const MUSCLE_REGIONS = [
+  ['Brust', 'BR', ['Brust']],
+  ['Rücken', 'RÜ', ['Rücken', 'Trapez', 'Unterer Rücken']],
+  ['Schultern', 'SC', ['Schulter', 'Hintere Schulter']],
+  ['Arme', 'AR', ['Bizeps', 'Trizeps', 'Unterarme']],
+  ['Beine', 'BE', ['Quadrizeps', 'Beinbeuger', 'Gesäß', 'Adduktoren', 'Abduktoren', 'Waden']],
+  ['Core', 'CO', ['Bauch']],
+  ['Cardio', 'CA', []]
+];
+const REGION_NAMES = MUSCLE_REGIONS.map(r => r[0]);
 /* App-Icons: je Icon ein Ordner icons/<id>/ mit icon-192/512.png, icon-maskable-192/512.png, apple-touch-icon.png
    und manifest.json. Eigene Icons: Bilder im Ordner ersetzen und hier den Namen anpassen. */
 const APP_ICONS = [['1', 'Original'], ...Array.from({ length: 9 }, (_, i) => [String(i + 2), `Icon ${i + 2}`])];

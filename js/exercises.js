@@ -22,12 +22,12 @@ function pickExercises({ multi = true, title = 'Übung wählen', cat: cat0 = 'al
     const usage = {};
     for (const r of Analytics.cur().rows) for (const id of [...r.ex, ...Object.keys(r.cBy || {})]) usage[id] = (usage[id] || 0) + 1;
     const renderList = () => {
-      $('#pkCats', m.el).innerHTML = ['all', ...CATEGORIES].map(c => `<button class="chip ${cat === c ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('');
+      $('#pkCats', m.el).innerHTML = ['all', ...REGION_NAMES].map(c => `<button class="chip ${cat === c ? 'active' : ''}" data-c="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('');
       const nq = norm(q);
-      let list = Ex.sorted().filter(e => (cat === 'all' || e.category === cat) && (!nq || exMatches(e, q)));
+      let list = Ex.sorted().filter(e => (cat === 'all' || exRegion(e) === cat) && (!nq || exMatches(e, q)));
       if (!nq && (cat === 'all' || cat === 'Cardio')) list = list.sort((a, b) => (usage[b.id] || 0) - (usage[a.id] || 0) || a.name.localeCompare(b.name, 'de'));
       $('#pkList', m.el).innerHTML = list.length ? list.map(e => `<button class="ex-item ${picked.includes(e.id) ? 'picked' : ''}" data-pick="${esc(e.id)}">
-          <span class="cat-dot ${catCls(e.category)}">${catShort(e.category)}</span>
+          ${regionDot(e)}
           <span class="grow" style="min-width:0"><div class="bold ellipsis">${esc(e.name)}</div><div class="ex-meta ellipsis">${esc((e.muscleGroups || []).join(', '))} · ${esc(e.equipment)}</div></span>
           ${picked.includes(e.id) ? `<span class="badge accent">${picked.indexOf(e.id) + 1}</span>` : (usage[e.id] ? `<span class="tiny dim">${usage[e.id]}×</span>` : '')}
         </button>`).join('') : emptyState('search', 'Nichts gefunden', 'Lege die Übung einfach neu an.');
@@ -209,7 +209,7 @@ Views.exercises = {
   render(el) {
     el.innerHTML = `
       <div class="search"><input class="input" id="exQ" data-in="exQ" type="search" placeholder="Suchen: Name, Muskel, Equipment …" value="${esc(UI.exQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
-      <div class="chips mt-12" aria-label="Kategorie">${['all', ...CATEGORIES].map(c => `<button class="chip ${UI.exCat === c ? 'active' : ''}" data-act="exCat" data-v="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('')}</div>
+      <div class="chips mt-12" aria-label="Muskelgruppe">${['all', ...REGION_NAMES].map(c => `<button class="chip ${exCatNow() === c ? 'active' : ''}" data-act="exCat" data-v="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('')}</div>
       <div class="chips mt-8" aria-label="Equipment">${['all', ...EQUIPMENT, 'Eigene'].map(c => `<button class="chip soft ${UI.exEq === c ? 'active' : ''}" data-act="exEq" data-v="${c}">${c === 'all' ? 'Jedes Equipment' : c}</button>`).join('')}</div>
       <div class="row between mt-12">
         <span class="small dim" id="exCount"></span>
@@ -228,9 +228,9 @@ function renderExList() {
   const ix = Analytics.cur();
   const nq = norm(UI.exQ);
   let items = Store.all('exercises').filter(e =>
-    (UI.exCat === 'all' || e.category === UI.exCat) &&
+    (exCatNow() === 'all' || exRegion(e) === exCatNow()) &&
     (UI.exEq === 'all' || (UI.exEq === 'Eigene' ? e.isCustom : e.equipment === UI.exEq)) &&
-    (!nq || exMatches(e, UI.exQ, [e.equipment, e.category])));
+    (!nq || exMatches(e, UI.exQ, [e.equipment, e.category, exRegion(e)])));
   const info = id => {
     const ss = ix.sessions[id] || [];
     return { n: ss.length, last: ss.length ? ss[ss.length - 1].dn : null, best: ss.length ? maxOf(ss, s => s.best) : 0 };
@@ -251,7 +251,7 @@ function renderExList() {
     const t = Ex.type(e);
     const right = mi.n ? `<b>${t === 'cardio' ? (pr && pr.bestKmh ? fmtKmh(pr.bestKmh) : pr && pr.bestDurSec ? fmtDur(pr.bestDurSec) : mi.n + '×') : t === 'kg' && pr && pr.best1RM ? fmtW(pr.best1RM, 0) : t !== 'kg' && pr ? (pr.bestReps || '–') + (t === 'sec' ? '' : ' Wdh.') : mi.n + '×'}</b>${relDays(mi.last)}` : '<span class="faint">noch nie</span>';
     return `<button class="ex-item" data-act="openExercise" data-id="${esc(e.id)}">
-      <span class="cat-dot ${catCls(e.category)}">${catShort(e.category)}</span>
+      ${regionDot(e)}
       <span class="grow" style="min-width:0">
         <div class="bold ellipsis">${esc(e.name)} ${e.isCustom ? '<span class="badge" style="vertical-align:1px">Eigene</span>' : ''}</div>
         <div class="ex-meta ellipsis">${esc((e.muscleGroups || []).join(', ') || '–')} · ${esc(e.equipment)}</div>
@@ -261,6 +261,8 @@ function renderExList() {
   }).join('') : `<div class="card" style="grid-column:1/-1">${emptyState('search', 'Keine Übung gefunden', 'Filter anpassen oder eine eigene Übung anlegen.', `<button class="btn btn-primary" data-act="exNew">${icon('plus')} Neue Übung</button>`)}</div>`;
 }
 Inputs.exQ = debounce(el => { UI.exQ = el.value; renderExList(); }, 200);
+// Filter nach Muskel-Region; ältere gespeicherte Werte (Push/Pull/Legs …) zählen als „Alle“
+const exCatNow = () => REGION_NAMES.includes(UI.exCat) ? UI.exCat : 'all';
 Actions.exCat = el => { UI.exCat = el.dataset.v; saveUI(); App.renderCurrent(); };
 Actions.exEq = el => { UI.exEq = el.dataset.v; saveUI(); App.renderCurrent(); };
 Changes.exSort = el => { UI.exSort = el.value; saveUI(); renderExList(); };

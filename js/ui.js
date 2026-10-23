@@ -155,7 +155,7 @@ const Modal = (() => {
       if (innerWidth >= 700 || e.touches.length !== 1) return;
       head = !!e.target.closest('.modal-head');
       if (!head && !(e.target.closest('.modal-body') && m.body.scrollTop <= 0)) return;
-      if (!head && e.target.closest('input, textarea, select, .chips, .wall-row, .seg, .fc-sets, .design-grid')) return;
+      if (!head && e.target.closest('input, textarea, select, .chips, .wall-row, .seg, .fc-sets, .hscroll')) return;
       y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = Date.now(); lock = null;
     }, { passive: true });
     m.el.addEventListener('touchmove', e => {
@@ -390,7 +390,7 @@ function playSound(kind = S().restSound || 'beep', force = false) {
 }
 function beep() { playSound(); }
 Actions.soundTest = () => playSound(S().restSound, true);
-function confetti() {
+function confetti(o = {}) {
   if (matchMedia('(prefers-reduced-motion: reduce)').matches || S().confetti === false || S().motion === 'off') return;
   const c = document.createElement('canvas');
   c.className = 'confetti';
@@ -399,9 +399,9 @@ function confetti() {
   c.width = W * dpr; c.height = H * dpr;
   const ctx = c.getContext('2d');
   ctx.scale(dpr, dpr);
-  const colors = [cssVar('--accent'), '#ffffff', '#ffb020', '#5aa9ff', '#ff6fae'];
-  const parts = Array.from({ length: 130 }, () => ({
-    x: W / 2 + (Math.random() - .5) * 60, y: H * .32, vx: (Math.random() - .5) * 15, vy: -Math.random() * 13 - 4,
+  const colors = o.colors || [cssVar('--accent'), '#ffffff', '#ffb020', '#5aa9ff', '#ff6fae'];
+  const parts = Array.from({ length: o.n || 130 }, () => ({
+    x: (o.x != null ? o.x : W / 2) + (Math.random() - .5) * 60, y: o.y != null ? o.y : H * .32, vx: (Math.random() - .5) * 15, vy: -Math.random() * 13 - 4,
     s: Math.random() * 6 + 4, r: Math.random() * 6, vr: (Math.random() - .5) * .35, c: colors[Math.random() * colors.length | 0]
   }));
   let last = performance.now();
@@ -732,5 +732,15 @@ const catCls = c => 'cat-' + String(c || 'Full Body').replace(/\s+/g, '');
 /** Ist m der Hauptmuskel (erster Eintrag) der Übung? */
 const isPrimary = (exOrId, m) => (((typeof exOrId === 'string' ? Ex.get(exOrId) : exOrId) || {}).muscleGroups || [])[0] === m;
 const catShort = c => ({ Push: 'PU', Pull: 'PL', Legs: 'LG', Core: 'CO', Cardio: 'CA', 'Full Body': 'FB' }[c] || '·');
+/** Muskel-Region einer Übung (Hauptmuskel) – ohne Muskelangabe grob über die Kategorie */
+function exRegion(e) {
+  if (!e) return '';
+  if (Ex.type(e) === 'cardio' || e.category === 'Cardio') return 'Cardio';
+  const m = (e.muscleGroups || [])[0];
+  const r = m && MUSCLE_REGIONS.find(x => x[2].includes(m));
+  return r ? r[0] : ({ Legs: 'Beine', Core: 'Core' }[e.category] || '');
+}
+/** Farbiges Kürzel (z. B. „BR“ für Brust) für Übungs-Listen */
+const regionDot = e => { const r = exRegion(e), i = REGION_NAMES.indexOf(r); return `<span class="cat-dot reg-${i < 0 ? 'x' : i}">${i < 0 ? '·' : MUSCLE_REGIONS[i][1]}</span>`; };
 
 

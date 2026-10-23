@@ -174,7 +174,7 @@ function lookGroup(s) {
     sections: [
       ['Design', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon">${icon('sun')}</span><span class="li-main"><span class="li-title">Design</span><div class="li-sub">${esc(D.name)}</div></span>${icon('chevR', 'li-chev')}</button>`,
           'Design', D.name, 'theme ' + DESIGNS.map(d => d.name).join(' '), 'search')],
-        `<div class="design-grid">${DESIGNS.map(d => `
+        `<div class="design-grid hscroll" data-row="design">${DESIGNS.map(d => `
           <button class="design-tile ${d.id === D.id ? 'active' : ''}" data-act="lookSet" data-k="design" data-v="${d.id}" aria-pressed="${d.id === D.id}">
             ${designPair(d.id)}
             <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
@@ -182,7 +182,7 @@ function lookGroup(s) {
           </button>`).join('')}</div>`],
       ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span><div class="li-sub">${esc(iconName())}</div></span>${icon('chevR', 'li-chev')}</button>`,
           'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
-        `<div class="icon-grid">${APP_ICONS.map(([id, name]) => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${esc(name)}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"><span>${esc(name)}</span></button>`).join('')}</div>${iconHintHtml()}`],
+        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(([id, name]) => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${esc(name)}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"><span>${esc(name)}</span></button>`).join('')}</div>${iconHintHtml()}`],
       ['Farben & Modus', [
         st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
         st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
@@ -338,10 +338,16 @@ Views.more = {
     if (moreSub && !g) moreSub = null;
     if (g && g.id === 'look') Object.values(DESIGN_FONTS).forEach(ensureFont);   // Schriften für die Design-Kacheln
     const q = moreQ.trim();
+    const keep = Object.fromEntries($$('.hscroll[data-row]', el).map(r => [r.dataset.row, r.scrollLeft]));
     el.innerHTML = g ? morePageHtml(g) : `
       <div class="search mt-8"><input class="input" id="moreQ" data-in="moreQ" type="search" placeholder="Einstellungen durchsuchen …" value="${esc(moreQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
       <div id="moreRes">${q ? moreSearchHtml(q) : ''}</div>
       <div id="moreHome" class="${q ? 'hidden' : ''}">${moreHomeHtml(groups)}</div>`;
+    // Wisch-Reihen (Design, App-Icon): Position halten, beim Öffnen die aktive Kachel in die Mitte
+    $$('.hscroll[data-row]', el).forEach(r => {
+      const a = $('.active', r);
+      r.scrollLeft = r.dataset.row in keep ? keep[r.dataset.row] : a ? a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2 : 0;
+    });
     if (moreAnim) { fx(el, 'fx-pg-' + moreAnim); moreAnim = null; }
   },
   // Zurück-Knopf oben, solange eine Gruppe offen ist

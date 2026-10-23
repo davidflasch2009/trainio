@@ -30,8 +30,10 @@ Den Namen in der Auswahl in `js/core.js` bei `APP_ICONS` anpassen. Danach `pytho
 
 ## Workout-Score
 
-Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch.
-Darunter die Aufschlüsselung:
+Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
+je höher der Score, desto länger dauert es und desto stärker bremst die Zahl am Ende ab. **Bei 100** wird der
+Ring golden, leuchtet auf, die Zahl springt, darunter steht „Perfektes Workout“, dazu Konfetti und Vibration
+(im Workout-Detail nur Gold-Ring und „Perfekt“). Darunter die Aufschlüsselung:
 - **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen; Cardio: Distanz
   und Dauer). Deutlich besser (≥ +2,5 %) volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
   bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
@@ -42,6 +44,15 @@ Darunter die Aufschlüsselung:
 Fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet. Der Score wird aus den gespeicherten
 Workouts berechnet – auch alte und importierte haben einen. Zu sehen beim Abschluss, im Workout-Detail und als
 Verlauf in Fortschritt → Übersicht („Workout-Score“).
+
+## Workout teilen
+
+Der Teilen-Knopf (beim Abschluss und im Workout-Detail) erstellt ein **Bild im Story-Format 9:16**
+(1080 × 1920) im eigenen Design – Farben, Akzent und Schrift des gewählten Themes (Liquid Glass mit Aurora,
+Carbon mit Karbon-Muster, Paper mit Papier-Körnung). Darauf: Name, Datum, Score-Ring (bei 100 in Gold),
+Dauer, Volumen, Sätze, PRs und je Übung der beste Satz – PRs mit Pokal. Bei vielen Übungen wird der Ring
+kleiner; was nicht passt, steht als „+ N weitere“. In der Vorschau: **Bild teilen** (Teilen-Menü, dort auch
+„Bild sichern“) bzw. **Bild speichern**, wo der Browser keine Bilder teilen kann, oder **Als Text** (wie bisher).
 
 ## Meldungen
 
@@ -202,6 +213,10 @@ schließt sich die Gruppe und die Suche wird geleert):
 | App & Hilfe | Installieren, Updates, Fehlerprotokoll, Repository, Kontakt |
 
 Ist der Übungen-Tab ausgeblendet, steht die Übungs-Bibliothek direkt auf der Mehr-Übersicht.
+
+Übungen-Tab und Übungs-Auswahl filtern nach **Muskelgruppe** (Brust, Rücken, Schultern, Arme, Beine, Core,
+Cardio) statt nach Push/Pull/Legs – das passt zu jedem Plan. Es zählt der Hauptmuskel (erster Eintrag),
+z. B. steht Enges Bankdrücken unter Arme. Design und App-Icon in **Darstellung** sind Reihen zum Seitwärts-Wischen.
 
 ## Tabs ein-/ausblenden
 

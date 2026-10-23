@@ -713,7 +713,7 @@ function openWorkoutDetail(id) {
       else if (k === 'sets') { m.close(); Workout.load(wo, { edit: true }); }
     }
     else if (b.dataset.x === 'repeat') { m.close(); Workout.load(wo); }
-    else if (b.dataset.x === 'share') shareWorkout(wo);
+    else if (b.dataset.x === 'share') shareWorkout({ ...wo, id });
   });
 }
 /** Gespeichertes Workout nachträglich ändern: Name, Datum, Startzeit, Dauer, Körpergewicht, Notiz */
@@ -779,7 +779,44 @@ function workoutText(wo) {
   lines.push('', `– getrackt mit ${APP.name}`);
   return lines.join('\n');
 }
+/* ---------- Teilen: Story-Bild (9:16) im eigenen Theme, Text als Alternative ---------- */
 async function shareWorkout(wo) {
+  let file = null, url = null;
+  const canFiles = f => { try { return !!(navigator.canShare && navigator.share && navigator.canShare({ files: [f] })); } catch (e) { return false; } };
+  const m = Modal.open({
+    title: 'Workout teilen', size: 'sm', cls: 'share-modal',
+    body: `<div class="share-prev"><span class="share-load" aria-label="Bild wird erstellt"></span></div>
+      <p class="tiny faint center mt-8">Story-Format 9:16 · Design „${esc(designOf(S().design).name)}“</p>`,
+    foot: `<button class="btn btn-secondary" data-x="text">${icon('copy')} Als Text</button>
+      <button class="btn btn-primary" data-x="img" disabled>${icon('share')} Bild teilen</button>`,
+    onClose: () => { if (url) URL.revokeObjectURL(url); }
+  });
+  try {
+    const blob = await shareImage(wo);
+    file = new File([blob], `trainio-${wo.date || 'workout'}.png`, { type: 'image/png' });
+    url = URL.createObjectURL(blob);
+    $('.share-prev', m.el).innerHTML = `<img src="${url}" alt="Vorschau: Teilen-Bild des Workouts">`;
+    const b = $('[data-x="img"]', m.el);
+    b.disabled = false;
+    if (!canFiles(file)) b.innerHTML = `${icon('download')} Bild speichern`;
+  } catch (e) {
+    console.warn('Teilen-Bild', e);
+    $('.share-prev', m.el).innerHTML = `<p class="small dim center" style="padding:16px">Bild konnte nicht erstellt werden – teile das Workout als Text.</p>`;
+  }
+  m.el.addEventListener('click', async e => {
+    const b = e.target.closest('[data-x]');
+    if (!b) return;
+    if (b.dataset.x === 'text') return shareText(wo);
+    if (!file) return;
+    try {
+      if (canFiles(file)) { await navigator.share({ files: [file], title: `${wo.planDayName || wo.name || 'Workout'} · ${APP.name}` }); return; }
+      const a = document.createElement('a');
+      a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
+      toast('Bild gespeichert', 'success', { cat: 'always' });
+    } catch (err) { if (err.name !== 'AbortError') toast('Teilen nicht möglich', 'error'); }
+  });
+}
+async function shareText(wo) {
   const text = workoutText(wo);
   try {
     if (navigator.share) { await navigator.share({ title: APP.name, text }); return; }
@@ -787,7 +824,166 @@ async function shareWorkout(wo) {
     toast('In die Zwischenablage kopiert', 'success', { cat: 'always' });
   } catch (e) { if (e.name !== 'AbortError') toast('Teilen nicht möglich', 'error'); }
 }
+/** Beste Leistung einer Übung für das Bild („80 kg × 8“, „1:30“, „30:00 · 5,2 km“) */
+function shareBest(en) {
+  const ex = Ex.get(en.exerciseId), t = Ex.type(ex);
+  const done = (en.sets || []).filter(s => s.done !== false && !s.warmup);
+  if (!done.length) return null;
+  const top = f => done.reduce((a, b) => f(b) > f(a) ? b : a);
+  const n = `${done.length} ${done.length === 1 ? 'Satz' : 'Sätze'}`;
+  if (t === 'cardio') return { best: cardioTxt(cardioTotals(done), cardioInfo(ex)), sub: 'Cardio' };
+  if (t === 'sec') return { best: secTxt(top(s => +s.durationSec || 0)), sub: n };
+  if (t === 'reps') { const b = top(repsOf); return { best: `${repsTxt(b)} Wdh.${b.weightKg ? ' · +' + fmtW(b.weightKg) : ''}`, sub: n }; }
+  const b = top(s => e1rm(s.weightKg, repsOf(s)) || +s.weightKg || 0);
+  return { best: b.weightKg ? `${wNum(b.weightKg)} ${unit()} × ${repsTxt(b)}` : `${repsTxt(b)} Wdh.`, sub: n };
+}
+/** Story-Bild 1080×1920 zeichnen – Farben, Schriften & Eigenheiten des aktuellen Designs → PNG-Blob */
+async function shareImage(wo) {
+  const W = 1080, H = 1920, P = 80, root = document.documentElement, cs = getComputedStyle(root);
+  const v = k => cs.getPropertyValue(k).trim();
+  const design = root.dataset.design, dark = root.dataset.theme === 'dark';
+  const C = { bg: v('--bg'), surf: v('--surface'), surf3: v('--surface-3'), border: v('--border'), text: v('--text'), dim: v('--text-dim'), faint: v('--text-faint'), accent: v('--accent'), acc: v('--accent-text'), gold: v('--gold-text') || '#f6bb2a' };
+  const FN = { body: v('--font') || 'system-ui, sans-serif', disp: v('--font-display') || v('--font') || 'system-ui, sans-serif', num: v('--font-num') || v('--font') || 'system-ui, sans-serif' };
+  const fwx = v('--fw-x') || '700', upper = v('--title-transform') === 'uppercase', rs = parseFloat(v('--rs')) || 1;
+  // Web-Schriften des Designs (Barlow, Titillium, Newsreader) vor dem Zeichnen laden
+  await Promise.race([Promise.all(['400', '600', fwx].flatMap(w => [FN.body, FN.disp, FN.num].map(f => document.fonts.load(`${w} 60px ${f}`).catch(() => {})))), new Promise(r => setTimeout(r, 1500))]);
+  const logo = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = iconSrc('icon-192.png'); });
+  const id = wo.id, row = Analytics.cur().rows.find(r => r.id === id);
+  const sc = id && F('f_score') ? Analytics.score(id) : null;
+  const prIds = new Set(id ? Analytics.cur().prEvents.filter(p => p.wid === id).map(p => p.exId) : []);
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d');
+  const withA = (col, a) => { const m = /^rgba?\(([^)]+)\)/.exec(col); if (m) { const [r, g, b] = m[1].split(',').map(n => parseFloat(n)); return `rgba(${r},${g},${b},${a})`; } if (Color.valid(col)) { const [r, g, b] = Color.rgb(col); return `rgba(${r},${g},${b},${a})`; } return col; };
+  const glow = (cx, cy, r, col, a) => { const g = x.createRadialGradient(cx, cy, 0, cx, cy, r); g.addColorStop(0, withA(col, a)); g.addColorStop(1, withA(col, 0)); x.fillStyle = g; x.fillRect(0, 0, W, H); };
+  const rr = (X, Y, w, h, r) => { x.beginPath(); if (x.roundRect) x.roundRect(X, Y, w, h, r); else { x.moveTo(X + r, Y); x.arcTo(X + w, Y, X + w, Y + h, r); x.arcTo(X + w, Y + h, X, Y + h, r); x.arcTo(X, Y + h, X, Y, r); x.arcTo(X, Y, X + w, Y, r); x.closePath(); } };
+  const font = (w, px, fam) => { x.font = `${w} ${px}px ${fam}`; };
+  const fit = (t, max) => { if (x.measureText(t).width <= max) return t; while (t.length > 1 && x.measureText(t + '…').width > max) t = t.slice(0, -1); return t.trimEnd() + '…'; };
+  const shrink = (t, w, px, fam, max, min = 26) => { for (; px > min; px -= 2) { font(w, px, fam); if (x.measureText(t).width <= max) return; } };
+  const spacing = s => { if ('letterSpacing' in x) x.letterSpacing = s; };
+  const trophy = (X, Y, size, col) => {
+    x.save(); x.translate(X, Y); x.scale(size / 24, size / 24);
+    x.strokeStyle = col; x.lineWidth = 2.2; x.lineCap = 'round'; x.lineJoin = 'round';
+    (ICONS.trophy.match(/d="([^"]+)"/g) || []).forEach(d => x.stroke(new Path2D(d.slice(3, -1))));
+    x.restore();
+  };
 
+  // Hintergrund: Design-Farbe mit weichem Licht – Glass mit Aurora, Carbon mit Karbon-Muster, Paper mit Körnung
+  x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
+  if (design === 'glass') {
+    (dark ? [[80, 120, 900, '#3a60ff', .38], [1040, 260, 760, '#a840c8', .26], [960, 1780, 900, '#10a0aa', .26], [40, 1860, 900, '#6440f0', .28]]
+      : [[80, 120, 900, '#76b0ff', .55], [1040, 260, 760, '#ffa0cd', .5], [960, 1780, 900, '#96e8d0', .5], [40, 1860, 900, '#c4acff', .55]]).forEach(([cx, cy, r, col, a]) => glow(cx, cy, r, col, a));
+  } else {
+    glow(W * .12, H * .06, 980, C.accent, dark ? .2 : .1);
+    glow(W * .95, H * .92, 1100, C.accent, dark ? .13 : .07);
+  }
+  if (design === 'carbon') {
+    const pc = document.createElement('canvas'); pc.width = pc.height = 14;
+    const p = pc.getContext('2d'); p.fillStyle = dark ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.035)';
+    p.fillRect(0, 0, 7, 7); p.fillRect(7, 7, 7, 7);
+    x.fillStyle = x.createPattern(pc, 'repeat'); x.fillRect(0, 0, W, H);
+  }
+  if (design === 'paper') {
+    x.fillStyle = dark ? 'rgba(255,240,220,.035)' : 'rgba(90,70,40,.05)';
+    for (let i = 0; i < 9000; i++) x.fillRect(Math.random() * W, Math.random() * H, 2, 2);
+  }
+
+  // Kopf: Logo, App-Name, Datum
+  x.textBaseline = 'alphabetic';
+  if (logo) { x.save(); rr(P, 84, 76, 76, 18); x.clip(); x.drawImage(logo, P, 84, 76, 76); x.restore(); }
+  font(fwx, 40, FN.disp); x.fillStyle = C.text; x.textAlign = 'left';
+  x.fillText(upper ? APP.name.toUpperCase() : APP.name, P + 96, 136);
+  font('600', 32, FN.body); x.fillStyle = C.dim; x.textAlign = 'right';
+  x.fillText(parseISO(wo.date).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' }), W - P, 134);
+
+  // Titel (max. 2 Zeilen) und Datum mit Uhrzeit
+  let y = 290;
+  const title = (wo.planDayName || wo.name || 'Workout');
+  font(fwx, 92, FN.disp); x.fillStyle = C.text; x.textAlign = 'left';
+  const words = (upper ? title.toUpperCase() : title).split(/\s+/), lines = [];
+  for (const wd of words) { const l = lines.length ? lines[lines.length - 1] + ' ' + wd : wd; if (lines.length && x.measureText(l).width <= W - 2 * P) lines[lines.length - 1] = l; else lines.push(wd); }
+  if (lines.length > 2) lines.splice(1, lines.length, lines.slice(1).join(' '));
+  lines.forEach((l, i) => { x.fillText(fit(l, W - 2 * P), P, y + i * 100); });
+  y += (lines.length - 1) * 100 + 62;
+  font('500', 36, FN.body); x.fillStyle = C.dim;
+  x.fillText(fmtDateLong(wo.date) + (wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''), P, y);
+  y += 40;
+
+  // Platz vorab planen: passen alle Übungen, wird übriger Raum gleichmäßig auf die Abstände verteilt
+  const items = (wo.entries || []).map(en => ({ en, b: shareBest(en) })).filter(i => i.b);
+  const dense = items.length > 5;   // viele Übungen: alles etwas kompakter
+  const gap = 20, tw = (W - 2 * P - gap * 3) / 4, th = dense ? 140 : 164, tr = Math.round(26 * rs);
+  const foot = H - 150, rowH = dense ? 84 : 90, pad = 34, headH = 62, rTop = dense ? 40 : 60, rBot = dense ? 50 : 70;
+  // Ring wird kleiner, damit bis zu 8 Übungen Platz haben
+  const want = items.length ? pad * 2 + headH + Math.min(8, items.length) * rowH : 0;
+  const R = clamp(Math.floor((foot - 30 - y - th - 40 - want - rTop - rBot) / 2), 110, 170);
+  const listY0 = y + (sc ? rTop + 2 * R + rBot : 40) + th + 40;
+  const fitRows = Math.max(1, Math.min(8, Math.floor((foot - 30 - listY0 - pad * 2 - headH) / rowH)));
+  const shown = items.length > fitRows ? items.slice(0, fitRows - 1) : items, more = items.length - shown.length;
+  const listH = items.length ? pad * 2 + headH + (shown.length + (more ? 1 : 0)) * rowH : 0;
+  const extra = Math.max(0, Math.min(110, (foot - 30 - listY0 - listH) / 4));
+  y += extra;
+
+  // Score-Ring (bei 100 in Gold)
+  if (sc) {
+    const cx = W / 2, cy = y + rTop + R, perfect = sc.score >= 100, k = R / 170;
+    x.lineCap = 'round'; x.lineWidth = Math.round(32 * Math.max(.8, k));
+    x.strokeStyle = C.surf3; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
+    let arcCol = C.accent;
+    if (perfect) { const g = x.createLinearGradient(cx - R, cy - R, cx + R, cy + R); g.addColorStop(0, '#ffe9a8'); g.addColorStop(.45, '#f6bb2a'); g.addColorStop(1, '#d38800'); arcCol = g; }
+    x.save(); x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34;
+    x.strokeStyle = arcCol; x.beginPath(); x.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(.005, sc.score / 100)); x.stroke(); x.restore();
+    x.textAlign = 'center'; x.fillStyle = perfect ? C.gold : C.text;
+    font(fwx, Math.round(150 * k), FN.num); x.fillText(String(sc.score), cx, cy + 40 * k);
+    font('700', Math.round(30 * Math.max(.8, k)), FN.body); spacing(Math.round(6 * k) + 'px'); x.fillStyle = perfect ? C.gold : C.faint;
+    x.fillText(perfect ? 'PERFEKT' : 'SCORE', cx, cy + 96 * k); spacing('0px');
+    y = cy + R + rBot;
+  } else y += 40;
+  y += extra;
+
+  // Kennzahlen
+  const cardio = row && row.cardioOnly;
+  const tiles = cardio
+    ? [['Dauer', fmtDur(wo.durationSec)], ['Cardio', fmtDur(row.cSec)], ['Distanz', row.cKm ? fmtKm(row.cKm) : '–'], ['Übungen', String((wo.entries || []).length)]]
+    : [['Dauer', fmtDur(wo.durationSec)], ['Volumen', fmtTon(row ? row.ton : 0)], ['Sätze', String(row ? row.sets : 0)],
+       F('f_prs') ? ['PRs', String(prIds.size)] : ['Ø RPE', row && row.avgRpe ? nf(row.avgRpe, 1) : '–']];
+  tiles.forEach(([l, val], i) => {
+    const tx = P + i * (tw + gap);
+    rr(tx, y, tw, th, tr); x.fillStyle = C.surf; x.fill();
+    if (design !== 'pure' && design !== 'glass') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
+    if (design === 'iron') { x.fillStyle = C.accent; x.fillRect(tx, y, tw, 5); }
+    x.textAlign = 'left'; font('600', 27, FN.body); x.fillStyle = C.dim; x.fillText(upper ? l.toUpperCase() : l, tx + 24, y + th * .32);
+    x.fillStyle = l === 'PRs' && +val > 0 ? C.acc : C.text; shrink(val, fwx, 50, FN.num, tw - 44); x.fillText(val, tx + 24, y + th * .76);
+  });
+  y += th + 40 + extra;
+
+  // Übungen: bester Satz je Übung, PRs mit Pokal; was nicht passt → „+ N weitere“
+  if (items.length) {
+    rr(P, y, W - 2 * P, listH, Math.round(32 * rs)); x.fillStyle = C.surf; x.fill();
+    if (design !== 'pure' && design !== 'glass') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
+    let ry = y + pad;
+    x.textAlign = 'left'; font('700', 27, FN.body); spacing('4px'); x.fillStyle = C.faint;
+    x.fillText('ÜBUNGEN', P + 36, ry + 34); spacing('0px');
+    x.textAlign = 'right'; font('600', 27, FN.body); x.fillText(`${items.length} ${items.length === 1 ? 'Übung' : 'Übungen'}`, W - P - 36, ry + 34);
+    ry += headH;
+    shown.forEach(({ en, b }, i) => {
+      if (i) { x.fillStyle = C.border; x.fillRect(P + 36, ry, W - 2 * P - 72, 2); }
+      const pr = prIds.has(en.exerciseId);
+      x.textAlign = 'right'; font(fwx, 38, FN.num); const bw = Math.min(x.measureText(b.best).width, 420);
+      x.fillStyle = pr ? C.acc : C.text; x.fillText(fit(b.best, 420), W - P - 36, ry + rowH * .62);
+      if (pr) trophy(W - P - 36 - bw - 50, ry + rowH * .62 - 32, 36, C.acc);
+      x.textAlign = 'left'; font('600', 38, FN.body); x.fillStyle = C.text;
+      x.fillText(fit(Ex.entryName(en), W - 2 * P - 72 - bw - (pr ? 72 : 30)), P + 36, ry + rowH * .49);
+      font('500', 27, FN.body); x.fillStyle = C.dim; x.fillText(b.sub, P + 36, ry + rowH * .87);
+      ry += rowH;
+    });
+    if (more) { x.fillStyle = C.border; x.fillRect(P + 36, ry, W - 2 * P - 72, 2); x.textAlign = 'left'; font('600', 32, FN.body); x.fillStyle = C.dim; x.fillText(`+ ${more} weitere ${more === 1 ? 'Übung' : 'Übungen'}`, P + 36, ry + rowH * .62); }
+  }
+
+  // Fuß: „getrackt mit Trainio“
+  x.textAlign = 'center'; font('600', 30, FN.body); x.fillStyle = C.faint;
+  x.fillText(`getrackt mit ${APP.name}`, W / 2, H - 82);
+  return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
+}
 
 /* ---------- Aktives Workout rendern ---------- */
 function liveStats(w) {
@@ -2154,13 +2350,44 @@ function scoreBreakdownHtml(sc) {
     <div class="sb-item"><span>PR-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer Rekord' : 'neue Rekorde'}` : 'kein neuer Rekord'}</small></div></div>
     ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}`;
 }
-/** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen */
-function animScoreRing(root, delay = 250) {
+/** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen.
+ *  Je höher der Score, desto länger dauert es und desto stärker bremst es am Ende ab.
+ *  celebrate: Abschluss-Moment direkt nach dem Workout (bei 100 mit Konfetti & Vibration) */
+function animScoreRing(root, delay = 250, celebrate = false) {
   const r = $('.score-ring', root); if (!r) return;
-  const fg = $('.ring-fg', r), target = String(+fg.dataset.len * (1 - (+r.dataset.score) / 100));
-  if (!motionFull()) { fg.style.transition = 'none'; fg.style.strokeDashoffset = target; return; }
-  countUp($('.score-num', r), 1400, delay);
-  setTimeout(() => requestAnimationFrame(() => { fg.style.strokeDashoffset = target; }), delay);
+  const score = +r.dataset.score, fg = $('.ring-fg', r), num = $('.score-num', r), L = +fg.dataset.len;
+  const draw = v => { fg.style.strokeDashoffset = String(L * (1 - v / 100)); };
+  const finish = () => { draw(score); num.textContent = score; if (score >= 100) perfectScore(r, celebrate); };
+  fg.style.transition = 'none';
+  if (!motionFull() || !(score > 0)) { finish(); return; }
+  const f = score / 100, dur = 1000 + 2400 * f * f, k = 2.2 + 1.3 * f;
+  num.textContent = '0'; draw(0);
+  let t0 = null;
+  const step = now => {
+    if (!r.isConnected) return;
+    if (t0 == null) t0 = now + delay;
+    const p = Math.max(0, Math.min(1, (now - t0) / dur));
+    if (p >= 1) { finish(); return; }
+    const v = score * (1 - Math.pow(1 - p, k));
+    draw(v); num.textContent = Math.floor(v);
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+}
+/** Score 100: goldener Ring, Lichtimpuls, „Perfekt" – direkt nach dem Workout zusätzlich Konfetti & Vibration */
+function perfectScore(r, celebrate) {
+  if (r.classList.contains('perfect')) return;
+  const id = 'sg' + Math.random().toString(36).slice(2, 8), anim = motionFull();
+  $('svg', r).insertAdjacentHTML('afterbegin', `<defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffe9a8"/><stop offset=".45" stop-color="#f6bb2a"/><stop offset="1" stop-color="#d38800"/></linearGradient></defs>`);
+  $('.ring-fg', r).style.stroke = `url(#${id})`;
+  $('.score-of', r).textContent = 'Perfekt';
+  r.classList.add('perfect');
+  if (anim) r.classList.add('pop');
+  if (!celebrate) return;
+  r.insertAdjacentHTML('afterend', `<div class="score-perfect ${anim ? 'fx-up' : ''}">${icon('trophy')} Perfektes Workout</div>`);
+  const b = r.getBoundingClientRect();
+  confetti({ x: b.left + b.width / 2, y: b.top + b.height / 2, colors: ['#ffe9a8', '#f6bb2a', '#d38800', '#ffffff', cssVar('--accent')] });
+  vibrate([30, 60, 90]);
 }
 function showSummary({ id, doc, prs }) {
   const sc = F('f_score') ? Analytics.score(id) : null;
@@ -2176,7 +2403,7 @@ function showSummary({ id, doc, prs }) {
   const prevSame = Analytics.cur().rows.filter(r => r.id !== id && ((doc.planId && r.planId === doc.planId && r.name === doc.planDayName) || (!doc.planId && r.name === doc.name))).pop();
   const m = Modal.open({
     title: 'Workout gespeichert',
-    body: `<div class="center" style="padding:6px 0 4px">
+    body: `<div class="center" style="padding:14px 0 4px">
         ${sc ? scoreRingHtml(sc) : `<div class="sum-badge sum-draw">${icon(real.length ? 'trophy' : 'checkCircle')}</div>`}
         <h2 class="mt-8">${esc(doc.planDayName || doc.name)}</h2>
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
@@ -2196,7 +2423,7 @@ function showSummary({ id, doc, prs }) {
   });
   // Abschluss-Moment: Haken zeichnet sich, Zahlen zählen hoch, PRs erscheinen nacheinander mit Glanz
   $$('.sum-draw svg *', m.el).forEach(n => n.setAttribute('pathLength', '1'));
-  animScoreRing(m.el);
+  animScoreRing(m.el, 250, true);
   countUp($$('.pr-box b', m.el), 900, 150);
   m.el.addEventListener('click', e => {
     const b = e.target.closest('[data-x]');
