@@ -42,7 +42,7 @@ async function boot() {
   // Entfernte Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) → Trainio
   if (!DESIGNS.some(d => d.id === S().design)) { Store.saveSettings({ design: 'gymlog' }); applyTheme(); }
   App.renderCurrent();
-  fx($('#tab-' + App.tab), 'fx-up');
+  fx($('#tab-' + App.tab), 'fx-fade');   // ruhig einblenden, ohne Verrutschen
   countUp($$(`#tab-${App.tab} :is(${COUNT_SEL})`));
   updateTopH();
   // Workout-Resume nach App-Kill / Reload

@@ -45,8 +45,12 @@ const Charts = (() => {
     C.defaults.font.size = 11;
     C.defaults.plugins.tooltip.titleFont = { weight: '600', size: 12 };
     C.defaults.plugins.tooltip.bodyFont = { weight: '500', size: 12.5 };
-    // Re-Theme laufender Charts (Kopie der Liste – mount() entfernt und ergänzt Einträge, sonst Endlosschleife)
-    for (const [id, x] of [...inst]) if (x.chart) draw(id, x.factory);
+    // Neue Farben: sichtbare Diagramme sofort neu zeichnen (ohne Aufbau-Animation), Diagramme in versteckten Tabs
+    // verwerfen – die zeichnet der Tab beim nächsten Öffnen ohnehin neu (Kopie der Liste, draw() ändert sie)
+    for (const [id, x] of [...inst]) {
+      if (!x.chart) continue;
+      if (x.canvas.isConnected && x.canvas.offsetParent) draw(id, x.factory, true); else destroy(id);
+    }
   }
   // Unterhalb des Bildschirms erst zeichnen, wenn das Diagramm in Sicht kommt – dann sieht man es aufbauen
   const io = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
@@ -66,10 +70,13 @@ const Charts = (() => {
     }
     draw(id, factory);
   }
-  function draw(id, factory) {
+  function draw(id, factory, instant = false) {
     const cv = document.getElementById('cv-' + id);
     if (!cv) return;
-    inst.delete(id);
+    destroy(id);
+    // Chart.js verträgt nur ein Diagramm pro Fläche – ein übrig gebliebenes vorher wegräumen
+    const old = window.Chart && window.Chart.getChart(cv);
+    if (old) old.destroy();
     const box = cv.parentElement;
     box.classList.remove('chart-wait');
     $$('.chart-empty', box).forEach(n => n.remove());
@@ -86,6 +93,7 @@ const Charts = (() => {
       return;
     }
     cv.style.display = '';
+    if (instant) cfg.options = Object.assign({}, cfg.options, { animation: false });
     const chart = new window.Chart(cv.getContext('2d'), cfg);
     inst.set(id, { chart, canvas: cv, factory });
   }

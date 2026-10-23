@@ -752,7 +752,7 @@ Actions.calDay = async el => {
 Actions.histMore = () => { UI.histMore = true; App.renderCurrent(); };
 
 /* ---------- Workout-Detail ---------- */
-Actions.openWorkout = el => Motion.morph(el, () => openWorkoutDetail(el.dataset.id));
+Actions.openWorkout = el => openWorkoutDetail(el.dataset.id);
 function openWorkoutDetail(id) {
   const wo = Store.raw('workouts', id);
   if (!wo) return toast('Workout nicht gefunden', 'error');

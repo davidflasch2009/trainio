@@ -185,7 +185,7 @@ function lookGroup(s) {
           </button>`).join('')}</div>`],
       ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span></span>${icon('chevR', 'li-chev')}</button>`,
           'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
-        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"></button>`).join('')}</div>${iconHintHtml()}`],
+        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" decoding="async"></button>`).join('')}</div>${iconHintHtml()}`],
       ['Farben & Modus', [
         st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
         st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
@@ -297,8 +297,7 @@ Actions.lookReset = async () => {
   if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;
   const patch = {};
   LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; });
-  Store.saveSettings(patch);
-  applyTheme();
+  switchLook(() => Store.saveSettings(patch));
   toast('Darstellung zurückgesetzt', 'success');
 };
 
@@ -352,16 +351,21 @@ Views.more = {
     if (moreSub && !g) moreSub = null;
     if (g && g.id === 'look') Object.values(DESIGN_FONTS).forEach(ensureFont);   // Schriften für die Design-Kacheln
     const q = moreQ.trim();
-    const keep = Object.fromEntries($$('.hscroll[data-row]', el).map(r => [r.dataset.row, r.scrollLeft]));
-    el.innerHTML = g ? morePageHtml(g) : `
+    const html = g ? morePageHtml(g) : `
       <div class="search mt-8"><input class="input" id="moreQ" data-in="moreQ" type="search" placeholder="Einstellungen durchsuchen …" value="${esc(moreQ)}" autocomplete="off" enterkeyhint="search">${icon('search')}</div>
       <div id="moreRes">${q ? moreSearchHtml(q) : ''}</div>
       <div id="moreHome" class="${q ? 'hidden' : ''}">${moreHomeHtml(groups)}</div>`;
-    // Wisch-Reihen (Design, App-Icon): Position halten, beim Öffnen die aktive Kachel in die Mitte
-    $$('.hscroll[data-row]', el).forEach(r => {
-      const a = $('.active', r);
-      r.scrollLeft = r.dataset.row in keep ? keep[r.dataset.row] : a ? a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2 : 0;
-    });
+    // Gleicher Inhalt (z. B. Sync, zweiter Durchlauf nach dem Speichern): nichts austauschen – sonst blinken Bilder
+    if (el._html !== html || !el.firstElementChild) {
+      const keep = Object.fromEntries($$('.hscroll[data-row]', el).map(r => [r.dataset.row, r.scrollLeft]));
+      el.innerHTML = html;
+      el._html = html;
+      // Wisch-Reihen (Design, App-Icon): Position halten, beim Öffnen die aktive Kachel in die Mitte
+      $$('.hscroll[data-row]', el).forEach(r => {
+        const a = $('.active', r);
+        r.scrollLeft = r.dataset.row in keep ? keep[r.dataset.row] : a ? a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2 : 0;
+      });
+    }
     if (moreAnim) { fx(el, 'fx-pg-' + moreAnim); moreAnim = null; }
     Motion.topTitle(g ? g.title : '');
   },
@@ -369,6 +373,16 @@ Views.more = {
   back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
   // „Mehr" erneut antippen: zurück zur Übersicht bzw. Suche leeren
   reselect: () => { if (moreSub) { closeMoreSub(); return true; } moreQ = ''; return false; },
+  // Zurück-Wischen (js/motion.js): Übersicht unter die Seiten-Kopie zeichnen, beim Abbrechen die Gruppe zurückholen
+  edgeBack: () => {
+    if (!moreSub) return null;
+    const id = moreSub, y = Scroll.y;
+    return {
+      show: () => { moreSub = null; App.renderCurrent(); Scroll.to(moreScroll); },
+      undo: () => { moreSub = id; App.renderCurrent(); Scroll.to(y); },
+      done: () => { if (history.state && history.state.moreSub) history.back(); }   // popstate findet moreSub schon leer
+    };
+  },
   // anderer Tab: offene Gruppe schließen und Suche leeren – beim Zurückkommen startet Mehr bei der Übersicht
   leave: () => {
     moreQ = ''; moreScroll = 0;
@@ -380,14 +394,14 @@ Views.more = {
 function openMoreSub(id) {
   if (!moreSub) moreScroll = Scroll.y;
   try { history.pushState({ moreSub: id }, ''); } catch (e) {}
-  if (App.tab !== 'more') { moreSub = id; moreAnim = Motion.can() ? null : 'fwd'; App.go('more'); Scroll.to(0); return; }
-  moreAnim = Motion.can() || Motion.quiet ? null : 'fwd';
+  if (App.tab !== 'more') { moreSub = id; App.go('more'); Scroll.to(0); return; }   // Tab-Wechsel: ohne Übergang
+  moreAnim = Motion.can() ? null : 'fwd';
   Motion.go('push', () => { moreSub = id; App.renderCurrent(); Scroll.to(0); });
 }
 function closeMoreSub() {
   if (!moreSub) return;
   if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
-  moreAnim = Motion.can() || Motion.quiet ? null : 'back';
+  moreAnim = Motion.can() ? null : 'back';
   Motion.go('pop', () => { moreSub = null; App.renderCurrent(); Scroll.to(moreScroll); });
 }
 // Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
@@ -395,9 +409,14 @@ window.addEventListener('popstate', () => {
   if (!moreSub) return;
   const next = (history.state && history.state.moreSub) || null;
   if (App.tab !== 'more') { moreSub = next; return; }
-  moreAnim = Motion.can() || Motion.quiet ? null : next ? 'fwd' : 'back';
+  moreAnim = Motion.can() ? null : next ? 'fwd' : 'back';
   Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); Scroll.to(next ? 0 : moreScroll); });
 });
+// Schalter & Felder ändern das DOM selbst – danach baut der nächste Render den Mehr-Tab wieder komplett auf
+['input', 'change'].forEach(t => document.addEventListener(t, e => {
+  const tm = $('#tab-more');
+  if (tm && e.target.id !== 'moreQ' && tm.contains(e.target)) tm._html = null;
+}, true));
 Actions.moreSub = el => openMoreSub(el.dataset.v);
 Actions.moreBack = () => closeMoreSub();
 Inputs.moreQ = debounce(el => {

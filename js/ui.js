@@ -153,8 +153,8 @@ const Modal = (() => {
     const m = {
       wrap, el: $('.modal', wrap), body: $('.modal-body', wrap), onClose, closed: false,
       close: v => close(m, v),
-      /** schließen, ohne in die Karte zurückzuschrumpfen (man geht woandershin: löschen, bearbeiten, starten …) */
-      dismiss: v => { m.morphSel = null; close(m, v); },
+      /** schließen, weil es woanders weitergeht (löschen, bearbeiten, starten …) */
+      dismiss: v => close(m, v),
       setBody(html) { m.body.innerHTML = html; },
       setTitle(t) { $('.modal-head h2', wrap).textContent = t; },
       setFoot(html) {
@@ -169,7 +169,6 @@ const Modal = (() => {
     $('[data-modal-close]', wrap).addEventListener('click', () => close(m));
     if (!m.alert) sheetSwipe(m);
     stack.push(m);
-    Motion.stack(stack.some(x => !x.alert));
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
     return m;
   }
@@ -203,18 +202,13 @@ const Modal = (() => {
       m.el.style.transition = ''; bd.style.transition = ''; bd.style.opacity = '';
       const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5;
       m.el.style.transform = '';
-      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) { m.swiped = true; close(m); }
+      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) close(m);
     };
     m.el.addEventListener('touchend', end);
     m.el.addEventListener('touchcancel', end);
   }
   function close(m, value, instant = false) {
     if (!m || m.closed) return;
-    // Fenster aus einer Karte: zurück in die Karte schrumpfen (nicht nach dem Wegwischen); doppeltes Schließen ignorieren
-    if (!instant && m.morphSel && !m.swiped) {
-      if (m.unmorphing) return;
-      if (Motion.unmorph(m, () => close(m, value, true))) { m.unmorphing = true; return; }
-    }
     m.closed = true;
     const i = stack.indexOf(m);
     if (i >= 0) stack.splice(i, 1);
@@ -223,7 +217,6 @@ const Modal = (() => {
     if (instant) m.wrap.remove();
     else { m.wrap.classList.add('closing'); setTimeout(() => m.wrap.remove(), 340); }
     if (!stack.length) document.body.classList.remove('modal-open');
-    Motion.stack(stack.some(x => !x.alert));
     if (m.onClose) m.onClose(value);
   }
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && stack.length) close(stack[stack.length - 1]); });
@@ -702,8 +695,25 @@ function applyIcon() {
   const brand = $('#sidebar .brand img');
   if (brand && brand.getAttribute('src') !== iconSrc()) brand.setAttribute('src', iconSrc());
 }
-(mq => { const f = () => { if (S().theme === 'system' && applyTheme()) App.renderCurrent(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); })(matchMedia('(prefers-color-scheme: light)'));
-setInterval(() => { if (S().theme === 'time' && applyTheme()) App.renderCurrent(); }, 60000);
+/** Darstellung umstellen: alles in einem Schritt (ohne halb gelaufene Farb-Übergänge) und – bei vollen Animationen –
+    als sanfte Überblendung vom alten zum neuen Look. change() speichert/setzt die Einstellung. */
+function switchLook(change) {
+  const root = document.documentElement;
+  const t = Motion.go('look', () => {
+    root.classList.add('look-swap');
+    change();
+    applyTheme();
+    // sofort neu zeichnen statt 40 ms später: der Re-Render aus dem Daten-Abo findet dann nichts mehr zu ändern
+    clearTimeout(renderTimer); renderTimer = null;
+    App.renderCurrent();
+  });
+  const end = () => requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('look-swap')));
+  if (t) t.finished.then(end, end); else end();
+}
+/* Hell/Dunkel nach System oder Uhrzeit: nur wenn sich der Modus wirklich ändert */
+const followTheme = () => { if (resolvedTheme() !== document.documentElement.dataset.theme) switchLook(() => {}); };
+(mq => { const f = () => { if (S().theme === 'system') followTheme(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); })(matchMedia('(prefers-color-scheme: light)'));
+setInterval(() => { if (S().theme === 'time') followTheme(); }, 60000);
 
 /* Mini-Vorschau eines Designs (liest nur dessen Tokens) */
 function designPreview(id, mode) {
@@ -720,8 +730,7 @@ const stackLine = (title, sub, control) => `<div class="set-line stack"><div cla
 const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'startTab', 'motion', 'haptics', 'confetti', 'homeStats', 'homeRecent'];
 function setLook(k, v) {
   if (k === 'homeRecent') v = +v;
-  Store.saveSettings({ [k]: v });
-  applyTheme();
+  switchLook(() => Store.saveSettings({ [k]: v }));
 }
 /* Die Darstellungs-Einstellungen selbst stehen im Mehr-Tab (Gruppe „Darstellung“, js/more.js) */
 Actions.openLook = () => openMoreSub('look');
@@ -740,7 +749,8 @@ const Views = {};
 const App = {
   tab: TABS.some(t => t[0] === UI.tab) ? UI.tab : 'start',
   peek: null,   // ausgeblendeter Tab, der gerade über „Mehr" geöffnet ist
-  go(tab, { kind: forced = null } = {}) {
+  /** Tab öffnen. kind: Übergang erzwingen (z. B. 'zoom' beim Workout-Start), instant: ganz ohne Übergang */
+  go(tab, { kind: forced = null, instant = false } = {}) {
     if (!Views[tab]) return;
     if (tab !== this.peek) this.peek = null;
     const changed = tab !== this.tab;
@@ -748,12 +758,10 @@ const App = {
     if (!changed && Views[tab].reselect && Views[tab].reselect()) return;
     // Tab verlassen: der alte Tab darf aufräumen (z. B. Mehr → offene Gruppe schließen)
     if (changed && Views[this.tab] && Views[this.tab].leave) Views[this.tab].leave();
-    // Richtung für die Einblendung: Tab weiter rechts in der Leiste → von rechts, sonst von links
-    const order = visibleTabs().map(t => t[0]), from = order.indexOf(this.tab), to = order.indexOf(tab);
-    const dir = from < 0 || to < 0 || to > from ? 'fwd' : 'back';
-    // Bibliothek über „Mehr" öffnen/schließen wirkt wie eine Unterseite (iOS-Push), sonst Tab-Wechsel
-    const kind = !changed ? null : forced || (tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : 'tab');
-    const quiet = Motion.quiet, vt = changed && Motion.can();
+    // Bibliothek über „Mehr" öffnen/schließen wirkt wie eine Unterseite (iOS-Push). Tab-Wechsel selbst laufen wie
+    // bei iOS ohne Übergang – Überblenden und nachrückende Karten ließen die Seite kurz zucken.
+    const kind = instant ? null : forced || (!changed ? null : tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : null);
+    const slide = kind && !Motion.can() && motionFull() && (kind === 'push' || kind === 'pop');   // Ersatz ohne View Transitions
     const apply = () => {
       this.tab = tab;
       UI.tab = tab;
@@ -763,12 +771,11 @@ const App = {
       if (changed) {
         Scroll.to(0);
         fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
-        if (!vt && !quiet) fx($('#tab-' + tab), 'fx-pg-' + dir);
-        else if (vt && kind === 'tab') Motion.stagger($('#tab-' + tab));
+        if (slide) fx($('#tab-' + tab), kind === 'push' ? 'fx-pg-fwd' : 'fx-pg-back');
         countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
       }
     };
-    if (changed || forced) Motion.go(kind || forced, apply); else apply();   // z. B. Workout im Training-Tab starten → Zoom
+    Motion.go(kind, apply);
   },
   renderAll() {
     this.renderCurrent();

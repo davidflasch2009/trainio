@@ -67,24 +67,26 @@ schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurze
 
 Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und
 „Bewegung reduzieren“ des Systems:
-- **Tab-Wechsel:** Der alte Inhalt blendet weich aus, der neue ein; Tab-Leiste und obere Leiste bleiben stehen
-  (View Transitions – ältere Browser: Einblenden mit Richtung wie früher).
+- **Tab-Wechsel** sind wie bei iOS sofort da – ohne Überblenden, nichts zuckt. Nur das Tab-Symbol hüpft kurz.
 - **Unterseiten wie iOS:** Gruppen im Mehr-Tab (und die Übungs-Bibliothek über Mehr) schieben sich von rechts
   über die Übersicht, die nach links ausweicht; zurück umgekehrt. Ist der große Titel weggescrollt, steht er klein
   in der oberen Leiste. In der installierten iPhone-App: **vom linken Rand nach rechts wischen** = zurück, die Seite
-  folgt dem Finger, dahinter ist die Übersicht zu sehen.
-- **Menüs von unten** (Workout starten, ⋯ usw.) gleiten mit der iOS-Kurve herein; auf dem Handy wird die Seite
-  dahinter etwas kleiner und rundherum dunkel (Karten-Stapel). Nach unten wegwischen schließt sie.
+  folgt dem Finger, darunter liegt schon die echte Übersicht (kurz ziehen und loslassen = bleiben). Weil nur eine Kopie
+  der Seite weggezogen wird, muss am Ende nichts ausgetauscht werden – nichts flackert.
+- **Menüs von unten** (Workout starten, ⋯ usw.) gleiten mit der iOS-Kurve herein, die Seite dahinter wird leicht
+  abgedunkelt und bleibt gleich groß. Nach unten wegwischen schließt sie.
 - **Rückfragen** („Workout beenden?“, „Löschen?“ …) erscheinen mittig wie iOS-Alerts; bei langen Beschriftungen
   stehen die Knöpfe untereinander.
 - **Haptik auf dem iPhone:** Web-Apps können dort nicht vibrieren – ab iOS 18 gibt ein unsichtbarer iOS-Schalter
   ein kurzes Tippen (Satz abhaken, Stepper, Schalter in den Einstellungen). Abschaltbar über „Vibration“.
-- **Karten wachsen ins Detail:** Workouts (Startseite, Verlauf) und Übungen öffnen sich aus ihrer Karte heraus
-  und schrumpfen beim Schließen dorthin zurück. **Workout starten** zoomt ins Workout, **Beenden** wieder heraus.
+- **Details** (Workout aus Startseite/Verlauf, Übung) kommen als Fenster von unten. **Workout starten** zoomt ins
+  Workout, **Beenden** wieder heraus.
+- **Design wechseln:** Der alte Look blendet in einem Zug in den neuen über (keine halb umgefärbten Flächen).
+- **Scrollen:** Am Anfang und Ende gibt die Seite wie bei iOS etwas nach; die Fortschritt-Leiste haftet genau dort,
+  wo sie steht.
 - **Wischen zwischen Bereichen:** Im Fortschritt (Übersicht, Kraft, Volumen …) und im Training (Pläne, Verlauf)
   seitwärts wischen – der Inhalt folgt dem Finger, am ersten/letzten Bereich federt er nur nach. Auf Diagrammen,
   Chips, Tabellen und im Kalender behalten die eigenen Gesten Vorrang.
-- **Karten erscheinen nacheinander**, wenn ein Tab geöffnet wird.
 - **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss) und **rollen bei + und −** wie ein Zählwerk.
 - **Diagramme** zeichnen sich erst, wenn man zu ihnen scrollt – bis dahin stehen ruhige Hilfslinien als Platzhalter.
 - **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
@@ -490,7 +492,9 @@ npm test
 
 Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
 alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout speichern mit Score, Fortschritt,
-Verlauf, Übungssuche, alle Einstellungs-Gruppen, Neuladen mit laufendem Workout. Firebase und CDNs sind dabei gesperrt.
+Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit laufendem Workout, Datenwege
+(Backup/Restore, Arrow-Import, Gewichts-CSV) und Design-Wechsel bei gezeichneten Diagrammen. Firebase und CDNs sind
+dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 
 ## Lizenz

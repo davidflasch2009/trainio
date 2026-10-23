@@ -1,5 +1,6 @@
 /* Trainio – Smoke-Test: prüft die Dateien und klickt die wichtigsten Wege der App im Browser durch
-   (Handy- und Desktop-Größe). Läuft komplett lokal: Firebase und CDNs sind gesperrt, die App läuft im lokalen Modus.
+   (Handy- und Desktop-Größe). Läuft komplett lokal: Firebase und CDNs sind gesperrt, die App läuft im lokalen Modus –
+   nur Chart.js kommt aus node_modules, damit auch die Diagramme wirklich gezeichnet werden.
    Aufruf: npm test   (einmalig vorher: npm install && npx playwright install chromium)
    Bei einem Fehler landet ein Screenshot in tests/screenshots/. */
 'use strict';
@@ -68,8 +69,10 @@ function serve() {
 /* ---------- 3. Browser ---------- */
 async function openApp(browser, base, viewport, touch = false) {
   const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch, acceptDownloads: true });
-  // nur die eigene Seite – Firebase, Chart.js, Schriften usw. bleiben draußen
-  await ctx.route(url => !url.href.startsWith(base), r => r.abort());
+  // nur die eigene Seite – Firebase, Schriften usw. bleiben draußen; Chart.js (CDN) kommt aus node_modules
+  const chartJs = path.join(ROOT, 'node_modules', 'chart.js', 'dist', 'chart.umd.js');
+  await ctx.route(url => !url.href.startsWith(base), r => /\/chart\.js@/.test(r.request().url()) && fs.existsSync(chartJs)
+    ? r.fulfill({ path: chartJs, contentType: 'text/javascript' }) : r.abort());
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   page.errors = [];
@@ -112,15 +115,17 @@ async function mobileFlow(page) {
 
   for (const tab of ['start', 'training', 'exercises', 'progress', 'more']) {
     await page.click(`#bottomNav [data-tab="${tab}"]`);
+    const vt = await page.evaluate(() => document.documentElement.dataset.vt || '');
     await pause(page, 150);
-    check(await page.evaluate(t => App.tab === t, tab) && await noViewError(page), `Tab „${tab}" öffnet sich`);
+    check(await page.evaluate(t => App.tab === t, tab) && await noViewError(page) && !vt, `Tab „${tab}" öffnet sich (sofort, ohne Überblenden)`, vt);
   }
 
   // Workout über „Workout starten" → heutiges Plan-Workout
   await page.click('#bottomNav [data-tab="start"]');
   await page.click('[data-act="startSheet"]');
   await pause(page, 100);
-  check(await page.evaluate(() => document.body.classList.contains('sheet-stack')), 'Menü von unten: Seite dahinter wird kleiner (Karten-Stapel)');
+  check(await page.evaluate(() => getComputedStyle(document.querySelector('#app')).transform === 'none' && !!document.querySelector('.modal-wrap')),
+    'Menü von unten: Seite dahinter bleibt gleich groß (in Safari sonst unscharf)');
   await page.click('.modal .am-featured');
   await pause(page, 400);
   check(await page.evaluate(() => { const w = Workout.cur(); return w && w.name === 'Push' && w.entries.length === 2; }), 'Workout „Push" startet mit 2 Übungen');
@@ -167,6 +172,12 @@ async function mobileFlow(page) {
   // Seitwärts wischen wechselt den Bereich
   await page.click(`#tab-progress [data-act="progSub"][data-v="overview"]`);
   await pause(page, 300);
+  // Fortschritt-Leiste haftet genau dort, wo sie steht – sie rutscht beim Losscrollen nicht erst ein Stück mit
+  const stick = await page.evaluate(() => [0, 6, 12, 40].map(y => { Scroll.el.scrollTop = y; return Math.round(document.querySelector('.prog-controls').getBoundingClientRect().top); }));
+  await page.evaluate(() => Scroll.to(0));
+  check(stick.every(t => t === stick[0]), 'Fortschritt-Leiste bleibt beim Losscrollen ruhig stehen', stick.join(', '));
+  // Am Seitenende federt die Spalte (Gummiband) – auch kurze Seiten können minimal scrollen
+  check(await page.evaluate(() => getComputedStyle(Scroll.el).overscrollBehaviorY === 'contain'), 'Inhalt federt am Seitenende nach (overscroll: contain)');
   // Scrollen: Dokument bleibt stehen, nur die Inhaltsspalte scrollt – Tab-Leiste unten, Fortschritt-Leiste oben
   await page.mouse.move(200, 500);
   for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 400); await page.waitForTimeout(30); }
@@ -184,6 +195,7 @@ async function mobileFlow(page) {
   await pause(page);
   check(await noViewError(page), 'Training → Verlauf');
   await page.click('#tab-training [data-act="openWorkout"] >> nth=0');
+  check(await page.evaluate(() => !document.documentElement.dataset.vt), 'Workout-Detail kommt normal von unten (kein Übergang aus der Karte)');
   await pause(page);
   check(await page.evaluate(() => /Push/.test((document.querySelector('.modal') || {}).innerText || '')), 'Workout-Detail öffnet sich');
   await page.evaluate(() => Modal.closeAll());
@@ -204,7 +216,13 @@ async function mobileFlow(page) {
   await page.evaluate(() => { Motion.edgeAlways = true; openMoreSub('training'); });
   await pause(page, 600);
   await swipe(page, 6, 320, 420);
-  check(await page.evaluate(() => !moreSub && !document.querySelector('.edge-under')), 'Mehr: vom linken Rand wischen → zurück zur Übersicht');
+  check(await page.evaluate(() => !moreSub && !document.querySelector('.edge-ghost, .edge-shade') && !(history.state && history.state.moreSub)), 'Mehr: vom linken Rand wischen → zurück zur Übersicht');
+  await page.evaluate(() => openMoreSub('training'));
+  await pause(page, 600);
+  await swipe(page, 6, 60, 420);
+  check(await page.evaluate(() => moreSub === 'training' && !document.querySelector('.edge-ghost, .edge-shade')), 'Mehr: kurz wischen und loslassen → bleibt auf der Unterseite');
+  await page.evaluate(() => closeMoreSub());
+  await pause(page, 600);
   const groups = await page.evaluate(() => moreGroups().map(g => g.id));
   for (const g of groups) {
     await page.evaluate(id => openMoreSub(id), g);
@@ -285,7 +303,28 @@ async function dataFlow(page) {
   fs.rmSync(csvFile, { force: true });
   check((await count()).prog === g0 + 3, 'Gewichts-CSV: 3 Werte importiert');
   await page.evaluate(() => Modal.closeAll());
-  check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
+
+  // Design wechseln, während Diagramme gezeichnet sind (früher: „Canvas is already in use")
+  console.log('Design-Wechsel mit Diagrammen');
+  await page.evaluate(() => App.go('progress'));
+  await pause(page, 600);
+  for (let y = 0; y < 5000; y += 350) { await page.evaluate(v => Scroll.to(v), y); await pause(page, 120); }
+  const drawn = await page.evaluate(() => typeof Chart !== 'undefined' ? [...document.querySelectorAll('#tab-progress canvas')].filter(c => Chart.getChart(c)).length : -1);
+  check(drawn > 0, `Diagramme gezeichnet (${drawn})`, drawn < 0 ? 'Chart.js fehlt – npm install ausführen' : '');
+  await page.evaluate(() => openMoreSub('look'));
+  await pause(page, 600);
+  for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="iron"]']) {
+    await page.click(`#tab-more ${sel}`);
+    await pause(page, 450);
+  }
+  await pause(page, 600);   // Überblendung zu Ende
+  const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="iron"]') }));
+  check(look.d === 'iron' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
+  await page.evaluate(() => App.go('progress'));
+  await pause(page, 600);
+  for (let y = 0; y < 5000; y += 350) { await page.evaluate(v => Scroll.to(v), y); await pause(page, 120); }
+  const logged = await appErrors(page);
+  check(!logged.length && !page.errors.length, 'keine Fehler beim Design-Wechsel', [...logged, ...page.errors].join(' | '));
 }
 
 async function desktopFlow(page) {

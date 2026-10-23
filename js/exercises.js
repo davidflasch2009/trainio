@@ -334,7 +334,7 @@ Actions.exCat = el => { UI.exCat = el.dataset.v; saveUI(); App.renderCurrent(); 
 Actions.exEq = el => { UI.exEq = el.dataset.v; saveUI(); App.renderCurrent(); };
 Changes.exSort = el => { UI.exSort = el.value; saveUI(); renderExList(); };
 Actions.exNew = () => openExerciseForm(null, { name: UI.exQ });
-Actions.openExercise = el => Motion.morph(el, () => openExerciseDetail(el.dataset.id));
+Actions.openExercise = el => openExerciseDetail(el.dataset.id);
 
 /* ---------- Übungs-Detail ---------- */
 function openExerciseDetail(id) {

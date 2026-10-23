@@ -340,8 +340,12 @@ svg { flex-shrink: 0; }
    ========================================================================== */
 #app { position: fixed; inset: 0; display: flex; }
 .main-col { flex: 1; min-width: 0; display: flex; flex-direction: column; position: relative; z-index: 1;
-  overflow-x: hidden; overflow-y: auto; overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
+  overflow-x: hidden; overflow-y: auto; overscroll-behavior-x: none; overscroll-behavior-y: contain; -webkit-overflow-scrolling: touch; }
 .main-col > * { flex-shrink: 0; }
+/* Am Anfang und Ende gibt die Seite wie bei iOS etwas nach (contain: federt, ohne das Dokument mitzunehmen).
+   iOS federt nur, was scrollen kann – darum ist die Spalte immer mindestens 1 px höher als der Bildschirm. */
+.main-col > .view { flex-grow: 1; }
+.main-col::after { content: ''; flex: 0 0 1px; }
 .topbar {
   position: sticky; top: 0; z-index: 40;
   padding: calc(env(safe-area-inset-top) + 8px) max(16px, env(safe-area-inset-right)) 8px max(16px, env(safe-area-inset-left));
@@ -352,8 +356,9 @@ svg { flex-shrink: 0; }
 }
 .topbar.scrolled { border-bottom-color: var(--border); }
 /* Hinter der iPhone-Statusleiste: nur beim Scrollen eine ruhige Fläche, damit Inhalt nicht unter der Uhr durchläuft */
-#sbShade { position: fixed; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top) + 28px); z-index: 29; pointer-events: none; opacity: 0; transition: opacity .25s;
+#sbShade, .edge-sb { position: fixed; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top) + 28px); z-index: 29; pointer-events: none;
   background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 55%, transparent 100%); }
+#sbShade { opacity: 0; transition: opacity .25s; }
 body.is-scrolled #sbShade { opacity: 1; }
 [data-design="glass"] .wo-head { background: color-mix(in srgb, var(--bg) 70%, var(--glass-bar)) !important; }
 
@@ -1132,7 +1137,7 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .muscle-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* Fortschritt */
-.prog-controls { position: sticky; top: calc(env(safe-area-inset-top) + 8px); z-index: 30; margin: 0; padding: 8px; border-radius: calc(18px * var(--rs)); border: var(--bw) solid var(--border) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
+.prog-controls { position: sticky; top: calc(env(safe-area-inset-top) + 16px); z-index: 30; margin: 0; padding: 8px; border-radius: calc(18px * var(--rs)); border: var(--bw) solid var(--border) !important; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); background: color-mix(in srgb, var(--surface) 88%, transparent); -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px); border-bottom: var(--bw) solid var(--border); }
 @media (min-width: 900px) { .prog-controls { padding: 10px; } }
 .prog-controls .seg.tabs { background: transparent; border: 0; padding: 0; }
 .pc-row { margin-top: 8px; gap: 8px; align-items: center; }
@@ -1381,7 +1386,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="glass"] .set-check { border-radius: 999px; border-color: var(--border-strong); }
 [data-design="glass"] .set-row.done .set-check { background: #34c759; border-color: #34c759; color: #fff; }
 [data-design="glass"] .set-num { border-radius: 999px; }
-[data-design="glass"] .modal-backdrop { background: rgba(10, 12, 30, .3); }
+[data-design="glass"] .modal-backdrop { background: rgba(10, 12, 30, .2); }
 [data-design="glass"] .modal { background: linear-gradient(180deg, var(--glass-sheen), transparent 30%), var(--glass-sheet); border: 0; -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 14px)) saturate(190%); backdrop-filter: blur(calc(var(--glass-blur) + 14px)) saturate(190%); box-shadow: 0 -8px 60px rgba(10, 12, 40, .22), inset 0 1px 0 var(--glass-hi); }
 [data-design="glass"] .modal-foot { background: transparent; border-top: 0; }
 [data-design="glass"] :is(.toast, .rest-dock, .popover) { background: linear-gradient(180deg, var(--glass-sheen), transparent 60%), var(--glass-sheet); border: 0; -webkit-backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(190%); backdrop-filter: blur(calc(var(--glass-blur) + 8px)) saturate(190%); box-shadow: 0 12px 40px rgba(10, 12, 40, .2), inset 0 1px 0 var(--glass-hi); }
@@ -1712,11 +1717,11 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 .rest-dock { view-transition-name: rest; }
 ::view-transition { pointer-events: none; }
 ::view-transition-group(*) { animation-duration: .34s; animation-timing-function: var(--ease-ios); }
-/* Tab-Wechsel: alter Inhalt blendet weich aus, neuer ein */
-:root[data-vt="tab"]::view-transition-old(root) { animation: vtFadeOut .16s ease-out both; }
-:root[data-vt="tab"]::view-transition-new(root) { animation: vtFadeIn .26s ease-out .04s both; }
-@keyframes vtFadeOut { to { opacity: 0; } }
-@keyframes vtFadeIn { from { opacity: 0; } }
+/* Design-Wechsel: alter Look blendet gleichmäßig in den neuen über (Tab-Wechsel laufen wie bei iOS ohne Übergang) */
+:root[data-vt="look"]::view-transition-group(*) { animation-duration: .32s; }
+:root[data-vt="look"]::view-transition-old(*), :root[data-vt="look"]::view-transition-new(*) { animation-duration: .32s; animation-timing-function: ease; }
+/* Während der Umstellung keine Farb-Übergänge – sonst wechseln manche Flächen sofort, andere langsam */
+html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition: none !important; }
 /* Unterseite (Push): neue Seite schiebt sich von rechts darüber, die alte weicht nach links aus – zurück umgekehrt */
 :root:is([data-vt="push"], [data-vt="pop"])::view-transition-old(root),
 :root:is([data-vt="push"], [data-vt="pop"])::view-transition-new(root) { mix-blend-mode: normal; animation-duration: .44s; animation-timing-function: var(--ease-ios); animation-fill-mode: both; }
@@ -1747,40 +1752,19 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 .modal.alert .modal-foot { padding-bottom: 12px; border-radius: 0 0 calc(20px * var(--rs)) calc(20px * var(--rs)); }
 .modal.alert .alert-stack { display: flex; flex-direction: column-reverse; gap: 8px; width: 100%; }
 
-/* Karten-Stapel (Handy): hinter einem Menü wird die Seite etwas kleiner, rundherum dunkel */
-:root:has(body:is(.sheet-stack, .sheet-unstack)), body:is(.sheet-stack, .sheet-unstack) { background: #000; }
-body:is(.sheet-stack, .sheet-unstack) :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
-body.sheet-stack :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transform: scale(.93); }
-body:is(.sheet-stack, .sheet-unstack) #app { background: var(--bg); overflow: clip; }
-body.sheet-stack #app { border-radius: 14px; }
-[data-design="glass"] body:is(.sheet-stack, .sheet-unstack) #app { background: transparent; }
-[data-design="glass"] body:is(.sheet-stack, .sheet-unstack)::before { transition: transform .5s var(--ease-ios), border-radius .5s var(--ease-ios); }
-[data-design="glass"] body.sheet-stack::before { transform: scale(.93); border-radius: 14px; }
-
 /* Kleiner Titel in der Leiste, sobald der große Titel weggescrollt ist */
 .topbar-mini { position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); max-width: 52%; line-height: 36px; font-weight: var(--fw-b); font-size: calc(16px * var(--fs));
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .2s; pointer-events: none; }
 .topbar.show-title .topbar-mini { opacity: 1; }
 
-/* Zurück-Wischen vom linken Rand: Seite folgt dem Finger, dahinter die vorige Seite */
-.main-col.edge-drag { background: var(--bg); box-shadow: -14px 0 34px rgba(0, 0, 0, .22); will-change: transform; }
-.edge-under { position: absolute; inset: 0; z-index: 0; overflow: hidden; background: var(--bg); pointer-events: none; will-change: transform; }
-.edge-under > .view { padding-top: calc(env(safe-area-inset-top) + 16px); }
-[data-design="glass"] :is(.main-col.edge-drag, .edge-under) { background: var(--wall), var(--bg); }
-.edge-under::after { content: ''; position: absolute; inset: 0; background: #000; opacity: var(--shade, .12); }
-:is(.main-col, .edge-under).edge-anim { transition: transform .3s var(--ease-ios); }
-
-/* Karte ↔ Fenster: Workout-/Übungskarte wächst ins Detail und beim Schließen zurück; die Seite dahinter animiert mit */
-:root[data-vt="morph"]::view-transition-group(morph) { animation-duration: .44s; overflow: clip; border-radius: calc(18px * var(--rs)); }
-:root[data-vt="morph"]::view-transition-old(morph), :root[data-vt="morph"]::view-transition-new(morph) { height: 100%; object-fit: none; object-position: top; }
-:root[data-vt="morph"]::view-transition-group(page) { animation-duration: .5s; }
-/* Inhalt wechselt früh – das Fenster ist schnell deckend, statt lange durchsichtig zu wirken */
-:root[data-vt="morph"]::view-transition-new(morph) { animation: vtQuickIn .44s ease-out both; }
-:root[data-vt="morph"]::view-transition-old(morph) { animation: vtQuickOut .44s ease-out both; }
-@keyframes vtQuickIn { from { opacity: 0; } 35%, to { opacity: 1; } }
-@keyframes vtQuickOut { from { opacity: 1; } 35%, to { opacity: 0; } }
-.modal-wrap.no-anim :is(.modal, .modal-backdrop) { transition: none !important; }
-body.vt-now :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { transition: none !important; }
+/* Zurück-Wischen vom linken Rand: eine Kopie der Seite folgt dem Finger, darunter liegt schon die echte vorige Seite.
+   Über der Seite (auch über dem „+"), unter Pausen-Leiste und Tab-Leiste. */
+.edge-ghost { position: fixed; inset: 0; z-index: 46; display: flex; background: var(--bg); pointer-events: none; will-change: transform;
+  box-shadow: -10px 0 30px rgba(0, 0, 0, .2); contain: strict; }
+.edge-ghost > .main-col { overflow: hidden; }
+[data-design="glass"] .edge-ghost { background: var(--wall), var(--bg); }
+.edge-shade { position: fixed; inset: 0; z-index: 46; background: #000; opacity: 0; pointer-events: none; will-change: opacity; }
+.edge-ghost .edge-sb { position: absolute; }
 
 /* Workout starten: Workout zoomt herein – beenden: zoomt heraus */
 :root:is([data-vt="zoom"], [data-vt="zoomout"])::view-transition-old(root),
@@ -1793,9 +1777,6 @@ body.vt-now :is(#app, #bottomNav, #restDock > .rest-dock, #fabRoot > .fab) { tra
 @keyframes vtGrowBack { from { transform: scale(1.04); } }
 @keyframes vtZoomIn { from { opacity: 0; transform: scale(.92); } }
 @keyframes vtZoomOut { to { opacity: 0; transform: scale(.92); } }
-
-/* Karten erscheinen beim Öffnen eines Tabs nacheinander */
-.fx-stag { animation: fxUp .36s var(--ease-ios) both; animation-delay: calc(var(--i, 0) * 32ms); }
 
 /* Zahlen rollen bei + und − wie ein Zählwerk */
 .fx-roll-up { animation: rollUp .22s var(--ease-ios); }

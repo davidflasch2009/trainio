@@ -6,6 +6,7 @@
     "test": "node tests/smoke.js"
   },
   "devDependencies": {
+    "chart.js": "4.4.4",
     "playwright": "1.63.0"
   }
 }

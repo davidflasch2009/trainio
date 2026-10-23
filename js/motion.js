@@ -1,106 +1,31 @@
-/* Trainio – Bewegung wie iOS: Seitenübergänge (View Transitions), Karten-Stapel hinter Menüs,
-   kleiner Titel in der Leiste, Zurück-Wischen vom linken Rand
+/* Trainio – Bewegung wie iOS: Seitenübergänge (View Transitions) für Unterseiten, Workout-Zoom und Design-Wechsel,
+   kleiner Titel in der Leiste, Zurück-Wischen vom linken Rand, Wischen zwischen Bereichen
    Teil der App: alle js/*.js-Dateien teilen sich einen gemeinsamen Gültigkeitsbereich und werden
    in der Reihenfolge aus index.html geladen. */
 'use strict';
 
 const Motion = (() => {
   const root = document.documentElement;
-  let skipNext = false;
+  let curVT = null;
 
   /** Läuft der nächste Übergang animiert? (Animationen „Voll", Browser kann View Transitions) */
-  const can = () => !skipNext && motionFull() && typeof document.startViewTransition === 'function' && !document.hidden;
+  const can = () => motionFull() && typeof document.startViewTransition === 'function' && !document.hidden;
 
-  /** DOM ändern – als View Transition, sonst direkt. kind: 'tab' | 'push' | 'pop' | 'zoom' | 'morph' */
+  /** DOM ändern – als View Transition, sonst direkt.
+      kind: 'push' | 'pop' (Unterseite) · 'zoom' | 'zoomout' (Workout) · 'look' (Design) · null = ohne Übergang.
+      Tab-Wechsel laufen wie bei iOS ohne Übergang – eine Überblendung lässt die Seite kurz zucken. */
   function go(kind, update) {
-    if (!skipNext && Edge.active()) Edge.cleanup();
-    if (!can()) { skipNext = false; update(); return null; }
+    if (!kind || !can()) { update(); return null; }
+    if (Edge.active()) Edge.cleanup();
+    const token = {};
+    curVT = token;
     root.dataset.vt = kind;
     const t = document.startViewTransition(update);
     t.ready.catch(() => {});   // abgebrochen, weil schon der nächste Übergang startet – kein Fehler
-    t.finished.catch(() => {}).finally(() => { if (root.dataset.vt === kind) delete root.dataset.vt; });
+    // nur der jeweils letzte Übergang räumt auf – sonst verliert ein schnell folgender seine Animation
+    t.finished.catch(() => {}).finally(() => { if (curVT === token) { curVT = null; delete root.dataset.vt; } });
     t.updateCallbackDone.catch(e => ErrLog.add(e, 'Übergang'));
     return t;
-  }
-
-  /* ---------- Karte wächst in ihr Fenster hinein (Workout → Detail, Übung → Details) und beim Schließen zurück ----------
-     Die Seite (#app) bekommt dabei einen eigenen Namen, damit der Karten-Stapel mitanimiert wird. */
-  const named = (els, name) => els.forEach(([el, n]) => { if (el) el.style.viewTransitionName = name ? n : ''; });
-  function morph(el, open) {
-    if (!el || !can()) return open();
-    const sel = el.dataset.act && el.dataset.id ? `[data-act="${el.dataset.act}"][data-id="${CSS.escape(el.dataset.id)}"]` : null;
-    const page = $('#app');
-    let m = null;
-    named([[el, 'morph'], [page, 'page']], true);
-    document.body.classList.add('vt-now');
-    const t = go('morph', () => {
-      el.style.viewTransitionName = '';
-      const before = Modal.top();
-      open();
-      m = Modal.top() !== before ? Modal.top() : null;
-      if (!m) return;
-      m.wrap.classList.add('open', 'no-anim');
-      m.el.style.viewTransitionName = 'morph';
-      m.morphSel = sel;
-    });
-    const done = () => { named([[el, 'morph'], [page, 'page']], false); document.body.classList.remove('vt-now'); if (m) { m.el.style.viewTransitionName = ''; m.wrap.classList.remove('no-anim'); } };
-    if (t) t.finished.finally(done); else done();
-  }
-  /** Fenster schließt zurück in seine Karte – false, wenn die Karte nicht (mehr) sichtbar ist */
-  function unmorph(m, close) {
-    const src = m.morphSel && $(m.morphSel);
-    if (!src || !can()) return false;
-    const r = src.getBoundingClientRect();
-    if (r.bottom < 0 || r.top > innerHeight || !r.width) return false;
-    const page = $('#app');
-    m.el.style.viewTransitionName = 'morph';
-    page.style.viewTransitionName = 'page';
-    document.body.classList.add('vt-now');
-    const t = go('morph', () => { m.el.style.viewTransitionName = ''; close(); src.style.viewTransitionName = 'morph'; });
-    const done = () => { src.style.viewTransitionName = ''; page.style.viewTransitionName = ''; document.body.classList.remove('vt-now'); };
-    if (t) t.finished.finally(done); else done();
-    return true;
-  }
-
-  /* ---------- Karten erscheinen nacheinander (beim Öffnen eines Tabs) ---------- */
-  function stagger(tab) {
-    if (!tab || !motionFull()) return;
-    const items = [...tab.children].flatMap(c => c.matches('#progBody, #trainBody, #moreHome, .stagger-in') ? [...c.children] : [c]);
-    let i = 0;
-    for (const el of items) {
-      const r = el.getBoundingClientRect();
-      if (!r.height) continue;
-      if (r.top > innerHeight || i >= 9) break;
-      el.style.setProperty('--i', i++);
-      fx(el, 'fx-stag');
-    }
-  }
-
-  /* ---------- Karten-Stapel: Menü von unten → Seite dahinter wird etwas kleiner (nur Handy) ---------- */
-  const STACK = ['#app', '#bottomNav', '#restDock > .rest-dock', '#fabRoot > .fab'];
-  let unstackTimer = null;
-  function stack(on) {
-    const b = document.body;
-    const want = on && motionFull() && innerWidth < 700;
-    if (want === b.classList.contains('sheet-stack')) return;
-    clearTimeout(unstackTimer);
-    if (want) {
-      // jedes Element um die Bildschirmmitte skalieren, damit alles wie eine Karte wirkt
-      for (const sel of STACK) {
-        const el = $(sel);
-        if (!el) continue;
-        const r = el.getBoundingClientRect();
-        el.style.transformOrigin = `${innerWidth / 2 - r.left}px ${innerHeight / 2 - r.top}px`;
-      }
-      b.classList.remove('sheet-unstack');
-      b.classList.add('sheet-stack');
-    } else {
-      b.classList.replace('sheet-stack', 'sheet-unstack');
-      unstackTimer = setTimeout(() => {
-        b.classList.remove('sheet-unstack');
-        for (const sel of STACK) { const el = $(sel); if (el) el.style.transformOrigin = ''; }
-      }, 520);
-    }
   }
 
   /* ---------- Kleiner Titel in der Leiste, sobald der große Titel weggescrollt ist ---------- */
@@ -119,97 +44,133 @@ const Motion = (() => {
   }
   Scroll.el.addEventListener('scroll', syncTitle, { passive: true });
 
-  /* ---------- Zurück-Wischen vom linken Bildschirmrand (Unterseiten im Mehr-Tab) ----------
+  /* ---------- Zurück-Wischen vom linken Bildschirmrand (Unterseiten im Mehr-Tab, Bibliothek über „Mehr") ----------
      Nur in der installierten iPhone-App – im Browser und auf Android macht das System die Zurück-Geste.
-     Ab der ersten Bewegung gehört die Geste uns (nichts scrollt nebenher), ein zweiter Finger bricht ab.
-     Die ganze Inhaltsspalte folgt dem Finger, dahinter liegt die vorige Seite. */
+     Sobald der Finger wischt, liegt eine Kopie der aktuellen Seite über allem und darunter steht schon die echte
+     vorige Seite. Der Finger zieht nur die Kopie weg: Am Ende wird nichts mehr ausgetauscht, nichts flackert, und die
+     echte Seite wird während der Geste nie verschoben. Abbrechen: Kopie gleitet zurück, die Seite wird wiederhergestellt. */
   let edgeAlways = false;
   const edgeOn = () => edgeAlways || (isIOSDevice && isStandalone());
-  const canBack = () => (App.tab === 'more' && !!moreSub) || (!!App.peek && App.peek === App.tab);
-  const Edge = (() => {
-    let g = null;   // laufende Geste: { state: 'track' | 'drag' | 'settle', x0, y0, dx, t0, page, under, raf, timer }
-    const W = () => innerWidth;
-    function begin() {
-      const under = document.createElement('div');
-      under.className = 'edge-under';
-      // Seite dahinter: Mehr-Übersicht (bei Unterseiten an der Stelle, an der sie verlassen wurde; bei der Bibliothek
-      // über „Mehr" von oben) – sonst nur der Hintergrund
-      const sub = App.tab === 'more' && moreSub, lib = !!App.peek && App.peek === App.tab && !moreSub;
-      if (sub || lib) {
-        under.innerHTML = `<div class="view"><div class="search mt-8"><input class="input" type="search" placeholder="Einstellungen durchsuchen …" tabindex="-1">${icon('search')}</div>${moreHomeHtml(moreGroups())}</div>`;
-        under.firstElementChild.style.transform = `translateY(${sub ? -moreScroll : 0}px)`;
-      }
-      $('#app').prepend(under);
-      g.page = Scroll.el;
-      g.under = under;
-      g.page.classList.add('edge-drag');
+  /** Wohin führt „zurück"? → { show, undo, done } oder null */
+  function backTarget() {
+    const v = Views[App.tab];
+    if (v && v.edgeBack) { const b = v.edgeBack(); if (b) return b; }
+    if (App.peek && App.peek === App.tab) {
+      const tab = App.tab, y = Scroll.y;
+      return {
+        show: () => App.go('more', { instant: true }),
+        undo: () => { App.peek = tab; App.go(tab, { instant: true }); Scroll.to(y); },
+        done: () => {}
+      };
     }
+    return null;
+  }
+  const canBack = () => (App.tab === 'more' && !!moreSub) || (!!App.peek && App.peek === App.tab);
+  /** Kopie der sichtbaren Seite: Leiste oben, Banner, aktiver Tab (ohne IDs – sonst fänden Abfragen die Kopie) */
+  function snapshot() {
+    const ghost = document.createElement('div');
+    ghost.className = 'edge-ghost';
+    ghost.setAttribute('aria-hidden', 'true');
+    const col = document.createElement('div');
+    col.className = 'main-col';
+    for (const n of Scroll.el.children) {
+      if (n.id === 'sbShade') continue;
+      if (n.id === 'view') {
+        const v = n.cloneNode(false), tab = $('.tab.active', n);
+        if (tab) { const c = tab.cloneNode(true); c.className = c.className.replace(/\b(tab|active)\b/g, '').trim(); v.appendChild(c); }
+        col.appendChild(v);
+      } else col.appendChild(n.cloneNode(true));
+    }
+    ghost.appendChild(col);
+    const fab = $('#fabRoot > .fab');
+    if (fab) ghost.appendChild(fab.cloneNode(true));
+    if (document.body.classList.contains('is-scrolled')) { const sb = document.createElement('div'); sb.className = 'edge-sb'; ghost.appendChild(sb); }
+    ghost.querySelectorAll('[id]').forEach(x => x.removeAttribute('id'));
+    ghost.querySelectorAll('canvas').forEach(c => { c.style.visibility = 'hidden'; });
+    return ghost;
+  }
+  const Edge = (() => {
+    let g = null;   // laufende Geste: { state: 'track' | 'drag' | 'settle', x0, y0, dx, lx, lt, v, ghost, shade, back, y, timer }
+    const W = () => innerWidth;
     function move(p) {
-      if (!g || !g.page) return;
-      g.page.style.transform = `translateX(${p * W()}px)`;
-      g.under.style.transform = `translateX(${-30 * (1 - p)}%)`;
-      g.under.style.setProperty('--shade', String(0.12 * (1 - p)));
+      g.ghost.style.transform = `translate3d(${(p * W()).toFixed(1)}px, 0, 0)`;
+      g.shade.style.opacity = String(0.16 * (1 - p));
+    }
+    function begin() {
+      const back = backTarget();
+      if (!back) return false;
+      const shade = document.createElement('div');
+      shade.className = 'edge-shade';
+      document.body.append(shade, g.ghost);
+      g.ghost.firstElementChild.scrollTop = g.y;
+      g.shade = shade;
+      g.back = back;
+      back.show();   // echte vorige Seite darunter zeichnen – die Kopie deckt alles ab
+      return true;
     }
     function cleanup() {
       if (!g) return;
-      cancelAnimationFrame(g.raf);
       clearTimeout(g.timer);
-      if (g.page) { g.page.classList.remove('edge-drag', 'edge-anim'); g.page.style.transform = ''; }
-      if (g.under) g.under.remove();
+      if (g.state !== 'track') { g.ghost.remove(); if (g.shade) g.shade.remove(); }
       g = null;
     }
-    function settle(back) {
-      if (!g || !g.page) { g = null; return; }
+    function settle(commit) {
       const mine = g;
       g.state = 'settle';
-      g.page.classList.add('edge-anim');
-      g.under.classList.add('edge-anim');
-      g.raf = requestAnimationFrame(() => move(back ? 1 : 0));
+      const p = g.dx / W(), dur = Math.round(clamp((commit ? 1 - p : p) * 420, 170, 340));
+      const tr = `${dur}ms cubic-bezier(.32, .72, 0, 1)`;
+      g.ghost.style.transition = `transform ${tr}`;
+      g.shade.style.transition = `opacity ${tr}`;
+      requestAnimationFrame(() => { if (g === mine) move(commit ? 1 : 0); });
       g.timer = setTimeout(() => {
         if (g !== mine) return;
-        if (!back) return cleanup();
-        skipNext = true;
-        if (App.tab === 'more' && moreSub) closeMoreSub(); else App.go('more');
-        // zurück per history.back() kommt asynchron → aufräumen, sobald die Unterseite weg ist
-        const t1 = Date.now();
-        (function wait() {
-          if (g !== mine) return;
-          if (!canBack() || Date.now() - t1 > 700) { skipNext = false; cleanup(); }
-          else g.raf = requestAnimationFrame(wait);
-        })();
-      }, 300);
+        if (commit) { mine.back.done(); cleanup(); return; }
+        // Abbrechen: Seite wiederherstellen, Kopie erst entfernen, wenn die echte Seite gezeichnet ist
+        mine.back.undo();
+        requestAnimationFrame(() => requestAnimationFrame(() => { if (g === mine) cleanup(); }));
+      }, dur + 40);
     }
     document.addEventListener('touchstart', e => {
       if (g && g.state === 'drag' && e.touches.length > 1) return settle(false);   // zweiter Finger: abbrechen
       if (g || e.touches.length !== 1 || !edgeOn() || !canBack() || Modal.count() || W() >= 900) return;
       const t = e.touches[0];
       if (t.clientX > 22) return;
-      g = { state: 'track', x0: t.clientX, y0: t.clientY, dx: 0, t0: Date.now(), page: null, under: null, raf: 0, timer: 0 };
+      // Kopie schon jetzt vorbereiten (noch nicht einfügen) – dann ruckelt der Start der Geste nicht
+      g = { state: 'track', x0: t.clientX, y0: t.clientY, dx: 0, lx: t.clientX, lt: e.timeStamp, v: 0, ghost: snapshot(), shade: null, back: null, y: Scroll.y, timer: 0 };
     }, { passive: true });
     document.addEventListener('touchmove', e => {
       if (!g || g.state === 'settle') return;
-      if (e.cancelable) e.preventDefault();   // am Rand: kein Scrollen nebenher (sonst verschiebt iOS die Seite mit)
+      if (e.cancelable) e.preventDefault();   // am Rand: kein Scrollen nebenher
       const t = e.touches[0], mx = t.clientX - g.x0, my = t.clientY - g.y0;
       if (g.state === 'track') {
         if (Math.abs(mx) < 8 && Math.abs(my) < 8) return;
         if (!(mx > 0 && Math.abs(mx) > Math.abs(my))) { g = null; return; }   // senkrecht oder nach links: keine Zurück-Geste
         g.state = 'drag';
-        begin();
+        if (!begin()) { g = null; return; }
       }
+      const dt = Math.max(1, e.timeStamp - g.lt);
+      g.v = g.v * 0.4 + ((t.clientX - g.lx) / dt) * 0.6;   // Geschwindigkeit (px/ms), leicht geglättet
+      g.lx = t.clientX; g.lt = e.timeStamp;
       g.dx = Math.max(0, mx);
       move(g.dx / W());
     }, { passive: false });
-    const end = cancel => {
+    const end = (cancel, ts) => {
       if (!g || g.state === 'settle') return;
       if (g.state === 'track') { g = null; return; }
-      const v = g.dx / Math.max(1, Date.now() - g.t0);
-      settle(!cancel && (g.dx > W() * 0.35 || v > 0.5));
+      const v = ts - g.lt > 90 ? 0 : g.v;   // Finger stand vor dem Loslassen still → keine Schwungkraft mehr
+      // schnell nach rechts geschnippt oder weit genug gezogen (und nicht zurückgezogen) → zurück
+      settle(!cancel && (v > 0.45 || (v > -0.15 && g.dx > W() * 0.4)));
     };
-    document.addEventListener('touchend', e => { if (!e.touches.length) end(false); });
-    document.addEventListener('touchcancel', () => end(true));
-    document.addEventListener('visibilitychange', () => { if (document.hidden && g) { skipNext = false; cleanup(); } });
+    document.addEventListener('touchend', e => { if (!e.touches.length) end(false, e.timeStamp); });
+    document.addEventListener('touchcancel', e => end(true, e.timeStamp));
+    // App verlassen mitten in der Geste: Seite wiederherstellen (ein schon losgelassenes Zurück läuft zu Ende)
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden || !g || g.state === 'settle') return;
+      if (g.state === 'drag') g.back.undo();
+      cleanup();
+    });
     return {
-      /** läuft gerade eine Geste (Seite verschoben)? */
+      /** läuft gerade eine Geste (Kopie liegt über der Seite)? */
       active: () => !!g && g.state !== 'track',
       cleanup
     };
@@ -232,7 +193,7 @@ const Motion = (() => {
     const reset = body => { body.classList.remove('sub-drag'); body.classList.add('sub-anim'); body.style.transform = ''; body.style.opacity = ''; setTimeout(() => { body.classList.remove('sub-anim'); release(); }, 260); };
     view.addEventListener('touchstart', e => {
       on = false;
-      if (e.touches.length !== 1 || Modal.count() || e.target.closest(SWIPE_SKIP)) return;
+      if (e.touches.length !== 1 || Modal.count() || Edge.active() || e.target.closest(SWIPE_SKIP)) return;
       a = areas();
       if (!a || !a.body || a.list.length < 2 || !a.body.contains(e.target)) return;
       const t = e.touches[0];
@@ -274,9 +235,7 @@ const Motion = (() => {
   subSwipe();
 
   return {
-    can, go, stack, topTitle, syncTitle, morph, unmorph, stagger,
-    /** nächster Übergang ohne jede Animation (nach dem Zurück-Wischen ist die Seite schon weg) */
-    get quiet() { return skipNext; },
+    can, go, topTitle, syncTitle,
     /** nur für den Test: Zurück-Wischen auch außerhalb der iPhone-App erlauben */
     set edgeAlways(v) { edgeAlways = !!v; }
   };
