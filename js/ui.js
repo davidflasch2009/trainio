@@ -695,20 +695,16 @@ function applyIcon() {
   const brand = $('#sidebar .brand img');
   if (brand && brand.getAttribute('src') !== iconSrc()) brand.setAttribute('src', iconSrc());
 }
-/** Darstellung umstellen: alles in einem Schritt (ohne halb gelaufene Farb-Übergänge) und – bei vollen Animationen –
-    als sanfte Überblendung vom alten zum neuen Look. change() speichert/setzt die Einstellung. */
+/** Darstellung umstellen: alles in einem Schritt, ohne halb gelaufene Farb-Übergänge. change() speichert die Einstellung. */
 function switchLook(change) {
   const root = document.documentElement;
-  const t = Motion.go('look', () => {
-    root.classList.add('look-swap');
-    change();
-    applyTheme();
-    // sofort neu zeichnen statt 40 ms später: der Re-Render aus dem Daten-Abo findet dann nichts mehr zu ändern
-    clearTimeout(renderTimer); renderTimer = null;
-    App.renderCurrent();
-  });
-  const end = () => requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('look-swap')));
-  if (t) t.finished.then(end, end); else end();
+  root.classList.add('look-swap');
+  change();
+  applyTheme();
+  // sofort neu zeichnen statt 40 ms später: der Re-Render aus dem Daten-Abo findet dann nichts mehr zu ändern
+  clearTimeout(renderTimer); renderTimer = null;
+  App.renderCurrent();
+  requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove('look-swap')));
 }
 /* Hell/Dunkel nach System oder Uhrzeit: nur wenn sich der Modus wirklich ändert */
 const followTheme = () => { if (resolvedTheme() !== document.documentElement.dataset.theme) switchLook(() => {}); };
@@ -761,7 +757,6 @@ const App = {
     // Bibliothek über „Mehr" öffnen/schließen wirkt wie eine Unterseite (iOS-Push). Tab-Wechsel selbst laufen wie
     // bei iOS ohne Übergang – Überblenden und nachrückende Karten ließen die Seite kurz zucken.
     const kind = instant ? null : forced || (!changed ? null : tab === this.peek ? 'push' : this.peek === this.tab && tab === 'more' ? 'pop' : null);
-    const slide = kind && !Motion.can() && motionFull() && (kind === 'push' || kind === 'pop');   // Ersatz ohne View Transitions
     const apply = () => {
       this.tab = tab;
       UI.tab = tab;
@@ -771,7 +766,6 @@ const App = {
       if (changed) {
         Scroll.to(0);
         fx($$('#bottomNav .nav-btn.active svg, #sidebar .side-btn.active svg'), 'fx-pop');
-        if (slide) fx($('#tab-' + tab), kind === 'push' ? 'fx-pg-fwd' : 'fx-pg-back');
         countUp($$(`#tab-${tab} :is(${COUNT_SEL})`));
       }
     };

@@ -1684,10 +1684,10 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 @keyframes fxFill { 0% { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface-2)); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent); } 100% { background-color: var(--surface-2); box-shadow: 0 0 0 0 transparent; } }
 @keyframes fxBump { 0% { transform: scale(1); } 40% { transform: scale(1.08); } 100% { transform: scale(1); } }
 /* Seiten-/Tab-Wechsel mit Richtung: von rechts (weiter) bzw. von links (zurück) – Überstand schneidet .main-col ab */
-.tab.fx-pg-fwd, .fx-pg-fwd { animation: pgFwd .3s var(--ease-out) both; }
-.tab.fx-pg-back, .fx-pg-back { animation: pgBack .3s var(--ease-out) both; }
-@keyframes pgFwd { from { opacity: 0; transform: translateX(28px); } to { opacity: 1; transform: none; } }
-@keyframes pgBack { from { opacity: 0; transform: translateX(-28px); } to { opacity: 1; transform: none; } }
+.tab.fx-pg-fwd, .fx-pg-fwd { animation: pgFwd .34s var(--ease-ios, ease-out) both; }
+.tab.fx-pg-back, .fx-pg-back { animation: pgBack .34s var(--ease-ios, ease-out) both; }
+@keyframes pgFwd { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: none; } }
+@keyframes pgBack { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: none; } }
 /* Workout-Fortschritt: weich füllen, bei 100 % einmal aufleuchten */
 .wo-progress { overflow: visible; }
 .wo-progress i { transition: width .55s var(--ease-out); }
@@ -1705,34 +1705,14 @@ button.list-item:active, .ex-item:active, .stat.clickable:active { transform: sc
 }
 
 /* ==========================================================================
-   Bewegung wie iOS: Seitenübergänge, Sheets, Rückfragen, Karten-Stapel, Zurück-Wischen (js/motion.js)
+   Bewegung wie iOS: Seitenwechsel, Sheets, Rückfragen, Zurück-Wischen (js/motion.js)
    ========================================================================== */
 :root { --ease-ios: cubic-bezier(.32, .72, 0, 1); }
 
-/* Seitenübergänge (View Transitions): Leisten bleiben stehen, nur der Inhalt wechselt.
-   Tippen geht während des Übergangs direkt an die neue Seite. */
-#bottomNav { view-transition-name: nav; }
-.sidebar { view-transition-name: sidebar; }
-.topbar { view-transition-name: topbar; }
-.rest-dock { view-transition-name: rest; }
-::view-transition { pointer-events: none; }
-::view-transition-group(*) { animation-duration: .34s; animation-timing-function: var(--ease-ios); }
-/* Design-Wechsel: alter Look blendet gleichmäßig in den neuen über (Tab-Wechsel laufen wie bei iOS ohne Übergang) */
-:root[data-vt="look"]::view-transition-group(*) { animation-duration: .32s; }
-:root[data-vt="look"]::view-transition-old(*), :root[data-vt="look"]::view-transition-new(*) { animation-duration: .32s; animation-timing-function: ease; }
-/* Während der Umstellung keine Farb-Übergänge – sonst wechseln manche Flächen sofort, andere langsam */
+/* Seitenwechsel (Unterseiten, Workout) laufen als CSS-Animation auf dem neuen Inhalt (fx-pg-fwd/back, fx-zoom-in/out) –
+   Tab-Leiste und obere Leiste bleiben stehen. Design-Wechsel: in einem Schritt, ohne Farb-Übergänge (sonst wechseln
+   manche Flächen sofort, andere langsam). */
 html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition: none !important; }
-/* Unterseite (Push): neue Seite schiebt sich von rechts darüber, die alte weicht nach links aus – zurück umgekehrt */
-:root:is([data-vt="push"], [data-vt="pop"])::view-transition-old(root),
-:root:is([data-vt="push"], [data-vt="pop"])::view-transition-new(root) { mix-blend-mode: normal; animation-duration: .44s; animation-timing-function: var(--ease-ios); animation-fill-mode: both; }
-:root[data-vt="push"]::view-transition-old(root) { animation-name: vtBehind; }
-:root[data-vt="push"]::view-transition-new(root) { animation-name: vtFromRight; }
-:root[data-vt="pop"]::view-transition-old(root) { animation-name: vtToRight; z-index: 1; }
-:root[data-vt="pop"]::view-transition-new(root) { animation-name: vtFromBehind; }
-@keyframes vtBehind { to { transform: translateX(-28%); opacity: .6; } }
-@keyframes vtFromBehind { from { transform: translateX(-28%); opacity: .6; } }
-@keyframes vtFromRight { from { transform: translateX(100%); } }
-@keyframes vtToRight { to { transform: translateX(100%); } }
 
 /* Sheets: Kurve wie iOS, Schließen etwas schneller */
 .modal { transition: transform .5s var(--ease-ios); }
@@ -1766,17 +1746,11 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .edge-shade { position: fixed; inset: 0; z-index: 46; background: #000; opacity: 0; pointer-events: none; will-change: opacity; }
 .edge-ghost .edge-sb { position: absolute; }
 
-/* Workout starten: Workout zoomt herein – beenden: zoomt heraus */
-:root:is([data-vt="zoom"], [data-vt="zoomout"])::view-transition-old(root),
-:root:is([data-vt="zoom"], [data-vt="zoomout"])::view-transition-new(root) { mix-blend-mode: normal; animation-duration: .42s; animation-timing-function: var(--ease-ios); animation-fill-mode: both; }
-:root[data-vt="zoom"]::view-transition-old(root) { animation-name: vtGrowAway; }
-:root[data-vt="zoom"]::view-transition-new(root) { animation-name: vtZoomIn; }
-:root[data-vt="zoomout"]::view-transition-old(root) { animation-name: vtZoomOut; z-index: 1; }
-:root[data-vt="zoomout"]::view-transition-new(root) { animation-name: vtGrowBack; }
-@keyframes vtGrowAway { to { transform: scale(1.04); } }
-@keyframes vtGrowBack { from { transform: scale(1.04); } }
-@keyframes vtZoomIn { from { opacity: 0; transform: scale(.92); } }
-@keyframes vtZoomOut { to { opacity: 0; transform: scale(.92); } }
+/* Workout starten: Workout zoomt herein – beenden: Startseite kommt von etwas größer zurück */
+.fx-zoom-in { animation: zoomIn .36s var(--ease-ios) both; transform-origin: 50% 35%; }
+.fx-zoom-out { animation: zoomBack .36s var(--ease-ios) both; transform-origin: 50% 35%; }
+@keyframes zoomIn { from { opacity: 0; transform: scale(.94); } }
+@keyframes zoomBack { from { opacity: 0; transform: scale(1.04); } }
 
 /* Zahlen rollen bei + und − wie ein Zählwerk */
 .fx-roll-up { animation: rollUp .22s var(--ease-ios); }

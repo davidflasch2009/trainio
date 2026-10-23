@@ -68,8 +68,9 @@ schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurze
 Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und
 „Bewegung reduzieren“ des Systems:
 - **Tab-Wechsel** sind wie bei iOS sofort da – ohne Überblenden, nichts zuckt. Nur das Tab-Symbol hüpft kurz.
-- **Unterseiten wie iOS:** Gruppen im Mehr-Tab (und die Übungs-Bibliothek über Mehr) schieben sich von rechts
-  über die Übersicht, die nach links ausweicht; zurück umgekehrt. Ist der große Titel weggescrollt, steht er klein
+- **Unterseiten:** Gruppen im Mehr-Tab (und die Übungs-Bibliothek über Mehr) gleiten sanft von rechts herein,
+  zurück von links – sofort beim Antippen, ohne Verzögerung (bewusst ohne View Transitions, die in Safari vor jedem
+  Wechsel erst ein Bild der alten Seite anfertigen). Ist der große Titel weggescrollt, steht er klein
   in der oberen Leiste. In der installierten iPhone-App: **vom linken Rand nach rechts wischen** = zurück, die Seite
   folgt dem Finger, darunter liegt schon die echte Übersicht (kurz ziehen und loslassen = bleiben). Weil nur eine Kopie
   der Seite weggezogen wird, muss am Ende nichts ausgetauscht werden – nichts flackert.
@@ -81,7 +82,7 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   ein kurzes Tippen (Satz abhaken, Stepper, Schalter in den Einstellungen). Abschaltbar über „Vibration“.
 - **Details** (Workout aus Startseite/Verlauf, Übung) kommen als Fenster von unten. **Workout starten** zoomt ins
   Workout, **Beenden** wieder heraus.
-- **Design wechseln:** Der alte Look blendet in einem Zug in den neuen über (keine halb umgefärbten Flächen).
+- **Design wechseln:** Alles stellt sich in einem Schritt um (keine halb umgefärbten Flächen).
 - **Scrollen:** Am Anfang und Ende gibt die Seite wie bei iOS etwas nach; die Fortschritt-Leiste haftet genau dort,
   wo sie steht.
 - **Wischen zwischen Bereichen:** Im Fortschritt (Übersicht, Kraft, Volumen …) und im Training (Pläne, Verlauf)

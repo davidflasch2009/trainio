@@ -223,6 +223,11 @@ async function mobileFlow(page) {
   check(await page.evaluate(() => moreSub === 'training' && !document.querySelector('.edge-ghost, .edge-shade')), 'Mehr: kurz wischen und loslassen → bleibt auf der Unterseite');
   await page.evaluate(() => closeMoreSub());
   await pause(page, 600);
+  // Unterseite gleitet sofort herein (CSS-Animation, keine View Transition mit Foto der alten Seite)
+  const push = await page.evaluate(() => { openMoreSub('workout'); return { cls: document.querySelector('#tab-more').classList.contains('fx-pg-fwd'), vtName: getComputedStyle(document.querySelector('#bottomNav')).viewTransitionName || 'none' }; });
+  check(push.cls && push.vtName === 'none', 'Unterseite gleitet sofort herein, Tab-Leiste ohne Übergangs-Namen', JSON.stringify(push));
+  await page.evaluate(() => closeMoreSub());
+  await pause(page, 500);
   const groups = await page.evaluate(() => moreGroups().map(g => g.id));
   for (const g of groups) {
     await page.evaluate(id => openMoreSub(id), g);

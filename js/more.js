@@ -29,7 +29,6 @@ const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item
    Gruppe: { id, title, ic, sub, intro?, head?, foot?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
    Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
 let moreSub = (history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
-let moreAnim = null;   // 'fwd' = Gruppe gleitet von rechts herein, 'back' = Übersicht von links
 const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
 const mRow = (html, t, s = '', kw = '', only = '') => ({ t, s, kw, html, only });
 const lastImportDoc = () => Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
@@ -366,7 +365,6 @@ Views.more = {
         r.scrollLeft = r.dataset.row in keep ? keep[r.dataset.row] : a ? a.offsetLeft - (r.clientWidth - a.offsetWidth) / 2 : 0;
       });
     }
-    if (moreAnim) { fx(el, 'fx-pg-' + moreAnim); moreAnim = null; }
     Motion.topTitle(g ? g.title : '');
   },
   // Zurück-Knopf oben, solange eine Gruppe offen ist
@@ -395,13 +393,11 @@ function openMoreSub(id) {
   if (!moreSub) moreScroll = Scroll.y;
   try { history.pushState({ moreSub: id }, ''); } catch (e) {}
   if (App.tab !== 'more') { moreSub = id; App.go('more'); Scroll.to(0); return; }   // Tab-Wechsel: ohne Übergang
-  moreAnim = Motion.can() ? null : 'fwd';
   Motion.go('push', () => { moreSub = id; App.renderCurrent(); Scroll.to(0); });
 }
 function closeMoreSub() {
   if (!moreSub) return;
   if (history.state && history.state.moreSub) { history.back(); return; }   // popstate erledigt den Rest
-  moreAnim = Motion.can() ? null : 'back';
   Motion.go('pop', () => { moreSub = null; App.renderCurrent(); Scroll.to(moreScroll); });
 }
 // Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
@@ -409,7 +405,6 @@ window.addEventListener('popstate', () => {
   if (!moreSub) return;
   const next = (history.state && history.state.moreSub) || null;
   if (App.tab !== 'more') { moreSub = next; return; }
-  moreAnim = Motion.can() ? null : next ? 'fwd' : 'back';
   Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); Scroll.to(next ? 0 : moreScroll); });
 });
 // Schalter & Felder ändern das DOM selbst – danach baut der nächste Render den Mehr-Tab wieder komplett auf

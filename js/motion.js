@@ -1,31 +1,23 @@
-/* Trainio – Bewegung wie iOS: Seitenübergänge (View Transitions) für Unterseiten, Workout-Zoom und Design-Wechsel,
-   kleiner Titel in der Leiste, Zurück-Wischen vom linken Rand, Wischen zwischen Bereichen
+/* Trainio – Bewegung wie iOS: sanftes Hereingleiten von Unterseiten, Workout-Zoom, kleiner Titel in der Leiste,
+   Zurück-Wischen vom linken Rand, Wischen zwischen Bereichen
    Teil der App: alle js/*.js-Dateien teilen sich einen gemeinsamen Gültigkeitsbereich und werden
    in der Reihenfolge aus index.html geladen. */
 'use strict';
 
 const Motion = (() => {
-  const root = document.documentElement;
-  let curVT = null;
+  /** Volle Animationen? (Einstellung „Animationen: Voll" und kein „Bewegung reduzieren" im System) */
+  const can = () => motionFull();
 
-  /** Läuft der nächste Übergang animiert? (Animationen „Voll", Browser kann View Transitions) */
-  const can = () => motionFull() && typeof document.startViewTransition === 'function' && !document.hidden;
-
-  /** DOM ändern – als View Transition, sonst direkt.
-      kind: 'push' | 'pop' (Unterseite) · 'zoom' | 'zoomout' (Workout) · 'look' (Design) · null = ohne Übergang.
-      Tab-Wechsel laufen wie bei iOS ohne Übergang – eine Überblendung lässt die Seite kurz zucken. */
+  /* Seitenwechsel: DOM sofort ändern, danach gleitet der neue Inhalt sanft herein (Tab-Leiste und obere Leiste
+     stehen dabei still). kind: 'push' | 'pop' (Unterseite) · 'zoom' | 'zoomout' (Workout) · null = ohne Bewegung.
+     Bewusst ohne View Transitions: Die fotografieren vor jedem Wechsel die alte Seite – in WebKit (Safari) dauerte das
+     mit fester Tab-Leiste rund zehnmal länger als ohne, der Tipp wirkte verzögert. Tab-Wechsel laufen wie bei iOS
+     ganz ohne Bewegung. */
+  const FX = { push: 'fx-pg-fwd', pop: 'fx-pg-back', zoom: 'fx-zoom-in', zoomout: 'fx-zoom-out' };
   function go(kind, update) {
-    if (!kind || !can()) { update(); return null; }
-    if (Edge.active()) Edge.cleanup();
-    const token = {};
-    curVT = token;
-    root.dataset.vt = kind;
-    const t = document.startViewTransition(update);
-    t.ready.catch(() => {});   // abgebrochen, weil schon der nächste Übergang startet – kein Fehler
-    // nur der jeweils letzte Übergang räumt auf – sonst verliert ein schnell folgender seine Animation
-    t.finished.catch(() => {}).finally(() => { if (curVT === token) { curVT = null; delete root.dataset.vt; } });
-    t.updateCallbackDone.catch(e => ErrLog.add(e, 'Übergang'));
-    return t;
+    if (kind && Edge.active()) Edge.cleanup();
+    update();
+    if (kind && FX[kind] && can()) fx($('.tab.active'), FX[kind]);
   }
 
   /* ---------- Kleiner Titel in der Leiste, sobald der große Titel weggescrollt ist ---------- */
