@@ -343,12 +343,13 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `css/app.css` | alle Styles (Designs, Hell/Dunkel, Layout) |
 | `js/config.js` | Firebase-Konfiguration |
 | `js/core.js` | Konstanten, App-Version, Hilfsfunktionen |
-| `js/seeds.js` | Übungs-Bibliothek + feste Pläne |
+| `js/seeds.js` | Übungs-Bibliothek (Seed-Daten) |
 | `js/store.js` | Datenspeicher (lokal + Firestore) und Google-Anmeldung |
 | `js/ui.js` | UI-Kern: Toasts, Dialoge, Navigation, Designs |
 | `js/analytics.js` | Übungs-Helfer, Auswertungen, Rekorde |
 | `js/workout.js` | Workout-Engine (aktives Workout) |
-| `js/training.js` | Start-Tab + Training-Tab |
+| `js/training.js` | Start-Tab + Training-Tab (Pläne, Verlauf, Workout-Detail, Teilen) |
+| `js/workout-ui.js` | Aktives Workout: Ansicht & Bedienung, Abschluss mit Score |
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
 | `js/progress.js` | Fortschritt-Tab |
@@ -357,9 +358,11 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/boot.js` | Start der App |
 | `sw.js` | Service Worker (Offline-Cache) |
 | `tools/release.py` | Version für ein Deploy hochsetzen (siehe unten) |
+| `tests/smoke.js` | Automatischer Test im Browser (`npm test`, läuft auch bei jedem Push auf GitHub) |
+| `package.json` | Nur für den Test (Playwright) – die App selbst braucht keinen Build |
 | `manifest.json` | PWA-Manifest |
 | `icon.svg` | Logo „Progress-Kettlebell“ als Vektor (Favicon) |
-| `icons/1/` … `icons/10/` | App-Icons zur Auswahl (je 192/512, maskable 192/512, iPhone 180 + Manifest) |
+| `icons/1/` … `icons/6/` | App-Icons zur Auswahl (je 192/512, maskable 192/512, iPhone 180 + Manifest) |
 
 ## 1. Firebase einrichten (einmalig)
 
@@ -460,6 +463,19 @@ python -m http.server 8000
 ```
 
 Der Service Worker läuft nur über `http://localhost` oder `https://`, nicht über `file://`.
+
+### Automatischer Test
+
+```bash
+npm install                        # einmalig
+npx playwright install chromium    # einmalig
+npm test
+```
+
+Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
+alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout speichern mit Score, Fortschritt,
+Verlauf, Übungssuche, alle Einstellungs-Gruppen, Neuladen mit laufendem Workout. Firebase und CDNs sind dabei gesperrt.
+Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 
 ## Lizenz
 

@@ -7,7 +7,7 @@ Kommunikation, UI-Texte und Kommentare auf Deutsch.
 
 David möchte, dass fertige Änderungen **immer automatisch live gehen**:
 
-1. Im Browser testen (Playwright/Chromium, `python3 -m http.server`), README bei neuen Funktionen anpassen.
+1. `npm test` muss grün sein (bei neuen Funktionen den Test in `tests/smoke.js` ergänzen), README bei neuen Funktionen anpassen.
 2. `python3 tools/release.py <version>` – Patch (x.y.**z**) für Fixes und kleine Änderungen,
    Minor (x.**y**.0) für neue Funktionen.
 3. Committen und auf `main` pushen – GitHub Pages veröffentlicht `main` direkt.

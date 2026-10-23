@@ -1,10 +1,10 @@
-/* Trainio – Übungs-Bibliothek & feste Pläne
+/* Trainio – Übungs-Bibliothek (Seed-Daten)
    Teil der App: alle js/*.js-Dateien teilen sich einen gemeinsamen Gültigkeitsbereich und werden
    in der Reihenfolge aus index.html geladen. */
 'use strict';
 
 /* ==========================================================================
-   2. Seed-Daten: Übungs-Bibliothek (80 Übungen) + 5 fixe Pläne
+   2. Seed-Daten: Übungs-Bibliothek (über 320 Übungen inkl. Cardio) – vorgegebene Pläne gibt es keine
    Format: [id, Name, Kategorie, Muskeln, Equipment, Einheit, Technik-Tipp, Aliase]
    Aliase (u. a. englische Arrow-Namen) helfen beim Import-Mapping.
    ========================================================================== */

@@ -1,0 +1,11 @@
+{
+  "name": "trainio",
+  "private": true,
+  "description": "Nur für Tests – die App selbst braucht keinen Build-Step",
+  "scripts": {
+    "test": "node tests/smoke.js"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}
