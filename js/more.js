@@ -148,7 +148,7 @@ function lookGroup(s) {
   const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
   const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
   const isPreset = ACCENTS.some(([h]) => h === accent);
-  return { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, Farben, Modus, Schrift, Navigation, Startseite',
+  return { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, App-Icon, Farben, Modus, Schrift, Navigation, Startseite',
     head: `<div class="card look-preview">
       <div class="stat-grid" style="grid-template-columns:1fr 1fr">
         <div class="stat"><div class="stat-label">${icon('flame')} Streak</div><div class="stat-value">12<small>Wochen</small></div><div class="week-dots"><i class="on"></i><i class="on"></i><i></i><i class="on today"></i><i></i><i></i><i></i></div></div>
@@ -166,6 +166,9 @@ function lookGroup(s) {
             <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
             <span class="dt-desc">${esc(d.desc)}</span>
           </button>`).join('')}</div>`],
+      ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span><div class="li-sub">${esc(iconName())}</div></span>${icon('chevR', 'li-chev')}</button>`,
+          'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
+        `<div class="icon-grid">${APP_ICONS.map(([id, name]) => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${esc(name)}"><img src="${iconSrc('icon-192.png', id)}" alt="" loading="lazy"><span>${esc(name)}</span></button>`).join('')}</div>${iconHintHtml()}`],
       ['Farben & Modus', [
         st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
         st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
@@ -196,6 +199,38 @@ function lookGroup(s) {
     ],
     foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
 }
+/* ---------- App-Icon ---------- */
+const iconName = (id = iconId()) => (APP_ICONS.find(i => i[0] === id) || APP_ICONS[0])[1];
+function iconHintHtml() {
+  const ios = Auth.isIOS(), android = /Android/i.test(navigator.userAgent);
+  if (ios && isStandalone()) return `<button class="btn btn-secondary btn-block mt-12" data-act="iconHome">${icon('install')} Auf dem Home-Bildschirm übernehmen</button>
+    <p class="tiny dim mt-8">Auf dem iPhone legt der Home-Bildschirm das Icon beim Hinzufügen fest – die Anleitung führt dich durch.</p>`;
+  if (ios) return '<p class="tiny dim mt-12">Jetzt in Safari <b>Teilen → Zum Home-Bildschirm</b> – die App bekommt dann dieses Icon.</p>';
+  if (android) return '<p class="tiny dim mt-12">Chrome übernimmt das neue Icon auf dem Home-Bildschirm meist innerhalb eines Tages, manchmal mit Rückfrage. Sofort geht es, wenn du die App neu installierst.</p>';
+  return '<p class="tiny dim mt-12">Das Icon im Browser-Tab und in der Seitenleiste ändert sich sofort.</p>';
+}
+Actions.iconSet = el => { Store.saveSettings({ appIcon: el.dataset.v }); applyIcon(); };
+/** iPhone: Icon wird beim Hinzufügen festgelegt → Safari mit ?icon=N öffnen, neu hinzufügen, alte App löschen */
+Actions.iconHome = () => {
+  const url = location.origin + location.pathname.replace(/index\.html$/, '') + '?icon=' + iconId();
+  const user = Auth.user();
+  const m = Modal.open({ title: 'Icon auf den Home-Bildschirm', size: 'sm',
+    body: `<div class="row" style="gap:12px;align-items:center"><img src="${iconSrc()}" alt="" style="width:56px;height:56px;border-radius:13px;flex-shrink:0"><p class="small dim">Das iPhone legt das Icon beim Hinzufügen zum Home-Bildschirm fest. So bekommst du „${esc(iconName())}“:</p></div>
+      ${user ? '' : `<div class="card mt-12" style="border-color:var(--warning)"><p class="small"><b>Achtung:</b> Du bist nicht angemeldet. Die neue App startet ohne deine Daten, und beim Löschen der alten App gehen sie verloren. Melde dich vorher an (Mehr → Konto & Profil) oder erstelle ein Backup und stelle es in der neuen App wieder her.</p>
+        <button class="btn btn-secondary btn-sm mt-8" data-act="backupJSON">${icon('download')} Backup erstellen</button></div>`}
+      <ol class="small mt-12" style="padding-left:20px;line-height:1.75">
+        <li><b>In Safari öffnen</b> (Knopf unten) – oder den Link kopieren und in Safari einfügen.</li>
+        <li>In Safari <b>Teilen</b> ${icon('share').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} → <b>„Zum Home-Bildschirm“</b> → Hinzufügen.</li>
+        <li>Die neue App öffnen und ${user ? 'kurz prüfen, ob deine Daten da sind (Sync)' : 'das Backup wiederherstellen (Mehr → Daten → Restore)'}.</li>
+        <li>Erst dann die alte Trainio-App löschen: lange drücken → <b>App entfernen</b>.</li>
+      </ol>`,
+    foot: `<button class="btn btn-secondary" data-x="copy">${icon('copy')} Link kopieren</button><a class="btn btn-primary" href="${esc(url)}" target="_blank" rel="noopener">In Safari öffnen</a>` });
+  m.el.addEventListener('click', async e => {
+    if (!e.target.closest('[data-x="copy"]')) return;
+    try { await navigator.clipboard.writeText(url); toast('Link kopiert – in Safari einfügen', 'success', { cat: 'always' }); }
+    catch (err) { promptDialog({ title: 'Link für Safari', label: 'Markieren und kopieren', value: url }); }
+  });
+};
 Actions.lookSet = el => setLook(el.dataset.k, el.dataset.v);
 Changes.lookToggle = el => setLook(el.dataset.k, el.checked);
 Changes.lookSelect = el => setLook(el.dataset.k, el.value);

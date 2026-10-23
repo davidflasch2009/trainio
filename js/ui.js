@@ -416,8 +416,8 @@ async function notify(title, body) {
   try {
     if (!('Notification' in window) || Notification.permission !== 'granted') return false;
     const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration();
-    if (reg) await reg.showNotification(title, { body, icon: 'icon-192.png', badge: 'icon-192.png', tag: 'gymlog-rest', renotify: true, vibrate: [200, 100, 200] });
-    else new Notification(title, { body, icon: 'icon-192.png' });
+    if (reg) await reg.showNotification(title, { body, icon: iconSrc(), badge: iconSrc(), tag: 'gymlog-rest', renotify: true, vibrate: [200, 100, 200] });
+    else new Notification(title, { body, icon: iconSrc() });
     return true;
   } catch (e) { return false; }
 }
@@ -539,7 +539,21 @@ function applyTheme() {
   const changed = sig !== _lookSig;
   _lookSig = sig;
   if (changed && typeof Charts !== 'undefined') Charts.applyDefaults();
+  applyIcon();
   return changed;
+}
+/** Gewähltes App-Icon: Browser-Tab, Home-Bildschirm (iPhone beim Hinzufügen) und Android-Manifest */
+function applyIcon() {
+  const id = iconId();
+  try { localStorage.setItem('gymlog.icon', id); } catch (e) {}
+  const set = (lid, href, type) => { const l = document.getElementById(lid); if (!l) return; if (type && l.type !== type) l.type = type; if (l.getAttribute('href') !== href) l.setAttribute('href', href); };
+  set('lnkTouch', iconSrc('apple-touch-icon.png'));
+  set('lnkPng', iconSrc('icon-192.png'));
+  set('lnkManifest', id === '1' ? 'manifest.json' : iconSrc('manifest.json'));
+  // Vektor-Favicon gibt es nur fürs Original – sonst ebenfalls das PNG
+  set('lnkSvg', id === '1' ? 'icon.svg' : iconSrc('icon-192.png'), id === '1' ? 'image/svg+xml' : 'image/png');
+  const brand = $('#sidebar .brand img');
+  if (brand && brand.getAttribute('src') !== iconSrc()) brand.setAttribute('src', iconSrc());
 }
 (mq => { const f = () => { if (S().theme === 'system' && applyTheme()) App.renderCurrent(); }; if (mq.addEventListener) mq.addEventListener('change', f); else if (mq.addListener) mq.addListener(f); })(matchMedia('(prefers-color-scheme: light)'));
 setInterval(() => { if (S().theme === 'time' && applyTheme()) App.renderCurrent(); }, 60000);
@@ -666,7 +680,7 @@ function renderNav() {
   $('#bottomNav').style.gridTemplateColumns = `repeat(${tabs.length}, 1fr)`;
   $('#bottomNav').innerHTML = tabs.map(([k, l, ic]) =>
     `<button class="nav-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}" aria-label="${l}${k === 'more' && offline ? ' (offline)' : ''}" ${act === k ? 'aria-current="page"' : ''}>${icon(ic)}<span>${l}</span>${dot(k)}</button>`).join('');
-  $('#sidebar').innerHTML = `<div class="brand"><img src="icon-192.png" alt="">${APP.name}</div>` +
+  $('#sidebar').innerHTML = `<div class="brand"><img src="${iconSrc()}" alt="">${APP.name}</div>` +
     tabs.map(([k, l, ic]) => `<button class="side-btn ${act === k ? 'active' : ''}" data-act="go" data-tab="${k}">${icon(ic)}<span>${l}</span>${dot(k)}</button>`).join('') +
     `<div class="side-foot">${APP.name} v${APP.version}</div>`;
 }

@@ -35,6 +35,8 @@ async function boot() {
   if (Store.owner() === 'local') ensureSeeds();
   Store.subscribe('*', cs => { if (cs.includes('meta')) applyTheme(); scheduleRender(); });
   Store.onSync(() => { renderNav(); if (App.tab === 'more') scheduleRender(); });
+  // Icon über „Auf dem Home-Bildschirm übernehmen" gewählt (?icon=N) → als Einstellung merken
+  if (window.__iconFromUrl && window.__iconFromUrl !== S().appIcon) Store.saveSettings({ appIcon: window.__iconFromUrl });
   App.renderCurrent();
   fx($('#tab-' + App.tab), 'fx-up');
   countUp($$(`#tab-${App.tab} :is(${COUNT_SEL})`));

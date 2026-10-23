@@ -13,6 +13,21 @@ Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-S
 > oben privat genutzt werden. Fehler und Ideen gern als [Issue](https://github.com/davidflasch2009/trainio/issues).
 > Kopieren, Verändern, Weitergeben, selbst Hosten oder kommerzielle Nutzung nur mit Erlaubnis – siehe [LICENSE](LICENSE).
 
+## App-Icons
+
+Unter **Mehr → Darstellung → App-Icon** gibt es 10 Icons. Icon 1 ist das Original-Logo, 2–10 sind Platzhalter.
+**Eigene Icons einsetzen:** im Ordner `icons/<Nummer>/` die Bilder ersetzen (gleiche Dateinamen und Größen):
+`icon-192.png`, `icon-512.png` (abgerundete Kachel, Rand transparent), `icon-maskable-192.png`,
+`icon-maskable-512.png` (vollflächig, Motiv in den inneren 80 %), `apple-touch-icon.png` (180 × 180, vollflächig).
+Den Namen in der Auswahl in `js/core.js` bei `APP_ICONS` anpassen. Danach `python3 tools/release.py <version>`.
+
+- **Sofort:** Browser-Tab und Seitenleiste.
+- **iPhone:** Das Icon wird beim Hinzufügen zum Home-Bildschirm festgelegt. In der Home-Bildschirm-App führt
+  „Auf dem Home-Bildschirm übernehmen“ durch: Safari mit `?icon=N` öffnen → Teilen → Zum Home-Bildschirm → neue
+  App prüfen → alte löschen (vorher anmelden oder Backup, sonst gehen lokale Daten verloren).
+- **Android:** Jedes Icon hat ein eigenes Manifest mit derselben App-Identität; Chrome übernimmt das neue Icon
+  meist innerhalb eines Tages (evtl. mit Rückfrage), sofort bei Neuinstallation.
+
 ## Workout-Score
 
 Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch.
@@ -311,9 +326,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `tools/release.py` | Version für ein Deploy hochsetzen (siehe unten) |
 | `manifest.json` | PWA-Manifest |
 | `icon.svg` | Logo „Progress-Kettlebell“ als Vektor (Favicon) |
-| `icon-192.png`, `icon-512.png` | App-Icons (abgerundete Kachel) |
-| `icon-maskable-192.png`, `icon-maskable-512.png` | Android-Icons mit Sicherheitsrand (maskable) |
-| `apple-touch-icon.png` | iPhone-Homescreen-Icon |
+| `icons/1/` … `icons/10/` | App-Icons zur Auswahl (je 192/512, maskable 192/512, iPhone 180 + Manifest) |
 
 ## 1. Firebase einrichten (einmalig)
 

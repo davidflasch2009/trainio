@@ -11,10 +11,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Trainio">
 <meta name="format-detection" content="telephone=no">
-<link rel="manifest" href="manifest.json">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="icon" type="image/svg+xml" href="icon.svg">
-<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="manifest" href="manifest.json" id="lnkManifest">
+<link rel="apple-touch-icon" href="icons/1/apple-touch-icon.png" id="lnkTouch">
+<link rel="icon" type="image/svg+xml" href="icon.svg" id="lnkSvg">
+<link rel="icon" type="image/png" href="icons/1/icon-192.png" id="lnkPng">
 <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,9 +34,22 @@
       d.style.cssText = (L.accent ? L.accent[t] : '') + (L.extra || '');
       (L.fonts || []).forEach(function (f) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = f; l.crossOrigin = 'anonymous'; document.head.appendChild(l); });
     } catch (e) {}
+    // App-Icon: ?icon=N (aus „Auf dem Home-Bildschirm übernehmen") oder gespeicherte Wahl – vor „Zum Home-Bildschirm"
+    try {
+      var m = location.search.match(/[?&]icon=(\d+)/), ic = m && m[1];
+      if (ic) { localStorage.setItem('gymlog.icon', ic); window.__iconFromUrl = ic; history.replaceState(null, '', location.pathname + location.hash); }
+      ic = ic || localStorage.getItem('gymlog.icon');
+      if (ic && ic !== '1' && /^\d+$/.test(ic)) {
+        var g = function (id) { return document.getElementById(id); }, p = 'icons/' + ic + '/';
+        g('lnkTouch').href = p + 'apple-touch-icon.png';
+        g('lnkPng').href = p + 'icon-192.png';
+        g('lnkSvg').type = 'image/png'; g('lnkSvg').href = p + 'icon-192.png';
+        g('lnkManifest').href = p + 'manifest.json';
+      }
+    } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/app.css?v=1.18.0">
+<link rel="stylesheet" href="css/app.css?v=1.19.0">
 </head>
 <body>
 <div id="app">
@@ -62,19 +75,19 @@
 <div id="popover" class="popover" hidden></div>
 <noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.18.0"></script>
-<script src="js/core.js?v=1.18.0"></script>
-<script src="js/seeds.js?v=1.18.0"></script>
-<script src="js/store.js?v=1.18.0"></script>
-<script src="js/ui.js?v=1.18.0"></script>
-<script src="js/analytics.js?v=1.18.0"></script>
-<script src="js/workout.js?v=1.18.0"></script>
-<script src="js/training.js?v=1.18.0"></script>
-<script src="js/exercises.js?v=1.18.0"></script>
-<script src="js/charts.js?v=1.18.0"></script>
-<script src="js/progress.js?v=1.18.0"></script>
-<script src="js/more.js?v=1.18.0"></script>
-<script src="js/import.js?v=1.18.0"></script>
-<script src="js/boot.js?v=1.18.0"></script>
+<script src="js/config.js?v=1.19.0"></script>
+<script src="js/core.js?v=1.19.0"></script>
+<script src="js/seeds.js?v=1.19.0"></script>
+<script src="js/store.js?v=1.19.0"></script>
+<script src="js/ui.js?v=1.19.0"></script>
+<script src="js/analytics.js?v=1.19.0"></script>
+<script src="js/workout.js?v=1.19.0"></script>
+<script src="js/training.js?v=1.19.0"></script>
+<script src="js/exercises.js?v=1.19.0"></script>
+<script src="js/charts.js?v=1.19.0"></script>
+<script src="js/progress.js?v=1.19.0"></script>
+<script src="js/more.js?v=1.19.0"></script>
+<script src="js/import.js?v=1.19.0"></script>
+<script src="js/boot.js?v=1.19.0"></script>
 </body>
 </html>

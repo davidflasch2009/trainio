@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.18.0',
+  version: '1.19.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -36,6 +36,11 @@ const CATEGORIES = ['Push', 'Pull', 'Legs', 'Core', 'Cardio', 'Full Body'];
 const EQUIPMENT = ['Langhantel', 'Kurzhantel', 'Kettlebell', 'Maschine', 'Kabel', 'Körpergewicht', 'Band'];
 const MUSCLES = ['Brust', 'Schulter', 'Hintere Schulter', 'Trizeps', 'Bizeps', 'Unterarme', 'Rücken', 'Trapez',
   'Unterer Rücken', 'Bauch', 'Quadrizeps', 'Beinbeuger', 'Gesäß', 'Adduktoren', 'Abduktoren', 'Waden'];
+/* App-Icons: je Icon ein Ordner icons/<id>/ mit icon-192/512.png, icon-maskable-192/512.png, apple-touch-icon.png
+   und manifest.json. Eigene Icons: Bilder im Ordner ersetzen und hier den Namen anpassen. */
+const APP_ICONS = [['1', 'Original'], ...Array.from({ length: 9 }, (_, i) => [String(i + 2), `Icon ${i + 2}`])];
+const iconId = () => { const v = String(S().appIcon || '1'); return APP_ICONS.some(i => i[0] === v) ? v : '1'; };
+const iconSrc = (file = 'icon-192.png', id = iconId()) => `icons/${id}/${file}`;
 const UNIT_TYPES = { kg: 'Gewicht × Wdh.', reps: 'Körpergewicht (Wdh.)', sec: 'Zeit (Sek.)', cardio: 'Cardio' };
 const RPE_VALUES = [6, 6.5, 7, 7.5, 8, 8.5, 9, 9.5, 10];
 const MEASURES = [
@@ -57,6 +62,7 @@ const DEFAULT_SETTINGS = {
   sex: 'm',
   sound: true,
   wakeLock: true,
+  appIcon: '1',
   // Meldungen oben (Toasts) je Gruppe – Bestätigungen standardmäßig aus
   toast_confirm: false, toast_workout: true, toast_pr: true, toast_sync: true, toast_update: true,
   prefillText: false,
