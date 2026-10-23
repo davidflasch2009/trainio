@@ -398,13 +398,13 @@ function openExerciseDetail(id) {
     if (x === 'chart') { UI.exChart = b.dataset.v; saveUI(); draw(); }
     else if (x === 'all') { showAll = true; draw(); }
     else if (x === 'wo') openWorkoutDetail(b.dataset.id);
-    else if (x === 'edit') { const nid = await openExerciseForm(ex); if (nid) { m.close(); openExerciseDetail(nid); } }
+    else if (x === 'edit') { const nid = await openExerciseForm(ex); if (nid) { m.dismiss(); openExerciseDetail(nid); } }
     else if (x === 'add') {
       const w = Workout.cur();
       if (!w) return;
       w.entries.push(Workout.makeEntry(id, { sets: defSets() }));
       Workout.autoSelect(); Workout.save();
-      m.close();
+      m.dismiss();
       App.go('training');
       toast(`${ex.name} hinzugefügt`, 'success', { cat: 'workout' });
     } else if (x === 'del') {
@@ -417,7 +417,7 @@ function openExerciseDetail(id) {
       if (!ok) return;
       usedPlans.forEach(t => Store.put('templates', t.id, { ...t, exercises: t.exercises.filter(y => y.exerciseId !== id), updatedAt: Date.now() }, { replace: true }));
       Store.del('exercises', id);
-      m.close();
+      m.dismiss();
       toast('Übung gelöscht', 'success');
     }
   });

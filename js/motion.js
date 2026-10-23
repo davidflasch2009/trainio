@@ -132,10 +132,12 @@ const Motion = (() => {
     function begin() {
       const under = document.createElement('div');
       under.className = 'edge-under';
-      // Seite dahinter: Mehr-Übersicht (bei Unterseiten) an der Stelle, an der sie verlassen wurde – sonst nur der Hintergrund
-      if (App.tab === 'more' && moreSub) {
+      // Seite dahinter: Mehr-Übersicht (bei Unterseiten an der Stelle, an der sie verlassen wurde; bei der Bibliothek
+      // über „Mehr" von oben) – sonst nur der Hintergrund
+      const sub = App.tab === 'more' && moreSub, lib = !!App.peek && App.peek === App.tab && !moreSub;
+      if (sub || lib) {
         under.innerHTML = `<div class="view"><div class="search mt-8"><input class="input" type="search" placeholder="Einstellungen durchsuchen …" tabindex="-1">${icon('search')}</div>${moreHomeHtml(moreGroups())}</div>`;
-        under.firstElementChild.style.transform = `translateY(${-moreScroll}px)`;
+        under.firstElementChild.style.transform = `translateY(${sub ? -moreScroll : 0}px)`;
       }
       $('#app').prepend(under);
       g.page = Scroll.el;
@@ -225,7 +227,9 @@ const Motion = (() => {
   function subSwipe() {
     const view = $('#view');
     let a = null, x0 = 0, y0 = 0, dx = 0, t0 = 0, lock = null, on = false;
-    const reset = body => { body.classList.remove('sub-drag'); body.classList.add('sub-anim'); body.style.transform = ''; body.style.opacity = ''; setTimeout(() => body.classList.remove('sub-anim'), 260); };
+    // Während des Wischens kein Neu-Zeichnen (z. B. durch Sync) – sonst springt der Inhalt unter dem Finger weg
+    const release = () => { swipeActive = false; if (renderPending) { renderPending = false; App.renderCurrent(); } };
+    const reset = body => { body.classList.remove('sub-drag'); body.classList.add('sub-anim'); body.style.transform = ''; body.style.opacity = ''; setTimeout(() => { body.classList.remove('sub-anim'); release(); }, 260); };
     view.addEventListener('touchstart', e => {
       on = false;
       if (e.touches.length !== 1 || Modal.count() || e.target.closest(SWIPE_SKIP)) return;
@@ -239,7 +243,8 @@ const Motion = (() => {
       const t = e.touches[0], mx = t.clientX - x0, my = t.clientY - y0;
       if (lock == null && (Math.abs(mx) > 10 || Math.abs(my) > 10)) lock = Math.abs(mx) > Math.abs(my) * 1.3 ? 'x' : 'no';
       if (lock !== 'x') { if (lock === 'no') on = false; return; }
-      e.preventDefault();
+      if (e.cancelable) e.preventDefault();
+      swipeActive = true;
       const i = a.list.indexOf(a.cur), end = (mx > 0 && i <= 0) || (mx < 0 && i >= a.list.length - 1);
       dx = end ? mx * 0.25 : mx;
       a.body.classList.add('sub-drag');
@@ -257,6 +262,7 @@ const Motion = (() => {
       body.style.transform = `translateX(${-dir * innerWidth * 0.5}px)`; body.style.opacity = '0';
       const next = a.list[j], set = a.set;
       setTimeout(() => {
+        swipeActive = false; renderPending = false;
         set(next); saveUI(); App.renderCurrent();
         const nb = areas() && areas().body;
         if (nb) fx(nb, dir > 0 ? 'fx-sub-next' : 'fx-sub-prev');

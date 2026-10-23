@@ -756,7 +756,7 @@ Actions.openWorkout = el => Motion.morph(el, () => openWorkoutDetail(el.dataset.
 function openWorkoutDetail(id) {
   const wo = Store.raw('workouts', id);
   if (!wo) return toast('Workout nicht gefunden', 'error');
-  const editMeta = () => openWorkoutMeta(id, () => { m.close(); openWorkoutDetail(id); });
+  const editMeta = () => openWorkoutMeta(id, () => { m.dismiss(); openWorkoutDetail(id); });
   const row = Analytics.cur().rows.find(r => r.id === id);
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
   const sc = F('f_score') ? Analytics.score(id) : null;
@@ -807,7 +807,7 @@ function openWorkoutDetail(id) {
     if (b.dataset.x === 'del') {
       if (await confirmDialog({ title: 'Workout löschen?', text: `${wo.planDayName || wo.name || 'Workout'} vom ${fmtDate(wo.date)} wird endgültig gelöscht. PRs werden neu berechnet.`, okLabel: 'Löschen', danger: true })) {
         Store.del('workouts', id);
-        m.close();
+        m.dismiss();
         PR.recalcAll();
         toast('Workout gelöscht', 'success');
       }
@@ -818,9 +818,9 @@ function openWorkoutDetail(id) {
         { key: 'sets', label: 'Sätze & Übungen', sub: 'Gewichte, Wiederholungen, Übungen ändern', icon: 'dumbbell' }
       ]);
       if (k === 'meta') editMeta();
-      else if (k === 'sets') { m.close(); Workout.load(wo, { edit: true }); }
+      else if (k === 'sets') { m.dismiss(); Workout.load(wo, { edit: true }); }
     }
-    else if (b.dataset.x === 'repeat') { m.close(); Workout.load(wo); }
+    else if (b.dataset.x === 'repeat') { m.dismiss(); Workout.load(wo); }
     else if (b.dataset.x === 'share') shareWorkout({ ...wo, id });
   });
 }

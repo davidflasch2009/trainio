@@ -64,7 +64,7 @@ function serve() {
 
 /* ---------- 3. Browser ---------- */
 async function openApp(browser, base, viewport, touch = false) {
-  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch });
+  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch, acceptDownloads: true });
   // nur die eigene Seite – Firebase, Chart.js, Schriften usw. bleiben draußen
   await ctx.route(url => !url.href.startsWith(base), r => r.abort());
   const page = await ctx.newPage();
@@ -229,6 +229,62 @@ async function mobileFlow(page) {
   check(!logged.length, 'Fehlerprotokoll der App ist leer', logged.join(' | '));
 }
 
+/* Datenwege mit echten Eingaben: Backup → alles löschen → wiederherstellen, Arrow-Import + Rückgängig, Gewichts-CSV */
+async function dataFlow(page) {
+  console.log('Datenwege');
+  const count = () => page.evaluate(() => ({ w: Store.all('workouts').length, t: Store.all('templates').length, pr: Store.all('prs').length, prog: Store.all('progress').length, ex: Store.all('exercises').length, imp: Store.all('imports').length }));
+  await page.evaluate(async () => {
+    const ops = [];
+    for (let i = 1; i <= 6; i++) { const st = Date.now() - i * 86400000 * 3; ops.push({ type: 'put', coll: 'workouts', id: 'dw' + i, doc: { date: isoDate(new Date(st)), startedAt: st, durationSec: 3000, name: 'Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [{ reps: 8, weightKg: 60 + i, done: true }] }] } }); }
+    ops.push({ type: 'put', coll: 'templates', id: 'dt1', doc: { name: 'Push', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 3, reps: '8', restSec: 90 }] } });
+    await Store.batch(ops); await PR.recalcAll();
+    Store.saveSettings({ design: 'paper' });
+  });
+  const before = await count();
+  // Backup herunterladen
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.evaluate(() => { Actions.backupJSON(); })]);
+  const file = path.join(SHOTS, '..', '.backup-test.json');
+  await dl.saveAs(file);
+  const bk = JSON.parse(fs.readFileSync(file, 'utf8'));
+  check(bk.app === 'Trainio' && bk.data.workouts.length === before.w, `Backup enthält alle ${before.w} Workouts`);
+  // Alles löschen: zwei Rückfragen, die zweite mit „LÖSCHEN"
+  await page.evaluate(() => { Actions.deleteAll(); });
+  await pause(page, 400); await page.click('.modal [data-x="ok"]'); await pause(page, 450);
+  await page.fill('#cfmInput', 'LÖSCHEN'); await page.click('.modal [data-x="ok"]'); await pause(page, 900);
+  const del = await count();
+  check(del.w === 0 && del.t === 0 && del.ex > 300, 'Alles gelöscht, Übungs-Bibliothek neu angelegt', JSON.stringify(del));
+  // Wiederherstellen: Datei → „Komplett ersetzen" → bestätigen
+  page.once('filechooser', fc => fc.setFiles(file));
+  await page.evaluate(() => { Actions.restoreJSON(); });
+  await pause(page, 600); await page.click('.modal [data-k="replace"]'); await pause(page, 500); await page.click('.modal [data-x="ok"]'); await pause(page, 1500);
+  const after = await count();
+  fs.rmSync(file, { force: true });
+  check(after.w === before.w && after.t === before.t && after.pr === before.pr, 'Backup wiederhergestellt (Workouts, Vorlagen, PRs)', JSON.stringify({ before, after }));
+  check(await page.evaluate(() => S().design === 'paper'), 'Einstellungen aus dem Backup übernommen');
+  // Arrow-Import mit dem Beispiel, danach rückgängig
+  await page.evaluate(() => { Actions.openArrow(); }); await pause(page, 500);
+  await page.click('.modal [data-x="example"]'); await pause(page, 200);
+  await page.click('.modal [data-x="validate"]'); await pause(page, 600);
+  const c0 = await count();
+  await page.click('#impCommit'); await pause(page, 2500);
+  const c1 = await count();
+  check(c1.w > c0.w && c1.imp === c0.imp + 1, `Arrow-Import: ${c1.w - c0.w} Workouts importiert`, JSON.stringify({ c0, c1 }));
+  await page.evaluate(() => Modal.closeAll()); await pause(page, 400);
+  await page.evaluate(() => { Actions.undoImport(); }); await pause(page, 500); await page.click('.modal [data-x="ok"]'); await pause(page, 1500);
+  check((await count()).w === c0.w, 'Arrow-Import rückgängig gemacht');
+  // Gewicht als CSV (Semikolon, Dezimalkomma)
+  const csvFile = path.join(SHOTS, '..', '.gewicht-test.csv');
+  fs.writeFileSync(csvFile, '"Datum";"Gewicht (kg)"\n"2026-10-01";"81,4"\n"2026-10-02";"81,1"\n"2026-10-03";"80,9"\n');
+  const g0 = (await count()).prog;
+  await page.evaluate(() => { Actions.bwImport(); }); await pause(page, 500);
+  await page.setInputFiles('#bwiFile', csvFile); await pause(page, 600);
+  if (await page.evaluate(() => !document.querySelector('.modal [data-x="go"]').disabled)) { await page.click('.modal [data-x="go"]'); await pause(page, 900); }
+  fs.rmSync(csvFile, { force: true });
+  check((await count()).prog === g0 + 3, 'Gewichts-CSV: 3 Werte importiert');
+  await page.evaluate(() => Modal.closeAll());
+  check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
+}
+
 async function desktopFlow(page) {
   console.log('Desktop (1280 × 800)');
   check(!page.errors.length, 'App startet ohne Fehler', page.errors.join(' | '));
@@ -245,7 +301,7 @@ async function desktopFlow(page) {
   const srv = await serve();
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy');

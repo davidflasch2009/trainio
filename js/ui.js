@@ -153,6 +153,8 @@ const Modal = (() => {
     const m = {
       wrap, el: $('.modal', wrap), body: $('.modal-body', wrap), onClose, closed: false,
       close: v => close(m, v),
+      /** schließen, ohne in die Karte zurückzuschrumpfen (man geht woandershin: löschen, bearbeiten, starten …) */
+      dismiss: v => { m.morphSel = null; close(m, v); },
       setBody(html) { m.body.innerHTML = html; },
       setTitle(t) { $('.modal-head h2', wrap).textContent = t; },
       setFoot(html) {
@@ -208,8 +210,11 @@ const Modal = (() => {
   }
   function close(m, value, instant = false) {
     if (!m || m.closed) return;
-    // Fenster aus einer Karte: zurück in die Karte schrumpfen (nicht nach dem Wegwischen)
-    if (!instant && m.morphSel && !m.swiped && Motion.unmorph(m, () => close(m, value, true))) return;
+    // Fenster aus einer Karte: zurück in die Karte schrumpfen (nicht nach dem Wegwischen); doppeltes Schließen ignorieren
+    if (!instant && m.morphSel && !m.swiped) {
+      if (m.unmorphing) return;
+      if (Motion.unmorph(m, () => close(m, value, true))) { m.unmorphing = true; return; }
+    }
     m.closed = true;
     const i = stack.indexOf(m);
     if (i >= 0) stack.splice(i, 1);
