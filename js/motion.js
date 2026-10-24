@@ -226,6 +226,40 @@ const Motion = (() => {
   }
   subSwipe();
 
+  /* ---------- Antippen fühlbar: Knöpfe, Karten und Listen geben nach und federn zurück ----------
+     Wie bei iOS erst nach einem Wimpernschlag – wer losscrollt, sieht nichts zucken. Ein schneller Tipp ist trotzdem
+     kurz sichtbar. Setzt .pressed (statt :active, das auf dem iPhone sofort und auch beim Scrollen greift). */
+  const PRESSABLE = '.btn, .btn-icon, .chip, .seg button, .set-num, .link-btn, .hint-chip, .ws-item, .fc-pill, .reg-item, .sync-pill, .uni-chip, .rpe-chips button, .stepper button, .nav-btn, .side-btn, .exs-add, .exc-head, .set-fill, .ex-goal, .set-check, button.list-item, .list-item.clickable, .ex-item, .card.clickable, .stat.clickable, .mini-wo, .fab, .banner, .swatch, .design-tile, .icon-tile, .wall-tile, .tile-tog, .cal button';
+  (() => {
+    let pend = null, el = null, timer = 0, x0 = 0, y0 = 0, since = 0;
+    const press = n => { el = n; since = performance.now(); n.classList.add('pressed'); };
+    const release = (minShow = 0) => {
+      clearTimeout(timer); timer = 0; pend = null;
+      if (!el) return;
+      const n = el; el = null;
+      const wait = Math.max(0, minShow - (performance.now() - since));
+      if (wait) setTimeout(() => n.classList.remove('pressed'), wait); else n.classList.remove('pressed');
+    };
+    document.addEventListener('pointerdown', e => {
+      release();
+      if (!e.isPrimary || e.button > 0) return;
+      const n = e.target.closest(PRESSABLE);
+      if (!n || n.disabled) return;
+      if (e.pointerType === 'mouse') return press(n);
+      pend = n; x0 = e.clientX; y0 = e.clientY;
+      timer = setTimeout(() => { timer = 0; if (pend === n) press(n); }, 70);
+    }, { capture: true, passive: true });
+    document.addEventListener('pointermove', e => {
+      if ((pend || el) && e.isPrimary && Math.hypot(e.clientX - x0, e.clientY - y0) > 10) release();
+    }, { capture: true, passive: true });
+    document.addEventListener('pointerup', () => {
+      if (timer && pend) { const n = pend; clearTimeout(timer); timer = 0; press(n); }   // schneller Tipp: kurz zeigen
+      release(90);
+    }, { capture: true, passive: true });
+    document.addEventListener('pointercancel', () => release(), { capture: true, passive: true });   // iOS: Scrollen beginnt
+    document.addEventListener('scroll', () => release(), { capture: true, passive: true });
+  })();
+
   return {
     can, go, topTitle, syncTitle,
     /** nur für den Test: Zurück-Wischen auch außerhalb der iPhone-App erlauben */

@@ -223,6 +223,17 @@ async function mobileFlow(page) {
   check(await page.evaluate(() => moreSub === 'training' && !document.querySelector('.edge-ghost, .edge-shade')), 'Mehr: kurz wischen und loslassen → bleibt auf der Unterseite');
   await page.evaluate(() => closeMoreSub());
   await pause(page, 600);
+  // Antippen fühlbar: gehalten → gibt nach; sofort losscrollen → keine Reaktion
+  const cdpP = page.cdp || (page.cdp = await page.context().newCDPSession(page));
+  const row = await page.evaluate(() => { const r = document.querySelector('#tab-more button.list-item').getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2 }; });
+  const tch = (type, y) => cdpP.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: row.x, y }] });
+  await tch('touchStart', row.y); await pause(page, 200);
+  const held = await page.evaluate(() => !!document.querySelector('#tab-more .pressed'));
+  await tch('touchMove', row.y - 40); await tch('touchEnd'); await pause(page, 500);
+  await tch('touchStart', row.y); await pause(page, 20); for (let k = 1; k <= 6; k++) { await tch('touchMove', row.y - k * 15); await pause(page, 16); }
+  const scrolling = await page.evaluate(() => document.querySelectorAll('.pressed').length);
+  await tch('touchEnd'); await pause(page, 300);
+  check(held && !scrolling && !(await page.evaluate(() => document.querySelectorAll('.pressed').length)), 'Antippen: gibt beim Halten nach, beim Losscrollen nicht', JSON.stringify({ held, scrolling }));
   // Unterseite gleitet sofort herein (CSS-Animation, keine View Transition mit Foto der alten Seite)
   const push = await page.evaluate(() => { openMoreSub('workout'); return { cls: document.querySelector('#tab-more').classList.contains('fx-pg-fwd'), vtName: getComputedStyle(document.querySelector('#bottomNav')).viewTransitionName || 'none' }; });
   check(push.cls && push.vtName === 'none', 'Unterseite gleitet sofort herein, Tab-Leiste ohne Übergangs-Namen', JSON.stringify(push));

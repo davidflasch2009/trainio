@@ -68,6 +68,8 @@ schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurze
 Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und
 „Bewegung reduzieren“ des Systems:
 - **Tab-Wechsel** sind wie bei iOS sofort da – ohne Überblenden, nichts zuckt. Nur das Tab-Symbol hüpft kurz.
+- **Antippen:** Knöpfe, Karten, Listen und die Tab-Leiste geben wie bei iOS nach einem Wimpernschlag leicht nach und
+  federn weich zurück; ein schneller Tipp ist kurz sichtbar, beim Losscrollen zuckt nichts.
 - **Unterseiten:** Gruppen im Mehr-Tab (und die Übungs-Bibliothek über Mehr) gleiten sanft von rechts herein,
   zurück von links – sofort beim Antippen, ohne Verzögerung (bewusst ohne View Transitions, die in Safari vor jedem
   Wechsel erst ein Bild der alten Seite anfertigen). Ist der große Titel weggescrollt, steht er klein
