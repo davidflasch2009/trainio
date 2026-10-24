@@ -77,8 +77,9 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   folgt dem Finger, darunter liegt schon die echte Übersicht (kurz ziehen und loslassen = bleiben). Auf dem iPhone legt
   Trainio dafür keine Verlaufs-Einträge an – sonst wischt iOS zusätzlich selbst durch den Verlauf (auch vorwärts). Weil nur eine Kopie
   der Seite weggezogen wird, muss am Ende nichts ausgetauscht werden – nichts flackert.
-- **Menüs von unten** (Workout starten, ⋯ usw.) gleiten mit der iOS-Kurve herein, die Seite dahinter wird leicht
-  abgedunkelt und bleibt gleich groß. Nach unten wegwischen schließt sie.
+- **Menüs von unten** (Workout starten, ⋯ usw.) kommen mit einer weichen iOS-Feder hoch, die Seite dahinter wird leicht
+  abgedunkelt und bleibt gleich groß. Wegwischen folgt dem Finger (nach oben nur mit Widerstand); ein schneller
+  Schnipp oder weit genug ziehen schließt – das Fenster gleitet mit Fingertempo hinaus –, sonst federt es zurück.
 - **Rückfragen** („Workout beenden?“, „Löschen?“ …) erscheinen mittig wie iOS-Alerts; bei langen Beschriftungen
   stehen die Knöpfe untereinander.
 - **Haptik auf dem iPhone:** Web-Apps können dort nicht vibrieren – ab iOS 18 gibt ein unsichtbarer iOS-Schalter

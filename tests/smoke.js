@@ -378,6 +378,16 @@ async function iphoneFlow(page) {
   await page.waitForFunction(() => typeof App !== 'undefined', null, { timeout: 10000 });
   await pause(page, 500);
   check(await page.evaluate(() => !moreSub && !history.state), 'Beim Start auf altem Eintrag: Eintrag geleert, keine Gruppe offen');
+  // Fenster von unten: kurz ziehen und loslassen → federt zurück, weit ziehen → schließt
+  await page.evaluate(() => { App.go('start'); Actions.startSheet(); });
+  await pause(page, 800);
+  const hd = await page.evaluate(() => { const r = document.querySelector('.modal .modal-head').getBoundingClientRect(); return { x: r.left + 120, y: r.top + 20, h: document.querySelector('.modal').offsetHeight }; });
+  const cdpS = page.cdp || (page.cdp = await page.context().newCDPSession(page));
+  const drag = async (to, steps) => { await cdpS.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: hd.x, y: hd.y }] }); for (let k = 1; k <= steps; k++) { await cdpS.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: hd.x, y: hd.y + to * k / steps }] }); await pause(page, 30); } await pause(page, 150); await cdpS.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await pause(page, 800); };
+  await drag(60, 6);
+  check(await page.evaluate(() => Modal.count() === 1 && getComputedStyle(document.querySelector('.modal')).transform === 'none'), 'Fenster: kurz gezogen → federt zurück');
+  await drag(hd.h * 0.6, 12);
+  check(await page.evaluate(() => Modal.count() === 0), 'Fenster: weit nach unten gezogen → schließt');
   check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
 }
 

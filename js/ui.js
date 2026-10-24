@@ -172,37 +172,58 @@ const Modal = (() => {
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
     return m;
   }
-  /** Bottom-Sheet (Handy) nach unten wegwischen: am Kopf jederzeit, im Inhalt nur ganz oben gescrollt */
+  /** Bottom-Sheet (Handy) wegwischen: am Kopf jederzeit, im Inhalt nur ganz oben gescrollt. Folgt dem Finger 1:1,
+      nach oben nur mit Widerstand. Beim Loslassen zählt die Geschwindigkeit der letzten Bewegung: schnell nach unten
+      oder weit genug → das Fenster gleitet mit Fingertempo hinaus, sonst federt es zurück. */
+  const SPRING_BACK = CSS.supports('transition-timing-function', 'linear(0, 1)')
+    ? 'linear(0, 0.0233 2.8%, 0.083 5.6%, 0.1661 8.3%, 0.2621 11.1%, 0.3631 13.9%, 0.4632 16.7%, 0.5583 19.4%, 0.6456 22.2%, 0.7235 25%, 0.7912 27.8%, 0.8487 30.6%, 0.8964 33.3%, 0.9349 36.1%, 0.9653 38.9%, 0.9885 41.7%, 1.0055 44.4%, 1.0174 47.2%, 1.0252 50%, 1.0296 52.8%, 1.0314 55.6%, 1.0313 58.3%, 1.0299 61.1%, 1.0275 63.9%, 1.0246 66.7%, 1.0215 69.4%, 1.0183 72.2%, 1.0152 75%, 1.0123 77.8%, 1.0098 80.6%, 1.0075 83.3%, 1.0055 86.1%, 1.0039 88.9%, 1.0025 91.7%, 1.0015 94.4%, 1.0007 97.2%, 1)'
+    : 'cubic-bezier(.32, .72, 0, 1)';
   function sheetSwipe(m) {
     const bd = $('.modal-backdrop', m.wrap);
-    let y0 = null, x0 = 0, dy = 0, t0 = 0, head = false, lock = null;
+    let y0 = null, x0 = 0, dy = 0, head = false, lock = null, ly = 0, lt = 0, v = 0;
     m.el.addEventListener('touchstart', e => {
       y0 = null;
-      if (innerWidth >= 700 || e.touches.length !== 1) return;
+      if (innerWidth >= 700 || e.touches.length !== 1 || m.closed) return;
       head = !!e.target.closest('.modal-head');
       if (!head && !(e.target.closest('.modal-body') && m.body.scrollTop <= 0)) return;
       if (!head && e.target.closest('input, textarea, select, .chips, .wall-row, .seg, .fc-sets, .hscroll')) return;
-      y0 = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; t0 = Date.now(); lock = null;
+      y0 = ly = e.touches[0].clientY; x0 = e.touches[0].clientX; dy = 0; v = 0; lt = e.timeStamp; lock = null;
     }, { passive: true });
     m.el.addEventListener('touchmove', e => {
       if (y0 == null) return;
-      const d = e.touches[0].clientY - y0, dx = e.touches[0].clientX - x0;
-      if (lock == null && (Math.abs(d) > 6 || Math.abs(dx) > 6)) lock = Math.abs(d) > Math.abs(dx) && d > 0 ? 'y' : 'no';
+      const y = e.touches[0].clientY, d = y - y0, dx = e.touches[0].clientX - x0;
+      // im Inhalt nur nach unten (nach oben wird gescrollt), am Kopf in beide Richtungen
+      if (lock == null && (Math.abs(d) > 6 || Math.abs(dx) > 6)) lock = Math.abs(d) > Math.abs(dx) && (d > 0 || head) ? 'y' : 'no';
       if (lock !== 'y' || (!head && m.body.scrollTop > 0)) { if (lock === 'no') y0 = null; return; }
-      e.preventDefault();
-      dy = Math.max(0, d);
+      if (e.cancelable) e.preventDefault();
+      const dt = Math.max(1, e.timeStamp - lt);
+      v = v * 0.3 + ((y - ly) / dt) * 0.7;   // px/ms, leicht geglättet
+      ly = y; lt = e.timeStamp;
+      dy = d >= 0 ? d : -36 * (1 - 1 / (1 - d / 90));   // nach oben: Gummiband, höchstens ~36 px
       m.el.style.transition = 'none';
-      m.el.style.transform = `translateY(${dy}px)`;
+      m.el.style.transform = `translateY(${dy.toFixed(1)}px)`;
       bd.style.transition = 'none';
-      bd.style.opacity = String(Math.max(0, 1 - dy / Math.max(1, m.el.offsetHeight)));
+      bd.style.opacity = String(Math.max(0, Math.min(1, 1 - dy / Math.max(1, m.el.offsetHeight))));
     }, { passive: false });
-    const end = () => {
+    const end = e => {
       if (y0 == null) return;
       y0 = null;
-      m.el.style.transition = ''; bd.style.transition = ''; bd.style.opacity = '';
-      const fast = dy > 30 && dy / Math.max(1, Date.now() - t0) > 0.5;
-      m.el.style.transform = '';
-      if (lock === 'y' && (dy > Math.min(140, m.el.offsetHeight * 0.3) || fast)) close(m);
+      if (lock !== 'y') return;
+      const h = m.el.offsetHeight, vel = e && e.timeStamp - lt > 90 ? 0 : v;   // Finger stand still → kein Schwung
+      if (dy > 0 && (vel > 0.5 || (dy > Math.min(140, h * 0.3) && vel > -0.2))) {
+        // hinaus mit dem Tempo des Fingers (mind. 130 ms, höchstens 320 ms)
+        const dur = Math.round(clamp((h - dy) / Math.max(vel, 1.1), 130, 320));
+        m.el.style.transition = `transform ${dur}ms cubic-bezier(.25, .75, .45, 1)`;
+        bd.style.transition = `opacity ${dur}ms linear`;
+        m.el.style.transform = ''; bd.style.opacity = '';
+        close(m);
+        return;
+      }
+      // zurückfedern
+      m.el.style.transition = `transform 550ms ${SPRING_BACK}`;
+      bd.style.transition = 'opacity .3s';
+      m.el.style.transform = ''; bd.style.opacity = '';
+      setTimeout(() => { if (!m.closed && y0 == null) { m.el.style.transition = ''; bd.style.transition = ''; } }, 600);
     };
     m.el.addEventListener('touchend', end);
     m.el.addEventListener('touchcancel', end);

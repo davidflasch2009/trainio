@@ -1714,10 +1714,21 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
    manche Flächen sofort, andere langsam). */
 html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition: none !important; }
 
-/* Sheets: Kurve wie iOS, Schließen etwas schneller */
+/* Sheets (Handy): kommen mit einer weichen Feder hoch (iOS-Feder, ~1 % Überschwingen), gehen gleichmäßig mit der
+   iOS-Kurve – ohne linear() (vor iOS 17.2) nur die Kurve. Unter dem Fenster reicht sein Hintergrund über den Rand
+   hinaus, damit beim Federn und Hochziehen keine Lücke aufgeht. */
 .modal { transition: transform .5s var(--ease-ios); }
+@media (max-width: 699px) {
+  .modal {
+    transition: transform .6s var(--ease-ios);
+    transition: transform .6s linear(0, 0.0196 2.8%, 0.0697 5.6%, 0.1397 8.3%, 0.2211 11.1%, 0.3077 13.9%, 0.3947 16.7%, 0.4788 19.4%, 0.5578 22.2%, 0.6301 25%, 0.6951 27.8%, 0.7525 30.6%, 0.8024 33.3%, 0.845 36.1%, 0.881 38.9%, 0.911 41.7%, 0.9355 44.4%, 0.9553 47.2%, 0.971 50%, 0.9832 52.8%, 0.9924 55.6%, 0.9993 58.3%, 1.0042 61.1%, 1.0075 63.9%, 1.0096 66.7%, 1.0107 69.4%, 1.0111 72.2%, 1.011 75%, 1.0105 77.8%, 1.0097 80.6%, 1.0088 83.3%, 1.0079 86.1%, 1.0069 88.9%, 1.006 91.7%, 1.0051 94.4%, 1.0043 97.2%, 1);
+  }
+  .modal:not(.alert)::before { content: ''; position: absolute; left: calc(-1 * var(--bw)); right: calc(-1 * var(--bw)); top: 100%; height: 90px; background: inherit; pointer-events: none; }
+  [data-design="glass"] .modal:not(.alert)::before { background: var(--glass-sheet); }
+}
 .modal-backdrop { transition: opacity .3s; }
 .modal-wrap.closing .modal { transition-duration: .32s; }
+@media (max-width: 699px) { .modal-wrap.closing .modal { transition: transform .32s var(--ease-ios); } }
 @media (min-width: 700px) {
   .modal { transition: transform .3s var(--ease-ios), opacity .2s; }
 }
