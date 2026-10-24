@@ -28,7 +28,7 @@ const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item
 /* Mehr-Tab: Übersicht (Suche, Konto, Gruppen) – jede Gruppe öffnet sich als eigene Seite.
    Gruppe: { id, title, ic, sub, intro?, head?, foot?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
    Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
-let moreSub = (history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
+let moreSub = (!isIOSDevice && history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
 const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
 const mRow = (html, t, s = '', kw = '', only = '') => ({ t, s, kw, html, only });
 const lastImportDoc = () => Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
@@ -389,9 +389,15 @@ Views.more = {
     if (history.state && history.state.moreSub) history.back();   // Verlaufs-Eintrag der Gruppe wieder entfernen
   }
 };
+/* Verlauf: Auf Android und im Browser bekommt jede offene Gruppe einen Verlaufs-Eintrag – die Zurück-Taste schließt sie.
+   Auf dem iPhone nicht: iOS wischt in Web-Apps vom Rand selbst durch den Verlauf (zurück UND vorwärts, nicht
+   abschaltbar) und zeigt dabei alte Bildschirmfotos. So holte nach dem Wechsel zu „Start" ein Wisch nach links die
+   Einstellungen zurück, und auf Unterseiten liefen iOS- und Trainio-Geste gleichzeitig. Zurück geht dort per Knopf
+   oder mit Trainios Wischen vom linken Rand (js/motion.js). */
+const moreHistory = !isIOSDevice;
 function openMoreSub(id) {
   if (!moreSub) moreScroll = Scroll.y;
-  try { history.pushState({ moreSub: id }, ''); } catch (e) {}
+  if (moreHistory) try { history.pushState({ moreSub: id }, ''); } catch (e) {}
   if (App.tab !== 'more') { moreSub = id; App.go('more'); Scroll.to(0); return; }   // Tab-Wechsel: ohne Übergang
   Motion.go('push', () => { moreSub = id; App.renderCurrent(); Scroll.to(0); });
 }

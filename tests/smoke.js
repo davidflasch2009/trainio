@@ -67,8 +67,8 @@ function serve() {
 }
 
 /* ---------- 3. Browser ---------- */
-async function openApp(browser, base, viewport, touch = false) {
-  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch, acceptDownloads: true });
+async function openApp(browser, base, viewport, touch = false, userAgent = undefined) {
+  const ctx = await browser.newContext({ viewport, serviceWorkers: 'block', locale: 'de-DE', hasTouch: touch, acceptDownloads: true, userAgent });
   // nur die eigene Seite – Firebase, Schriften usw. bleiben draußen; Chart.js (CDN) kommt aus node_modules
   const chartJs = path.join(ROOT, 'node_modules', 'chart.js', 'dist', 'chart.umd.js');
   await ctx.route(url => !url.href.startsWith(base), r => /\/chart\.js@/.test(r.request().url()) && fs.existsSync(chartJs)
@@ -333,6 +333,32 @@ async function dataFlow(page) {
   check(!logged.length && !page.errors.length, 'keine Fehler beim Design-Wechsel', [...logged, ...page.errors].join(' | '));
 }
 
+/* iPhone-Kennung: keine eigenen Verlaufs-Einträge – sonst wischt iOS selbst vom Rand durch den Verlauf
+   (vorwärts holte nach „Start" die Einstellungen zurück, zurück lief doppelt mit Trainios Geste) */
+async function iphoneFlow(page) {
+  console.log('iPhone-Kennung');
+  check(await page.evaluate(() => isIOSDevice), 'App erkennt das iPhone');
+  const h0 = await page.evaluate(() => history.length);
+  await page.evaluate(() => { App.go('more'); openMoreSub('look'); });
+  await pause(page, 500);
+  check(await page.evaluate(h0 => moreSub === 'look' && history.length === h0 && !history.state, h0), 'Gruppe öffnet ohne Verlaufs-Eintrag');
+  await page.click('#topbar [data-act="moreBack"]');
+  await pause(page, 500);
+  check(await page.evaluate(() => !moreSub), 'Zurück-Knopf schließt die Gruppe');
+  await page.evaluate(() => openMoreSub('training'));
+  await pause(page, 400);
+  await page.click('#bottomNav [data-tab="start"]');
+  await pause(page, 300);
+  await page.evaluate(() => history.forward());   // = Wisch nach links in der iPhone-App
+  await pause(page, 400);
+  check(await page.evaluate(() => App.tab === 'start' && !moreSub), 'Nach Wechsel zu Start holt „Vorwärts" die Einstellungen nicht zurück');
+  await page.evaluate(() => { Motion.edgeAlways = true; App.go('more'); openMoreSub('workout'); });
+  await pause(page, 500);
+  await swipe(page, 6, 320, 420);
+  check(await page.evaluate(h0 => !moreSub && history.length === h0 && !document.querySelector('.edge-ghost, .edge-shade'), h0), 'Zurück-Wischen vom Rand schließt die Gruppe');
+  check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
+}
+
 async function desktopFlow(page) {
   console.log('Desktop (1280 × 800)');
   check(!page.errors.length, 'App startet ohne Fehler', page.errors.join(' | '));
@@ -349,10 +375,11 @@ async function desktopFlow(page) {
   const srv = await serve();
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
-      page = await openApp(browser, base, viewport, name === 'handy');
+      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone', name === 'iphone' ? IPHONE : undefined);
       await flow(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';

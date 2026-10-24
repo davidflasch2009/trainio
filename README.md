@@ -72,7 +72,8 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   zurück von links – sofort beim Antippen, ohne Verzögerung (bewusst ohne View Transitions, die in Safari vor jedem
   Wechsel erst ein Bild der alten Seite anfertigen). Ist der große Titel weggescrollt, steht er klein
   in der oberen Leiste. In der installierten iPhone-App: **vom linken Rand nach rechts wischen** = zurück, die Seite
-  folgt dem Finger, darunter liegt schon die echte Übersicht (kurz ziehen und loslassen = bleiben). Weil nur eine Kopie
+  folgt dem Finger, darunter liegt schon die echte Übersicht (kurz ziehen und loslassen = bleiben). Auf dem iPhone legt
+  Trainio dafür keine Verlaufs-Einträge an – sonst wischt iOS zusätzlich selbst durch den Verlauf (auch vorwärts). Weil nur eine Kopie
   der Seite weggezogen wird, muss am Ende nichts ausgetauscht werden – nichts flackert.
 - **Menüs von unten** (Workout starten, ⋯ usw.) gleiten mit der iOS-Kurve herein, die Seite dahinter wird leicht
   abgedunkelt und bleibt gleich groß. Nach unten wegwischen schließt sie.
