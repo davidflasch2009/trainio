@@ -95,9 +95,13 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 - **Zahlen zählen hoch** (Startseite, Fortschritt, Workout-Abschluss) und **rollen bei + und −** wie ein Zählwerk.
 - **Diagramme** werden beim Öffnen sofort und in voller Bildschirmschärfe gezeichnet (nie mitten im Scrollen –
   das machte sie auf dem iPhone unscharf) und bauen sich dabei kurz auf.
-- **Workout:** fertige Übungen klappen sanft zu, die nächste sanft auf; der Fortschrittsbalken füllt sich weich
-  und leuchtet bei 100 % auf; Pausen-Timer mit ablaufendem Ring, die letzten 3 Sekunden pulsieren.
-- **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, neue PRs erscheinen nacheinander mit Glanz.
+- **Workout:** Beim Abhaken zeichnet sich das Häkchen selbst, die Zähler (Übung „1/3 → 2/3“ und Sätze oben) rollen
+  eine Stelle weiter (beim Zurücknehmen zurück). Fertige Übungen klappen sanft zu, die nächste sanft auf, die Karten
+  darunter gleiten mit; der Fortschrittsbalken füllt sich weich und leuchtet bei 100 % auf.
+- **Pausen-Leiste:** gleitet von unten herein, Ring läuft ab, die letzten 3 Sekunden pulsieren, am Ende stupst sie
+  einmal sanft an; beim Beenden gleitet sie nach unten weg.
+- **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, die Werte-Kacheln erscheinen nacheinander, neue PRs
+  mit Glanz.
 
 ## Designs & Darstellung
 

@@ -726,8 +726,14 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .rest-dock {
   position: fixed; left: 12px; right: 12px; z-index: 48; bottom: calc(var(--nav-space) + 10px);
   max-width: 560px; margin: 0 auto; background: var(--surface-3); border: var(--bw) solid var(--border-strong); border-radius: calc(18px * var(--rs));
-  box-shadow: var(--shadow); overflow: hidden; animation: restIn .38s var(--ease-spring, ease);
+  box-shadow: var(--shadow); overflow: hidden;
 }
+/* Erscheinen, am Ende einmal sanft anstupsen, beim Beenden nach unten weggleiten */
+.rest-dock.fx-rest-in { animation: restIn .38s var(--ease-spring, ease); }
+.rest-dock.fx-nudge { animation: restNudge .6s var(--ease-out); }
+.rest-dock.leaving { animation: restOut .26s cubic-bezier(.4, 0, .9, .4) forwards; pointer-events: none; }
+@keyframes restNudge { 0%, 100% { transform: none; } 30% { transform: translateY(-5px) scale(1.025); } 65% { transform: translateY(1px); } }
+@keyframes restOut { to { opacity: 0; transform: translateY(32px) scale(.97); } }
 .rest-mini { width: 34px; height: 34px; padding: 0; border: 0; background: none; flex-shrink: 0; margin-left: -4px; }
 .rest-dock .rest-mini + .rest-time { min-width: 0; font-size: calc(24px * var(--fs)); }
 .rest-dock #restLbl { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
@@ -1668,6 +1674,10 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .fx-open { animation: fxOpen .34s var(--ease-out) both; transform-origin: top center; }
 .fx-done { animation: fxDone .7s var(--ease-out); }
 .fx-done .set-check { animation: fxPop .42s var(--ease-spring); }
+/* Häkchen zeichnet sich selbst (Pfadlänge ≈ 19,8) – ohne Animation bleibt es einfach sichtbar */
+.fx-done .set-check svg path { stroke-dasharray: 21 30; animation: drawCheck .32s .1s var(--ease-out) backwards; }
+@keyframes drawCheck { from { stroke-dashoffset: 21.5; } to { stroke-dashoffset: 0; } }
+.roll { display: inline-block; font-style: normal; }
 .fx-complete { animation: fxComplete .9s var(--ease-out); }
 .fx-fill { animation: fxFill .7s var(--ease-out); }
 .fx-bump { animation: fxBump .22s var(--ease-out); }
@@ -1695,8 +1705,13 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 @keyframes fxGlow { 0% { box-shadow: 0 0 0 0 transparent; filter: none; } 35% { box-shadow: 0 0 14px 2px color-mix(in srgb, var(--accent) 70%, transparent); filter: brightness(1.35); } 100% { box-shadow: 0 0 0 0 transparent; filter: none; } }
 /* Workout-Abschluss: Abzeichen springt, Symbol zeichnet sich, PRs glänzen nacheinander */
 .sum-draw { animation: fxPop .55s var(--ease-spring) both; }
-.sum-draw svg * { stroke-dasharray: 1; stroke-dashoffset: 1; animation: drawStroke .7s .2s var(--ease-out) forwards; }
-@keyframes drawStroke { to { stroke-dashoffset: 0; } }
+.sum-draw svg * { stroke-dasharray: 1; animation: drawStroke .7s .2s var(--ease-out) backwards; }
+@keyframes drawStroke { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
+/* Werte-Kacheln erscheinen nacheinander, während das Fenster hochfedert */
+.sum-tiles.fx-stagger > * { animation-duration: .42s; }
+.sum-tiles.fx-stagger > :nth-child(1) { animation-delay: .12s; } .sum-tiles.fx-stagger > :nth-child(2) { animation-delay: .18s; }
+.sum-tiles.fx-stagger > :nth-child(3) { animation-delay: .24s; } .sum-tiles.fx-stagger > :nth-child(4) { animation-delay: .30s; }
+.sum-tiles.fx-stagger > :nth-child(n+5) { animation-delay: .36s; }
 .sum-prs .pr-shine { position: relative; overflow: hidden; animation: fxUp .4s var(--ease-out) both; animation-delay: calc(.35s + var(--i) * .18s); }
 .sum-prs .pr-shine::after { content: ''; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, var(--accent) 22%, transparent) 50%, transparent 70%); transform: translateX(-100%); animation: prShine 1s var(--ease-out) forwards; animation-delay: calc(.6s + var(--i) * .18s); }
 @keyframes prShine { to { transform: translateX(100%); } }

@@ -134,11 +134,24 @@ async function mobileFlow(page) {
   await page.fill(set(0, 'setW'), '60');
   await page.fill(set(0, 'setB'), '8');
   await page.click(`#tab-training [data-act="setDone"][data-ei="0"][data-si="0"]`);
+  const live = await page.evaluate(() => {
+    const path = document.querySelector('.set-row[data-ei="0"][data-si="0"] .set-check svg path');
+    const rolls = [...document.querySelectorAll('#tab-training .roll')];
+    const box = document.querySelector('#restBox');
+    const r = { draw: getComputedStyle(path).animationName, rolls: rolls.map(r => r.textContent + (r.classList.contains('fx-roll-up') ? '↑' : '')).join(' '), dockIn: !!box && box.classList.contains('fx-rest-in') };
+    App.renderCurrent();
+    return { ...r, dockKept: !!box && box === document.querySelector('#restBox') && box.isConnected };
+  });
+  check(live.draw === 'drawCheck' && live.rolls === '1↑ 1↑', 'Satz abhaken: Häkchen zeichnet sich, Zähler rollen weiter', JSON.stringify(live));
+  check(live.dockIn && live.dockKept, 'Pausen-Leiste gleitet herein und bleibt beim Neu-Zeichnen stehen', JSON.stringify(live));
   await pause(page, 300);
   const s0 = await page.evaluate(() => ({ s: Workout.cur().entries[0].sets[0], rest: !!Workout.cur().rest, dock: document.querySelector('#restDock').innerHTML.length }));
   check(s0.s.done && s0.s.weightKg === 60 && s0.s.reps === 8, 'Satz 1 (60 kg × 8) abgehakt', JSON.stringify(s0.s));
   check(s0.rest && s0.dock > 0, 'Pausen-Timer startet nach dem Satz');
   await page.click('#restDock [data-act="restSkip"]');
+  const leave = await page.evaluate(() => ({ gone: !document.querySelector('#restBox'), leaving: !!document.querySelector('#restDock .rest-dock.leaving') }));
+  await pause(page, 400);
+  check(leave.gone && leave.leaving && !await page.evaluate(() => document.querySelector('#restDock').children.length), 'Pause beenden: Leiste gleitet nach unten weg', JSON.stringify(leave));
 
   // Scheibenrechner über ⋯ an der Übung → zeigt Satz 2
   await page.click('#tab-training [data-act="exMenu"][data-ei="0"]');

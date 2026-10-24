@@ -194,7 +194,12 @@ const RestTimer = (() => {
     document.body.classList.remove('has-rest');
     const m = Modal.top();
     if (m && m.isRest) m.close();
-    $('#restDock').innerHTML = '';
+    // Leiste gleitet nach unten weg statt plötzlich zu verschwinden
+    const box = $('#restBox');
+    if (box && motionFull()) {
+      box.removeAttribute('id'); box.classList.add('leaving');
+      setTimeout(() => box.remove(), 300);
+    } else $('#restDock').innerHTML = '';
   }
   function adjust(d) {
     const w = Workout.cur();
@@ -209,11 +214,13 @@ const RestTimer = (() => {
   function render() {
     const w = Workout.cur();
     const dock = $('#restDock');
-    if (!w || !w.rest) { dock.innerHTML = ''; document.body.classList.remove('has-rest'); return; }
+    if (!w || !w.rest) { $$('.rest-dock:not(.leaving)', dock).forEach(n => n.remove()); document.body.classList.remove('has-rest'); return; }
     document.body.classList.add('has-rest');
-    // Einblend-Animation nur beim ersten Erscheinen, nicht bei jedem Neu-Rendern
+    // Leiste schon da → nur Text auffrischen, damit laufende Animationen (Einblenden, Anstupsen) nicht abbrechen
+    const box = $('.rest-dock:not(.leaving)', dock);
+    if (box) { $('#restLbl', box).textContent = w.rest.label || ''; tick(); return; }
     const RL = 2 * Math.PI * 17;
-    dock.innerHTML = `<div class="rest-dock" id="restBox" ${dock.firstElementChild ? 'style="animation:none"' : ''}>
+    dock.innerHTML = `<div class="rest-dock" id="restBox">
       <div class="rest-row">
         <button class="rest-mini" data-act="restBig" aria-label="Großer Countdown"><svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="17" fill="none" stroke-width="4"/><circle id="restMini" class="ring-fg" cx="20" cy="20" r="17" fill="none" stroke-width="4" stroke-dasharray="${RL}" data-len="${RL}"/></svg></button>
         <button class="rest-time" data-act="restBig" id="restTime" aria-label="Großer Countdown">0:00</button>
@@ -222,6 +229,7 @@ const RestTimer = (() => {
         <button class="btn btn-sm btn-secondary" data-act="restAdj" data-d="15">+15</button>
         <button class="btn-icon" data-act="restSkip" aria-label="Pause beenden">${icon('x')}</button>
       </div></div>`;
+    fx($('#restBox'), 'fx-rest-in');
     tick();
   }
   function tick() {
@@ -257,6 +265,7 @@ const RestTimer = (() => {
     if (rem < -60) stop();
   }
   function done(w) {
+    fx($('#restBox'), 'fx-nudge');
     vibrate([220, 120, 220, 120, 400]);
     beep();
     const sel = w.sel && w.entries[w.sel.e];

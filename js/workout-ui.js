@@ -28,7 +28,7 @@ function renderActiveWorkout(el, w) {
         <div class="wo-main">
           <div class="grow" style="min-width:0">
             <div class="wo-title ellipsis">${esc(w.name)}</div>
-            <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span>${st.done}/${st.total} Sätze</span></div>
+            <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span><i class="roll">${st.done}</i>/${st.total} Sätze</span></div>
           </div>
           <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
           <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Fertig'}</button>
@@ -53,7 +53,7 @@ function renderActiveWorkout(el, w) {
           <button class="ex-name ellipsis" data-act="woRename" style="background:none;border:0;padding:0;color:var(--text);font-weight:800;font-size:calc(17px * var(--fs));max-width:100%;text-align:left">${esc(w.name)} ${icon('edit').replace('<svg', '<svg width="14" height="14" style="vertical-align:-1px;opacity:.5"')}</button>
           <div class="wo-stats small dim">
             ${w.editingId ? `<span class="badge warn">Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" style="font-size:calc(16px * var(--fs));color:var(--text)" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}
-            <span>${st.done}/${st.total} Sätze</span><span>${fmtTon(st.vol)}</span>
+            <span><i class="roll">${st.done}</i>/${st.total} Sätze</span><span>${fmtTon(st.vol)}</span>
           </div>
         </div>
         <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
@@ -299,7 +299,7 @@ function cardioCard(en, ei, w) {
         <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
         <div class="exs-goal" style="text-decoration:none">${esc(cardioGoalTxt(en))}</div>
       </div>
-      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : en.sets.length > 1 ? `${doneN}/${en.sets.length}` : ''}</span>
+      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : en.sets.length > 1 ? `<i class="roll">${doneN}</i>/${en.sets.length}` : ''}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal ${fmtDateShort(last.date)}: ${esc(cardioTxt({ sec: last.secs, km: last.km, lvl: last.lvl || null }, info))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Übernehmen</button>` : ''}</div>` : ''}
@@ -359,7 +359,7 @@ function simpleCard(en, ei, w) {
         <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
         <button class="exs-goal" data-act="goalEdit" data-ei="${ei}" aria-label="Ziel bearbeiten">${esc(goal)}</button>
       </div>
-      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `${doneN}/${ws.length}`}</span>
+      <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `<i class="roll">${doneN}</i>/${ws.length}`}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
@@ -1005,6 +1005,7 @@ Actions.setDone = el => {
     Workout.save();
     App.renderCurrent();
     fx($(`.set-row[data-ei="${ei}"][data-si="${si}"] .set-check`), 'fx-bump');
+    fx($$(`#ex-${en.uid} .exs-count .roll, .wo-stats .roll`), 'fx-roll-down');
     return;
   }
   const type = Ex.type(Ex.get(en.exerciseId));
@@ -1083,7 +1084,10 @@ Actions.setDone = el => {
   if (wasLast) toast('Alle Sätze erledigt – stark! Unten „Workout beenden" tippen.', 'success', { cat: 'workout' });
   else if (exDone) toast(`${en.exerciseName} abgeschlossen`, 'success', { cat: 'workout' });
   App.renderCurrent();
+  // Häkchen zeichnet sich, Zähler (Übung und Kopf) rollen eine Stelle weiter
   fx($(`.set-row[data-ei="${ei}"][data-si="${si}"]`), 'fx-done');
+  fx($$(`#ex-${en.uid} .exs-count .roll, .wo-stats .roll`), 'fx-roll-up');
+  fx($(`#ex-${en.uid} .exs-count.ok svg`), 'fx-pop');
   if (exDone) fx($('#ex-' + en.uid), 'fx-complete');
   // Liste: zur nächsten Übung scrollen, wenn diese fertig ist
   const nextE = woCollapse() ? openIndex(w) : w.sel.e;
@@ -1426,7 +1430,7 @@ function showSummary({ id, doc, prs }) {
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
       ${sc ? scoreBreakdownHtml(sc) : ''}
-      <div class="pr-grid mt-16 fx-stagger">
+      <div class="pr-grid sum-tiles mt-16 fx-stagger">
         <div class="pr-box"><span>Dauer</span><b>${fmtDur(doc.durationSec)}</b></div>
         ${done.length || !ct.n ? `<div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
         <div class="pr-box"><span>Sätze</span><b>${done.length}</b></div>
