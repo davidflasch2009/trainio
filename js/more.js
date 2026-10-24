@@ -408,7 +408,7 @@ function closeMoreSub() {
 }
 // Zurück-Geste/-Taste (Android, Browser) schließt die offene Gruppe
 window.addEventListener('popstate', () => {
-  if (!moreSub) return;
+  if (!moreHistory || !moreSub) return;   // iPhone: kein eigener Verlauf (Schutz in js/boot.js)
   const next = (history.state && history.state.moreSub) || null;
   if (App.tab !== 'more') { moreSub = next; return; }
   Motion.go(next ? 'push' : 'pop', () => { moreSub = next; App.renderCurrent(); Scroll.to(next ? 0 : moreScroll); });

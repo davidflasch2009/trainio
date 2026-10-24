@@ -367,6 +367,17 @@ async function iphoneFlow(page) {
   await pause(page, 500);
   await swipe(page, 6, 320, 420);
   check(await page.evaluate(h0 => !moreSub && history.length === h0 && !document.querySelector('.edge-ghost, .edge-shade'), h0), 'Zurück-Wischen vom Rand schließt die Gruppe');
+  // Alte Verlaufs-Einträge (von früheren Versionen, bleiben bis zum Beenden der App): Wischen darf nichts verändern
+  await page.evaluate(() => { App.go('start'); history.pushState({ moreSub: 'look' }, ''); history.back(); });
+  await pause(page, 400);
+  await page.evaluate(() => history.forward());   // = iOS-Wisch nach links auf den alten Eintrag
+  await pause(page, 500);
+  check(await page.evaluate(() => App.tab === 'start' && !moreSub && !history.state), 'Alter Verlaufs-Eintrag: App bleibt auf Start, Eintrag geleert');
+  await page.evaluate(() => history.pushState({ moreSub: 'look' }, ''));
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForFunction(() => typeof App !== 'undefined', null, { timeout: 10000 });
+  await pause(page, 500);
+  check(await page.evaluate(() => !moreSub && !history.state), 'Beim Start auf altem Eintrag: Eintrag geleert, keine Gruppe offen');
   check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
 }
 

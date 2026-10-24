@@ -445,7 +445,9 @@ nicht nachträglich verknüpfen (Daten würden sonst vermischt).
 > (z. B. `python3 tools/release.py 1.11.1`). Das setzt die App-Version in `js/core.js`,
 > hängt `?v=<version>` an alle CSS/JS-Links in `index.html` und zählt `CACHE` in `sw.js`
 > hoch. Sonst zeigt das iPhone noch die alte Version (oder alte und neue Dateien gemischt).
-> Die App meldet neue Versionen selbst („Neue Version verfügbar – Neu laden“).
+> Neue Versionen spielen sich von selbst ein: beim Öffnen der App (auch aus dem Hintergrund), solange noch nichts
+> angetippt ist, sonst beim nächsten Verlassen der App (wenn kein Fenster offen ist). Bis dahin erscheint
+> „Neue Version verfügbar – Neu laden“. Daten und ein laufendes Workout sind vorher gesichert.
 
 ### Installieren
 

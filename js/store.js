@@ -95,7 +95,7 @@ const Store = (() => {
     } catch (e) { console.warn('Lokaler Cache defekt – wird neu aufgebaut', e); }
   }
   let quotaWarned = false;
-  const saveLocal = debounce(() => {
+  const writeLocal = () => {
     try {
       const colls = {};
       for (const c of COLLS) if (!NO_MIRROR.has(c)) colls[c] = data[c];
@@ -105,7 +105,12 @@ const Store = (() => {
       console.error(e);
       if (!quotaWarned) { quotaWarned = true; toast('Lokaler Speicher voll – bitte Backup machen und alte Daten löschen', 'error'); }
     }
-  }, 300);
+  };
+  const saveLocal = debounce(writeLocal, 300);
+  // App geht in den Hintergrund (iOS beendet sie dort evtl.) → sofort sichern statt erst nach 300 ms –
+  // aber nie, bevor die gespeicherten Daten geladen sind (sonst würden sie mit einem leeren Stand überschrieben)
+  let loaded = false;
+  document.addEventListener('visibilitychange', () => { if (document.hidden && loaded) writeLocal(); });
 
   function queueEmit(c) {
     ver[c]++;
@@ -389,6 +394,7 @@ const Store = (() => {
 
   async function boot() {
     loadLocal();
+    loaded = true;
     if (owner === 'local' && !Object.keys(data.exercises).length) seedLocal();
     const photos = await PhotoDB.all();
     if (Object.keys(photos).length) { data.photos = photos; queueEmit('photos'); }
@@ -398,7 +404,7 @@ const Store = (() => {
   }
 
   return {
-    boot, put, del, batch, all, raw, list, get, subscribe, settings, saveSettings,
+    boot, put, del, batch, flushLocal: () => { if (loaded) writeLocal(); }, all, raw, list, get, subscribe, settings, saveSettings,
     attach, detach, resetData, seedLocal, hasUserData,
     /** fn ausführen, sobald Übungen + Einstellungen vom Server da sind (lokal: sofort) */
     whenSynced(fn) { if (!uid || (serverSeen.exercises && serverSeen.meta)) fn(); else syncHooks.push(fn); },
