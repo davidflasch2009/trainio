@@ -125,6 +125,17 @@ angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, 
 Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
 Konfetti und Inhalte der Startseite.
 
+**Startseite** (Mehr → Darstellung → Startseite): Statistik-Kacheln frei wählen und sortieren (je zwei nebeneinander,
+beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl der letzten Workouts. 17 Kacheln:
+- **Training:** Streak, Volumen, Sätze und Trainingszeit (diese Woche, Vergleich mit der Vorwoche bis zum gleichen Tag),
+  Workouts gesamt, Workouts im Monat (mit Vormonat), Letztes Workout (antippen öffnet es), Nächstes Training
+  (antippen startet), Konsistenz (Wochenziel erreicht in den letzten 8 Wochen), Ø Score.
+- **Kraft & Körper:** PRs der letzten 30 Tage, **Kraft einer Übung** (geschätztes 1RM einer frei wählbaren Übung,
+  Veränderung in 4 Wochen – Übung über „Übung“ in der Auswahl ändern), Körpergewicht (Veränderung in 4 Wochen).
+- **Cardio & Herz:** Cardio-Minuten der Woche, Ruhepuls (antippen = messen), VO2max mit Einordnung, Herz-Woche
+  (Herz-Plan: Einheiten, Zone 2, hart).
+Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
+
 ## Workout-Ansicht (ausführlich)
 
 - **Übersichtsleiste** oben: alle Übungen mit Fortschrittsring – antippen springt hin.
@@ -227,7 +238,8 @@ abschaltbar unter Mehr → Tabs & Funktionen („Herz & Ausdauer“).
   Einheiten (Cardio ab 10 min), davon hart und Minuten locker (Zone 2), optional Ziel-Ruhepuls und Ziel-VO2max
   (als Linie in den Diagrammen). Fortschritt der Woche auf der Startseite („Herz diese Woche“) mit Knöpfen für
   Ruhepuls und Intervalle. Beenden jederzeit, die Werte bleiben.
-- **Startseiten-Kachel „Ruhepuls“** (Mehr → Darstellung → Startseite): letzter Wert, antippen = messen.
+- **Startseite** (Mehr → Darstellung → Startseite): Kacheln „Ruhepuls“, „VO2max“ und „Herz-Woche“; die Karte
+  „Herz diese Woche“ lässt sich ausblenden (auch im Herz-Plan: „Auf der Startseite zeigen“).
 
 ## Phasen & Ziele
 
@@ -276,7 +288,7 @@ schließt sich die Gruppe und die Suche wird geleert):
 | Training | aktiver Plan, Wochenziel, Wochenstart, **Herz-Plan**, Ruhepuls messen, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Zeitraum im Fortschritt** (4W … Alles oder eine Phase – bei jedem Öffnen des Fortschritts ausgewählt; gelöschte Phase → Alles) |
 | Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
 | Pause & Timer | Standard-Pause, **Pausen-Timer** an/aus (startet nach jedem Satz), Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
-| Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (Auswahl + Reihenfolge, auch Ø Score) |
+| Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (17 zur Auswahl, Reihenfolge), Karte „Herz diese Woche“ an/aus |
 | Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
 | Tabs & Funktionen | Tabs, Körper-Tab, Auswertungen (inkl. **Workout-Score**) und Workout-Funktionen ein-/ausschalten |
 | Daten | Arrow-Import, Gewicht importieren, Rückgängig, Export CSV/PDF, Backup, Restore, Alle Daten löschen |

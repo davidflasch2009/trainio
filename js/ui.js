@@ -744,7 +744,7 @@ const designPair = id => `<div class="dt-pair">${designPreview(id, 'light')}${de
 const THEME_LABEL = { dark: 'Dunkel', light: 'Hell', system: 'System', time: 'Nach Uhrzeit' };
 
 const stackLine = (title, sub, control) => `<div class="set-line stack"><div class="sl-main"><div class="sl-title">${title}</div>${sub ? `<div class="sl-sub">${sub}</div>` : ''}</div>${control}</div>`;
-const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'startTab', 'motion', 'haptics', 'confetti', 'homeStats', 'homeRecent'];
+const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'startTab', 'motion', 'haptics', 'confetti', 'homeStats', 'homeRecent', 'homeHeart'];
 function setLook(k, v) {
   if (k === 'homeRecent') v = +v;
   switchLook(() => Store.saveSettings({ [k]: v }));

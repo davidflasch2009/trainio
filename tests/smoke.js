@@ -473,6 +473,17 @@ async function heartFlow(page) {
   await page.evaluate(() => App.go('start'));
   await pause(page, 300);
   check(await page.evaluate(() => /Herz diese Woche/.test((document.querySelector('#tab-start .hp-card') || {}).innerText || '')), 'Startseite zeigt „Herz diese Woche"');
+  // Startseite: Herz-Karte abschaltbar, alle Kacheln wählbar
+  await page.evaluate(() => { App.go('more'); openMoreSub('look'); });
+  await pause(page, 300);
+  await page.click('#tab-more [data-k="homeHeart"]');
+  await pause(page, 300);
+  await page.evaluate(() => { Store.saveSettings({ homeTiles: HOME_TILES.map(x => x[0]), homeLiftEx: 'ex_bankdruecken' }); App.go('start'); });
+  await pause(page, 500);
+  const home = await page.evaluate(() => ({ off: S().homeHeart === false, card: !!document.querySelector('#tab-start .hp-card'), n: document.querySelectorAll('#tab-start .stat-grid > .stat').length,
+    want: HOME_TILES.filter(x => tileAvail(x[0])).length, bad: /undefined|NaN/.test(document.querySelector('#tab-start .stat-grid').innerText) }));
+  check(home.off && !home.card, 'Startseite: „Herz diese Woche" lässt sich ausblenden', JSON.stringify(home));
+  check(home.n === home.want && home.n >= 17 && !home.bad && await noViewError(page), `Startseite: alle ${home.want} Kacheln wählbar und gefüllt`, JSON.stringify(home));
   await page.evaluate(() => { UI.progSub = 'cardio'; App.go('progress'); });
   await pause(page, 900);
   check(await page.evaluate(() => ['h1', 'h3'].every(id => !!Chart.getChart(document.querySelector('#cv-' + id)))) && await noViewError(page), 'Herz-Diagramme gezeichnet (Ruhepuls, Intensität)');

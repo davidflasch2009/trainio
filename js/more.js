@@ -216,7 +216,8 @@ function lookGroup(s) {
         tg('confetti', 'Konfetti bei neuen PRs', '', 'rekord feiern')]],
       ['Startseite', [
         tg('homeStats', 'Statistik-Kacheln', '', 'start'),
-        ...(s.homeStats !== false ? [st('Kacheln', 'Antippen schaltet ein oder aus, die Pfeile ändern die Reihenfolge', tileChooserHtml(), 'kacheln reihenfolge streak volumen score startseite')] : []),
+        ...(s.homeStats !== false ? [st('Kacheln', 'Antippen schaltet ein oder aus, die Pfeile ändern die Reihenfolge – je zwei stehen nebeneinander', tileChooserHtml(), 'kacheln reihenfolge streak volumen score sätze trainingszeit monat letztes workout konsistenz prs kraft 1rm körpergewicht cardio ruhepuls vo2max herz startseite')] : []),
+        ...(F('f_heart') ? [tg('homeHeart', 'Herz diese Woche', 'Karte mit deinem Herz-Plan (nur wenn er aktiv ist)', 'herz plan karte start')] : []),
         st('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]), 'start')]]
     ],
     foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
@@ -236,25 +237,34 @@ Actions.unlinkProv = el => Auth.unlink(el.dataset.p);
 /* ---------- Startseiten-Kacheln: an/aus + Reihenfolge ---------- */
 const tilesOn = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0])).filter(k => HOME_TILES.some(x => x[0] === k));
 function tileChooserHtml() {
-  const on = tilesOn(), all = HOME_TILES.filter(([k]) => (k !== 'score' || F('f_score')) && (k !== 'rhr' || F('f_heart'))).map(x => x[0]);
-  const order = [...on.filter(k => all.includes(k)), ...all.filter(k => !on.includes(k))];
-  return `<div class="tile-list">${order.map(k => {
-    const active = on.includes(k), i = on.indexOf(k), name = HOME_TILES.find(x => x[0] === k)[1];
+  const on = tilesOn().filter(tileAvail), all = HOME_TILES.map(x => x[0]).filter(tileAvail), off = all.filter(k => !on.includes(k));
+  const row = k => {
+    const active = on.includes(k), i = on.indexOf(k), [, name, desc] = HOME_TILES.find(x => x[0] === k);
+    // Kraft-Kachel: gewählte Übung statt Beschreibung, mit „Übung"-Knopf zum Wechseln
+    const lift = k === 'lift' && Ex.get(S().homeLiftEx);
     return `<div class="tile-row ${active ? 'on' : ''}">
-      <button class="tile-tog" data-act="tileToggle" data-k="${k}" aria-pressed="${active}">${icon(active ? 'checkCircle' : 'plus')}<span>${name}</span></button>
+      <button class="tile-tog" data-act="tileToggle" data-k="${k}" aria-pressed="${active}">${icon(active ? 'checkCircle' : 'plus')}<span>${name}<small>${esc(lift ? lift.name : desc)}</small></span></button>
+      ${k === 'lift' && active ? `<button class="btn btn-secondary btn-sm" data-act="tileLiftEx">Übung</button>` : ''}
       ${active ? `<button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="${name} nach oben">${icon('chevU')}</button><button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="1" ${i === on.length - 1 ? 'disabled' : ''} aria-label="${name} nach unten">${icon('chevD')}</button>` : ''}
     </div>`;
-  }).join('')}</div>`;
+  };
+  return `<div class="tile-list">${on.map(row).join('')}${off.length ? `<div class="tile-sep">Weitere Kacheln</div>${off.map(row).join('')}` : ''}</div>`;
 }
-Actions.tileToggle = el => {
+const pickLiftEx = async () => { const ids = await pickExercises({ multi: false, title: 'Übung für die Kachel' }); return ids && ids[0] ? ids[0] : null; };
+Actions.tileToggle = async el => {
   const k = el.dataset.k, on = tilesOn();
+  // Kraft-Kachel: beim Einschalten erst die Übung wählen
+  if (k === 'lift' && !on.includes(k) && !Ex.get(S().homeLiftEx)) { const id = await pickLiftEx(); if (id) Store.saveSettings({ homeLiftEx: id, homeTiles: [...on, k] }); return; }
   Store.saveSettings({ homeTiles: on.includes(k) ? on.filter(x => x !== k) : [...on, k] });
 };
+Actions.tileLiftEx = async () => { const id = await pickLiftEx(); if (id) Store.saveSettings({ homeLiftEx: id }); };
 Actions.tileMove = el => {
-  const on = tilesOn(), i = on.indexOf(el.dataset.k), j = i + +el.dataset.d;
-  if (i < 0 || j < 0 || j >= on.length) return;
-  [on[i], on[j]] = [on[j], on[i]];
-  Store.saveSettings({ homeTiles: on });
+  // Reihenfolge der sichtbaren Kacheln tauschen – ausgeblendete (Funktion aus) behalten ihren Platz
+  const all = tilesOn(), vis = all.filter(tileAvail), i = vis.indexOf(el.dataset.k), j = i + +el.dataset.d;
+  if (i < 0 || j < 0 || j >= vis.length) return;
+  const a = all.indexOf(vis[i]), b = all.indexOf(vis[j]);
+  [all[a], all[b]] = [all[b], all[a]];
+  Store.saveSettings({ homeTiles: all });
 };
 
 /* ---------- App-Icon ---------- */

@@ -46,13 +46,12 @@ Views.start = {
           <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
         </div>`,
         score: scoreTile(ix, t),
-        rhr: k === 'rhr' ? Heart.rhrTile() : '',
-        next: `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
+        next: k !== 'next' ? '' : `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
           <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
           <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
           <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>
         </button>`
-      })[k]).join('')}</div>`}
+      })[k] || moreTile(k, ix, t, cw)).join('')}</div>`}
       <div class="mt-16">
         ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
@@ -65,10 +64,86 @@ Views.start = {
     `;
   }
 };
-/* Startseiten-Kacheln: Auswahl und Reihenfolge unter Mehr → Darstellung → Startseite */
-const HOME_TILES = [['streak', 'Streak'], ['volume', 'Volumen'], ['workouts', 'Workouts'], ['next', 'Nächstes Training'], ['score', 'Ø Score'], ['rhr', 'Ruhepuls']];
-const homeTileKeys = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0]))
-  .filter(k => HOME_TILES.some(x => x[0] === k) && (k !== 'score' || F('f_score')) && (k !== 'rhr' || F('f_heart')));
+/* Startseiten-Kacheln: Auswahl und Reihenfolge unter Mehr → Darstellung → Startseite
+   [Schlüssel, Name, Beschreibung, nur wenn …] – die ersten vier sind der Standard */
+const HOME_TILES = [
+  ['streak', 'Streak', 'Wochen am Stück mit Training'],
+  ['volume', 'Volumen', 'Diese Woche, Vergleich mit der Vorwoche'],
+  ['workouts', 'Workouts', 'Alle bisher'],
+  ['next', 'Nächstes Training', 'Aus deinem Plan – antippen startet'],
+  ['score', 'Ø Score', 'Workout-Score der letzten 4 Wochen', () => F('f_score')],
+  ['sets', 'Sätze', 'Diese Woche, Vergleich mit der Vorwoche'],
+  ['time', 'Trainingszeit', 'Diese Woche, Vergleich mit der Vorwoche'],
+  ['month', 'Workouts im Monat', 'Vergleich mit dem Vormonat'],
+  ['last', 'Letztes Workout', 'Wann und wie lange – antippen öffnet es'],
+  ['consistency', 'Konsistenz', 'Wochenziel erreicht in den letzten 8 Wochen'],
+  ['prs', 'PRs', 'Neue Bestleistungen der letzten 30 Tage', () => F('f_prs')],
+  ['lift', 'Kraft einer Übung', 'Geschätztes 1RM einer Übung deiner Wahl'],
+  ['bw', 'Körpergewicht', 'Letzter Wert und Veränderung in 4 Wochen', () => F('f_body')],
+  ['cardio', 'Cardio', 'Minuten diese Woche, Vergleich mit der Vorwoche'],
+  ['rhr', 'Ruhepuls', 'Letzter Wert – antippen misst', () => F('f_heart')],
+  ['vo2', 'VO2max', 'Geschätzt oder gemessen, mit Einordnung', () => F('f_heart')],
+  ['heart', 'Herz-Woche', 'Einheiten und Zone 2 dieser Woche', () => F('f_heart')]
+];
+const tileAvail = k => { const x = HOME_TILES.find(y => y[0] === k); return !!x && (!x[3] || x[3]()); };
+const homeTileKeys = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0])).filter(tileAvail);
+/** Kachel, die per Tipp in einen Fortschritt-Bereich springt */
+const homeLink = sub => F('f_progress') ? `class="stat clickable" data-act="homeProg" data-sub="${sub}" style="text-align:left;color:inherit;font:inherit;cursor:pointer"` : 'class="stat"';
+Actions.homeProg = el => { UI.progSub = el.dataset.sub; saveUI(); App.go('progress'); };
+/** Weitere Kacheln (alles außer Streak, Volumen, Workouts, Score, Nächstes Training) */
+function moreTile(k, ix, t, cw) {
+  const rows = ix.rows, inR = (a, b) => rows.filter(r => r.dn >= a && r.dn <= b);
+  // Vorwoche bis zum gleichen Tag (wie beim Volumen)
+  const prevEnd = cw - 7 + (Analytics.cmpEnd() - cw);
+  const week = key => [sum(inR(cw, t).map(r => r[key])), sum(inR(cw - 7, prevEnd).map(r => r[key]))];
+  const stat = (ic, label, value, sub, attrs = 'class="stat"', valStyle = '') => {
+    const tag = attrs.includes('data-act') ? 'button' : 'div';
+    return `<${tag} ${attrs}><div class="stat-label">${icon(ic)} ${label}</div><div class="stat-value"${valStyle}>${value}</div><div class="stat-sub ellipsis">${sub}</div></${tag}>`;
+  };
+  const in4w = (cur, old, d = 1) => { const x = toU(cur - old); return `${x > 0 ? '+' : ''}${nf(x, d)} ${unit()} in 4 Wochen`; };
+  switch (k) {
+    case 'sets': { const [a, b] = week('sets'); return stat('layers', 'Sätze', a, `diese Woche ${deltaHtml(a, b)}`); }
+    case 'time': { const [a, b] = week('dur'); return stat('timer', 'Trainingszeit', a ? fmtDur(a) : '0 min', `diese Woche ${deltaHtml(a, b)}`); }
+    case 'cardio': { const [a, b] = week('cSec'); return stat('heart', 'Cardio', a ? fmtDur(a) : '0 min', `diese Woche ${deltaHtml(a, b)}`, F('f_cardio') || F('f_heart') ? homeLink('cardio') : undefined); }
+    case 'month': {
+      const d = new Date(), m0 = dayNum(isoDate(new Date(d.getFullYear(), d.getMonth(), 1))), p0 = dayNum(isoDate(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
+      return stat('calendar', 'Workouts im Monat', inR(m0, t).length, `Vormonat: ${inR(p0, m0 - 1).length}`);
+    }
+    case 'last': {
+      const r = rows[rows.length - 1];
+      return stat('history', 'Letztes Workout', r ? esc(r.name) : '–', r ? `${relDays(r.dn)} · ${fmtDur(r.dur)}` : 'noch keins',
+        r ? `class="stat clickable" data-act="openWorkout" data-id="${esc(r.id)}" style="text-align:left;color:inherit;font:inherit;cursor:pointer"` : undefined, ' style="font-size:19px"');
+    }
+    case 'consistency': {
+      // Trainingstage (ohne reine Cardio-Tage) je abgeschlossener Woche, Ziel wie beim Streak
+      const goal = weeklyTarget();
+      let hit = 0;
+      for (let i = 1; i <= 8; i++) { const w = cw - 7 * i; if (new Set(inR(w, w + 6).filter(r => !r.cardioOnly).map(r => r.dn)).size >= goal) hit++; }
+      return stat('target', 'Konsistenz', `${hit}<small>/ 8 Wochen</small>`, `Wochenziel (${goal}×) erreicht`);
+    }
+    case 'prs': {
+      const ev = ix.prEvents.filter(p => p.dn > t - 30), l = ev[ev.length - 1];
+      return stat('trophy', 'PRs', `${ev.length}<small>in 30 Tagen</small>`, l ? `${esc(Ex.name(l.exId))} · ${relDays(l.dn)}` : 'noch keine', F('f_strength') ? homeLink('strength') : undefined);
+    }
+    case 'lift': {
+      const ex = Ex.get(S().homeLiftEx);
+      if (!ex) return stat('trendUp', 'Kraft', '–', 'Übung wählen', 'class="stat clickable" data-act="tileLiftEx" style="text-align:left;color:inherit;font:inherit;cursor:pointer"');
+      const ss = Analytics.sessionsOf(ex.id).filter(x => x.best > 0), l = ss[ss.length - 1];
+      const old = l ? [...ss].reverse().find(x => x.dn <= l.dn - 28) : null;
+      return stat('trendUp', esc(ex.name), l ? `${wNum(l.best)}<small>${unit()}</small>` : '–', l ? (old ? in4w(l.best, old.best) : `1RM geschätzt · ${relDays(l.dn)}`) : 'noch nicht trainiert',
+        `class="stat clickable" data-act="openExercise" data-id="${esc(ex.id)}" style="text-align:left;color:inherit;font:inherit;cursor:pointer"`);
+    }
+    case 'bw': {
+      const s = Analytics.bwSeries(), l = s[s.length - 1];
+      const old = l ? [...s].reverse().find(x => x.dn <= l.dn - 28) : null;
+      return stat('scale', 'Körpergewicht', l ? `${wNum(l.kg)}<small>${unit()}</small>` : '–', l ? (old ? in4w(l.kg, old.kg) : relDays(l.dn)) : 'noch nicht eingetragen', homeLink('body'));
+    }
+    case 'rhr': return Heart.rhrTile();
+    case 'vo2': return Heart.vo2Tile();
+    case 'heart': return Heart.weekTile();
+  }
+  return '';
+}
 /** Ø Workout-Score der letzten 4 Wochen + letzter Score */
 function scoreTile(ix, t) {
   const sc = ix.rows.filter(r => r.dn > t - 28).map(r => Analytics.score(r.id)).filter(Boolean).map(s => s.score);

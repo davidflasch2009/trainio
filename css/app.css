@@ -1596,6 +1596,10 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tile-row.on .tile-tog { color: var(--text); }
 .tile-row.on .tile-tog svg { color: var(--accent-text); }
 .tile-row .btn-icon[disabled] { opacity: .3; }
+.tile-tog span { min-width: 0; }
+.tile-tog small { display: block; margin-top: 1px; font-size: calc(12px * var(--fs)); font-weight: 500; line-height: 1.3; color: var(--text-faint); }
+.tile-row .btn-sm { flex-shrink: 0; }
+.tile-sep { margin: 10px 2px 2px; font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); text-transform: uppercase; letter-spacing: .05em; }
 .icon-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; }
 .icon-tile { display: flex; flex-direction: column; align-items: center; gap: 5px; padding: 8px 2px 6px; border: 2px solid transparent; border-radius: calc(16px * var(--rs)); background: none; color: var(--text-dim); font: inherit; min-width: 0; }
 .icon-tile img { width: 100%; max-width: 60px; aspect-ratio: 1; border-radius: 22%; display: block; box-shadow: 0 2px 6px rgba(0, 0, 0, .25); }

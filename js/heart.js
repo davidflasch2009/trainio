@@ -306,7 +306,8 @@ const Heart = (() => {
         <h4 class="mt-16 mb-8">Ziele (optional)</h4>
         <div class="row" style="gap:8px"><label class="field grow"><span>Ruhepuls-Ziel</span><input class="input" id="hpRhr" inputmode="numeric" autocomplete="off" value="${p.rhrGoal || ''}" placeholder="z. B. 55"></label>
         <label class="field grow"><span>VO2max-Ziel</span><input class="input" id="hpVo2" inputmode="decimal" autocomplete="off" value="${p.vo2Goal ? nf(p.vo2Goal, 1) : ''}" placeholder="z. B. 50"></label></div>
-        <p class="tiny dim mt-8">Die Ziele erscheinen als Linie in den Diagrammen.</p>`,
+        <p class="tiny dim mt-8">Die Ziele erscheinen als Linie in den Diagrammen.</p>
+        <div class="list mt-12">${setLine('Auf der Startseite zeigen', '„Herz diese Woche"', `<label class="switch"><input type="checkbox" switch id="hpHome" ${S().homeHeart !== false ? 'checked' : ''} aria-label="Auf der Startseite zeigen"><span></span></label>`)}</div>`,
       foot: `<button class="btn btn-secondary" data-x="${cur ? 'off' : 'cancel'}">${cur ? 'Plan beenden' : 'Abbrechen'}</button><button class="btn btn-primary" data-x="ok">${cur ? 'Speichern' : 'Aktivieren'}</button>`
     });
     const refresh = () => $$('[data-v]', m.el).forEach(x => { x.textContent = p[x.dataset.v] + (UNIT[x.dataset.v] || ''); });
@@ -328,7 +329,7 @@ const Heart = (() => {
         return;
       }
       const rg = parseInt($('#hpRhr', m.el).value, 10), vg = parseNum($('#hpVo2', m.el).value);
-      Store.saveSettings({ heartPlan: { sessions: p.sessions, hard: p.hard, z2: p.z2, rhrGoal: rg >= 30 && rg <= 120 ? rg : null, vo2Goal: vg >= 10 && vg <= 95 ? round(vg, 1) : null } });
+      Store.saveSettings({ heartPlan: { sessions: p.sessions, hard: p.hard, z2: p.z2, rhrGoal: rg >= 30 && rg <= 120 ? rg : null, vo2Goal: vg >= 10 && vg <= 95 ? round(vg, 1) : null }, homeHeart: $('#hpHome', m.el).checked });
       toast(cur ? 'Herz-Plan gespeichert' : 'Herz-Plan aktiv – viel Erfolg!', 'success', { cat: cur ? 'confirm' : 'workout' });
       m.close();
     });
@@ -549,8 +550,33 @@ const Heart = (() => {
       <div class="stat-sub">${now ? (now.today ? 'heute gemessen' : `${relDays(now.last.dn)} · jetzt messen`) : 'Tippen zum Messen'}</div>
     </button>`;
   }
+  function vo2Tile() {
+    const v = vo2Now(), cls = v ? vo2Class(v.v) : null;
+    return `<button ${homeLink('cardio')}>
+      <div class="stat-label">${icon('heart')} VO2max</div>
+      <div class="stat-value">${v ? nf(v.v, 1) : '–'}${v ? '<small>ml/kg/min</small>' : ''}</div>
+      <div class="stat-sub ellipsis">${v ? `${cls ? cls.label + ' · ' : ''}${v.est ? 'geschätzt' : 'gemessen'}` : !maxHr() ? 'Geburtsjahr fehlt' : 'erst Ruhepuls messen'}</div>
+    </button>`;
+  }
+  /** Herz-Woche: mit Plan Einheiten / Ziel, sonst Cardio-Einheiten dieser Woche */
+  function weekTile() {
+    const pw = planWeek();
+    if (pw) return `<button ${homeLink('cardio')}>
+      <div class="stat-label">${icon('heart')} Herz-Woche</div>
+      <div class="stat-value">${pw.sessions}<small>/ ${pw.p.sessions} Einheiten</small></div>
+      <div class="stat-sub ellipsis">${pw.z2}/${pw.p.z2} min locker · ${pw.hard}/${pw.p.hard} hart</div>
+    </button>`;
+    const ws = weekStartDN(todayDN()), byW = {};
+    for (const it of cardioItems(ws, ws + 6)) byW[it.wid] = (byW[it.wid] || 0) + it.sec;
+    const n = Object.values(byW).filter(s => s >= 600).length;
+    return `<button class="stat clickable" data-act="heartPlan" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
+      <div class="stat-label">${icon('heart')} Herz-Woche</div>
+      <div class="stat-value">${n}<small>Einheiten</small></div>
+      <div class="stat-sub ellipsis">Herz-Plan einrichten →</div>
+    </button>`;
+  }
   function startCard() {
-    const pw = F('f_heart') ? planWeek() : null;
+    const pw = F('f_heart') && S().homeHeart !== false ? planWeek() : null;
     if (!pw) return '';
     const now = rhrNow();
     return `<div class="card mt-16 hp-card">
@@ -617,7 +643,7 @@ const Heart = (() => {
   return {
     age, maxHr, rhrNow, zones, zoneOfHr, vo2Est, vo2Now, vo2Class, saveRhr, saveVo2, cardioItems, plan, planWeek,
     measure, vo2Entry, history, planEdit, hiitSetup, hiitOpen, hiitFinish, hiitQuick, hiitState, hiitPhases,
-    cardioExtras, cardioFoot, effortTxt, rhrTile, startCard, section
+    cardioExtras, cardioFoot, effortTxt, rhrTile, vo2Tile, weekTile, startCard, section
   };
 })();
 

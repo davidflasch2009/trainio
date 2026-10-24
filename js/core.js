@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.28.0',
+  version: '1.29.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -86,7 +86,7 @@ const DEFAULT_SETTINGS = {
   // Pause: nach Aufwärmsätzen (Sek., 'same' = wie normal), nach Drop-Satz ('normal' | Sek.), Vorwarnung (Sek., 0 = aus), Ton
   restWarmSec: 60, restDropSec: 'normal', restWarnSec: 0, restSound: 'beep',
   // Startseite: Kacheln und Reihenfolge
-  homeTiles: ['streak', 'volume', 'workouts', 'next'],
+  homeTiles: ['streak', 'volume', 'workouts', 'next'], homeLiftEx: '', homeHeart: true,
   // Meldungen oben (Toasts) je Gruppe – Bestätigungen standardmäßig aus
   toast_confirm: false, toast_workout: true, toast_pr: true, toast_sync: true, toast_update: true,
   prefillText: false,
