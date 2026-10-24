@@ -46,6 +46,7 @@ Views.start = {
           <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
         </div>`,
         score: scoreTile(ix, t),
+        rhr: k === 'rhr' ? Heart.rhrTile() : '',
         next: `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
           <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
           <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
@@ -56,6 +57,7 @@ Views.start = {
         ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
       </div>
+      ${Heart.startCard()}
       ${goalsCard()}
       ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
       ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
@@ -64,9 +66,9 @@ Views.start = {
   }
 };
 /* Startseiten-Kacheln: Auswahl und Reihenfolge unter Mehr → Darstellung → Startseite */
-const HOME_TILES = [['streak', 'Streak'], ['volume', 'Volumen'], ['workouts', 'Workouts'], ['next', 'Nächstes Training'], ['score', 'Ø Score']];
+const HOME_TILES = [['streak', 'Streak'], ['volume', 'Volumen'], ['workouts', 'Workouts'], ['next', 'Nächstes Training'], ['score', 'Ø Score'], ['rhr', 'Ruhepuls']];
 const homeTileKeys = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0]))
-  .filter(k => HOME_TILES.some(x => x[0] === k) && (k !== 'score' || F('f_score')));
+  .filter(k => HOME_TILES.some(x => x[0] === k) && (k !== 'score' || F('f_score')) && (k !== 'rhr' || F('f_heart')));
 /** Ø Workout-Score der letzten 4 Wochen + letzter Score */
 function scoreTile(ix, t) {
   const sc = ix.rows.filter(r => r.dn > t - 28).map(r => Analytics.score(r.id)).filter(Boolean).map(s => s.score);
@@ -781,6 +783,7 @@ function openWorkoutDetail(id) {
           return `<div class="mt-16">
             <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b></button>
             <span class="tiny dim">${esc(cardioTxt(cardioTotals(en.sets), info))}</span></div>
+            ${Heart.effortTxt(en) ? `<div class="tiny dim">${esc(Heart.effortTxt(en))}</div>` : ''}
             ${ss.length > 1 || info.mode !== 'time' ? `<div class="table-wrap"><table class="tbl"><thead><tr><th>Abschn.</th><th class="r">Dauer</th>${info.mode === 'dist' ? '<th class="r">km</th><th class="r">km/h</th>' : ''}${info.lvl ? `<th class="r">${esc(info.lvl)}</th>` : ''}</tr></thead><tbody>
             ${ss.map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${i + 1}</td><td class="r">${s.durationSec ? fmtClock(s.durationSec) : '–'}</td>${info.mode === 'dist' ? `<td class="r">${s.distKm ? nf(s.distKm, 2) : '–'}</td><td class="r">${s.distKm && cardioKmhValid(s.distKm, s.durationSec) ? nf(s.distKm / (s.durationSec / 3600), 1) : '–'}</td>` : ''}${info.lvl ? `<td class="r">${s.level != null ? nf(s.level, 1) + lvlUnit(info.lvl) : '–'}</td>` : ''}</tr>`).join('')}
             </tbody></table></div>` : ''}</div>`;

@@ -41,7 +41,7 @@ function moreGroups() {
   const libRow = F('f_exercises') ? [] : [mRow(navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten'), 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten', 'übungen bibliothek')];
   const hidden = FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length;
   return [
-    { id: 'account', title: 'Konto & Profil', ic: 'user', sub: 'Anmeldung, Sync, Name, Geschlecht',
+    { id: 'account', title: 'Konto & Profil', ic: 'user', sub: 'Anmeldung, Sync, Name, Geschlecht, Geburtsjahr',
       head: `<div class="card">
         ${user ? `
           <div class="acc-card">
@@ -67,14 +67,19 @@ function moreGroups() {
         ...(user ? [['Anmeldewege', Auth.providers().map(k => providerRow(k, user)), '<p class="small dim">Verknüpfte Anmeldewege führen zum selben Konto mit denselben Daten.</p>']] : []),
         ['Profil', [
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
-          mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil')]]
+          mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte, VO2max)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil'),
+          mi('Geburtsjahr', 'Für Pulszonen & VO2max', `<input class="input" data-in="setBirth" inputmode="numeric" autocomplete="off" value="${esc(s.birthYear || '')}" placeholder="z. B. 2005" style="max-width:110px">`, 'alter herz puls zonen vo2max profil'),
+          mi('Maximalpuls', 'Leer = aus dem Alter geschätzt (208 − 0,7 × Alter)', `<input class="input" data-in="setHrMax" inputmode="numeric" autocomplete="off" value="${esc(s.hrMax || '')}" placeholder="${Heart.maxHr() && Heart.maxHr().est ? 'ca. ' + Heart.maxHr().v : 'z. B. 195'}" style="max-width:110px">`, 'herzfrequenz max puls zonen herz')]]
       ] },
-    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Einheit, Gewichte, Aufwärmsätze, 1RM-Formel, Zeitraum',
+    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Herz-Plan, Einheit, Gewichte, Aufwärmsätze, 1RM-Formel, Zeitraum',
       sections: [
         ['Plan & Woche', [
           mi('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]), 'plan programm split'),
           mi('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])), 'ziel trainingstage'),
           mi('Wochenstart', 'Ab welchem Tag eine Woche zählt', segCtl('weekStart', [['monday', 'Mo'], ['sunday', 'So']]), 'montag sonntag kalender')]],
+        ...(F('f_heart') ? [['Herz', [
+          mi('Herz-Plan', Heart.plan() ? `${Heart.plan().sessions}× pro Woche · ${Heart.plan().hard}× hart · ${Heart.plan().z2} min locker` : 'Aus – Wochenziel fürs Herztraining', `<button class="btn btn-secondary btn-sm" data-act="heartPlan">${Heart.plan() ? 'Bearbeiten' : 'Einrichten'}</button>`, 'herz cardio ausdauer zone 2 intervalle ruhepuls vo2max plan wochenziel'),
+          mi('Ruhepuls', 'Im Takt tippen oder 30 Sekunden zählen', `<button class="btn btn-secondary btn-sm" data-act="rhrMeasure">Messen</button>`, 'herz puls ruhepuls messen')]]] : []),
         ['Gewichte', [
           mi('Einheit', 'Alle Gewichte in kg oder lb', segCtl('unit', [['kg', 'kg'], ['lb', 'lb']]), 'kilo pfund lbs'),
           mi('Gewichts-Inkrement', 'Schrittweite der +/- Buttons', segCtl('weightSteps', [[1.25, '1,25'], [2.5, '2,5'], [5, '5']]), 'schritte plus minus steigerung'),
@@ -231,7 +236,7 @@ Actions.unlinkProv = el => Auth.unlink(el.dataset.p);
 /* ---------- Startseiten-Kacheln: an/aus + Reihenfolge ---------- */
 const tilesOn = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES.slice(0, 4).map(x => x[0])).filter(k => HOME_TILES.some(x => x[0] === k));
 function tileChooserHtml() {
-  const on = tilesOn(), all = HOME_TILES.filter(([k]) => k !== 'score' || F('f_score')).map(x => x[0]);
+  const on = tilesOn(), all = HOME_TILES.filter(([k]) => (k !== 'score' || F('f_score')) && (k !== 'rhr' || F('f_heart'))).map(x => x[0]);
   const order = [...on.filter(k => all.includes(k)), ...all.filter(k => !on.includes(k))];
   return `<div class="tile-list">${order.map(k => {
     const active = on.includes(k), i = on.indexOf(k), name = HOME_TILES.find(x => x[0] === k)[1];
@@ -462,6 +467,8 @@ Changes.defReps = el => {
   Store.saveSettings({ defReps: v });
 };
 Inputs.setName = debounce(el => Store.saveSettings({ displayName: el.value.trim() }), 500);
+Inputs.setBirth = debounce(el => { const y = parseInt(el.value, 10); Store.saveSettings({ birthYear: y > 1920 && y <= new Date().getFullYear() - 8 ? y : null }); }, 600);
+Inputs.setHrMax = debounce(el => { const v = parseInt(el.value, 10); Store.saveSettings({ hrMax: v >= 120 && v <= 230 ? v : null }); }, 600);
 Changes.setBar = el => { const v = parseNum(el.value); if (v != null && v >= 0) Store.saveSettings({ barKg: round(fromU(v), 3) }); };
 // Läuft ein Workout: gleich mit dem aktuellen Satz öffnen
 Actions.toolPlates = () => { const w = Workout.cur(); openPlates(null, w ? plateTarget(w) : null); };

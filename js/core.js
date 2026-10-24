@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.27.11',
+  version: '1.28.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -74,6 +74,8 @@ const DEFAULT_SETTINGS = {
   activePlanId: '',
   weeklyGoal: 4,
   sex: 'm',
+  // Herz: Geburtsjahr & Maximalpuls (leer = geschätzt), Herz-Plan (null = aus), letzte Intervall-Einstellung, Ruhepuls-Messart
+  birthYear: null, hrMax: null, heartPlan: null, hiit: null, rhrMode: 'tap',
   sound: true,
   wakeLock: true,
   appIcon: '1',
@@ -346,6 +348,7 @@ const ICONS = {
   chevU: '<path d="m6 15 6-6 6 6"/>',
   edit: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16z"/><path d="m13.5 6.5 4 4"/>',
   trash: '<path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/>',
+  pause: '<path d="M9 5v14M15 5v14"/>',
   play: '<path d="M7 4.5v15l12-7.5z"/>',
   sliders: '<path d="M4 6h9M17 6h3M4 12h3M11 12h9M4 18h11M19 18h1"/><circle cx="15" cy="6" r="2"/><circle cx="9" cy="12" r="2"/><circle cx="17" cy="18" r="2"/>',
   download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',

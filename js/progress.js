@@ -10,7 +10,7 @@ const PERIODS = [['4w', '4W'], ['3m', '3M'], ['6m', '6M'], ['1y', '1J'], ['all',
 /* ---------- Funktionen ein-/ausschalten ---------- */
 const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
-  ['Fortschritt', [['f_score', 'Workout-Score', 'Ring beim Abschluss, im Workout-Detail und im Fortschritt'], ['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
+  ['Fortschritt', [['f_score', 'Workout-Score', 'Ring beim Abschluss, im Workout-Detail und im Fortschritt'], ['f_strength', 'Kraft-Auswertungen'], ['f_volume', 'Volumen-Auswertungen'], ['f_muscles', 'Muskel-Auswertungen & Body-Heatmap'], ['f_cardio', 'Cardio-Auswertungen'], ['f_heart', 'Herz & Ausdauer', 'Ruhepuls, VO2max, Pulszonen, Intensität, Intervall-Timer & Herz-Plan'], ['f_body', 'Körper-Tab (Gewicht)'], ['f_moreStats', '„Mehr Stats" in der Übersicht'], ['f_badges', 'Meilensteine']]],
   ['Körper-Tab', [['f_bodyFat', 'Körperfett & fettfreie Masse'], ['f_measures', 'Umfänge & Verhältnisse', 'Brust, Taille, Arm … in cm'], ['f_photos', 'Fortschrittsfotos']]],
   ['Workout', [['f_warmup', 'Aufwärmsätze-Button'], ['f_plates', 'Scheibenrechner'], ['f_suggest', 'Progressions-Vorschläge', '„Ziel: mehr Wdh. bei …" & automatische Steigerung'], ['f_prs', 'PR-Erkennung & Feiern', 'Markierungen, Toasts, Konfetti'], ['f_setTypes', 'Satz-Typen', 'Drop-Satz & bis Muskelversagen'], ['f_focus', 'Fokus-Modus'], ['f_woExtras', 'Körpergewicht, Datum & Notizen im Workout']]],
   ['Daten & Tools', [['f_arrow', 'Arrow-Import'], ['f_tools', 'Tools: Scheiben- & 1RM-Rechner']]]
@@ -19,7 +19,7 @@ const F = k => S()[k] !== false;
 // eigene Seite im Mehr-Tab (Tabs & Funktionen)
 Actions.openFeatures = () => openMoreSub('features');
 const PROG_SUBS = [['overview', 'Übersicht'], ['strength', 'Kraft'], ['volume', 'Volumen'], ['muscles', 'Muskeln'], ['cardio', 'Cardio'], ['body', 'Körper']];
-const progSubs = () => PROG_SUBS.filter(([k]) => k === 'overview' || F('f_' + k));
+const progSubs = () => PROG_SUBS.filter(([k]) => k === 'overview' || F('f_' + k) || (k === 'cardio' && F('f_heart'))).map(([k, l]) => [k, k === 'cardio' && F('f_heart') ? (F('f_cardio') ? 'Herz & Cardio' : 'Herz') : l]);
 Views.progress = {
   render(el) {
     if (!progSubs().some(x => x[0] === UI.progSub)) UI.progSub = 'overview';
@@ -38,7 +38,8 @@ Views.progress = {
     // Aktiven Zeitraum/Tab in den scrollbaren Leisten sichtbar halten
     $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
     const body = $('#progBody', el);
-    if (!Analytics.cur().rows.length && UI.progSub !== 'body') {
+    // Körper und Herz gehen auch ohne Workouts (Gewicht, Ruhepuls)
+    if (!Analytics.cur().rows.length && UI.progSub !== 'body' && !(UI.progSub === 'cardio' && F('f_heart'))) {
       body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`;
       return;
     }
@@ -1189,8 +1190,12 @@ ProgressViews.cardio = body => {
   const r = Analytics.range(), prv = Analytics.prevRange(r);
   const c = chartColors();
   const cIds = Object.keys(ix.sessions).filter(id => ix.sessions[id][0] && ix.sessions[id][0].cardio);
-  if (!cIds.length) {
-    body.innerHTML = `<div class="card mt-16">${emptyState('heart', 'Noch kein Cardio', 'Starte Cardio über „Workout starten“ auf dem Start-Tab oder füge Cardio im Workout hinzu – Dauer, Distanz und Tempo landen dann hier.', `<button class="btn btn-primary" data-act="startCardio">${icon('heart')} Cardio starten</button>`)}</div>`;
+  const cb = chartBuilder();
+  // Herz (Ruhepuls, VO2max, Zonen, Intensität, Herz-Plan) über den Cardio-Auswertungen
+  const heart = F('f_heart') ? `<div class="section-head"><h2>Herz</h2></div>${Heart.section(cb, r)}${F('f_cardio') ? '<div class="section-head"><h2>Cardio</h2></div>' : ''}` : '';
+  if (!cIds.length || !F('f_cardio')) {
+    body.innerHTML = heart + (F('f_cardio') ? `<div class="card ${heart ? '' : 'mt-16'}">${emptyState('heart', 'Noch kein Cardio', 'Starte Cardio über „Workout starten“ auf dem Start-Tab oder füge Cardio im Workout hinzu – Dauer, Distanz und Tempo landen dann hier.', `<button class="btn btn-primary" data-act="startCardio">${icon('heart')} Cardio starten</button>`)}</div>` : '');
+    cb.mountAll();
     return;
   }
   const rowsR = Analytics.rowsIn(r), rowsP = prv ? Analytics.rowsIn(prv) : null;
@@ -1218,10 +1223,9 @@ ProgressViews.cardio = body => {
     return { id, n: ss.length, dur: bestOf(ss, x => x.secs), km: bestOf(ss, x => x.km), kmh: bestOf(ss.filter(x => cardioKmhValid(x.km, x.secs)), x => x.kmh) };
   }).sort((a, b) => b.n - a.n);
   const bestCell = (label, x, txt) => x ? `<div class="cd-best"><span>${label}</span><b>${txt}</b><small>${fmtDateShort(x.date)}</small></div>` : '';
-  const cb = chartBuilder();
   const curMin = tot(rowsR, 'cSec') / 60, prevMin = rowsP ? tot(rowsP, 'cSec') / 60 : null;
   const curKm = tot(rowsR, 'cKm'), prevKm = rowsP ? tot(rowsP, 'cKm') : null;
-  body.innerHTML = `
+  body.innerHTML = `${heart}
     <div class="charts-grid">
       ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Summe der Cardio-Dauer pro Kalenderwoche – nach dem Krafttraining und als eigene Einheit. Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.',
         big: fmtDur(curMin * 60), small: `im Zeitraum · ${units(rowsR)} Einheiten`, delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',

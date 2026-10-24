@@ -1792,3 +1792,104 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .fx-sub-prev { animation: subPrev .32s var(--ease-ios) both; }
 @keyframes subNext { from { transform: translateX(40%); opacity: 0; } }
 @keyframes subPrev { from { transform: translateX(-40%); opacity: 0; } }
+
+/* ==========================================================================
+   Herz & Ausdauer: Ruhepuls, VO2max, Pulszonen, Intensität, Intervall-Timer, Herz-Plan
+   ========================================================================== */
+.hr-actions { display: flex; gap: 8px; margin-top: 4px; }
+.hr-actions .btn { min-width: 0; }
+/* Ruhepuls messen */
+.hr-mode button { flex: 1 1 0; }
+.hr-tap {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; width: min(220px, 62vw); aspect-ratio: 1; margin: 0 auto;
+  border-radius: 50%; border: 2px solid color-mix(in srgb, var(--danger) 45%, transparent); background: color-mix(in srgb, var(--danger) 10%, var(--surface-2));
+  color: var(--text); font-weight: var(--fw-b); font-size: calc(14px * var(--fs)); touch-action: manipulation; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none;
+}
+.hr-tap svg { width: 54px; height: 54px; color: var(--danger); }
+.hr-tap.fx-beat { animation: hrBeat .26s var(--ease-out); }
+@keyframes hrBeat { 0% { transform: scale(.94); background: color-mix(in srgb, var(--danger) 22%, var(--surface-2)); } }
+.hr-live { display: flex; align-items: baseline; justify-content: center; gap: 6px; margin-top: 14px; }
+.hr-live b { font-size: calc(40px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; letter-spacing: -.02em; line-height: 1; }
+.hr-live small { color: var(--text-dim); font-weight: 600; }
+.hr-live.big b { font-size: calc(64px * var(--fs)); }
+.hr-prog { height: 6px; border-radius: 3px; background: var(--surface-3); overflow: hidden; margin-top: 12px; }
+.hr-prog i { display: block; height: 100%; width: 0; background: var(--danger); border-radius: 3px; transition: width .2s var(--ease-out); }
+.hr-ring { position: relative; width: 150px; height: 150px; margin: 0 auto; }
+.hr-ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.hr-ring .ring-bg { stroke: var(--surface-3); }
+.hr-ring .ring-fg { stroke: var(--danger); stroke-linecap: round; transition: stroke-dashoffset .1s linear; }
+.hr-ring b { position: absolute; inset: 0; display: grid; place-items: center; font-size: calc(46px * var(--fs)); font-weight: var(--fw-x); font-variant-numeric: tabular-nums; }
+.hr-num { font-size: calc(22px * var(--fs)); text-align: center; font-weight: var(--fw-b); }
+.hr-warn { color: var(--warning); margin-top: 6px; }
+/* Herz-Plan */
+.hp-title { display: flex; align-items: center; gap: 8px; }
+.hp-title svg { width: 18px; height: 18px; color: var(--danger); }
+.hp-row { margin-top: 12px; }
+.hp-top { display: flex; align-items: baseline; gap: 6px; font-size: calc(14px * var(--fs)); }
+.hp-top b { font-variant-numeric: tabular-nums; }
+.hp-top .dim { font-size: calc(13px * var(--fs)); }
+.hp-top svg { width: 16px; height: 16px; color: var(--success); align-self: center; }
+.hp-bar { height: 8px; border-radius: 4px; background: var(--surface-3); overflow: hidden; margin-top: 6px; }
+.hp-bar i { display: block; height: 100%; border-radius: 4px; background: var(--accent); transition: width .55s var(--ease-out); }
+.hp-row.ok .hp-bar i { background: var(--success); }
+.hp-done { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: var(--success); font-weight: var(--fw-b); font-size: calc(14px * var(--fs)); }
+.hp-done svg { width: 18px; height: 18px; }
+.hp-step { grid-template-columns: 40px minmax(64px, auto) 40px; flex-shrink: 0; }
+.hp-step button { height: 40px; }
+.hp-step b { text-align: center; font-variant-numeric: tabular-nums; padding: 0 4px; }
+/* VO2max-Einordnung */
+.vo2-scale { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; margin-top: 8px; }
+.vo2-scale i { height: 6px; border-radius: 3px; background: var(--surface-3); }
+.vo2-scale i.on { background: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.vo2-lbl { margin-top: 6px; }
+.vo2-lbl b { color: var(--text); }
+/* Pulszonen */
+.hz-list { display: flex; flex-direction: column; gap: 6px; }
+.hz-row { --z: var(--info); display: flex; align-items: center; gap: 10px; padding: 7px 10px; border-radius: calc(10px * var(--rs)); background: color-mix(in srgb, var(--z) 9%, var(--surface-2)); }
+.hz-row b { display: block; font-size: calc(13.5px * var(--fs)); }
+.hz-row small { display: block; font-size: calc(12px * var(--fs)); color: var(--text-dim); }
+.hz-n { width: 24px; height: 24px; flex-shrink: 0; border-radius: 50%; display: grid; place-items: center; background: var(--z); color: #fff; font-weight: var(--fw-x); font-size: calc(12px * var(--fs)); }
+.hz-b { font-weight: var(--fw-x); font-variant-numeric: tabular-nums; font-size: calc(14px * var(--fs)); white-space: nowrap; }
+.hz-edit { display: inline; padding: 0; min-height: 0; font-size: inherit; vertical-align: baseline; }
+.hz-2 { --z: var(--success); box-shadow: inset 0 0 0 var(--bw) color-mix(in srgb, var(--success) 45%, transparent); }
+.hz-3 { --z: color-mix(in srgb, var(--success) 35%, var(--warning)); }
+.hz-4 { --z: var(--warning); }
+.hz-5 { --z: var(--danger); }
+/* Cardio im Workout: Intensität, Puls, Intervalle */
+.cd-eff { display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px; padding: 10px 2px 2px; }
+.cd-eff-l { display: flex; align-items: center; gap: 2px; font-size: calc(13px * var(--fs)); font-weight: 600; color: var(--text-dim); }
+.cd-eff-seg { grid-column: 1 / -1; }
+.cd-eff-seg button { flex: 1 1 0; }
+.cd-eff-seg button.active[data-v="easy"] { background: color-mix(in srgb, var(--success) 16%, var(--surface)); color: var(--success); }
+.cd-eff-seg button.active[data-v="mod"] { background: color-mix(in srgb, var(--warning) 16%, var(--surface)); color: var(--warning); }
+.cd-eff-seg button.active[data-v="hard"] { background: color-mix(in srgb, var(--danger) 16%, var(--surface)); color: var(--danger); }
+.cd-hr { display: flex; align-items: center; gap: 8px; }
+.cd-hr small { font-size: calc(12px * var(--fs)); color: var(--text-dim); font-weight: 600; white-space: nowrap; }
+.cd-hr .input { width: 92px; min-height: 36px; padding: 4px 10px; text-align: center; }
+.cd-foot { display: flex; margin-top: 6px; border-top: var(--bw) solid var(--border); }
+.cd-foot .exs-add { margin-top: 0; border-top: 0; flex: 1 1 0; min-width: 0; }
+.cd-foot .exs-add + .exs-add { border-left: var(--bw) solid var(--border); }
+.hiit-pill {
+  display: flex; align-items: center; gap: 8px; width: 100%; margin-top: 10px; padding: 10px 12px; border: 0; border-radius: calc(12px * var(--rs));
+  background: color-mix(in srgb, var(--danger) 13%, var(--surface-2)); color: var(--text); font-weight: var(--fw-b); font-size: calc(14px * var(--fs)); text-align: left; font-variant-numeric: tabular-nums;
+}
+.hiit-pill svg { width: 18px; height: 18px; flex-shrink: 0; }
+.hiit-pill svg:first-child { color: var(--danger); }
+/* Intervall-Timer */
+.hiit-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+.hiit-form .input { text-align: center; font-weight: var(--fw-b); }
+.hiit-run { --ph: var(--info); display: flex; flex-direction: column; align-items: center; gap: 14px; padding: 4px 0; }
+.hiit-run.ph-work { --ph: var(--danger); }
+.hiit-run.ph-rest { --ph: var(--success); }
+.hiit-run.paused { --ph: var(--text-faint); }
+.hiit-run.ph-done h2 { margin-top: -4px; }
+.hiit-phase { font-size: calc(30px * var(--fs)); font-weight: var(--fw-x); letter-spacing: -.01em; color: var(--ph); text-transform: uppercase; line-height: 1; transition: color .3s; }
+.hiit-round { margin-top: -8px; font-weight: 600; }
+.hiit-ring .ring-fg { stroke: var(--ph); transition: stroke-dashoffset .2s linear, stroke .3s; }
+.hiit-line { display: flex; gap: 3px; width: 100%; height: 10px; }
+.hiit-line i { position: relative; flex-basis: 0; min-width: 3px; border-radius: 3px; overflow: hidden; background: var(--surface-3); }
+.hiit-line i b { position: absolute; inset: 0 auto 0 0; width: 0; }
+.hiit-line .hl-work b { background: var(--danger); }
+.hiit-line .hl-rest b { background: var(--success); }
+.hiit-line .hl-warm b, .hiit-line .hl-cool b { background: var(--info); }
+.hiit-line i.cur { box-shadow: 0 0 0 1.5px var(--text-faint); }

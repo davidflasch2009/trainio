@@ -8,7 +8,7 @@
    Writes landen immer sofort lokal; Firestore synchronisiert im Hintergrund
    (mit enablePersistence auch offline). Fotos liegen lokal in IndexedDB.
    ========================================================================== */
-const COLLS = ['exercises', 'templates', 'plans', 'workouts', 'progress', 'prs', 'meta', 'imports', 'photos'];
+const COLLS = ['exercises', 'templates', 'plans', 'workouts', 'progress', 'prs', 'meta', 'imports', 'photos', 'heart'];
 const NO_MIRROR = new Set(['photos']);  // zu groß für localStorage → IndexedDB
 const TS_KEYS = new Set(['createdAt', 'updatedAt', 'startedAt', 'endedAt', 'lastRecalc', 'importedAt', 'undoneAt']);
 

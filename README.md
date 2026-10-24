@@ -198,6 +198,37 @@ Konfetti und Inhalte der Startseite.
 - **Getrennt von Kraft**: Cardio zählt nicht in Volumen, Satzanzahl, Muskel-Heatmap oder Push/Pull.
   Reine Cardio-Tage zählen nicht für Streak, Wochenziel und Konsistenz.
 
+## Herz & Ausdauer
+
+Fürs Herztraining (besserer Ruhepuls, höhere VO2max) – ganz ohne Uhr oder Brustgurt. Eine Web-App darf
+Apple Health nicht lesen, deshalb misst bzw. schätzt Trainio selbst. Alles unter **Fortschritt → Herz & Cardio**,
+abschaltbar unter Mehr → Tabs & Funktionen („Herz & Ausdauer“).
+- **Ruhepuls messen** (morgens nach dem Aufwachen, im Liegen): **im Takt tippen** – bei jedem ertasteten Schlag
+  auf den großen Kreis tippen, nach 20 Schlägen steht der Wert (Doppel-Tipper und verpasste Schläge werden
+  herausgerechnet) – oder **30 Sekunden zählen**: Ton, 30 s Countdown, Ton, gezählte Schläge eintragen (× 2).
+  Oder den Wert direkt eintragen. Ein Wert pro Tag, alle Werte unter „Alle Werte“ (löschbar).
+  Verlauf als Ø der letzten 7 Tage plus einzelne Messungen, optional mit Ziel-Linie.
+- **VO2max** ohne Uhr geschätzt nach Uth et al. (2004): 15,3 × Maximalpuls ÷ Ruhepuls (Ø 7 Tage) – ein Richtwert
+  (etwa ±10 %), der Trend zählt. Gemessene Werte (z. B. Leistungsdiagnostik) lassen sich eintragen und haben
+  Vorrang. Einordnung von „sehr niedrig“ bis „ausgezeichnet“ nach Alter und Geschlecht (Shvartz & Reibold).
+- **Pulszonen** 1–5 aus Maximal- und Ruhepuls (Karvonen) mit Gefühl („ganze Sätze sprechen“ = Zone 2).
+  Maximalpuls aus dem Alter geschätzt (208 − 0,7 × Alter, Tanaka) oder selbst eingetragen
+  (**Mehr → Konto & Profil**: Geburtsjahr, Maximalpuls).
+- **Intensität im Workout**: Bei jeder Cardio-Übung **locker / mittel / hart** und optional **Ø Puls**
+  (z. B. vom Griff-Sensor am Gerät) – dann steht die Zone daneben. Fortschritt: **Intensität pro Woche**
+  (Minuten locker / mittel / hart) und Anteil locker – bewährt sind etwa 80 % locker, 20 % hart.
+- **Intervall-Timer** („Intervalle“ unten in der Cardio-Übung oder „Intervall-Timer“ im Herz-Bereich):
+  Vorlagen **4 × 4 min** (norwegisch), **8 × 1 min**, **10 × 30 s** oder eigene Zeiten (Aufwärmen, hart, locker,
+  Runden, Abwärmen). Großer Countdown mit farbigem Ring, Phasen-Leiste, Ton + Vibration beim Wechsel, kurze Töne in
+  den letzten 3 Sekunden, Pause, „Nächste Phase“. Läuft weiter, wenn das Fenster zu ist (Anzeige in der Karte)
+  und auch nach dem Neuladen. Am Ende wird die Zeit als erledigter Abschnitt eingetragen und die Übung als
+  „hart“ markiert.
+- **Herz-Plan** (erst da, wenn du ihn aktivierst – im Herz-Bereich oder unter Mehr → Training): Wochenziel aus
+  Einheiten (Cardio ab 10 min), davon hart und Minuten locker (Zone 2), optional Ziel-Ruhepuls und Ziel-VO2max
+  (als Linie in den Diagrammen). Fortschritt der Woche auf der Startseite („Herz diese Woche“) mit Knöpfen für
+  Ruhepuls und Intervalle. Beenden jederzeit, die Werte bleiben.
+- **Startseiten-Kachel „Ruhepuls“** (Mehr → Darstellung → Startseite): letzter Wert, antippen = messen.
+
 ## Phasen & Ziele
 
 - **Phasen** (Fortschritt → „+ Phase“): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
@@ -241,8 +272,8 @@ schließt sich die Gruppe und die Suche wird geleert):
 
 | Gruppe | Inhalt |
 | --- | --- |
-| Konto & Profil | Anmeldung (Google, GitHub), **Anmeldewege verknüpfen/trennen**, Sync-Status, Name, Geschlecht |
-| Training | aktiver Plan, Wochenziel, Wochenstart, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Zeitraum im Fortschritt** (4W … Alles oder eine Phase – bei jedem Öffnen des Fortschritts ausgewählt; gelöschte Phase → Alles) |
+| Konto & Profil | Anmeldung (Google, GitHub), **Anmeldewege verknüpfen/trennen**, Sync-Status, Name, Geschlecht, **Geburtsjahr**, **Maximalpuls** (für Pulszonen & VO2max) |
+| Training | aktiver Plan, Wochenziel, Wochenstart, **Herz-Plan**, Ruhepuls messen, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Zeitraum im Fortschritt** (4W … Alles oder eine Phase – bei jedem Öffnen des Fortschritts ausgewählt; gelöschte Phase → Alles) |
 | Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
 | Pause & Timer | Standard-Pause, **Pausen-Timer** an/aus (startet nach jedem Satz), Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
 | Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (Auswahl + Reihenfolge, auch Ø Score) |
@@ -274,7 +305,7 @@ und beim Hinzufügen von Übungen erreichbar.
 
 **Mehr → Tabs & Funktionen**: Übungen- und Fortschritt-Tab, einzelne Auswertungen,
 Aufwärmsätze, Scheibenrechner, Progressions-Vorschläge, PR-Feiern, Satz-Typen, Fokus-Modus,
-Workout-Notizen, Cardio-Auswertungen, Arrow-Import und Tools – alles einzeln abschaltbar.
+Workout-Notizen, Cardio-Auswertungen, Herz & Ausdauer, Arrow-Import und Tools – alles einzeln abschaltbar.
 
 ## Plan-Analyse
 
@@ -505,7 +536,8 @@ npm test
 Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
 alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout speichern mit Score, Fortschritt,
 Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit laufendem Workout, Datenwege
-(Backup/Restore, Arrow-Import, Gewichts-CSV) und Design-Wechsel bei gezeichneten Diagrammen. Firebase und CDNs sind
+(Backup/Restore, Arrow-Import, Gewichts-CSV), Design-Wechsel bei gezeichneten Diagrammen und Herz & Ausdauer
+(Ruhepuls tippen/eintragen, VO2max-Schätzung, Herz-Plan, Intensität, Intervall-Timer bis zum Eintrag). Firebase und CDNs sind
 dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 

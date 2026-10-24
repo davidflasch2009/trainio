@@ -310,7 +310,7 @@ function cardioCard(en, ei, w) {
       ${rows}
     </div>
     <div class="cd-sum" data-cdsum="${ei}" ${sum ? '' : 'hidden'}>${esc(sum)}</div>
-    <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Abschnitt</button>
+    ${F('f_heart') ? Heart.cardioExtras(en, ei, w) + Heart.cardioFoot(ei) : `<button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Abschnitt</button>`}
   </div>`;
 }
 const cdUpdateSum = ei => { const w = Workout.cur(), en = w && w.entries[ei], el = $(`[data-cdsum="${ei}"]`); if (!en || !el) return; const t = cardioSumTxt(en); el.textContent = t; el.hidden = !t; };
