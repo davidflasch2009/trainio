@@ -940,6 +940,9 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .set-num i { position: absolute; top: -5px; right: -6px; font-style: normal; font-size: calc(9.5px * var(--fs)); font-weight: var(--fw-x); line-height: 1; padding: 2px 4px; border-radius: calc(6px * var(--rs)); color: #fff; }
 .set-num.drop i { background: var(--info); }
 .set-num.fail i { background: var(--danger); }
+.set-num.fix { color: var(--warning); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--warning) 55%, transparent); }
+.set-num.fix i { background: var(--warning); padding: 2px; display: grid; place-items: center; }
+.set-num.fix i svg { width: 9px; height: 9px; stroke-width: 3; }
 
 /* Fokus-Modus: eine Übung, große Eingaben */
 .focus { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); box-shadow: var(--card-shadow); overflow: hidden; margin-bottom: 12px; }

@@ -363,6 +363,7 @@ function simpleCard(en, ei, w) {
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
     ${en.formFix ? `<div class="exs-last fix-line">${fixTxt(en)}</div>` : ''}
+    ${fixSetsTxt(en) ? `<div class="exs-last fix-line">${fixSetsTxt(en)}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
     ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
@@ -443,9 +444,16 @@ function exSummary(en, w, type) {
 }
 const KIND_LABEL = { drop: 'D', fail: 'F' };
 function setNumHtml(s, num, d) {
-  const cls = s.warmup ? 'warm' : (s.kind || '');
-  const kind = !s.warmup && KIND_LABEL[s.kind] ? `<i>${KIND_LABEL[s.kind]}</i>` : '';
-  return `<button class="set-num ${cls}" data-act="setMenu" ${d} aria-label="Satz ${num} Optionen">${num}${kind}</button>`;
+  const fix = s.fix && !s.warmup;
+  const cls = s.warmup ? 'warm' : fix ? 'fix' : (s.kind || '');
+  const kind = fix ? `<i>${icon('refresh')}</i>` : !s.warmup && KIND_LABEL[s.kind] ? `<i>${KIND_LABEL[s.kind]}</i>` : '';
+  return `<button class="set-num ${cls}" data-act="setMenu" ${d} aria-label="Satz ${num} Optionen${fix ? ' (Form-Fix)' : ''}">${num}${kind}</button>`;
+}
+/** Hinweis „Form-Fix bei Satz 2" unter der Übung (Satznummern ohne Aufwärmsätze) */
+function fixSetsTxt(en) {
+  let no = 0;
+  const nums = en.sets.map(s => s.warmup ? null : (++no, s.fix ? no : null)).filter(Boolean);
+  return nums.length ? `${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix bei Satz ${nums.join(', ')} – zählt nicht gegen dich` : '';
 }
 
 function exerciseCard(en, ei, w) {
@@ -465,7 +473,7 @@ function exerciseCard(en, ei, w) {
     const num = s.warmup ? 'W' : ++workNo;
     const prev = last && !s.warmup ? (last.list[num - 1] || null) : null;
     const sel = w.sel.e === ei && w.sel.s === si;
-    const isPR = F('f_prs') && s.done && !s.warmup && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, repsOf(s)) > (pr.best1RM || 0) + 0.05);
+    const isPR = F('f_prs') && s.done && !s.warmup && !s.fix && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, repsOf(s)) > (pr.best1RM || 0) + 0.05);
     return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni, lo) + (sel ? setPanel(ei, si, s, type, uni) : '');
   }).join('');
   const meta = ex ? [ex.equipment, (ex.muscleGroups || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') : '';
@@ -487,6 +495,7 @@ function exerciseCard(en, ei, w) {
       ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
       ${pinChip(en.exerciseId, 'hint-chip pin')}
       ${en.formFix ? `<span class="hint-chip fix-line">${fixTxt(en)}</span>` : ''}
+      ${fixSetsTxt(en) ? `<span class="hint-chip fix-line">${fixSetsTxt(en)}</span>` : ''}
     </div>
     <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
     ${rows}
@@ -618,6 +627,7 @@ function focusView(w) {
       </div>
       ${pinNote(en.exerciseId) ? `<div class="center mt-8">${pinChip(en.exerciseId)}</div>` : ''}
       ${en.formFix ? `<div class="center mt-8"><span class="hint-chip fix-line">${fixTxt(en)}</span></div>` : ''}
+      ${fixSetsTxt(en) ? `<div class="center mt-8"><span class="hint-chip fix-line">${fixSetsTxt(en)}</span></div>` : ''}
       ${woSimple() ? `<div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(`${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${goalWeight(en) ? ' · ' + fmtW(goalWeight(en)) : ''}`)}</button></div>` : goalBar(en, ei, type)}
       <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
         ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
@@ -1211,13 +1221,15 @@ Actions.setMenu = async el => {
     !s.warmup && { key: 'warm', label: 'Aufwärmsatz', sub: 'Zählt nicht für Volumen & PRs', icon: 'flame' },
     F('f_setTypes') && s.kind !== 'drop' && { key: 'drop', label: 'Drop-Satz', sub: 'Direkt weiter mit weniger Gewicht', icon: 'arrowDown' },
     F('f_setTypes') && s.kind !== 'fail' && { key: 'fail', label: 'Bis zum Muskelversagen', sub: 'Markiert den Satz mit „F"', icon: 'bolt' },
+    !s.warmup && { key: 'fixset', label: s.fix ? 'Form-Fix entfernen' : 'Form-Fix (nur dieser Satz)', sub: s.fix ? 'Satz zählt wieder normal' : 'Bewusst leichter für saubere Technik – zählt nicht gegen dich', icon: 'refresh' },
     s.weightKg != null && { key: 'fillW', label: `${fmtW(s.weightKg)} für alle offenen Sätze`, icon: 'copy' },
     { key: 'dup', label: 'Satz duplizieren', icon: 'copy' },
     { key: 'del', label: 'Satz löschen', icon: 'trash', danger: true }
   ]);
   if (!k) return;
   if (k === 'normal') { s.warmup = false; s.kind = null; }
-  if (k === 'warm') { s.warmup = true; s.kind = null; }
+  if (k === 'warm') { s.warmup = true; s.kind = null; s.fix = false; }
+  if (k === 'fixset') { s.fix = !s.fix; toast(s.fix ? 'Form-Fix: Satz zählt nicht gegen dich' : 'Form-Fix entfernt', 'success', { cat: 'workout' }); }
   if (k === 'drop' || k === 'fail') { s.warmup = false; s.kind = k; }
   if (k === 'fillW') en.sets.forEach(x => { if (!x.done && !x.warmup) x.weightKg = s.weightKg; });
   if (k === 'dup') en.sets.splice(si + 1, 0, { ...s, done: false, doneAt: null });

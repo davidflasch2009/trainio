@@ -635,7 +635,7 @@ ProgressViews.strength = body => {
   const ssF = sinceFix(ss);
   for (let n = 1; n <= 12; n++) {
     let best = null;
-    for (const s of ssF) for (const x of s.list) if (x.r >= n && x.w > 0 && (!best || x.w > best.w || (x.w === best.w && s.dn < best.dn))) best = { n, w: x.w, r: x.r, dn: s.dn };
+    for (const s of ssF) for (const x of s.list) if (!x.fix && x.r >= n && x.w > 0 && (!best || x.w > best.w || (x.w === best.w && s.dn < best.dn))) best = { n, w: x.w, r: x.r, dn: s.dn };
     if (best) repMax.push(best);
   }
   const newestRep = repMax.length ? repMax.reduce((a, b) => b.dn > a.dn ? b : a) : null;

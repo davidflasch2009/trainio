@@ -870,9 +870,9 @@ function openWorkoutDetail(id) {
           <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
           ${en.formFix && en.formFix.note ? `<div class="tiny dim">${esc(en.formFix.note)}</div>` : ''}
           <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th><th class="r">RPE</th><th class="r">e1RM</th></tr></thead><tbody>
-          ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}</td>
+          ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}${s.fix && !s.warmup ? ' <span class="badge warn" style="padding:1px 5px">Form-Fix</span>' : ''}</td>
             <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td><td class="r">${s.rpe ?? '–'}</td>
-            <td class="r dim">${!isSec && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td></tr>`).join('')}
+            <td class="r dim">${!isSec && !s.fix && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td></tr>`).join('')}
           </tbody></table></div></div>`;
       }).join('')}`,
     foot: `<button class="btn btn-danger-ghost" data-x="del" aria-label="Löschen" style="flex:0 0 auto">${icon('trash')}</button>

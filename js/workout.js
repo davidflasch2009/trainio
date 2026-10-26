@@ -90,7 +90,7 @@ const Workout = (() => {
         uni: !!en.uni || (en.sets || []).some(x => x.repsR != null || x.durationSecR != null),
         target: { sets: (en.sets || []).length, reps: '', restSec: S().defaultRestSec, notes: '' }, note: en.note || '',
         ...(edit ? { effort: en.effort || null, hr: en.hr || null, hiit: en.hiit || null, formFix: en.formFix || null } : {}),
-        sets: (en.sets || []).map(s => edit ? { ...newSet(s), done: s.done !== false, doneAt: s.doneAt || null } : newSet({ ...s, rpe: null })),
+        sets: (en.sets || []).map(s => edit ? { ...newSet(s), done: s.done !== false, doneAt: s.doneAt || null, ...(s.fix ? { fix: true } : {}) } : newSet({ ...s, rpe: null })),
         suggestion: null
       };
     });
@@ -141,6 +141,7 @@ const Workout = (() => {
           }
           if (s.warmup) o.warmup = true;
           else if (s.kind) o.kind = s.kind;
+          if (s.fix && !s.warmup) o.fix = true;
           if (s.durationSec != null) o.durationSec = +s.durationSec;
           if (s.distKm != null) o.distKm = round(+s.distKm, 3);
           if (s.level != null) o.level = +s.level;

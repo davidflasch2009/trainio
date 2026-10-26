@@ -527,6 +527,19 @@ async function formFixFlow(page) {
   await page.evaluate(() => openExerciseDetail('ex_bankdruecken'));
   await pause(page, 600);
   check(await page.evaluate(() => /Form-Fix am .*Vorher: 1RM/.test((document.querySelector('.modal .fix-card') || {}).innerText || '')), 'Übungs-Seite zeigt Form-Fix und Bestwerte von vorher');
+  // Form-Fix nur für einen Satz: Satz 2 bewusst leichter
+  await page.evaluate(() => { Modal.closeAll(); Workout.start({ templateId: 'tff' }); });
+  await pause(page, 500);
+  await page.click('#tab-training [data-act="setMenu"][data-ei="0"][data-si="1"]');
+  await pause(page, 400);
+  await page.click('.modal [data-k="fixset"]');
+  await pause(page, 300);
+  check(await page.evaluate(() => Workout.cur().entries[0].sets[1].fix === true && /Form-Fix bei Satz 2/.test(document.querySelector('#tab-training').innerText) && !!document.querySelector('#tab-training .set-num.fix')), 'Form-Fix nur für Satz 2 (über die Satznummer), markiert');
+  await page.evaluate(() => { const w = Workout.cur(); w.entries[0].sets.forEach((s, i) => { s.weightKg = i === 1 ? 75 : 82.5; s.reps = 5; s.done = true; s.doneAt = Date.now(); }); Workout.save(); Actions.woFinish(); });
+  await pause(page, 700);
+  const one = await page.evaluate(() => { const rows = Analytics.cur().rows, w = Store.raw('workouts', rows[rows.length - 1].id); const ss = Analytics.sessionsOf('ex_bankdruecken'), cur = ss[ss.length - 1]; return { fix: w.entries[0].sets.map(s => !!s.fix), prog: Analytics.score(w.id).parts.prog, maxW: cur.maxW, setsN: cur.setsN, sets: cur.sets }; });
+  check(one.fix.join() === 'false,true,false' && one.prog === 0.6 && one.maxW === 82.5 && one.setsN === 2 && one.sets === 3, 'Leichterer Form-Fix-Satz zählt nicht gegen dich (Score, Kraftwerte), bleibt erledigt', JSON.stringify(one));
+  await page.evaluate(() => Modal.closeAll());
   check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler', page.errors.concat(await appErrors(page)).join(' | '));
 }
 

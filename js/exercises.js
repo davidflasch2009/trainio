@@ -381,7 +381,7 @@ function openExerciseDetail(id) {
         ${shown.map(s => `<div class="card tight mb-8" style="background:var(--surface-2)">
             <div class="row between"><button class="link-btn" style="padding:0;min-height:30px" data-x="wo" data-id="${esc(s.wid)}">${esc(fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))}</button>${s.fix ? `<span class="badge warn" title="${esc(s.fixNote || '')}">Form-Fix</span><span class="grow"></span>` : ''}
             <span class="tiny dim">${t === 'kg' ? `e1RM ${fmtW(s.best)} · ${fmtTon(s.vol)}` : `${s.sets} Sätze`}</span></div>
-            <div class="small num">${s.list.map(x => t === 'sec' ? prevSec(x) + (x.w ? ` +${wNum(x.w)}` : '') : (x.w ? `${wNum(x.w)} × ${prevR(x)}` : `${prevR(x)} Wdh.`) + (x.rpe ? ` <span class="faint">@${nf(x.rpe, 1)}</span>` : '')).join(' &nbsp;·&nbsp; ')}</div>
+            <div class="small num">${s.list.map(x => t === 'sec' ? prevSec(x) + (x.w ? ` +${wNum(x.w)}` : '') : (x.w ? `${wNum(x.w)} × ${prevR(x)}` : `${prevR(x)} Wdh.`) + (x.rpe ? ` <span class="faint">@${nf(x.rpe, 1)}</span>` : '') + (x.fix ? ' <span class="fix-line tiny bold">Form-Fix</span>' : '')).join(' &nbsp;·&nbsp; ')}</div>
           </div>`).join('')}
         ${sessions.length > 8 && !showAll ? `<button class="btn btn-secondary btn-block" data-x="all">Alle ${sessions.length} Sessions anzeigen</button>` : ''}
       ` : `<div class="mt-16">${emptyState('chart', 'Noch keine Daten', 'Sobald du diese Übung trainierst, siehst du hier Verlauf, PRs und alle Sätze.')}</div>`}

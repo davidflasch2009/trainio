@@ -253,6 +253,10 @@ dafür nicht bestraft: im Workout bei der Übung **⋯ → Form-Fix** (optional 
   ab dem Form-Fix. Auch Kraftziele zählen ab dort.
 - Der Steigerungs-Vorschlag der Übung verschwindet beim Setzen; „Form-Fix entfernen“ im selben Menü nimmt ihn
   zurück (auch nachträglich über „Bearbeiten“ im Workout). Im Workout-Detail steht ein „Form-Fix“-Abzeichen.
+- **Nur ein Satz:** Satznummer antippen → **Form-Fix (nur dieser Satz)** – z. B. Satz 2 bewusst leichter und sauber.
+  Der Satz zählt als erledigt und im Volumen, aber nicht gegen dich: nicht beim Vergleich mit dem letzten Mal im Score
+  (Volumen wird dann pro normalem Satz verglichen), nicht bei 1RM, Max-Gewicht, Rep-Maxima, PRs und
+  Steigerungs-Vorschlag. Die Satznummer bekommt einen orangen Rand, darunter steht „Form-Fix bei Satz 2“.
 
 ## Phasen & Ziele
 

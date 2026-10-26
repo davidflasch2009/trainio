@@ -180,7 +180,7 @@ function buildIndex(W, EX, F = 'epley') {
         (sessions[exId] || (sessions[exId] = [])).push(sess);
         continue;
       }
-      let best = 0, bestSet = null, maxW = 0, repsAtMax = 0, vol = 0, n = 0, reps = 0, secs = 0;
+      let best = 0, bestSet = null, maxW = 0, repsAtMax = 0, vol = 0, n = 0, reps = 0, secs = 0, volN = 0, setsN = 0;
       const list = [];
       for (const s of (en.sets || [])) {
         if (!s || s.warmup) continue;
@@ -196,11 +196,13 @@ function buildIndex(W, EX, F = 'epley') {
         n++; reps += rT; secs += uniS ? sL + sR : sL;
         const v = rT * wt;
         vol += v;
+        // Form-Fix-Satz (bewusst leichter für saubere Technik): zählt als erledigt und im Volumen, aber nicht für Kraftwerte & PRs
+        if (!s.fix) { volN += v; setsN++; }
         if (s.rpe) { row.rpeSum += +s.rpe; row.rpeN++; row.rpeVol += v * (+s.rpe) / 10; }
         if (s.doneAt) times.push(s.doneAt);
-        const e = e1(wt, r);
+        const e = s.fix ? 0 : e1(wt, r);
         if (e > best) { best = e; bestSet = { w: wt, r }; }
-        if (r >= 1) {
+        if (r >= 1 && !s.fix) {
           if (wt > maxW) { maxW = wt; repsAtMax = r; }
           else if (wt === maxW && r > repsAtMax) repsAtMax = r;
         }
@@ -209,7 +211,9 @@ function buildIndex(W, EX, F = 'epley') {
         (meta.muscleGroups || []).forEach((m, i) => { row.muscles[m] = (row.muscles[m] || 0) + 1; const t = i ? row.mS : row.mP; t[m] = (t[m] || 0) + 1; });
         const cat = meta.category || 'Full Body';
         row.cats[cat] = (row.cats[cat] || 0) + 1;
-        list.push(uniS ? { r, w: wt, rpe: s.rpe || null, sec, u: [rL, rR], us: [sL, sR] } : { r, w: wt, rpe: s.rpe || null, sec });
+        const it = uniS ? { r, w: wt, rpe: s.rpe || null, sec, u: [rL, rR], us: [sL, sR] } : { r, w: wt, rpe: s.rpe || null, sec };
+        if (s.fix) it.fix = true;
+        list.push(it);
       }
       if (!n) continue;
       row.sets += n; row.reps += reps; row.ton += vol;
@@ -217,7 +221,7 @@ function buildIndex(W, EX, F = 'epley') {
       row.exSets[exId] = (row.exSets[exId] || 0) + n;
       row.exReps[exId] = (row.exReps[exId] || 0) + reps;
       if (row.ex.indexOf(exId) < 0) row.ex.push(exId);
-      const sess = { wid: w.id, date: w.date, dn, best, bestSet, maxW, repsAtMax, vol, sets: n, reps, secs, list };
+      const sess = { wid: w.id, date: w.date, dn, best, bestSet, maxW, repsAtMax, vol, sets: n, reps, secs, list, volN, setsN };
       // Form-Fix (bewusst weniger Gewicht für saubere Technik): neuer Startwert, PRs zählen ab hier neu
       if (en.formFix) { sess.fix = true; sess.fixNote = en.formFix.note || ''; delete runBest[exId]; }
       (sessions[exId] || (sessions[exId] = [])).push(sess);
@@ -352,11 +356,13 @@ const Analytics = (() => {
       if (i < 0) continue;
       const curS = ss[i];
       if (!curS.cardio) curS.list.forEach(x => { if (x.rpe) rpes.push(+x.rpe); });
-      if (curS.fix) { const wt = curS.sets || 1; pW += wt; pS += progFrac(0) * wt; continue; }
+      if (curS.fix || (!curS.cardio && curS.setsN === 0)) { const wt = curS.sets || 1; pW += wt; pS += progFrac(0) * wt; continue; }
       let prev = null;
       for (let k = i - 1; k >= 0; k--) if (ss[k].wid !== wid) { prev = ss[k]; break; }
       if (!prev) continue;
-      const c = (curS.cardio ? [ch(curS.km, prev.km), ch(curS.secs, prev.secs)] : [ch(curS.best, prev.best), ch(curS.vol, prev.vol)]).filter(x => x != null);
+      const withFix = !curS.cardio && (curS.setsN < curS.sets || prev.setsN < prev.sets);
+      const volCh = withFix ? ch(curS.volN / curS.setsN, prev.setsN ? prev.volN / prev.setsN : 0) : ch(curS.vol, prev.vol);
+      const c = (curS.cardio ? [ch(curS.km, prev.km), ch(curS.secs, prev.secs)] : [ch(curS.best, prev.best), volCh]).filter(x => x != null);
       if (!c.length && !curS.cardio) c.push(...[ch(curS.reps, prev.reps), ch(curS.secs, prev.secs)].filter(x => x != null));
       if (!c.length) continue;
       const wt = curS.sets || 1;
@@ -430,7 +436,7 @@ const PR = {
     const bestsOf = list => {
       let bestW = 0, best1 = 0, bestV = 0, bestR = 0;
       for (const s of list) { best1 = Math.max(best1, s.best); bestV = Math.max(bestV, s.vol); bestW = Math.max(bestW, s.maxW); }
-      for (const s of list) for (const x of s.list) if (x.r >= 1 && x.w === bestW && x.r > bestR) bestR = x.r;
+      for (const s of list) for (const x of s.list) if (!x.fix && x.r >= 1 && x.w === bestW && x.r > bestR) bestR = x.r;
       return { bestWeightKg: round(bestW, 2), best1RM: round(best1, 1), bestVolume: round(bestV, 1), bestReps: bestR };
     };
     const cur = sinceFix(ss), before = ss.slice(0, ss.length - cur.length);
@@ -443,6 +449,7 @@ const PR = {
       if (!s || s.warmup || s.done === false) continue;
       const r = repsOf(s), w = +s.weightKg || 0;
       vol += setVol(s);
+      if (s.fix) continue;
       const e = e1rm(w, r);
       if (e > best1) { best1 = e; bestSet = { w, r }; }
       if (r >= 1 && (w > bestW || (w === bestW && r > bestR))) { bestW = w; bestR = r; heavy = { w, r }; }
@@ -561,7 +568,7 @@ function suggestFor(exId, target) {
   if (!ss.length || Ex.type(ex) !== 'kg') return null;
   const last = ss[ss.length - 1];
   const [lo, hi] = parseRange(target && target.reps);
-  const work = last.list.filter(s => s.r > 0 && s.w > 0);
+  const work = last.list.filter(s => !s.fix && s.r > 0 && s.w > 0);
   if (!work.length || !hi) return null;
   const topW = maxOf(work, s => s.w);
   const atTop = work.filter(s => s.w === topW);
