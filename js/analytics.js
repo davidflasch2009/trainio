@@ -218,6 +218,8 @@ function buildIndex(W, EX, F = 'epley') {
       row.exReps[exId] = (row.exReps[exId] || 0) + reps;
       if (row.ex.indexOf(exId) < 0) row.ex.push(exId);
       const sess = { wid: w.id, date: w.date, dn, best, bestSet, maxW, repsAtMax, vol, sets: n, reps, secs, list };
+      // Form-Fix (bewusst weniger Gewicht für saubere Technik): neuer Startwert, PRs zählen ab hier neu
+      if (en.formFix) { sess.fix = true; sess.fixNote = en.formFix.note || ''; delete runBest[exId]; }
       (sessions[exId] || (sessions[exId] = [])).push(sess);
       if (best > 0) {
         if (runBest[exId] === undefined) runBest[exId] = best;
@@ -350,6 +352,7 @@ const Analytics = (() => {
       if (i < 0) continue;
       const curS = ss[i];
       if (!curS.cardio) curS.list.forEach(x => { if (x.rpe) rpes.push(+x.rpe); });
+      if (curS.fix) { const wt = curS.sets || 1; pW += wt; pS += progFrac(0) * wt; continue; }
       let prev = null;
       for (let k = i - 1; k >= 0; k--) if (ss[k].wid !== wid) { prev = ss[k]; break; }
       if (!prev) continue;
@@ -407,6 +410,13 @@ const Analytics = (() => {
 })();
 
 /* ---------- Personal Records ---------- */
+/** Sessions einer Übung ab dem letzten Form-Fix (bis Tag `to`) – Vergleiche, Trend und PRs starten dort neu */
+function sinceFix(ss, to = Infinity) {
+  let k = 0;
+  for (let i = 0; i < ss.length; i++) if (ss[i].fix && ss[i].dn <= to) k = i;
+  return k ? ss.slice(k) : ss;
+}
+const lastFix = ss => { for (let i = ss.length - 1; i >= 0; i--) if (ss[i].fix) return ss[i]; return null; };
 const PR = {
   /** PR-Kennzahlen aus allen Sessions einer Übung */
   compute(exId, ix) {
@@ -417,10 +427,14 @@ const PR = {
       for (const x of ss) { c.durSec = Math.max(c.durSec, x.secs); c.km = Math.max(c.km, x.km); if (cardioKmhValid(x.km, x.secs)) c.kmh = Math.max(c.kmh, x.kmh); }
       return { exerciseId: exId, exerciseName: Ex.name(exId), cardio: true, bestDurSec: c.durSec, bestKm: round(c.km, 3), bestKmh: round(c.kmh, 2), updatedAt: Date.now() };
     }
-    let bestW = 0, best1 = 0, bestV = 0, bestR = 0;
-    for (const s of ss) { best1 = Math.max(best1, s.best); bestV = Math.max(bestV, s.vol); bestW = Math.max(bestW, s.maxW); }
-    for (const s of ss) for (const x of s.list) if (x.r >= 1 && x.w === bestW && x.r > bestR) bestR = x.r;
-    return { exerciseId: exId, exerciseName: Ex.name(exId), bestWeightKg: round(bestW, 2), best1RM: round(best1, 1), bestVolume: round(bestV, 1), bestReps: bestR, updatedAt: Date.now() };
+    const bestsOf = list => {
+      let bestW = 0, best1 = 0, bestV = 0, bestR = 0;
+      for (const s of list) { best1 = Math.max(best1, s.best); bestV = Math.max(bestV, s.vol); bestW = Math.max(bestW, s.maxW); }
+      for (const s of list) for (const x of s.list) if (x.r >= 1 && x.w === bestW && x.r > bestR) bestR = x.r;
+      return { bestWeightKg: round(bestW, 2), best1RM: round(best1, 1), bestVolume: round(bestV, 1), bestReps: bestR };
+    };
+    const cur = sinceFix(ss), before = ss.slice(0, ss.length - cur.length);
+    return { exerciseId: exId, exerciseName: Ex.name(exId), ...bestsOf(cur), ...(before.length ? { fixDate: cur[0].date, beforeFix: bestsOf(before) } : {}), updatedAt: Date.now() };
   },
   /** Kennzahlen einer einzelnen Session (Workout-Eintrag) */
   ofEntry(entry) {
@@ -466,6 +480,16 @@ const PR = {
       if (!s.bestR && !s.vol) continue;
       const old = Store.raw('prs', en.exerciseId);
       const name = en.exerciseName || Ex.name(en.exerciseId);
+      if (workout.entries.some(e => e.exerciseId === en.exerciseId && e.formFix)) {
+        // bisher Bestes (auch von früheren Form-Fixes) bleibt als „vor Form-Fix" sichtbar
+        const pb = old ? old.beforeFix || {} : {}, mx = k => Math.max(old && old[k] || 0, pb[k] || 0);
+        const heavyOld = Math.max(old && old.bestWeightKg || 0, pb.bestWeightKg || 0);
+        const beforeFix = old ? { best1RM: mx('best1RM'), bestWeightKg: heavyOld, bestVolume: mx('bestVolume'),
+          bestReps: (old.bestWeightKg || 0) >= (pb.bestWeightKg || 0) ? old.bestReps || 0 : pb.bestReps || 0 } : null;
+        ops.push({ type: 'put', coll: 'prs', id: en.exerciseId, replace: true, doc: { exerciseId: en.exerciseId, exerciseName: name, bestWeightKg: round(s.bestW, 2), best1RM: round(s.best1, 1), bestVolume: round(s.vol, 1), bestReps: s.bestR, fixDate: workout.date, ...(beforeFix ? { beforeFix } : {}), updatedAt: Date.now() } });
+        results.push({ exId: en.exerciseId, name, first: true, fix: true, s });
+        continue;
+      }
       if (!old) {
         ops.push({ type: 'put', coll: 'prs', id: en.exerciseId, doc: { exerciseId: en.exerciseId, exerciseName: name, bestWeightKg: round(s.bestW, 2), best1RM: round(s.best1, 1), bestVolume: round(s.vol, 1), bestReps: s.bestR, updatedAt: Date.now() } });
         results.push({ exId: en.exerciseId, name, first: true, s });

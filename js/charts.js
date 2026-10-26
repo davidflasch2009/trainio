@@ -129,7 +129,8 @@ const thresholdPlugin = {
       if (opts.axis === 'x') { ctx.moveTo(p, a.top); ctx.lineTo(p, a.bottom); } else { ctx.moveTo(a.left, p); ctx.lineTo(a.right, p); }
       ctx.stroke();
       ctx.setLineDash([]);
-      if (opts.axis === 'x') { ctx.textAlign = 'center'; ctx.fillText(l.label, p, a.top - 5); }
+      // senkrechte Linie: Beschriftung über dem Diagramm, am Rand nach innen ausgerichtet
+      if (opts.axis === 'x') { ctx.textAlign = p > a.right - 34 ? 'right' : p < a.left + 34 ? 'left' : 'center'; ctx.fillText(l.label, p, a.top - 5); }
       else { ctx.textAlign = 'left'; ctx.fillText(l.label, a.left + 4, p - 4); }
     }
     ctx.restore();
@@ -233,6 +234,7 @@ function timeLine(datasets, { tooltipFmt = v => nf(v, 1), yFmt = yAuto(), legend
     data: { datasets },
     plugins: thresholds ? [thresholdPlugin] : [],
     options: {
+      ...(thresholds && thresholds.axis === 'x' ? { layout: { padding: { top: 14 } } } : {}),
       interaction: { mode: 'nearest', axis: 'x', intersect: false },
       scales: {
         x: { type: 'linear', bounds: 'data', grid: { display: false }, border: { display: false }, min: xMin, max: xMax, ticks: { maxTicksLimit: 5, maxRotation: 0, callback: dnTick }, afterBuildTicks: dropCrowdedTicks },
@@ -297,6 +299,11 @@ function donut(labels, data, colors, { tooltipFmt = v => nf(v, 0) } = {}) {
   };
 }
 
+/** Senkrechte Linie bei jedem Form-Fix einer Übung (für timeLine-Diagramme) */
+const fixLines = (ss, from = -Infinity, to = Infinity) => {
+  const lines = ss.filter(s => s.fix && s.dn >= from && s.dn <= to).map(s => ({ value: s.dn, label: 'Form-Fix', color: chartColors().warning }));
+  return lines.length ? { axis: 'x', lines } : undefined;
+};
 /* Karten-Builder: HTML sammeln, Charts nach dem Einfügen mounten */
 function chartBuilder() {
   const pending = [];

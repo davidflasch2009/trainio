@@ -362,6 +362,7 @@ function simpleCard(en, ei, w) {
       <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : `<i class="roll">${doneN}</i>/${ws.length}`}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
     </div>
+    ${en.formFix ? `<div class="exs-last fix-line">${fixTxt(en)}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
     ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
@@ -485,6 +486,7 @@ function exerciseCard(en, ei, w) {
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
       ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
       ${pinChip(en.exerciseId, 'hint-chip pin')}
+      ${en.formFix ? `<span class="hint-chip fix-line">${fixTxt(en)}</span>` : ''}
     </div>
     <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
     ${rows}
@@ -615,6 +617,7 @@ function focusView(w) {
         <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Menü">${icon('dots')}</button>
       </div>
       ${pinNote(en.exerciseId) ? `<div class="center mt-8">${pinChip(en.exerciseId)}</div>` : ''}
+      ${en.formFix ? `<div class="center mt-8"><span class="hint-chip fix-line">${fixTxt(en)}</span></div>` : ''}
       ${woSimple() ? `<div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(`${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${goalWeight(en) ? ' · ' + fmtW(goalWeight(en)) : ''}`)}</button></div>` : goalBar(en, ei, type)}
       <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
         ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
@@ -1222,6 +1225,8 @@ Actions.setMenu = async el => {
   Workout.save();
   App.renderCurrent();
 };
+/** Form-Fix-Hinweis in der Übungskarte */
+const fixTxt = en => `${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix${en.formFix.note ? ': ' + esc(en.formFix.note) : ''} – ab hier neu gezählt`;
 Actions.exMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
   const isCardio = Ex.type(Ex.get(en.exerciseId)) === 'cardio';
@@ -1234,6 +1239,7 @@ Actions.exMenu = async el => {
     !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
     { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', sub: 'Bleibt bei der Übung – z. B. Sitzhöhe, Griff', icon: 'flag' },
     { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', sub: 'Nur in diesem Workout', icon: 'note' },
+    !isCardio && { key: 'fix', label: en.formFix ? 'Form-Fix entfernen' : 'Form-Fix', sub: en.formFix ? 'Zählt wieder normal mit' : 'Weniger Gewicht für saubere Technik: kein Abzug im Score, PRs starten neu', icon: 'refresh' },
     !isCardio && { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
     ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },
@@ -1259,6 +1265,15 @@ Actions.exMenu = async el => {
   } else if (k === 'note') {
     const v = await promptDialog({ title: 'Notiz für heute', label: en.exerciseName, value: en.note || '', placeholder: 'z. B. Sitzhöhe 4, enger Griff' });
     if (v != null) en.note = v.trim();
+  } else if (k === 'fix') {
+    if (en.formFix) { en.formFix = null; toast(`Form-Fix bei ${en.exerciseName} entfernt`, 'success', { cat: 'workout' }); }
+    else {
+      const v = await promptDialog({ title: 'Form-Fix', label: 'Was machst du an der Technik besser? (optional)', placeholder: 'z. B. tiefer, Rücken gerade', okLabel: 'Form-Fix setzen' });
+      if (v == null) return;
+      en.formFix = { note: v.trim(), at: Date.now() };
+      en.suggestion = null;   // kein „mehr Gewicht"-Vorschlag mehr – jetzt zählt die saubere Technik
+      toast(`Form-Fix: ${en.exerciseName} zählt ab diesem Workout neu`, 'success', { cat: 'workout' });
+    }
   } else if (k === 'rest') {
     const v = await promptDialog({ title: 'Pausenzeit', label: 'Sekunden', value: String(en.target.restSec || S().defaultRestSec), inputmode: 'numeric' });
     if (v != null && parseNum(v) > 0) en.target.restSec = Math.round(parseNum(v));
@@ -1419,7 +1434,7 @@ function showSummary({ id, doc, prs }) {
   const vol = sum(done.map(setVol));
   const rpes = done.filter(s => s.rpe).map(s => s.rpe);
   const real = F('f_prs') ? prs.filter(p => !p.first) : [];
-  const firsts = F('f_prs') ? prs.filter(p => p.first) : [];
+  const firsts = F('f_prs') ? prs.filter(p => p.first && !p.fix) : [], fixes = prs.filter(p => p.fix);
   // Vergleich mit dem letzten gleichen Plan-Tag
   const prevSame = Analytics.cur().rows.filter(r => r.id !== id && ((doc.planId && r.planId === doc.planId && r.name === doc.planDayName) || (!doc.planId && r.name === doc.name))).pop();
   const m = Modal.open({
@@ -1439,6 +1454,7 @@ function showSummary({ id, doc, prs }) {
       </div>
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list sum-prs">${real.map((p, i) => `<div class="list-item pr-shine" style="--i:${i}"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
       ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${goalLabel(g)}</span><div class="li-sub">${goalType(g) === 'wr' ? `Heute geschafft: ${fmtW(g.best)} × ${g.reps}+` : `Geschätztes 1RM heute: ${fmtW(g.best, 1)}`}</div></span></div>`).join('')}</div>` : ''}
+      ${fixes.length ? `<p class="dim small mt-16">${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix – neue Startwerte für: ${fixes.map(p => esc(p.name)).join(', ')}. PRs zählen ab heute neu.</p>` : ''}
       ${firsts.length ? `<p class="dim small mt-16">Erste Bestwerte gesetzt für: ${firsts.map(p => esc(p.name)).join(', ')}</p>` : ''}`,
     foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" style="flex:0 0 auto">${icon('share')}</button><button class="btn btn-secondary" data-x="tpl">${icon('copy')} Als Workout</button><button class="btn btn-primary" data-x="ok">Fertig</button>`
   });

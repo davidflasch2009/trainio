@@ -89,7 +89,7 @@ const Workout = (() => {
         uid: autoId().slice(0, 8), exerciseId: en.exerciseId, exerciseName: ex ? ex.name : en.exerciseName,
         uni: !!en.uni || (en.sets || []).some(x => x.repsR != null || x.durationSecR != null),
         target: { sets: (en.sets || []).length, reps: '', restSec: S().defaultRestSec, notes: '' }, note: en.note || '',
-        ...(edit ? { effort: en.effort || null, hr: en.hr || null, hiit: en.hiit || null } : {}),
+        ...(edit ? { effort: en.effort || null, hr: en.hr || null, hiit: en.hiit || null, formFix: en.formFix || null } : {}),
         sets: (en.sets || []).map(s => edit ? { ...newSet(s), done: s.done !== false, doneAt: s.doneAt || null } : newSet({ ...s, rpe: null })),
         suggestion: null
       };
@@ -129,6 +129,7 @@ const Workout = (() => {
       ...(en.effort ? { effort: en.effort } : {}),
       ...(en.hr > 0 ? { hr: +en.hr } : {}),
       ...(en.hiit ? { hiit: en.hiit } : {}),
+      ...(en.formFix ? { formFix: en.formFix } : {}),
       sets: en.sets
         .filter(s => s.done || s.reps != null || s.repsR != null || s.weightKg != null || s.durationSec != null || s.distKm != null)
         .map(s => {

@@ -363,7 +363,7 @@ function openExerciseDetail(id) {
       ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
           ${t === 'kg' ? `
-            <div class="pr-box"><span>Bestes 1RM (e)</span><b>${pr ? fmtW(pr.best1RM) : '–'}</b></div>
+            <div class="pr-box"><span>Bestes 1RM (e)</span><b>${pr ? fmtW(pr.best1RM) : '–'}</b>${pr && pr.fixDate ? '<em>seit Form-Fix</em>' : ''}</div>
             <div class="pr-box"><span>Max-Gewicht</span><b>${pr ? fmtW(pr.bestWeightKg) : '–'}</b><em>${pr && pr.bestReps ? '× ' + pr.bestReps + ' Wdh.' : ''}</em></div>
             <div class="pr-box"><span>Bestes Volumen</span><b>${pr ? fmtTon(pr.bestVolume) : '–'}</b><em>pro Session</em></div>`
           : `<div class="pr-box"><span>${t === 'sec' ? 'Längster Satz' : 'Max Wdh.'}</span><b>${t === 'sec' ? fmtClock(maxOf(ss, s => maxOf(s.list, x => x.sec))) : (pr ? pr.bestReps : '–')}</b></div>
@@ -375,10 +375,11 @@ function openExerciseDetail(id) {
           <div class="seg sm">${(t === 'kg' ? [['e1rm', '1RM-Verlauf'], ['vol', 'Volumen'], ['maxw', 'Max-Gewicht']] : [['reps', t === 'sec' ? 'Dauer' : 'Wiederholungen'], ['sets', 'Sätze']]).map(([k, l]) => `<button data-x="chart" data-v="${k}" class="${exChartKey(t) === k ? 'active' : ''}">${l}</button>`).join('')}</div>
           <div class="chart-box"><canvas id="cv-exd" role="img" aria-label="Verlauf ${esc(ex.name)}"></canvas></div>
         </div>
+        ${pr && pr.fixDate ? `<div class="card tight mt-12 fix-card">${icon('refresh')}<span><b>Form-Fix am ${fmtDate(pr.fixDate)}</b> – PRs und Vergleiche zählen ab da neu.${pr.beforeFix && pr.beforeFix.best1RM ? ` Vorher: 1RM ${fmtW(pr.beforeFix.best1RM)}${pr.beforeFix.bestWeightKg ? ` · max. ${fmtW(pr.beforeFix.bestWeightKg)}${pr.beforeFix.bestReps ? ' × ' + pr.beforeFix.bestReps : ''}` : ''}.` : ''}</span></div>` : ''}
         ${prEv.length ? `<div class="mt-12 small dim">${icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px"')} ${prEv.length} PR${prEv.length === 1 ? '' : 's'} – zuletzt am ${fmtDate(prEv[prEv.length - 1].date)} (${fmtW(prEv[prEv.length - 1].w)} × ${prEv[prEv.length - 1].r})</div>` : ''}
         <h4 class="mt-24 mb-8">Alle Sätze</h4>
         ${shown.map(s => `<div class="card tight mb-8" style="background:var(--surface-2)">
-            <div class="row between"><button class="link-btn" style="padding:0;min-height:30px" data-x="wo" data-id="${esc(s.wid)}">${esc(fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))}</button>
+            <div class="row between"><button class="link-btn" style="padding:0;min-height:30px" data-x="wo" data-id="${esc(s.wid)}">${esc(fmtDate(s.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: '2-digit' }))}</button>${s.fix ? `<span class="badge warn" title="${esc(s.fixNote || '')}">Form-Fix</span><span class="grow"></span>` : ''}
             <span class="tiny dim">${t === 'kg' ? `e1RM ${fmtW(s.best)} · ${fmtTon(s.vol)}` : `${s.sets} Sätze`}</span></div>
             <div class="small num">${s.list.map(x => t === 'sec' ? prevSec(x) + (x.w ? ` +${wNum(x.w)}` : '') : (x.w ? `${wNum(x.w)} × ${prevR(x)}` : `${prevR(x)} Wdh.`) + (x.rpe ? ` <span class="faint">@${nf(x.rpe, 1)}</span>` : '')).join(' &nbsp;·&nbsp; ')}</div>
           </div>`).join('')}
@@ -472,7 +473,7 @@ function exerciseChart(id, key) {
   const [label, f, fmt] = map[key] || map.e1rm;
   const data = ss.map(s => ({ x: s.dn, y: f(s) })).filter(p => p.y > 0);
   if (!data.length) return null;
-  return timeLine([lineDS(label, data, chartColors().accent)], { tooltipFmt: v => fmt(v) });
+  return timeLine([lineDS(label, data, chartColors().accent)], { tooltipFmt: v => fmt(v), thresholds: fixLines(ss) });
 }
 
 /* ---------- Übung anlegen / bearbeiten ---------- */

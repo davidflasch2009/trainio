@@ -1897,3 +1897,9 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .hiit-line .hl-rest b { background: var(--success); }
 .hiit-line .hl-warm b, .hiit-line .hl-cool b { background: var(--info); }
 .hiit-line i.cur { box-shadow: 0 0 0 1.5px var(--text-faint); }
+
+/* Form-Fix: bewusst weniger Gewicht für saubere Technik */
+.fix-line { color: var(--warning); }
+.exs-last.fix-line { font-weight: 600; }
+.fix-card { display: flex; gap: 10px; align-items: flex-start; background: var(--warning-soft); border-color: transparent; font-size: calc(13.5px * var(--fs)); line-height: 1.4; }
+.fix-card svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--warning); margin-top: 1px; }

@@ -491,6 +491,45 @@ async function heartFlow(page) {
 }
 const round1 = v => Math.round(v * 10) / 10;
 
+async function formFixFlow(page) {
+  console.log('Form-Fix');
+  // 4× Bankdrücken mit 90 kg (schlechte Form)
+  await page.evaluate(async () => {
+    const ops = [90, 90, 90, 90].map((kg, i) => { const st = Date.now() - (30 - i * 6) * 864e5; return { type: 'put', coll: 'workouts', id: 'ff' + i, doc: { date: isoDate(new Date(st)), startedAt: st, durationSec: 3000, name: 'Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [1, 2, 3].map(() => ({ reps: 5, weightKg: kg, done: true })) }] } }; });
+    await Store.batch(ops); await PR.recalcAll();
+    Store.put('templates', 'tff', { name: 'Push', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 3, reps: '5', restSec: 0, notes: '' }], createdAt: Date.now() });
+    Store.saveSettings({ finishConfirm: 'never', autoRest: false });
+    Workout.start({ templateId: 'tff' });
+  });
+  await pause(page, 500);
+  await page.click('#tab-training [data-act="exMenu"][data-ei="0"]');
+  await pause(page, 400);
+  await page.click('.modal [data-k="fix"]');
+  await pause(page, 400);
+  await page.fill('#pdInput', 'tiefer, Rücken gerade');
+  await page.click('.modal [data-x="ok"]');
+  await pause(page, 300);
+  check(await page.evaluate(() => { const en = Workout.cur().entries[0]; return en.formFix && en.formFix.note === 'tiefer, Rücken gerade' && /Form-Fix/.test(document.querySelector('#tab-training .fix-line').innerText); }), 'Form-Fix über ⋯ bei der Übung gesetzt (mit Notiz, Hinweis in der Karte)');
+  const finish = kg => page.evaluate(k => { const w = Workout.cur(); w.entries[0].sets.forEach(s => { s.weightKg = k; s.reps = 5; s.done = true; s.doneAt = Date.now(); }); Workout.save(); Actions.woFinish(); }, kg);
+  await finish(80);
+  await pause(page, 700);
+  const a = await page.evaluate(() => { const w = Store.all('workouts').find(x => x.entries[0].formFix); const sc = w && Analytics.score(w.id); return { sum: /Form-Fix – neue Startwerte/.test(document.querySelector('.modal-body').innerText), prog: sc && sc.parts.prog, pr: Store.raw('prs', 'ex_bankdruecken') }; });
+  check(a.sum && a.prog === 0.6, 'Score: 80 statt 90 kg mit Form-Fix wird neutral gewertet', JSON.stringify(a));
+  check(a.pr && a.pr.bestWeightKg === 80 && a.pr.fixDate && a.pr.beforeFix && a.pr.beforeFix.bestWeightKg === 90, 'PRs starten neu (80 kg), 90 kg bleibt als „vor Form-Fix"', JSON.stringify(a.pr));
+  await page.evaluate(() => { Modal.closeAll(); Workout.start({ templateId: 'tff' }); });
+  await pause(page, 500);
+  await finish(82.5);
+  await pause(page, 700);
+  check(await page.evaluate(() => /Neue PRs/i.test(document.querySelector('.modal-body').innerText) && Analytics.cur().prEvents.some(e => e.exId === 'ex_bankdruecken' && e.w === 82.5)), 'Nach dem Form-Fix: 82,5 kg zählt als neuer PR');
+  await page.evaluate(() => { Modal.closeAll(); UI.progSub = 'strength'; UI.kraftScope = 'exercise'; UI.kraftEx = 'ex_bankdruecken'; App.go('progress'); });
+  await pause(page, 800);
+  check(await page.evaluate(() => /seit Form-Fix/.test(document.querySelector('#progBody').innerText)) && await noViewError(page), 'Fortschritt → Kraft rechnet ab dem Form-Fix');
+  await page.evaluate(() => openExerciseDetail('ex_bankdruecken'));
+  await pause(page, 600);
+  check(await page.evaluate(() => /Form-Fix am .*Vorher: 1RM/.test((document.querySelector('.modal .fix-card') || {}).innerText || '')), 'Übungs-Seite zeigt Form-Fix und Bestwerte von vorher');
+  check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler', page.errors.concat(await appErrors(page)).join(' | '));
+}
+
 async function desktopFlow(page) {
   console.log('Desktop (1280 × 800)');
   check(!page.errors.length, 'App startet ohne Fehler', page.errors.join(' | '));
@@ -508,10 +547,10 @@ async function desktopFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
-      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz', name === 'iphone' ? IPHONE : undefined);
+      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix', name === 'iphone' ? IPHONE : undefined);
       await flow(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';

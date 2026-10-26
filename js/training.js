@@ -228,7 +228,7 @@ const goalsList = () => S().goals || [];
 const goalType = g => g.type === 'wr' ? 'wr' : 'e1rm';   // ältere Ziele ohne Typ sind e1RM-Ziele
 const goalLabel = g => goalType(g) === 'wr' ? `${g.reps} × ${fmtW(g.kg)}` : `${fmtW(g.kg)} 1RM`;
 /** Bestes geschätztes 1RM einer Übung aus allen gespeicherten Workouts */
-const best1RM = exId => Math.max(0, maxOf(Analytics.sessionsOf(exId).filter(x => !x.cardio), x => x.best));
+const best1RM = exId => Math.max(0, maxOf(sinceFix(Analytics.sessionsOf(exId)).filter(x => !x.cardio), x => x.best));
 /** Schwerster Satz mit mindestens `reps` Wdh. (Arbeitssätze, erledigt) – null, wenn es keinen gibt */
 function bestForReps(exId, reps, docs = Store.all('workouts')) {
   let best = null;
@@ -245,11 +245,12 @@ function bestForReps(exId, reps, docs = Store.all('workouts')) {
 /** Stand eines Ziels: aktueller Wert, Fortschritt 0–1, erreicht?, bester passender Satz */
 function goalState(g) {
   if (goalType(g) === 'wr') {
-    const b = bestForReps(g.exId, g.reps), cur = b ? b.w : 0;
+    const fx = lastFix(Analytics.sessionsOf(g.exId));
+    const b = bestForReps(g.exId, g.reps, fx ? Store.all('workouts').filter(w => w.date >= fx.date) : undefined), cur = b ? b.w : 0;
     return { cur, b, p: g.kg ? Math.min(1, cur / g.kg) : 0, ok: !!g.reachedAt || cur >= g.kg - 1e-6 };
   }
   const cur = best1RM(g.exId);
-  const ss = Analytics.sessionsOf(g.exId).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
+  const ss = sinceFix(Analytics.sessionsOf(g.exId)).filter(x => !x.cardio && x.bestSet), top = ss.length ? ss.reduce((a, b) => b.best > a.best ? b : a) : null;
   return { cur, b: top ? { w: top.bestSet.w, r: top.bestSet.r } : null, p: g.kg ? Math.min(1, cur / g.kg) : 0, ok: !!g.reachedAt || cur >= g.kg - 1e-6 };
 }
 function goalsCard() {
@@ -865,8 +866,9 @@ function openWorkoutDetail(id) {
         }
         const isSec = Ex.type(ex) === 'sec';
         return `<div class="mt-16">
-          <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}</button>
+          <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}${en.formFix ? ' <span class="badge warn">Form-Fix</span>' : ''}</button>
           <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
+          ${en.formFix && en.formFix.note ? `<div class="tiny dim">${esc(en.formFix.note)}</div>` : ''}
           <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th><th class="r">RPE</th><th class="r">e1RM</th></tr></thead><tbody>
           ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}</td>
             <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td><td class="r">${s.rpe ?? '–'}</td>

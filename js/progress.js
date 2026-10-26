@@ -513,7 +513,7 @@ const BENCHMARKS = {
 /** Kraftzuwachs je Übung: bestes e1RM bis zum Tag ÷ erste Session im Zeitraum (mind. 3 Sessions im Zeitraum) */
 function strengthGains(ix, ids, r) {
   return ids.map(id => {
-    const pts = (ix.sessions[id] || []).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
+    const pts = sinceFix(ix.sessions[id] || [], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
     if (pts.length < 3) return null;
     const base = pts[0].best;
     let run = 0;
@@ -550,7 +550,7 @@ ProgressViews.strength = body => {
   const cb = chartBuilder();
   // Kraft im Vergleich: e1RM der meist-trainierten Übungen (der Auswahl), Start im Zeitraum = 100 %
   const cmpCard = ids => {
-    const cmp = ids.map(id => ({ id, pts: ix.sessions[id].filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
+    const cmp = ids.map(id => ({ id, pts: sinceFix(ix.sessions[id], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
       .map((x, i) => { let run = 0; return { id: x.id, color: c.series[i], pts: x.pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, y: round(run / x.pts[0].best * 100, 1), label: `${nf(run / x.pts[0].best * 100, 0)} % (bestes e1RM ${fmtW(run)})` }; }) }; });
     const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
     return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Bestes geschätztes 1RM bis zum jeweiligen Tag für deine meist-trainierten Übungen (mind. 3 Sessions im Zeitraum), bei der ersten Session im Zeitraum auf 100 % gesetzt. So siehst du auf einer Skala, welche Übung am schnellsten wächst.',
@@ -561,11 +561,12 @@ ProgressViews.strength = body => {
   const sincePRCard = (ids, firstDn) => {
     const ev = ix.prEvents.filter(p => ids.includes(p.exId));
     const last = ev[ev.length - 1];
-    const since = last ? t - last.dn : t - firstDn;
+    const fx = ids.length === 1 ? lastFix(ix.sessions[ids[0]] || []) : null, fixNewer = fx && (!last || fx.dn > last.dn);
+    const since = fixNewer ? t - fx.dn : last ? t - last.dn : t - firstDn;
     return `<div class="chart-card">
         <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Wird rot, wenn dein letzter Rekord ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'} mehr als 60 Tage zurückliegt – Zeit für einen neuen Reiz (Deload, andere Wiederholungsbereiche, Variation).`)}</div>
         <div class="cc-big"><b style="font-size:46px;${since > 60 ? 'color:var(--danger)' : ''}">${since}</b><small>${since === 1 ? 'Tag' : 'Tage'}</small></div>
-        <div class="cc-sub">${last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 60 ? ' · ⚠ Zeit für einen neuen Reiz' : ''}</div>
+        <div class="cc-sub">${fixNewer ? `Seit dem Form-Fix am ${fmtDate(fx.date)} noch kein neuer PR` : last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 60 ? ' · ⚠ Zeit für einen neuen Reiz' : ''}</div>
       </div>`;
   };
   const head = `
@@ -613,51 +614,57 @@ ProgressViews.strength = body => {
   /* ----- Pro Übung: kg-Karten ----- */
   const ss = ix.sessions[exId];
   const inR = ss.filter(s => s.dn >= r.from && s.dn <= r.to);
-  const inP = prv ? ss.filter(s => s.dn >= prv.from && s.dn <= prv.to) : [];
-  const bestNow = inR.length ? maxOf(inR, s => s.best) : null;
+  // Form-Fix: Vergleiche, Trend und Bestwerte erst ab dem letzten Fix (im Zeitraum); ältere Werte bleiben blass sichtbar
+  const fx = lastFix(ss.filter(s => s.dn <= r.to)), fixDn = fx ? fx.dn : -Infinity, fixInR = fx && fx.dn >= r.from;
+  const inRF = inR.filter(s => s.dn >= fixDn);
+  const inP = prv && (!fx || prv.from >= fixDn) ? ss.filter(s => s.dn >= prv.from && s.dn <= prv.to) : [];
+  const bestNow = inRF.length ? maxOf(inRF, s => s.best) : null;
   const bestPrev = inP.length ? maxOf(inP, s => s.best) : null;
   const prEv = ix.prEvents.filter(p => p.exId === exId);
-  // laufendes Bestes e1RM (für Intensität)
+  const fixMarks = fixLines(ss, r.from, r.to);
+  // laufendes Bestes e1RM (für Intensität) – startet beim Form-Fix neu
   let run = 0;
   const runBest = new Map();
-  for (const s of ss) { run = Math.max(run, s.best); runBest.set(s, run); }
+  for (const s of ss) { if (s.fix) run = 0; run = Math.max(run, s.best); runBest.set(s, run); }
   const bench = BENCHMARKS[exId];
   const bwAll = Analytics.bwSeries();
   const hasBw = bwAll.length > 0;
   const bwR = bwAll.filter(p => p.dn >= r.from && p.dn <= r.to);
   // Rep-Maxima: schwerstes Gewicht für mind. n Wiederholungen (alle Sessions)
   const repMax = [];
+  const ssF = sinceFix(ss);
   for (let n = 1; n <= 12; n++) {
     let best = null;
-    for (const s of ss) for (const x of s.list) if (x.r >= n && x.w > 0 && (!best || x.w > best.w || (x.w === best.w && s.dn < best.dn))) best = { n, w: x.w, r: x.r, dn: s.dn };
+    for (const s of ssF) for (const x of s.list) if (x.r >= n && x.w > 0 && (!best || x.w > best.w || (x.w === best.w && s.dn < best.dn))) best = { n, w: x.w, r: x.r, dn: s.dn };
     if (best) repMax.push(best);
   }
   const newestRep = repMax.length ? repMax.reduce((a, b) => b.dn > a.dn ? b : a) : null;
   // Gewicht vs. Kraft: Veränderung im Zeitraum
-  const e1Delta = inR.length > 1 ? maxOf(inR, s => s.best) - inR[0].best : null;
+  const e1Delta = inRF.length > 1 ? maxOf(inRF, s => s.best) - inRF[0].best : null;
   const bwDelta = bwR.length > 1 ? bwR[bwR.length - 1].kg - bwR[0].kg : null;
   const signKg = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + fmtW(Math.abs(d));
   body.innerHTML = `${head}
     <div class="charts-grid">
       ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: 'Pro Session der beste Satz, umgerechnet mit Epley: Gewicht × (1 + Wdh./30). Gestrichelt: lineare Trendlinie im Zeitraum.',
-        big: bestNow ? fmtW(bestNow) : '–', small: 'bestes im Zeitraum', delta: deltaHtml(bestNow, bestPrev), sub: prv ? prevLabel : '',
+        big: bestNow ? fmtW(bestNow) : '–', small: fixInR ? `bestes seit Form-Fix (${fmtDateShort(fx.date)})` : 'bestes im Zeitraum', delta: deltaHtml(bestNow, bestPrev), sub: inP.length ? prevLabel : '',
         factory: () => {
           if (!inR.length) return null;
-          const pts = inR.map(s => ({ x: s.dn, y: toU(s.best), label: `${fmtW(s.best)} (${fmtW(s.bestSet.w)} × ${s.bestSet.r})` }));
-          const ds = [lineDS('e1RM', pts, c.accent)];
+          const pt = s => ({ x: s.dn, y: toU(s.best), label: `${fmtW(s.best)} (${fmtW(s.bestSet.w)} × ${s.bestSet.r})` });
+          const pts = inRF.map(pt), old = inR.filter(s => s.dn < fixDn).map(pt);
+          const ds = [...(old.length ? [lineDS('vor Form-Fix', old, c.faint, { fill: false })] : []), lineDS('e1RM', pts, c.accent)];
           const lr = pts.length >= 3 ? linReg(pts) : null;
           if (lr) ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
-          return timeLine(ds, { tooltipFmt: v => fmtW(fromU(v)), legend: !!lr });
+          return timeLine(ds, { tooltipFmt: v => fmtW(fromU(v)), legend: !!lr || old.length > 0, thresholds: fixMarks });
         } })}
       ${cb.card({ id: 'k12', wide: true, title: 'Rep-Maxima', info: 'Dein schwerstes Gewicht für mindestens 1, 2, 3 … 12 Wiederholungen – über alle Sessions dieser Übung. Wo zwei Balken fast gleich hoch sind, liegt dein nächster Rep-PR in Reichweite.',
         big: repMax.length ? fmtW(repMax[0].w) : '–', small: repMax.length ? (repMax[0].n === 1 && repMax[0].r === 1 ? 'echtes 1RM' : `schwerster Satz (${repMax[0].r} Wdh.)`) : '',
-        sub: newestRep ? `Neuester Rep-PR: ${fmtW(newestRep.w)} × ${newestRep.r} am ${fmtDN(newestRep.dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '',
+        sub: (newestRep ? `Neuester Rep-PR: ${fmtW(newestRep.w)} × ${newestRep.r} am ${fmtDN(newestRep.dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '') + (ssF !== ss ? ` · seit dem Form-Fix am ${fmtDate(ssF[0].date)}` : ''),
         factory: () => repMax.length ? barChart(repMax.map(x => x.n + '×'), [barDS('Bestes Gewicht', repMax.map(x => toU(x.w)), c.accent)],
           { tooltipFmt: (v, ctx) => `${fmtW(fromU(v))} für ${repMax[ctx.dataIndex].n}+ Wdh. · ${fmtDN(repMax[ctx.dataIndex].dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}`, yFmt: v => nf(v, 0) }) : null })}
       ${cmpCard(exIds)}
       ${cb.card({ id: 'k2', title: 'Max-Gewicht pro Session', info: 'Schwerstes bewegtes Gewicht je Session (mind. 1 Wiederholung).',
-        big: inR.length ? fmtW(maxOf(inR, s => s.maxW)) : '–',
-        factory: () => inR.length ? timeLine([lineDS('Max-Gewicht', inR.map(s => ({ x: s.dn, y: toU(s.maxW), label: `${fmtW(s.maxW)} × ${s.repsAtMax}` })), c.accent, { pointRadius: 4, fill: false })], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}
+        big: inRF.length ? fmtW(maxOf(inRF, s => s.maxW)) : '–', small: fixInR ? 'seit Form-Fix' : '',
+        factory: () => inR.length ? timeLine([lineDS('Max-Gewicht', inR.map(s => ({ x: s.dn, y: toU(s.maxW), label: `${fmtW(s.maxW)} × ${s.repsAtMax}` })), c.accent, { pointRadius: 4, fill: false })], { tooltipFmt: v => fmtW(fromU(v)), thresholds: fixMarks }) : null })}
       ${cb.card({ id: 'k4', title: 'Trainings-Intensität', info: 'Schwerstes Gewicht der Session geteilt durch dein bis dahin bestes e1RM × 100 %. Zeigt, wie schwer du trainierst (z. B. 85 % ≈ 5er-Bereich).',
         big: inR.length ? nf(inR[inR.length - 1].maxW / runBest.get(inR[inR.length - 1]) * 100, 0) + ' %' : '–', small: 'letzte Session',
         factory: () => inR.length ? timeLine([lineDS('Intensität', inR.map(s => ({ x: s.dn, y: round(s.maxW / runBest.get(s) * 100, 1) })), c.accent)], { tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => v + ' %', yMax: 100 }) : null })}
@@ -689,7 +696,7 @@ ProgressViews.strength = body => {
         factory: () => {
           const pts = prEv.filter(p => p.dn >= r.from && p.dn <= r.to).map(p => ({ x: p.dn, y: toU(p.e1rm), label: `${fmtW(p.w)} × ${p.r}, am ${fmtDate(p.date)}` }));
           if (!pts.length) return null;
-          const cfg = timeLine([{ label: 'PR', data: pts, backgroundColor: c.accent, borderColor: c.surface, borderWidth: 2, pointRadius: 6, pointHoverRadius: 8, showLine: false }]);
+          const cfg = timeLine([{ label: 'PR', data: pts, backgroundColor: c.accent, borderColor: c.surface, borderWidth: 2, pointRadius: 6, pointHoverRadius: 8, showLine: false }], { thresholds: fixMarks });
           cfg.type = 'scatter';
           cfg.options.interaction = { mode: 'nearest', intersect: false };
           return cfg;

@@ -241,6 +241,19 @@ abschaltbar unter Mehr → Tabs & Funktionen („Herz & Ausdauer“).
 - **Startseite** (Mehr → Darstellung → Startseite): Kacheln „Ruhepuls“, „VO2max“ und „Herz-Woche“; die Karte
   „Herz diese Woche“ lässt sich ausblenden (auch im Herz-Plan: „Auf der Startseite zeigen“).
 
+## Form-Fix
+
+Wer bewusst mit weniger Gewicht trainiert, um die Technik zu verbessern (z. B. 80 statt 90 kg, dafür sauber), wird
+dafür nicht bestraft: im Workout bei der Übung **⋯ → Form-Fix** (optional mit Notiz, z. B. „tiefer, Rücken gerade“).
+- **Workout-Score:** Die Übung zählt in diesem Workout neutral („gleich geblieben“) statt als Rückschritt.
+- **PRs starten neu:** Das Workout mit dem Form-Fix setzt neue Startwerte, danach wird jede Steigerung wieder als PR
+  gefeiert (82,5 kg mit guter Form = PR). Die alten Bestwerte bleiben als „vor Form-Fix“ auf der Übungs-Seite sichtbar.
+- **Fortschritt → Kraft:** Alle Werte bleiben sichtbar, Werte vor dem Fix blass, beim Fix eine Linie „Form-Fix“.
+  Bestes 1RM, Veränderung, Trend, Kraftzuwachs, Vergleich, Rep-Maxima, Intensität und „Tage seit letztem PR“ rechnen
+  ab dem Form-Fix. Auch Kraftziele zählen ab dort.
+- Der Steigerungs-Vorschlag der Übung verschwindet beim Setzen; „Form-Fix entfernen“ im selben Menü nimmt ihn
+  zurück (auch nachträglich über „Bearbeiten“ im Workout). Im Workout-Detail steht ein „Form-Fix“-Abzeichen.
+
 ## Phasen & Ziele
 
 - **Phasen** (Fortschritt → „+ Phase“): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
@@ -548,8 +561,9 @@ npm test
 Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
 alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout speichern mit Score, Fortschritt,
 Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit laufendem Workout, Datenwege
-(Backup/Restore, Arrow-Import, Gewichts-CSV), Design-Wechsel bei gezeichneten Diagrammen und Herz & Ausdauer
-(Ruhepuls tippen/eintragen, VO2max-Schätzung, Herz-Plan, Intensität, Intervall-Timer bis zum Eintrag). Firebase und CDNs sind
+(Backup/Restore, Arrow-Import, Gewichts-CSV), Design-Wechsel bei gezeichneten Diagrammen, Herz & Ausdauer
+(Ruhepuls tippen/eintragen, VO2max-Schätzung, Herz-Plan, Intensität, Intervall-Timer bis zum Eintrag) und Form-Fix
+(Score neutral, PRs neu, Kraft ab dem Fix). Firebase und CDNs sind
 dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 
