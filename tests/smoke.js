@@ -274,6 +274,19 @@ async function mobileFlow(page) {
   const after = await page.evaluate(() => ({ n: Store.all('workouts').length, cur: Workout.cur() && Workout.cur().name }));
   check(after.n === 1 && after.cur === 'Reload-Test', 'nach Neuladen: Daten da, Workout wiederhergestellt', JSON.stringify(after));
 
+  // Workout bearbeiten mit langen Übungsnamen: nichts ragt seitlich heraus (sonst wischt das Fenster zur Seite)
+  const wide = await page.evaluate(async () => {
+    const ids = ['ex_brustgestuetztes_rudern', 'ex_trizeps_sz', 'ex_schraeg_brustpresse'].filter(id => Ex.get(id));
+    Store.put('templates', 'tlong', { name: 'Pull', exercises: ids.map(id => ({ exerciseId: id, sets: 2, reps: '4-8', restSec: 180, notes: '', uni: true })), createdAt: Date.now() });
+    openTemplateEditor(Store.raw('templates', 'tlong'));
+    await new Promise(r => setTimeout(r, 500));
+    const b = document.querySelector('.modal .modal-body');
+    const r = { n: ids.length, sw: b.scrollWidth, cw: b.clientWidth, ox: getComputedStyle(b).overflowX };
+    Modal.closeAll();
+    return r;
+  });
+  check(wide.n === 3 && wide.sw <= wide.cw && wide.ox === 'hidden', 'Workout bearbeiten: lange Namen passen, Fenster lässt sich nicht seitlich wischen', JSON.stringify(wide));
+
   check(!page.errors.length, 'keine JavaScript-Fehler im Ablauf', page.errors.join(' | '));
   const logged = await appErrors(page);
   check(!logged.length, 'Fehlerprotokoll der App ist leer', logged.join(' | '));
