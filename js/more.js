@@ -29,7 +29,10 @@ const navRow = (act, ic, title, sub = '', cls = '') => `<button class="list-item
    Gruppe: { id, title, ic, sub, intro?, head?, foot?, sections: [[Überschrift, Einträge, HTML über der Liste?]] }
    Eintrag: { t: Titel, s: Untertitel, kw: Suchwörter, html, only: 'search' = nur in der Suche } */
 let moreSub = (!isIOSDevice && history.state && history.state.moreSub) || null, moreQ = '', moreScroll = 0;
-const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
+/* Einstellungs-Zeile: die Erklärung (s) steckt im (i) neben dem Titel – die Suche findet sie trotzdem */
+const mi = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(s ? t + infoBtn(plainText(s)) : t, '', ctl) });
+/* … mit sichtbarer Zeile darunter – nur für echte Infos (aktueller Wert, Zustand) */
+const mv = (t, s, ctl, kw = '') => ({ t, s, kw, html: setLine(t, s, ctl) });
 const mRow = (html, t, s = '', kw = '', only = '') => ({ t, s, kw, html, only });
 const lastImportDoc = () => Store.all('imports').filter(i => !i.undoneAt).sort((a, b) => (b.importedAt || 0) - (a.importedAt || 0))[0];
 
@@ -38,47 +41,45 @@ function moreGroups() {
   const s = S();
   const lastImport = lastImportDoc();
   const plans = Store.all('plans').sort((a, b) => a.name.localeCompare(b.name, 'de'));
-  const libRow = F('f_exercises') ? [] : [mRow(navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten'), 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten', 'übungen bibliothek')];
+  const libRow = F('f_exercises') ? [] : [mRow(navRow('openLibrary', 'book', 'Übungs-Bibliothek'), 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten', 'übungen bibliothek')];
   const hidden = FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length;
   return [
-    { id: 'account', title: 'Konto & Profil', ic: 'user', sub: 'Anmeldung, Sync, Name, Geschlecht, Geburtsjahr',
+    { id: 'account', title: 'Konto & Profil', ic: 'user',
       head: `<div class="card">
         ${user ? `
           <div class="acc-card">
             <div class="avatar">${user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())}</div>
             <div class="grow" style="min-width:0"><div class="bold ellipsis">${esc(user.name || 'Angemeldet')}</div><div class="small dim ellipsis">${esc(accountLine(user))}</div></div>
-            ${syncPill()}
+            ${syncPill()}${infoBtn('Alle Daten werden live zwischen deinen Geräten synchronisiert – auch offline getrackte Workouts, sobald wieder Netz da ist.')}
           </div>
-          <p class="small dim mt-12">Alle Daten werden live zwischen deinen Geräten synchronisiert – auch offline getrackte Workouts, sobald wieder Netz da ist.</p>
           <button class="btn btn-secondary btn-block mt-12" data-act="signOut">${icon('logout')} Abmelden</button>`
         : `
           <div class="acc-card">
             <div class="avatar">${icon('user')}</div>
-            <div class="grow"><div class="bold">Lokaler Modus</div><div class="small dim">${Auth.configured() ? 'Melde dich an, um iPhone und Laptop zu synchronisieren.' : 'Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.'}</div></div>
+            <div class="grow"><div class="bold">Lokaler Modus${Auth.configured() ? infoBtn('Melde dich an, um iPhone und Laptop zu synchronisieren.' + (Auth.providers().length > 1 ? ' Jeder Anmeldeweg ist ein eigenes Konto – angemeldet kannst du weitere verknüpfen, sie führen dann zu denselben Daten.' : '')) : ''}</div>${Auth.configured() ? '' : '<div class="small dim">Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.</div>'}</div>
           </div>
           ${Auth.providers().map((k, i) => `<button class="btn btn-secondary btn-block ${i ? 'mt-8' : 'mt-12'}" data-act="signIn" data-p="${k}" ${Auth.configured() ? '' : 'disabled'}>${Auth.provider(k).icon} Mit ${Auth.provider(k).label} anmelden</button>`).join('')}
-          ${Auth.configured() && Auth.providers().length > 1 ? '<p class="tiny dim mt-8">Jeder Anmeldeweg ist ein eigenes Konto. Angemeldet kannst du weitere verknüpfen – sie führen dann zu denselben Daten.</p>' : ''}
           ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
       </div>`,
       sections: [
         ['', [mRow(user ? setLine('Konto', esc(accountLine(user)), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
           : setLine('Konto', 'Lokaler Modus', `<button class="btn btn-secondary btn-sm" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>Anmelden</button>`),
           'Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google github synchronisieren sync', 'search')]],
-        ...(user ? [['Anmeldewege', Auth.providers().map(k => providerRow(k, user)), '<p class="small dim">Verknüpfte Anmeldewege führen zum selben Konto mit denselben Daten.</p>']] : []),
+        ...(user ? [['Anmeldewege', Auth.providers().map(k => providerRow(k, user)), '', 'Verknüpfte Anmeldewege führen zum selben Konto mit denselben Daten.']] : []),
         ['Profil', [
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
           mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte, VO2max)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil'),
           mi('Geburtsjahr', 'Für Pulszonen & VO2max', `<input class="input" data-in="setBirth" inputmode="numeric" autocomplete="off" value="${esc(s.birthYear || '')}" placeholder="z. B. 2005" style="max-width:110px">`, 'alter herz puls zonen vo2max profil'),
           mi('Maximalpuls', 'Leer = aus dem Alter geschätzt (208 − 0,7 × Alter)', `<input class="input" data-in="setHrMax" inputmode="numeric" autocomplete="off" value="${esc(s.hrMax || '')}" placeholder="${Heart.maxHr() && Heart.maxHr().est ? 'ca. ' + Heart.maxHr().v : 'z. B. 195'}" style="max-width:110px">`, 'herzfrequenz max puls zonen herz')]]
       ] },
-    { id: 'training', title: 'Training', ic: 'dumbbell', sub: 'Plan, Wochenziel, Herz-Plan, Einheit, Gewichte, Aufwärmsätze, 1RM-Formel, Zeitraum',
+    { id: 'training', title: 'Training', ic: 'dumbbell',
       sections: [
         ['Plan & Woche', [
           mi('Aktiver Trainingsplan', 'Für „Nächstes Training" & Konsistenz', selectCtl('activePlanId', [['', '– keiner –'], ...plans.filter(isSchedule).map(p => [p.id, p.name])]), 'plan programm split'),
-          mi('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])), 'ziel trainingstage'),
+          (activePlan() ? mv : mi)('Wochenziel', activePlan() ? `Aus dem Plan: ${planDaysCount(activePlan())}× pro Woche` : 'Geplante Workouts pro Woche', selectCtl('weeklyGoal', [1, 2, 3, 4, 5, 6, 7].map(n => [n, n + '× pro Woche'])), 'ziel trainingstage'),
           mi('Wochenstart', 'Ab welchem Tag eine Woche zählt', segCtl('weekStart', [['monday', 'Mo'], ['sunday', 'So']]), 'montag sonntag kalender')]],
         ...(F('f_heart') ? [['Herz', [
-          mi('Herz-Plan', Heart.plan() ? `${Heart.plan().sessions}× pro Woche · ${Heart.plan().hard}× hart · ${Heart.plan().z2} min locker` : 'Aus – Wochenziel fürs Herztraining', `<button class="btn btn-secondary btn-sm" data-act="heartPlan">${Heart.plan() ? 'Bearbeiten' : 'Einrichten'}</button>`, 'herz cardio ausdauer zone 2 intervalle ruhepuls vo2max plan wochenziel'),
+          (Heart.plan() ? mv : mi)('Herz-Plan', Heart.plan() ? `${Heart.plan().sessions}× pro Woche · ${Heart.plan().hard}× hart · ${Heart.plan().z2} min locker` : 'Aus – Wochenziel fürs Herztraining', `<button class="btn btn-secondary btn-sm" data-act="heartPlan">${Heart.plan() ? 'Bearbeiten' : 'Einrichten'}</button>`, 'herz cardio ausdauer zone 2 intervalle ruhepuls vo2max plan wochenziel'),
           mi('Ruhepuls', 'Im Takt tippen oder 30 Sekunden zählen', `<button class="btn btn-secondary btn-sm" data-act="rhrMeasure">Messen</button>`, 'herz puls ruhepuls messen')]]] : []),
         ['Gewichte', [
           mi('Einheit', 'Alle Gewichte in kg oder lb', segCtl('unit', [['kg', 'kg'], ['lb', 'lb']]), 'kilo pfund lbs'),
@@ -91,7 +92,7 @@ function moreGroups() {
           mi('Zeitraum im Fortschritt', 'Ist beim Öffnen des Fortschritts ausgewählt', selectCtl('progPeriod', [['last', 'Zuletzt gewählter'], ['4w', '4 Wochen'], ['3m', '3 Monate'], ['6m', '6 Monate'], ['1y', '1 Jahr'], ['all', 'Alles'], ...phases().map(ph => ['ph:' + ph.id, `Phase: ${ph.name}`]),
             ...(String(s.progPeriod).startsWith('ph:') && !phaseById(s.progPeriod.slice(3)) ? [[s.progPeriod, 'Alles (Phase gelöscht)']] : [])]), 'zeitraum standard periode phase fortschritt vorausgewählt')]]
       ] },
-    { id: 'workout', title: 'Workout', ic: 'list', sub: 'Eingabe, Vorbelegen, neue Übungen, Ansicht, Beenden',
+    { id: 'workout', title: 'Workout', ic: 'list',
       sections: [
         ['Eingabe', [
           mi('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]), 'schlicht ausführlich stepper'),
@@ -111,7 +112,7 @@ function moreGroups() {
         ['Beenden', [
           mi('Nachfrage beim Beenden', 'Immer · nur wenn noch Sätze offen sind · nie', selectCtl('finishConfirm', [['always', 'Immer'], ['open', 'Bei offenen Sätzen'], ['never', 'Nie']]), 'bestätigen nachfragen beenden offen')]]
       ] },
-    { id: 'rest', title: 'Pause & Timer', ic: 'timer', sub: 'Standard-Pause, Auto-Start, Ton, Vorwarnung, Aufwärm-/Drop-Pause',
+    { id: 'rest', title: 'Pause & Timer', ic: 'timer',
       sections: [
         ['', [
           mi('Standard-Pause', 'Wenn der Plan nichts vorgibt', selectCtl('defaultRestSec', [45, 60, 90, 120, 150, 180, 240, 300].map(n => [n, fmtClock(n) + ' min'])), 'pausenzeit satzpause timer rest'),
@@ -125,39 +126,39 @@ function moreGroups() {
           mi('Vor einem Drop-Satz', 'Zwischen Satz und Drop-Satz – meist direkt weiter', selectCtl('restDropSec', [['normal', 'Wie normal'], [0, 'Keine Pause'], [10, '0:10 min'], [15, '0:15 min'], [30, '0:30 min']]), 'drop dropsatz pause')]]
       ] },
     lookGroup(s),
-    { id: 'toasts', title: 'Meldungen', ic: 'info', sub: 'Hinweise oben im Bildschirm ein- oder ausschalten',
+    { id: 'toasts', title: 'Meldungen', ic: 'info',
       intro: 'Kurze Meldungen oben im Bildschirm. Fehler, Hinweise wie „Bitte ein Gewicht eintragen" und Meldungen mit Knopf (z. B. „Rückgängig") kommen immer. Antippen oder nach oben bzw. zur Seite wischen schließt eine Meldung sofort.',
-      sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, esc(sub), toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
-    { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', sub: `${hidden || 'Keine'} ausgeblendet · Tabs, Körper-Tab, Timer, PRs, Auswertungen …`,
+      sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, sub, toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
+    { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', val: hidden ? `${hidden} ausgeblendet` : '',
       intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',
-      sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub ? esc(sub) : '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
-    { id: 'data', title: 'Daten', ic: 'database', sub: 'Import, Export, Backup, Löschen',
+      sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub || '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
+    { id: 'data', title: 'Daten', ic: 'database',
       sections: [
         ['Importieren', [
-          ...(F('f_arrow') ? [mRow(navRow('openArrow', 'upload', 'Arrow-Import', 'Workouts aus der Arrow-App übernehmen'), 'Arrow-Import', 'Workouts aus der Arrow-App übernehmen', 'import', 'search')] : []),
+          ...(F('f_arrow') ? [mRow(navRow('openArrow', 'upload', 'Arrow-Import'), 'Arrow-Import', 'Workouts aus der Arrow-App übernehmen', 'import', 'search')] : []),
           ...(lastImport ? [mRow(navRow('undoImport', 'undo', 'Letzten Import rückgängig machen', esc(fmtDate(isoDate(new Date(lastImport.importedAt))))), 'Letzten Import rückgängig machen', '', 'import', 'search')] : []),
-          mRow(navRow('bwImport', 'scale', 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App'), 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App', 'körpergewicht waage import')],
+          mRow(navRow('bwImport', 'scale', 'Gewicht importieren'), 'Gewicht importieren', 'CSV aus Waagen-/Gewichts-App', 'körpergewicht waage import')],
           // über der Liste: großer Arrow-Knopf + Rückgängig (wie bisher)
           `${F('f_arrow') ? `<button class="btn btn-arrow" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : ''}
           ${lastImport ? `<button class="btn btn-secondary btn-block mt-8" data-act="undoImport" style="flex-wrap:wrap;white-space:normal;padding-top:8px;padding-bottom:8px;row-gap:2px">${icon('undo')} Letzten Import rückgängig machen <span class="small dim">(${esc(fmtDate(isoDate(new Date(lastImport.importedAt))))}, ${lastImport.source === 'weight-csv' ? `${((lastImport.docIds || {}).progress || []).length + ((lastImport.overwritten || []).length)} Gewichtswerte` : `${(lastImport.docIds && lastImport.docIds.workouts || []).length} Workouts`})</span></button>` : ''}`],
         ['Exportieren & Sichern', [
-          mRow(navRow('exportCSV', 'file', 'Export CSV', 'Alle Sätze flach – Excel-kompatibel'), 'Export CSV', 'Alle Sätze flach – Excel-kompatibel', 'exportieren tabelle'),
-          mRow(navRow('exportPDF', 'file', 'Export PDF', 'Trainingsprotokoll oder Übungs-Report'), 'Export PDF', 'Trainingsprotokoll oder Übungs-Report', 'exportieren drucken'),
-          mRow(navRow('backupJSON', 'download', 'Backup JSON', 'Komplettes Backup aller Daten'), 'Backup JSON', 'Komplettes Backup aller Daten', 'sicherung sichern'),
-          mRow(navRow('restoreJSON', 'upload', 'Restore', 'Backup-Datei wiederherstellen'), 'Restore', 'Backup-Datei wiederherstellen', 'wiederherstellen backup')]],
-        ['', [mRow(navRow('deleteAll', 'trash', 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'danger'), 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'zurücksetzen reset')]]
+          mRow(navRow('exportCSV', 'file', 'Export CSV'), 'Export CSV', 'Alle Sätze flach – Excel-kompatibel', 'exportieren tabelle'),
+          mRow(navRow('exportPDF', 'file', 'Export PDF'), 'Export PDF', 'Trainingsprotokoll oder Übungs-Report', 'exportieren drucken'),
+          mRow(navRow('backupJSON', 'download', 'Backup JSON'), 'Backup JSON', 'Komplettes Backup aller Daten', 'sicherung sichern'),
+          mRow(navRow('restoreJSON', 'upload', 'Restore'), 'Restore', 'Backup-Datei wiederherstellen', 'wiederherstellen backup')]],
+        ['', [mRow(navRow('deleteAll', 'trash', 'Alle Daten löschen', '', 'danger'), 'Alle Daten löschen', 'Mit doppelter Bestätigung', 'zurücksetzen reset')]]
       ] },
-    ...(F('f_tools') ? [{ id: 'tools', title: 'Tools', ic: 'calc', sub: 'Scheibenrechner, 1RM-Rechner',
+    ...(F('f_tools') ? [{ id: 'tools', title: 'Tools', ic: 'calc',
       sections: [['', [
-        mRow(navRow('toolPlates', 'plate', 'Scheibenrechner', 'Welche Scheiben pro Seite?'), 'Scheibenrechner', 'Welche Scheiben pro Seite?', 'rechner'),
-        mRow(navRow('tool1RM', 'calc', '1RM-Rechner', 'Max schätzen + Prozent-Tabelle'), '1RM-Rechner', 'Max schätzen + Prozent-Tabelle', 'rechner maximalkraft')]]] }] : []),
-    { id: 'app', title: 'App & Hilfe', ic: 'info', sub: `Version ${APP.version}, Updates, Fehlerprotokoll, Kontakt`,
+        mRow(navRow('toolPlates', 'plate', 'Scheibenrechner'), 'Scheibenrechner', 'Welche Scheiben pro Seite?', 'rechner'),
+        mRow(navRow('tool1RM', 'calc', '1RM-Rechner'), '1RM-Rechner', 'Max schätzen + Prozent-Tabelle', 'rechner maximalkraft')]]] }] : []),
+    { id: 'app', title: 'App & Hilfe', ic: 'info',
       sections: [['', [
-        ...(!isStandalone() && (deferredInstall || Auth.isIOS()) ? [mRow(navRow('install', 'install', 'App installieren', Auth.isIOS() ? 'Zum Home-Bildschirm hinzufügen' : 'Als eigenständige App öffnen'), 'App installieren', 'Zum Home-Bildschirm hinzufügen', 'home bildschirm')] : []),
+        ...(!isStandalone() && (deferredInstall || Auth.isIOS()) ? [mRow(navRow('install', 'install', 'App installieren'), 'App installieren', 'Zum Home-Bildschirm hinzufügen', 'home bildschirm')] : []),
         mRow(navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`), 'Nach Updates suchen', `Version ${APP.version}`, 'update aktualisieren neue version'),
-        mRow(navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge – zum Kopieren und Weiterschicken` : 'Keine Fehler aufgezeichnet'), 'Fehlerprotokoll', '', 'fehler absturz log bug'),
+        mRow(navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge` : 'Keine Fehler aufgezeichnet'), 'Fehlerprotokoll', '', 'fehler absturz log bug'),
         mRow(`<a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>`, 'Repository', 'GitHub', 'quellcode code'),
-        mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span><div class="li-sub">Issue auf GitHub öffnen</div></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
+        mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
   ];
 }
 /* Darstellung (früher ein eigenes Fenster): Vorschau oben, darunter Design, Modus, Farben, Feinschliff … */
@@ -165,11 +166,11 @@ function lookGroup(s) {
   const D = designOf(s.design);
   const seg = (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-act="lookSet" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
   const sw = (k, label) => `<label class="switch"><input type="checkbox" switch data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`;
-  const st = (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(t, sub, ctl) });
+  const st = (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(sub ? t + infoBtn(plainText(sub)) : t, '', ctl) });
   const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
   const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
   const isPreset = ACCENTS.some(([h]) => h === accent);
-  return { id: 'look', title: 'Darstellung', ic: 'sun', sub: 'Design, App-Icon, Farben, Modus, Schrift, Navigation, Startseite',
+  return { id: 'look', title: 'Darstellung', ic: 'sun',
     head: `<div class="card look-preview">
       <div class="stat-grid" style="grid-template-columns:1fr 1fr">
         <div class="stat"><div class="stat-label">${icon('flame')} Streak</div><div class="stat-value">12<small>Wochen</small></div><div class="week-dots"><i class="on"></i><i class="on"></i><i></i><i class="on today"></i><i></i><i></i><i></i></div></div>
@@ -180,16 +181,15 @@ function lookGroup(s) {
     </div>`,
     sections: [
       ['Design', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon">${icon('sun')}</span><span class="li-main"><span class="li-title">Design</span><div class="li-sub">${esc(D.name)}</div></span>${icon('chevR', 'li-chev')}</button>`,
-          'Design', D.name, 'theme ' + DESIGNS.map(d => d.name).join(' '), 'search')],
+          'Design', D.name, 'theme ' + DESIGNS.map(d => d.name + ' ' + d.desc).join(' '), 'search')],
         `<div class="design-grid hscroll" data-row="design">${DESIGNS.map(d => `
           <button class="design-tile ${d.id === D.id ? 'active' : ''}" data-act="lookSet" data-k="design" data-v="${d.id}" aria-pressed="${d.id === D.id}">
             ${designPair(d.id)}
             <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
-            <span class="dt-desc">${esc(d.desc)}</span>
           </button>`).join('')}</div>`],
       ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span></span>${icon('chevR', 'li-chev')}</button>`,
           'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
-        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" decoding="async"></button>`).join('')}</div>${iconHintHtml()}`],
+        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" decoding="async"></button>`).join('')}</div>${iconHomeBtn()}`, iconHint()],
       ['Farben & Modus', [
         D.phased ? st('Tageszeit', Sky.settingsSub(), Sky.settingsHtml(), 'hell dunkel dark light nachtmodus tag nacht sonne mond dämmerung sonnenuntergang zeitraffer')
           : st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel – „Tag & Nacht" folgt von selbst dem Himmel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
@@ -240,11 +240,11 @@ const tilesOn = () => (Array.isArray(S().homeTiles) ? S().homeTiles : HOME_TILES
 function tileChooserHtml() {
   const on = tilesOn().filter(tileAvail), all = HOME_TILES.map(x => x[0]).filter(tileAvail), off = all.filter(k => !on.includes(k));
   const row = k => {
-    const active = on.includes(k), i = on.indexOf(k), [, name, desc] = HOME_TILES.find(x => x[0] === k);
+    const active = on.includes(k), i = on.indexOf(k), [, name] = HOME_TILES.find(x => x[0] === k);
     // Kraft-Kachel: gewählte Übung statt Beschreibung, mit „Übung"-Knopf zum Wechseln
     const lift = k === 'lift' && Ex.get(S().homeLiftEx);
     return `<div class="tile-row ${active ? 'on' : ''}">
-      <button class="tile-tog" data-act="tileToggle" data-k="${k}" aria-pressed="${active}">${icon(active ? 'checkCircle' : 'plus')}<span>${name}<small>${esc(lift ? lift.name : desc)}</small></span></button>
+      <button class="tile-tog" data-act="tileToggle" data-k="${k}" aria-pressed="${active}">${icon(active ? 'checkCircle' : 'plus')}<span>${name}${lift ? `<small>${esc(lift.name)}</small>` : ''}</span></button>
       ${k === 'lift' && active ? `<button class="btn btn-secondary btn-sm" data-act="tileLiftEx">Übung</button>` : ''}
       ${active ? `<button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="-1" ${i === 0 ? 'disabled' : ''} aria-label="${name} nach oben">${icon('chevU')}</button><button class="btn-icon" data-act="tileMove" data-k="${k}" data-d="1" ${i === on.length - 1 ? 'disabled' : ''} aria-label="${name} nach unten">${icon('chevD')}</button>` : ''}
     </div>`;
@@ -269,14 +269,15 @@ Actions.tileMove = el => {
 };
 
 /* ---------- App-Icon ---------- */
-function iconHintHtml() {
+/* Hinweis je Gerät – steckt im (i) neben „App-Icon" */
+function iconHint() {
   const ios = Auth.isIOS(), android = /Android/i.test(navigator.userAgent);
-  if (ios && isStandalone()) return `<button class="btn btn-secondary btn-block mt-12" data-act="iconHome">${icon('install')} Auf dem Home-Bildschirm übernehmen</button>
-    <p class="tiny dim mt-8">Auf dem iPhone legt der Home-Bildschirm das Icon beim Hinzufügen fest – die Anleitung führt dich durch.</p>`;
-  if (ios) return '<p class="tiny dim mt-12">Jetzt in Safari <b>Teilen → Zum Home-Bildschirm</b> – die App bekommt dann dieses Icon.</p>';
-  if (android) return '<p class="tiny dim mt-12">Chrome übernimmt das neue Icon auf dem Home-Bildschirm meist innerhalb eines Tages, manchmal mit Rückfrage. Sofort geht es, wenn du die App neu installierst.</p>';
-  return '<p class="tiny dim mt-12">Das Icon im Browser-Tab und in der Seitenleiste ändert sich sofort.</p>';
+  if (ios && isStandalone()) return 'Auf dem iPhone legt der Home-Bildschirm das Icon beim Hinzufügen fest – „Auf dem Home-Bildschirm übernehmen" führt dich durch.';
+  if (ios) return 'Jetzt in Safari: Teilen → Zum Home-Bildschirm – die App bekommt dann dieses Icon.';
+  if (android) return 'Chrome übernimmt das neue Icon auf dem Home-Bildschirm meist innerhalb eines Tages, manchmal mit Rückfrage. Sofort geht es, wenn du die App neu installierst.';
+  return 'Das Icon im Browser-Tab und in der Seitenleiste ändert sich sofort.';
 }
+const iconHomeBtn = () => Auth.isIOS() && isStandalone() ? `<button class="btn btn-secondary btn-block mt-12" data-act="iconHome">${icon('install')} Auf dem Home-Bildschirm übernehmen</button>` : '';
 Actions.iconSet = el => { Store.saveSettings({ appIcon: el.dataset.v }); applyIcon(); };
 /** iPhone: Icon wird beim Hinzufügen festgelegt → Safari mit ?icon=N öffnen, neu hinzufügen, alte App löschen */
 Actions.iconHome = () => {
@@ -334,28 +335,28 @@ function moreSearchHtml(q) {
 function moreHomeHtml(groups) {
   const user = Auth.user();
   const by = Object.fromEntries(groups.map(g => [g.id, g]));
-  const row = g => `<button class="list-item" data-act="moreSub" data-v="${g.id}"><span class="li-icon">${icon(g.ic)}</span><span class="li-main"><span class="li-title">${g.title}</span><div class="li-sub">${g.sub}</div></span>${icon('chevR', 'li-chev')}</button>`;
+  const row = g => `<button class="list-item" data-act="moreSub" data-v="${g.id}"><span class="li-icon">${icon(g.ic)}</span><span class="li-main"><span class="li-title">${g.title}</span>${g.val ? `<div class="li-sub">${g.val}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
   const st = Store.syncState();
   return `
     <button class="card clickable acc-card more-acc mt-12" data-act="moreSub" data-v="account">
       <div class="avatar">${user ? (user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())) : icon('user')}</div>
-      <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div><div class="small dim ellipsis">${user ? esc(accountLine(user)) : 'Anmelden für Sync · Name, Geschlecht'}</div></div>
+      <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div>${user ? `<div class="small dim ellipsis">${esc(accountLine(user))}</div>` : ''}</div>
       ${user ? `<span class="sync-pill ${st}"><i></i>${SYNC_LABEL[st]}</span>` : ''}
       ${icon('chevR', 'li-chev')}
     </button>
     ${MORE_BLOCKS.map((ids, i) => {
       const rows = ids.filter(id => by[id]).map(id => row(by[id]));
-      if (i === 0 && !F('f_exercises')) rows.unshift(navRow('openLibrary', 'book', 'Übungs-Bibliothek', 'Übungen ansehen, anlegen & bearbeiten'));
+      if (i === 0 && !F('f_exercises')) rows.unshift(navRow('openLibrary', 'book', 'Übungs-Bibliothek'));
       return `<div class="list mt-16">${rows.join('')}</div>`;
     }).join('')}
     <p class="center tiny faint mt-24">${APP.name} v${APP.version} · ${Store.all('workouts').length} Workouts · ${Store.all('exercises').length} Übungen</p>`;
 }
 function morePageHtml(g) {
-  return `<h2 class="more-title">${g.title}</h2>${g.intro ? `<p class="small dim">${g.intro}</p>` : ''}${g.head ? `<div class="mt-12">${g.head}</div>` : ''}` +
-    g.sections.map(([h, items, pre]) => {
+  return `<h2 class="more-title">${g.title}${g.intro ? infoBtn(g.intro) : ''}</h2>${g.head ? `<div class="mt-12">${g.head}</div>` : ''}` +
+    g.sections.map(([h, items, pre, info]) => {
       const l = items.filter(it => it.only !== 'search');
       if (!l.length && !pre) return '';
-      return `${h ? `<div class="section-head"><h4>${h}</h4></div>` : ''}${pre ? pre + (l.length ? '<div class="mt-12"></div>' : '') : ''}${l.length ? `<div class="list ${h ? '' : 'mt-16'}">${l.map(it => it.html).join('')}</div>` : ''}`;
+      return `${h ? `<div class="section-head"><h4>${h}${info ? infoBtn(info) : ''}</h4></div>` : ''}${pre ? pre + (l.length ? '<div class="mt-12"></div>' : '') : ''}${l.length ? `<div class="list ${h ? '' : 'mt-16'}">${l.map(it => it.html).join('')}</div>` : ''}`;
     }).join('') + (g.foot || '');
 }
 

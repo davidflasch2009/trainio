@@ -132,6 +132,7 @@ Actions.phaseEdit = el => {
   const sug = RATE_DEFAULTS[d.type] || ['', ''];
   const m = Modal.open({
     title: old ? 'Phase bearbeiten' : 'Neue Phase', size: 'sm',
+    info: 'Die Phase erscheint im Fortschritt als eigener Zeitraum – alle Auswertungen gelten dann nur für diese Zeit. Gewicht pro Woche: erlaubte Veränderung des Wochendurchschnitts, z. B. Bulk 0 bis +200 g. Im Körper-Tab sind Wochen in diesem Bereich grün, darüber oder darunter orange. Leer lassen = kein Ziel.',
     body: `<div class="stack">
       <div class="seg" id="phType">${Object.entries(PHASE_TYPES).map(([k, [l]]) => `<button data-t="${k}" class="${d.type === k ? 'active' : ''}">${l}</button>`).join('')}</div>
       <label class="field"><span>Name</span><input class="input" id="phName" value="${esc(d.name)}" placeholder="z. B. Bulk 2026" autocomplete="off"></label>
@@ -140,9 +141,8 @@ Actions.phaseEdit = el => {
         <label class="field"><span>Ende (leer = läuft noch)</span><input class="input" type="date" id="phTo" value="${esc(d.to || '')}"></label>
       </div>
       <div><div class="bold small mb-8">Gewicht pro Woche (optional)</div>
-        ${rateFields(d.rateMin, d.rateMax, [rateToInput(sug[0]), rateToInput(sug[1])])}
-        <p class="tiny dim mt-8">Erlaubte Veränderung des Wochendurchschnitts, z. B. Bulk 0 bis +200 g. Im Körper-Tab sind Wochen in diesem Bereich grün, darüber oder darunter orange. Leer lassen = kein Ziel.</p></div>
-      <p class="tiny dim">Die Phase erscheint im Fortschritt als eigener Zeitraum – alle Auswertungen gelten dann nur für diese Zeit.</p></div>`,
+        ${rateFields(d.rateMin, d.rateMax, [rateToInput(sug[0]), rateToInput(sug[1])])}</div>
+    </div>`,
     foot: `${old ? `<button class="btn btn-danger-ghost" data-x="del" style="flex:0 0 auto" aria-label="Löschen">${icon('trash')}</button>` : ''}<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
   });
   m.el.addEventListener('click', async e => {
@@ -1415,12 +1415,12 @@ Actions.bwRateSet = () => {
   const sug = RATE_DEFAULTS[type || 'bulk'];
   const m = Modal.open({
     title: 'Wochenziel Gewicht', size: 'sm',
+    info: 'Erlaubte Veränderung deines Wochendurchschnitts zur Vorwoche. Im Diagramm „Veränderung pro Woche“ sind Wochen in diesem Bereich grün, darüber oder darunter orange.',
     body: `<div class="stack">
       ${cur && cur.phase ? `<div class="card small">Gerade gilt die Phase <b>${esc(cur.phase.name)}</b> (${esc(rateText(cur.lo, cur.hi))}). Diese Einstellung gilt für Wochen ohne Phase mit Bereich.
         <button class="link-btn mt-4" style="padding:0;min-height:30px" data-x="phase">Phase bearbeiten</button></div>` : ''}
       <div class="seg" id="rtType">${RATE_GOALS.map(([k, l]) => `<button data-t="${k}" class="${type === k ? 'active' : ''}">${l}</button>`).join('')}<button data-t="" class="${!type ? 'active' : ''}">Kein Ziel</button></div>
-      <div id="rtBox" ${type ? '' : 'hidden'}>${rateFields(g.min, g.max, [rateToInput(sug[0]), rateToInput(sug[1])])}
-        <p class="tiny dim mt-8">Erlaubte Veränderung deines Wochendurchschnitts zur Vorwoche. Im Diagramm „Veränderung pro Woche“ sind Wochen in diesem Bereich grün, darüber oder darunter orange.</p></div>
+      <div id="rtBox" ${type ? '' : 'hidden'}>${rateFields(g.min, g.max, [rateToInput(sug[0]), rateToInput(sug[1])])}</div>
     </div>`,
     foot: `<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
   });
@@ -1508,8 +1508,8 @@ Actions.bwImport = () => {
   let parsed = null;
   const m = Modal.open({
     title: 'Gewicht importieren', size: 'lg',
-    body: `<p class="small dim">CSV-Export aus deiner Waagen- oder Gewichts-App (z. B. Better Weight, Withings, Libra) – Datum und Gewicht werden automatisch erkannt, auch mit deutschem Komma.</p>
-      <label class="btn btn-secondary btn-block mt-12">${icon('upload')} CSV-Datei wählen<input type="file" id="bwiFile" accept=".csv,.txt,text/csv,text/plain" hidden></label>
+    info: 'CSV-Export aus deiner Waagen- oder Gewichts-App (z. B. Better Weight, Withings, Libra) – Datum und Gewicht werden automatisch erkannt, auch mit deutschem Komma.',
+    body: `<label class="btn btn-secondary btn-block">${icon('upload')} CSV-Datei wählen<input type="file" id="bwiFile" accept=".csv,.txt,text/csv,text/plain" hidden></label>
       <label class="field mt-12"><span>… oder Inhalt hier einfügen</span><textarea class="textarea" id="bwiText" placeholder="&quot;Datum&quot;;&quot;Gewicht (kg)&quot;&#10;&quot;2026-10-15&quot;;&quot;75,8&quot;" style="min-height:96px;font-family:var(--mono);font-size:13px"></textarea></label>
       <div id="bwiPrev" class="mt-12"></div>`,
     foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="go" disabled>${icon('check')} Importieren</button>`
@@ -1571,8 +1571,8 @@ Actions.bwImport = () => {
     toast(`${created.length} Gewichtswerte importiert${overwritten.length ? `, ${overwritten.length} überschrieben` : ''}`, 'success', { cat: 'always', duration: 4500 });
   });
 };
-Actions.bodyCfg = () => Modal.open({ title: 'Körper-Tab anpassen', size: 'sm', body: `<p class="small dim">Das Gewicht ist immer da. Schalte zusätzlich ein, was du erfassen willst – vorhandene Daten bleiben erhalten.</p>
-  <div class="list mt-12">${setLine('Körperfett', 'KFA & fettfreie Masse', toggleCtl('f_bodyFat'))}${setLine('Umfänge', 'Brust, Taille, Arm … & Verhältnisse', toggleCtl('f_measures'))}${setLine('Fotos', 'Fortschrittsfotos & Vergleich', toggleCtl('f_photos'))}</div>` });
+Actions.bodyCfg = () => Modal.open({ title: 'Körper-Tab anpassen', info: 'Das Gewicht ist immer da. Schalte zusätzlich ein, was du erfassen willst – vorhandene Daten bleiben erhalten.', size: 'sm', body: `
+  <div class="list">${setLine('Körperfett', '', toggleCtl('f_bodyFat'))}${setLine('Umfänge', '', toggleCtl('f_measures'))}${setLine('Fotos', '', toggleCtl('f_photos'))}</div>` });
 Actions.bodyNew = () => openBodyForm(null);
 Actions.bodyEdit = el => openBodyForm(Store.raw('progress', el.dataset.id));
 

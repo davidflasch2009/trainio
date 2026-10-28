@@ -139,12 +139,13 @@ window.addEventListener('unhandledrejection', e => ErrLog.add(e.reason, 'Aktion'
 /* ---------- Modals (Stack-fähig) ---------- */
 const Modal = (() => {
   const stack = [];
-  function open({ title = '', body = '', foot = '', size = '', onClose = null, cls = '' } = {}) {
+  /** info: Erklärung als (i) neben dem Titel statt als Text im Fenster */
+  function open({ title = '', info = '', body = '', foot = '', size = '', onClose = null, cls = '' } = {}) {
     const wrap = document.createElement('div');
     wrap.className = 'modal-wrap';
     wrap.innerHTML = `<div class="modal-backdrop"></div>
       <div class="modal ${size} ${cls}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
-        <div class="modal-head"><h2>${esc(title)}</h2><button class="btn-icon" data-modal-close aria-label="Schließen">${icon('x')}</button></div>
+        <div class="modal-head"><h2>${esc(title)}${info ? infoBtn(info) : ''}</h2><button class="btn-icon" data-modal-close aria-label="Schließen">${icon('x')}</button></div>
         <div class="modal-body">${body}</div>
         ${foot ? `<div class="modal-foot">${foot}</div>` : ''}
       </div>`;

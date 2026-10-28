@@ -187,12 +187,11 @@ Actions.openWarmupCfg = () => {
   let steps = JSON.parse(JSON.stringify(S().warmupSteps || []));
   let bar = S().warmupBar !== false;
   const PRESETS = [['Kurz', [[50, 8], [75, 3]]], ['Standard', [[40, 5], [60, 3], [80, 2]]], ['Kraft', [[40, 5], [55, 3], [70, 2], [85, 1], [92, 1]]]];
-  const m = Modal.open({ title: 'Aufwärmsätze', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
+  const m = Modal.open({ title: 'Aufwärmsätze', info: 'Prozent vom Arbeitsgewicht und Wiederholungen je Aufwärmsatz. Gerundet auf dein Gewichts-Inkrement.', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
   const ex = 100;
   const draw = () => {
     steps.sort((a, b) => a[0] - b[0]);
-    m.setBody(`<p class="small dim">Prozent vom <b>Arbeitsgewicht</b> und Wiederholungen je Aufwärmsatz. Gerundet auf dein Gewichts-Inkrement.</p>
-      <div class="chips mt-12">${PRESETS.map(([n, st]) => `<button class="chip" data-pre="${n}">${n}</button>`).join('')}</div>
+    m.setBody(`<div class="chips">${PRESETS.map(([n, st]) => `<button class="chip" data-pre="${n}">${n}</button>`).join('')}</div>
       <div class="list mt-12">${steps.map(([pc, r], i) => `<div class="set-line wu-row">
           <div class="sl-main"><div class="sl-title">Satz ${i + 1}</div><div class="sl-sub">bei 100 kg → ${nf(Math.round(ex * pc / 100 / 2.5) * 2.5, 1)} kg × ${r}</div></div>
           <div class="pe-step wu-step"><button data-wp="${i}" data-d="-5" aria-label="Weniger Prozent">${icon('minus')}</button><span>${pc} %</span><button data-wp="${i}" data-d="5" aria-label="Mehr Prozent">${icon('plus')}</button></div>
@@ -224,9 +223,8 @@ Actions.openPlatesCfg = () => {
   const lb = unit() === 'lb';
   let sel = new Set(availPlates());
   let bar = round(toU(S().barKg), 1);
-  const m = Modal.open({ title: 'Scheiben & Stange', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
+  const m = Modal.open({ title: 'Scheiben & Stange', info: 'Tippe an, welche Scheiben es in deinem Gym gibt – der Scheibenrechner rechnet nur mit diesen.', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
   const draw = () => m.setBody(`<h4 class="mb-8">Verfügbare Scheiben (${unit()})</h4>
-      <p class="small dim mb-8">Tippe an, welche Scheiben es in deinem Gym gibt.</p>
       <div class="plate-pick">${ALL_PLATES[lb ? 'lb' : 'kg'].map(v => `<button class="pp ${sel.has(v) ? 'on' : ''}" data-pv="${v}" style="--pc:${PLATE_COLORS[v] || '#8a8f98'}"><i></i>${nf(v, 2)}</button>`).join('')}</div>
       <h4 class="mt-24 mb-8">Standard-Stange</h4>
       <div class="chips wrap">${(lb ? [45, 35, 25, 15] : [20, 15, 10, 7]).map(v => `<button class="chip ${bar === v ? 'active' : ''}" data-bar="${v}">${v} ${unit()}</button>`).join('')}<button class="chip ${bar === 0 ? 'active' : ''}" data-bar="0">Ohne</button></div>

@@ -373,6 +373,11 @@ async function dataFlow(page) {
   const pl = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), st = document.querySelector('#tab-start .stat'), hero = document.querySelector('#tab-start .btn-hero');
     return { d: document.documentElement.dataset.design, rs: cs.getPropertyValue('--rs').trim(), accent: cs.getPropertyValue('--accent').trim(), statTop: st && getComputedStyle(st).borderTopWidth, statBg: st && getComputedStyle(st).backgroundColor, heroR: hero && getComputedStyle(hero).borderRadius }; });
   check(pl.d === 'plakat' && pl.rs === '0' && pl.accent === '#e2001a' && pl.statTop === '2px' && pl.statBg === 'rgba(0, 0, 0, 0)' && pl.heroR === '0px', 'Design „Plakat": eckig, Linien statt Karten, Signalrot', JSON.stringify(pl));
+  // Plakat: umrahmte Einträge in „Workout starten" behalten Innenabstand (Icon klebt nicht am Rahmen)
+  const amPad = await page.evaluate(async () => { Actions.startSheet(); await new Promise(r => setTimeout(r, 500));
+    const e = document.querySelector('.modal .list-item.am-solo, .modal .list-item.am-featured'), v = e ? parseFloat(getComputedStyle(e).paddingLeft) : -1; Modal.closeAll(); return v; });
+  check(amPad >= 10, 'Plakat: umrahmte Einträge mit Innenabstand', String(amPad));
+  await pause(page, 400);
   // Eigene Einstellungen gelten auch im Plakat: „Rund" rundet Knöpfe, Chips und Schalter, eigene Farbe färbt Diagramme
   await page.evaluate(() => { setLook('radius', 'round'); setLook('accent', '#a3e635'); openMoreSub('look'); });
   await pause(page, 700);
@@ -383,6 +388,12 @@ async function dataFlow(page) {
   // Startskript in index.html (Darstellung vor dem ersten Bild) kennt jedes Design – sonst springt es kurz auf „Trainio"
   const boot = await page.evaluate(async () => { const html = await (await fetch('index.html')).text(); const m = html.match(/!\/\^\(([a-z|]+)\)\$\//); return { ids: m ? m[1].split('|') : [], all: DESIGNS.map(d => d.id) }; });
   check(boot.all.every(id => boot.ids.includes(id)), 'Startskript kennt alle Designs', JSON.stringify(boot));
+  // Aufgeräumt: keine Beschreibungen unter Designs, Erklärungen nur im (i) neben dem Titel
+  await page.evaluate(() => openMoreSub('look'));
+  await pause(page, 500);
+  const tidy = await page.evaluate(() => ({ desc: document.querySelectorAll('#tab-more .dt-desc').length, subs: document.querySelectorAll('#tab-more .sl-sub').length,
+    infos: document.querySelectorAll('#tab-more .sl-title .info-i').length, hint: [...document.querySelectorAll('#tab-more p')].filter(x => /Home-Bildschirm|Browser-Tab/.test(x.textContent)).length }));
+  check(tidy.desc === 0 && tidy.subs === 0 && tidy.hint === 0 && tidy.infos >= 5, 'Darstellung ohne Erklärtexte, Erklärungen im (i)', JSON.stringify(tidy));
   // Tag & Nacht: Phase nach Sonnenstand statt Hell/Dunkel, Himmel sichtbar, vier Vorschau-Himmel, Tageszeit statt Modus
   await page.evaluate(() => openMoreSub('look'));
   await pause(page, 500);

@@ -148,9 +148,8 @@ const Heart = (() => {
     let mode = S().rhrMode === 'count' ? 'count' : 'tap', taps = [], timer = null;
     const RL = 2 * Math.PI * 52;
     const m = Modal.open({
-      title: 'Ruhepuls messen', size: 'sm',
+      title: 'Ruhepuls messen', info: 'Am besten morgens direkt nach dem Aufwachen, noch im Liegen. Puls am Hals oder Handgelenk ertasten.', size: 'sm',
       body: `<div class="seg hr-mode" role="group" aria-label="Messart"><button data-mode="tap">Im Takt tippen</button><button data-mode="count">30 s zählen</button></div>
-        <p class="small dim mt-12">Am besten morgens direkt nach dem Aufwachen, noch im Liegen. Puls am Hals oder Handgelenk ertasten.</p>
         <div class="hr-stage mt-16"></div>
         <div class="center mt-8"><button class="link-btn" data-x="manual">Wert direkt eintragen</button></div>`,
       onClose: () => clearInterval(timer)
@@ -261,9 +260,8 @@ const Heart = (() => {
   }
   function vo2Entry() {
     const m = Modal.open({
-      title: 'VO2max eintragen', size: 'sm',
-      body: `<p class="small dim">Ein gemessener Wert, z. B. aus einer Leistungsdiagnostik. Er hat Vorrang vor der Schätzung.</p>
-        <div class="row mt-12" style="gap:8px;align-items:flex-end"><label class="field grow"><span>VO2max (ml/kg/min)</span><input class="input" id="v2Val" inputmode="decimal" autocomplete="off" placeholder="z. B. 45"></label>
+      title: 'VO2max eintragen', info: 'Ein gemessener Wert, z. B. aus einer Leistungsdiagnostik. Er hat Vorrang vor der Schätzung.', size: 'sm',
+      body: `<div class="row" style="gap:8px;align-items:flex-end"><label class="field grow"><span>VO2max (ml/kg/min)</span><input class="input" id="v2Val" inputmode="decimal" autocomplete="off" placeholder="z. B. 45"></label>
         <label class="field grow"><span>Datum</span><input class="input" id="v2Date" type="date" value="${isoDate()}" max="${isoDate()}"></label></div>`,
       foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
     });
@@ -301,13 +299,12 @@ const Heart = (() => {
     const step = (k, label, sub, d) => setLine(label, sub, `<div class="stepper hp-step"><button data-st="${k}" data-d="-${d}" aria-label="${label}: weniger">${icon('minus')}</button><b data-v="${k}">${p[k]}${UNIT[k] || ''}</b><button data-st="${k}" data-d="${d}" aria-label="${label}: mehr">${icon('plus')}</button></div>`);
     const m = Modal.open({
       title: 'Herz-Plan', size: 'sm',
-      body: `<p class="small dim">Dein Wochenziel. Es zählt jedes Cardio ab 10 Minuten – auch nach dem Krafttraining. Ob locker oder hart, stellst du im Workout bei der Cardio-Übung ein.</p>
-        <div class="list mt-12">${step('sessions', 'Einheiten pro Woche', 'Cardio ab 10 min', 1)}${step('hard', 'davon hart', 'z. B. Intervalle (4 × 4 min)', 1)}${step('z2', 'Minuten locker', 'Zone 2 – ganze Sätze sprechen', 15)}</div>
+      info: 'Dein Wochenziel. Es zählt jedes Cardio ab 10 Minuten – auch nach dem Krafttraining. Hart: z. B. Intervalle (4 × 4 min). Locker: Zone 2, ganze Sätze sprechen geht noch. Ob locker oder hart, stellst du im Workout bei der Cardio-Übung ein. Die Ziele erscheinen als Linie in den Diagrammen.',
+      body: `<div class="list">${step('sessions', 'Einheiten pro Woche', '', 1)}${step('hard', 'davon hart', '', 1)}${step('z2', 'Minuten locker', '', 15)}</div>
         <h4 class="mt-16 mb-8">Ziele (optional)</h4>
         <div class="row" style="gap:8px"><label class="field grow"><span>Ruhepuls-Ziel</span><input class="input" id="hpRhr" inputmode="numeric" autocomplete="off" value="${p.rhrGoal || ''}" placeholder="z. B. 55"></label>
         <label class="field grow"><span>VO2max-Ziel</span><input class="input" id="hpVo2" inputmode="decimal" autocomplete="off" value="${p.vo2Goal ? nf(p.vo2Goal, 1) : ''}" placeholder="z. B. 50"></label></div>
-        <p class="tiny dim mt-8">Die Ziele erscheinen als Linie in den Diagrammen.</p>
-        <div class="list mt-12">${setLine('Auf der Startseite zeigen', '„Herz diese Woche"', `<label class="switch"><input type="checkbox" switch id="hpHome" ${S().homeHeart !== false ? 'checked' : ''} aria-label="Auf der Startseite zeigen"><span></span></label>`)}</div>`,
+        <div class="list mt-12">${setLine('Auf der Startseite zeigen', '', `<label class="switch"><input type="checkbox" switch id="hpHome" ${S().homeHeart !== false ? 'checked' : ''} aria-label="Auf der Startseite zeigen"><span></span></label>`)}</div>`,
       foot: `<button class="btn btn-secondary" data-x="${cur ? 'off' : 'cancel'}">${cur ? 'Plan beenden' : 'Abbrechen'}</button><button class="btn btn-primary" data-x="ok">${cur ? 'Speichern' : 'Aktivieren'}</button>`
     });
     const refresh = () => $$('[data-v]', m.el).forEach(x => { x.textContent = p[x.dataset.v] + (UNIT[x.dataset.v] || ''); });
@@ -372,10 +369,10 @@ const Heart = (() => {
     const fld = (k, label, val, mode = 'decimal') => `<label class="field"><span>${label}</span><input class="input" data-hf="${k}" inputmode="${mode}" autocomplete="off" value="${val}"></label>`;
     const m = Modal.open({
       title: 'Intervall-Timer', size: 'sm',
+      info: 'Zeiten in Minuten, z. B. 4 oder 0:30. Hart: so viel Widerstand, dass nur noch einzelne Wörter gehen. Locker: ruhig weitertreten. Beim Wechsel kommen Ton und Vibration, der Bildschirm bleibt an.',
       body: `<div class="chips wrap">${HIIT_PRESETS.map(p => `<button class="chip" data-hp="${p.k}">${p.label}</button>`).join('')}</div>
         <div class="hiit-form mt-12">${fld('warm', 'Aufwärmen', durIn(c.warm))}${fld('work', 'Hart', durIn(c.work))}${fld('rest', 'Locker', durIn(c.rest))}${fld('rounds', 'Runden', c.rounds, 'numeric')}${fld('cool', 'Abwärmen', durIn(c.cool))}</div>
-        <p class="small mt-12">Gesamt: <b id="hiTot">–</b></p>
-        <p class="tiny dim mt-4">Zeiten in Minuten, z. B. 4 oder 0:30. Hart: so viel Widerstand, dass nur noch einzelne Wörter gehen. Locker: ruhig weitertreten. Beim Wechsel kommen Ton und Vibration, der Bildschirm bleibt an.</p>`,
+        <p class="small mt-12">Gesamt: <b id="hiTot">–</b></p>`,
       foot: `<button class="btn btn-primary btn-block btn-lg" data-x="go">${icon('play')} Start</button>`
     });
     const read = () => {
@@ -606,9 +603,8 @@ const Heart = (() => {
       <div class="hr-actions"><button class="btn btn-primary grow" data-act="rhrMeasure">${icon('heart')} Ruhepuls messen</button><button class="btn btn-secondary grow" data-act="hiitQuick">${icon('timer')} Intervall-Timer</button></div>
       <div class="charts-grid">
         ${pw ? `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan · diese Woche</span><button class="btn-icon" style="width:36px;height:36px" data-act="heartPlan" aria-label="Herz-Plan bearbeiten">${icon('edit')}</button></div>${planBars(pw)}</div>`
-          : `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan</span></div>
-            <p class="small dim mt-4">Ein Wochenziel fürs Herztraining, z. B. 3 Einheiten, davon 1× hart (Intervalle), 90 Minuten locker in Zone 2 – alles frei einstellbar.</p>
-            <div><button class="btn btn-secondary btn-sm mt-12" data-act="heartPlan">${icon('plus')} Herz-Plan einrichten</button></div></div>`}
+          : `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan</span>${infoBtn('Ein Wochenziel fürs Herztraining, z. B. 3 Einheiten, davon 1× hart (Intervalle), 90 Minuten locker in Zone 2 – alles frei einstellbar.')}</div>
+            <div><button class="btn btn-secondary btn-sm mt-8" data-act="heartPlan">${icon('plus')} Herz-Plan einrichten</button></div></div>`}
         ${cb.card({ id: 'h1', wide: true, title: 'Ruhepuls', info: 'Herzschläge pro Minute in völliger Ruhe – am besten morgens direkt nach dem Aufwachen gemessen. Sinkt er über Wochen, arbeitet dein Herz effizienter. Die Linie zeigt den Ø der letzten 7 Tage (einzelne Tage schwanken), die Punkte die einzelnen Messungen.',
           big: now ? nf(now.base, 0) : '–', small: now ? `Ø 7 Tage · zuletzt ${now.last.v} ${relDays(now.last.dn)}` : 'noch nicht gemessen',
           delta: now && baseFirst && first.dn < now.last.dn ? deltaHtml(now.base, baseFirst, { invert: true, fmt: x => (x > 0 ? '+' : '') + nf(x, 0) }) : '', sub: now && baseFirst && first.dn < now.last.dn ? `seit ${fmtDateShort(first.date)}` : '',

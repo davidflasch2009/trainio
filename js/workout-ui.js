@@ -378,12 +378,12 @@ Actions.woMore = async () => {
   const w = Workout.cur(); if (!w) return;
   const focus = S().woView === 'focus';
   const k = await actionMenu(w.name, [
-    w.entries.length && { key: 'ov', label: 'Übersicht aller Übungen', sub: 'Reihenfolge & Ziele ändern', icon: 'layers' },
-    F('f_focus') && w.entries.length && { key: 'view', label: focus ? 'Listen-Ansicht' : 'Fokus-Ansicht', sub: focus ? 'Alle Übungen untereinander' : 'Eine Übung groß – wischen zum Wechseln', icon: focus ? 'list' : 'target' },
+    w.entries.length && { key: 'ov', label: 'Übersicht aller Übungen', icon: 'layers' },
+    F('f_focus') && w.entries.length && { key: 'view', label: focus ? 'Listen-Ansicht' : 'Fokus-Ansicht', icon: focus ? 'list' : 'target' },
     { key: 'rename', label: 'Umbenennen', icon: 'edit' },
     F('f_woExtras') && woSimple() && { key: 'notes', label: 'Notiz, Datum & Körpergewicht', icon: 'note' },
-    w.entries.length && { key: 'tpl', label: 'Als Workout speichern', sub: 'Unter „Meine Workouts"', icon: 'copy' },
-    { key: 'style', label: woSimple() ? 'Ausführliche Eingabe' : 'Schlichte Eingabe', sub: woSimple() ? 'Mehr Spalten, Stepper & Leisten' : 'Nur Gewicht, Wdh. & Haken', icon: 'sliders' },
+    w.entries.length && { key: 'tpl', label: 'Als Workout speichern', icon: 'copy' },
+    { key: 'style', label: woSimple() ? 'Ausführliche Eingabe' : 'Schlichte Eingabe', icon: 'sliders' },
     { key: 'cancel', label: w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen', icon: 'x', danger: true }
   ]);
   if (k === 'ov') Actions.woOverview();
@@ -488,7 +488,7 @@ function exerciseCard(en, ei, w) {
     </div>
     ${goalBar(en, ei, type)}
     <div class="ex-hints">
-      ${lastTxt ? `<span class="hint-chip">${esc(lastTxt)}</span>` : '<span class="hint-chip">Erstes Mal – viel Spaß!</span>'}
+      ${lastTxt ? `<span class="hint-chip">${esc(lastTxt)}</span>` : ''}
       ${last && canFillAny(en, last) ? `<button class="hint-chip fill" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}
       ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
       ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
@@ -1218,10 +1218,10 @@ Actions.setMenu = async el => {
     en.sets.length > 1 && { key: 'del', label: 'Abschnitt löschen', icon: 'trash', danger: true }
   ] : [
     (s.warmup || s.kind) && { key: 'normal', label: 'Normaler Arbeitssatz', icon: 'check' },
-    !s.warmup && { key: 'warm', label: 'Aufwärmsatz', sub: 'Zählt nicht für Volumen & PRs', icon: 'flame' },
-    F('f_setTypes') && s.kind !== 'drop' && { key: 'drop', label: 'Drop-Satz', sub: 'Direkt weiter mit weniger Gewicht', icon: 'arrowDown' },
-    F('f_setTypes') && s.kind !== 'fail' && { key: 'fail', label: 'Bis zum Muskelversagen', sub: 'Markiert den Satz mit „F"', icon: 'bolt' },
-    !s.warmup && { key: 'fixset', label: s.fix ? 'Form-Fix entfernen' : 'Form-Fix (nur dieser Satz)', sub: s.fix ? 'Satz zählt wieder normal' : 'Bewusst leichter für saubere Technik – zählt nicht gegen dich', icon: 'refresh' },
+    !s.warmup && { key: 'warm', label: 'Aufwärmsatz', icon: 'flame' },
+    F('f_setTypes') && s.kind !== 'drop' && { key: 'drop', label: 'Drop-Satz', icon: 'arrowDown' },
+    F('f_setTypes') && s.kind !== 'fail' && { key: 'fail', label: 'Bis zum Muskelversagen', icon: 'bolt' },
+    !s.warmup && { key: 'fixset', label: s.fix ? 'Form-Fix entfernen' : 'Form-Fix (nur dieser Satz)', icon: 'refresh' },
     s.weightKg != null && { key: 'fillW', label: `${fmtW(s.weightKg)} für alle offenen Sätze`, icon: 'copy' },
     { key: 'dup', label: 'Satz duplizieren', icon: 'copy' },
     { key: 'del', label: 'Satz löschen', icon: 'trash', danger: true }
@@ -1244,14 +1244,14 @@ Actions.exMenu = async el => {
   const isCardio = Ex.type(Ex.get(en.exerciseId)) === 'cardio';
   const k = await actionMenu(en.exerciseName, [
     !isCardio && { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
-    canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', sub: 'Platzhalter als Werte in alle leeren Sätze', icon: 'fillIn' },
+    canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', icon: 'fillIn' },
     F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
-    F('f_setTypes') && !isCardio && { key: 'drop', label: 'Drop-Satz hinzufügen', sub: 'Direkt weiter mit ca. 20 % weniger Gewicht', icon: 'arrowDown' },
+    F('f_setTypes') && !isCardio && { key: 'drop', label: 'Drop-Satz hinzufügen', icon: 'arrowDown' },
     F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
-    !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', sub: en.uni ? 'Eine Wdh.-Zahl pro Satz' : 'Wdh. für jede Seite getrennt eintragen', icon: 'swap' },
-    { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', sub: 'Bleibt bei der Übung – z. B. Sitzhöhe, Griff', icon: 'flag' },
-    { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', sub: 'Nur in diesem Workout', icon: 'note' },
-    !isCardio && { key: 'fix', label: en.formFix ? 'Form-Fix entfernen' : 'Form-Fix', sub: en.formFix ? 'Zählt wieder normal mit' : 'Weniger Gewicht für saubere Technik: kein Abzug im Score, PRs starten neu', icon: 'refresh' },
+    !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', icon: 'swap' },
+    { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', icon: 'flag' },
+    { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', icon: 'note' },
+    !isCardio && { key: 'fix', label: en.formFix ? 'Form-Fix entfernen' : 'Form-Fix', icon: 'refresh' },
     !isCardio && { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
     { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
     ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },

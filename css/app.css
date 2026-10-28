@@ -723,6 +723,8 @@ button.list-item.pressed, .list-item.clickable.pressed { background: var(--surfa
 .info-i { width: 26px; height: 26px; border-radius: 50%; border: 0; background: transparent; color: var(--text-faint); display: inline-flex; align-items: center; justify-content: center; padding: 0; position: relative; flex-shrink: 0; }
 .info-i::before { content: ''; position: absolute; inset: -9px; }
 .info-i svg { width: 15px; height: 15px; opacity: .7; }
+/* (i) direkt hinter einem Titel (Einstellungen, Abschnitte, Seiten- und Fenstertitel) */
+:is(.sl-title, .section-head h4, .more-title, .modal-head h2, .acc-card .bold) > .info-i { vertical-align: middle; margin: -6px -4px -6px 1px; }
 .popover { position: fixed; z-index: 300; max-width: min(300px, calc(100vw - 32px)); background: var(--surface-3); color: var(--text); border: var(--bw) solid var(--border-strong); border-radius: calc(12px * var(--rs)); padding: 10px 12px; font-size: calc(13px * var(--fs)); line-height: 1.45; box-shadow: var(--shadow); }
 
 /* Banner (laufendes Workout) */
@@ -1628,6 +1630,10 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="plakat"] .ex-card.complete, [data-design="plakat"] .ex-card.ex-open { border-top-color: var(--text); }
 [data-design="plakat"] .ex-card.ex-open { border-top-width: 4px; }
 [data-design="plakat"] .list-item { padding-left: 0; padding-right: 0; }
+/* Umrahmte Einträge (z. B. „Heute" und „Cardio" in „Workout starten"): Innenabstand behalten, kräftiger Rahmen */
+[data-design="plakat"] .list-item:is(.am-featured, .am-solo) { padding-left: 12px; padding-right: 10px; border-radius: calc(14px * var(--rs)); }
+[data-design="plakat"] .list-item.am-featured { border: 1.5px solid var(--accent) !important; background: var(--accent-soft); }
+[data-design="plakat"] .list-item.am-solo { border: 1.5px solid var(--text) !important; background: transparent; }
 [data-design="plakat"] .ex-item { background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; box-shadow: none; padding-left: 0; padding-right: 0; }
 [data-design="plakat"] .modal .list, [data-design="plakat"] .modal .card { border-top-width: 1px; }
 /* Typografie: große, eng gesetzte Grotesk-Zahlen, kleine Versal-Labels */
@@ -1714,6 +1720,14 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="plakat"] .week-dots i.today { box-shadow: 0 0 0 2px var(--accent); }
 /* Fortschritt-Leiste oben: flacher Block mit Linien statt schwebender Karte */
 [data-design="plakat"] .prog-controls { border-radius: 0; box-shadow: none; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border: 0 !important; border-top: var(--rule) solid var(--text) !important; border-bottom: 1px solid var(--border) !important; padding: 8px 0; }
+/* Werkzeuge: Scheibenrechner-Knöpfe, Scheiben-Chips und Ruhepuls-Tippfläche folgen den Ecken statt fester Kreise */
+[data-design="plakat"] .pl-step { border-radius: calc(14px * var(--rs)); background: transparent; border: 1.5px solid var(--text); }
+[data-design="plakat"] :is(.pl-chip, .plate-pick .pp) { border-radius: calc(12px * var(--rs)); }
+[data-design="plakat"] .hr-tap { border-radius: calc(40px * var(--rs)); }
+/* Kachel-Auswahl (Darstellung → Startseite): Linien statt Flächen, gewählt = schwarzer Rahmen */
+[data-design="plakat"] .tile-row { background: transparent; border: 1px solid var(--border); }
+[data-design="plakat"] .tile-row.on { border: 1.5px solid var(--text); }
+[data-design="plakat"] .tile-row.on .tile-tog svg { color: var(--text); }
 /* Symbole etwas kräftiger, passend zur Grotesk */
 [data-design="plakat"] svg[stroke="currentColor"] { stroke-width: 2.1; }
 
@@ -1891,7 +1905,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 :root[data-density="comfy"] :is(.charts-grid, .ex-list, .stat-grid) { gap: 16px; }
 :root[data-density="comfy"] .ex-card { margin-bottom: 16px; }
 /* Plakat: Linien bleiben bündig – Dichte ändert nur die Höhe */
-:root[data-density][data-design="plakat"] :is(.card, .stat, .chart-card, .list-item, .ex-item) { padding-left: 0; padding-right: 0; }
+:root[data-density][data-design="plakat"] :is(.card, .stat, .chart-card, .list-item:not(.am-featured):not(.am-solo), .ex-item) { padding-left: 0; padding-right: 0; }
 /* Tab-Leiste */
 :root[data-nav="floating"] { --nav-space: calc(var(--nav-h) + env(safe-area-inset-bottom) + 14px); }
 :root[data-nav="floating"] .bottom-nav {
@@ -1942,7 +1956,6 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .design-tile.active { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
 .design-tile .dt-name { font-weight: var(--fw-x); font-size: calc(14px * var(--fs)); display: flex; align-items: center; gap: 6px; }
 .design-tile .dt-name svg { width: 16px; height: 16px; color: var(--accent-text); margin-left: auto; }
-.design-tile .dt-desc { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); line-height: 1.3; }
 .dt-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; border-radius: 10px; overflow: hidden; }
 /* Mini-Vorschau: liest nur Tokens des eigenen data-design/data-theme */
 :where(.tp) { --wall: none; --card-shadow: none; --bw: 1px; --rs: 1; --title-transform: none; --title-spacing: -.02em; --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; --font-display: var(--font); }

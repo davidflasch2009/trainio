@@ -316,7 +316,10 @@ Die Notiz hängt an der Übung und erscheint als 📌-Hinweis in jedem zukünfti
 Oben ein **Suchfeld** („pause", „rpe", „backup" …): Treffer erscheinen sofort und lassen sich direkt dort
 umstellen. Darunter die Konto-Karte und die Gruppen – jede öffnet sich als eigene Seite (zurück über
 „‹ Mehr" oben, die Zurück-Taste/-Geste oder erneutes Tippen auf „Mehr"; beim Wechsel auf einen anderen Tab
-schließt sich die Gruppe und die Suche wird geleert):
+schließt sich die Gruppe und die Suche wird geleert). Aufgeräumt: Erklärungen stehen nicht als Text unter den
+Einstellungen, sondern im **(i)** neben dem Titel (auch in Fenstern wie Herz-Plan, Phase oder Aufwärmsätze) – die Suche
+findet sie trotzdem. Sichtbar bleiben nur echte Infos wie aktuelle Werte, Zeiten oder Zustände; Design-Kacheln zeigen
+nur Vorschau und Namen, Menüs nur ihre Titel:
 
 | Gruppe | Inhalt |
 | --- | --- |

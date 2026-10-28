@@ -27,7 +27,6 @@ Views.start = {
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>
-          <p class="dim small">Workout läuft – tippen zum Fortsetzen</p>
         </button>` : ''}
       ${S().homeStats === false ? '' : `<div class="stat-grid mt-16">${homeTileKeys().map(k => ({
         streak: `<div class="stat">
@@ -178,9 +177,9 @@ Actions.startSheet = async () => {
   const k = await actionMenu('Workout starten', [
     n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), sub: `laut „${n.plan.name}"`, icon: 'play', featured: true },
     Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
-    { key: 'compose', label: 'Workout zusammenstellen', sub: 'Übungen aus der Bibliothek wählen & los', icon: 'list' },
-    { key: 'cardio', label: 'Cardio', sub: 'Laufen, Rad, Stepper, Schwimmen …', icon: 'heart', featured: 'plain' },
-    { key: 'free', label: 'Leeres Workout', sub: 'Ohne Plan, Übungen unterwegs hinzufügen', icon: 'plus' },
+    { key: 'compose', label: 'Workout zusammenstellen', icon: 'list' },
+    { key: 'cardio', label: 'Cardio', icon: 'heart', featured: 'plain' },
+    { key: 'free', label: 'Leeres Workout', icon: 'plus' },
     Store.all('workouts').length ? { key: 'repeat', label: 'Letztes Workout wiederholen', icon: 'repeat' } : null
   ]);
   if (k === 'next') Workout.start({ templateId: n.template.id });
@@ -205,7 +204,7 @@ Actions.startCardio = async () => {
   const recent = all.filter(e => use[e.id]).sort((a, b) => (lastDn[b.id] - lastDn[a.id]) || (use[b.id] - use[a.id])).slice(0, 5);
   const k = await actionMenu(cur ? 'Cardio hinzufügen' : 'Cardio starten', [
     ...recent.map(e => { const ss = Analytics.sessionsOf(e.id), l = ss[ss.length - 1]; return { key: e.id, label: e.name, sub: l ? `Zuletzt ${relDays(l.dn)}: ${cardioTxt({ sec: l.secs, km: l.km, lvl: null }, cardioInfo(e))}` : '', icon: 'heart' }; }),
-    { key: '__all', label: recent.length ? 'Andere Cardio-Art …' : 'Cardio-Art wählen …', sub: `${all.length} Arten: Laufband, Rad, Stepper, Schwimmen, Sport …`, icon: 'list' }
+    { key: '__all', label: recent.length ? 'Andere Cardio-Art …' : 'Cardio-Art wählen …', icon: 'list' }
   ]);
   if (!k) return;
   let id = k;
@@ -270,7 +269,7 @@ function goalsCard() {
     </button>`;
   }).join('');
   return `<div class="section-head"><h2>Ziele</h2><button class="link-btn" data-act="kgoalEdit">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Ziel</button></div>
-    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div><div class="small dim mt-4">z. B. Bankdrücken 8 × 100 kg – oder 100 kg 1RM, geschätzt aus deinen Sätzen (80 kg × 11 ≈ 109 kg).</div></button>`}`;
+    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div></button>`}`;
 }
 Actions.kgoalEdit = async el => {
   const old = el && el.dataset && el.dataset.id ? goalsList().find(g => g.id === el.dataset.id) : null;
@@ -574,7 +573,7 @@ function openScheduleEditor(plan) {
     const n = draft.schedule.filter(id => Tpl.get(id)).length;
     m.setBody(`
       <label class="field"><span>Name</span><input class="input" id="spName" value="${esc(draft.name)}"></label>
-      <p class="small dim mt-12">Wähle für jeden Wochentag eines deiner Workouts – oder Ruhetag. <b>${n} Trainingstage</b>${n ? `, ca. ${Math.round(sum(draft.schedule.map(id => Tpl.get(id) ? planDayMinutes(Tpl.get(id)) : 0)) / 60 * 10) / 10} h pro Woche` : ''}.</p>
+      <p class="small dim mt-12"><b>${n} Trainingstage</b>${n ? `, ca. ${Math.round(sum(draft.schedule.map(id => Tpl.get(id) ? planDayMinutes(Tpl.get(id)) : 0)) / 60 * 10) / 10} h pro Woche` : ''}.</p>
       <div class="list mt-12">${draft.schedule.map((id, i) => `
         <div class="set-line sched-row">
           <div class="sl-main"><div class="sl-title">${WEEKDAYS[i]}</div></div>
@@ -684,11 +683,11 @@ function paGauge(v, lo, hi, max, ok) {
 function openPlanAnalysis(plan) {
   const a = analyzePlan(plan && plan.schedule);
   const c = a.checks;
-  const head = (k, l, extra = '') => `<div class="row between"><b>${l}</b><span class="row" style="gap:8px">${extra}${paMark(c[k].ok)}</span></div>`;
+  const head = (k, l, extra = '', info = '') => `<div class="row between"><b>${l}${info ? infoBtn(info) : ''}</b><span class="row" style="gap:8px">${extra}${paMark(c[k].ok)}</span></div>`;
   const tip = k => c[k].tip ? `<p class="small pa-tip mt-8">${icon('info')} ${c[k].tip}</p>` : c[k].text ? `<p class="small dim mt-8">${c[k].text}</p>` : '';
   const freqChips = MUSCLES.filter(m => a.freq[m] || PLAN_MAJOR.includes(m)).sort((x, y) => a.freq[y] - a.freq[x])
     .map(m => `<span class="pa-chip ${a.freq[m] >= 2 ? 'ok' : a.freq[m] ? 'low' : 'none'}">${esc(m)} <b>${a.freq[m]}×</b></span>`).join('');
-  Modal.open({ title: `Analyse: ${(plan && plan.name) || 'Trainingsplan'}`, size: 'lg',
+  Modal.open({ title: `Analyse: ${(plan && plan.name) || 'Trainingsplan'}`, size: 'lg', info: 'Grundlage sind die geplanten Arbeitssätze deiner Workouts (ohne Cardio). Hilfsmuskeln zählen für Frequenz und Erholung nicht mit.',
     body: !a.days.length ? emptyState('calendar', 'Noch keine Trainingstage', 'Weise den Wochentagen Workouts zu, dann kann der Plan analysiert werden.') : `
       <div class="week-plan">${(plan.schedule || []).map((id, i) => { const t = Tpl.get(id); return `<div class="wp-day ${t ? 'has' : ''}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></div>`; }).join('')}</div>
       <p class="small dim mt-12">${a.days.length} Trainingstage · ${7 - a.days.length} Ruhetage · ${a.sets} Sätze · ca. ${nf(a.min / 60, 1)} h pro Woche</p>
@@ -707,8 +706,7 @@ function openPlanAnalysis(plan) {
 
       <div class="section-head"><h4>Frequenz & Erholung</h4></div>
       <div class="card">
-        ${head('freq', 'Frequenz')}
-        <div class="small dim">An wie vielen Tagen pro Woche ein Muskel direkt (als Hauptmuskel) trainiert wird – ideal 2×.</div>
+        ${head('freq', 'Frequenz', '', 'An wie vielen Tagen pro Woche ein Muskel direkt (als Hauptmuskel) trainiert wird – ideal 2×.')}
         <div class="pa-chips mt-8">${freqChips}</div>${tip('freq')}
       </div>
       <div class="card mt-12">
@@ -724,8 +722,7 @@ function openPlanAnalysis(plan) {
           ${a.per.map(d => `<tr class="${d.sets > PLAN_MAX_SETS || d.min > PLAN_MAX_MIN ? 'pa-long' : ''}"><td>${WD_KURZ[d.i]}</td><td>${esc(d.t.name)}</td><td class="r">${d.ex}</td><td class="r">${d.sets}</td><td class="r">${d.min}</td></tr>`).join('')}
           <tr class="pa-sum"><td colspan="2">Ø pro Workout</td><td class="r">${nf(avg(a.per.map(d => d.ex)), 1)}</td><td class="r">${nf(avg(a.per.map(d => d.sets)), 1)}</td><td class="r">${Math.round(avg(a.per.map(d => d.min)))}</td></tr>
         </tbody></table>${tip('vol')}
-      </div>
-      <p class="tiny faint mt-12">Grundlage sind die geplanten Arbeitssätze deiner Workouts (ohne Cardio). Hilfsmuskeln zählen für Frequenz und Erholung nicht mit.</p>` });
+      </div>` });
 }
 Actions.planAnalyze = el => openPlanAnalysis(Store.raw('plans', el.dataset.id));
 
@@ -895,8 +892,8 @@ function openWorkoutDetail(id) {
     } else if (b.dataset.x === 'meta') editMeta();
     else if (b.dataset.x === 'edit') {
       const k = await actionMenu('Workout bearbeiten', [
-        { key: 'meta', label: 'Datum, Uhrzeit & Dauer', sub: 'Auch Name, Körpergewicht und Notiz', icon: 'calendar' },
-        { key: 'sets', label: 'Sätze & Übungen', sub: 'Gewichte, Wiederholungen, Übungen ändern', icon: 'dumbbell' }
+        { key: 'meta', label: 'Datum, Uhrzeit & Dauer', icon: 'calendar' },
+        { key: 'sets', label: 'Sätze & Übungen', icon: 'dumbbell' }
       ]);
       if (k === 'meta') editMeta();
       else if (k === 'sets') { m.dismiss(); Workout.load(wo, { edit: true }); }
@@ -975,7 +972,7 @@ async function shareWorkout(wo) {
   const m = Modal.open({
     title: 'Workout teilen', size: 'sm', cls: 'share-modal',
     body: `<div class="share-prev"><span class="share-load" aria-label="Bild wird erstellt"></span></div>
-      <p class="tiny faint center mt-8">Story-Format 9:16 · Design „${esc(designOf(S().design).name)}“</p>`,
+`,
     foot: `<button class="btn btn-secondary" data-x="text">${icon('copy')} Als Text</button>
       <button class="btn btn-primary" data-x="img" disabled>${icon('share')} Bild teilen</button>`,
     onClose: () => { if (url) URL.revokeObjectURL(url); }
