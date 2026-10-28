@@ -141,10 +141,19 @@ function openIndex(w) {
   if (Number.isInteger(w.openE) && w.entries[w.openE]) return w.openE;
   return w.entries.findIndex(en => en.sets.some(s => !s.done));
 }
+/* Spotlight (Design „Fokus"): die aktuelle Übung heißt ex-cur, ihr nächster offener Satz set-next – das CSS dimmt den Rest */
+function markNextSet(html, en, ei) {
+  const si = en.sets.findIndex(s => !s.done);
+  return si < 0 ? html : html.replace(new RegExp(`<div class="set-row([^"]*)" data-ei="${ei}" data-si="${si}"`), `<div class="set-row$1 set-next" data-ei="${ei}" data-si="${si}"`);
+}
 function woCard(en, ei, w, full) {
   const type = Ex.type(Ex.get(en.exerciseId));
   if (type === 'cardio') full = cardioCard;
-  if (!woCollapse() || openIndex(w) === ei) return full(en, ei, w).replace('class="ex-card', 'class="ex-card ex-open');
+  const cur = openIndex(w) === ei;
+  if (!woCollapse() || cur) {
+    const html = full(en, ei, w).replace('class="ex-card', `class="ex-card ex-open${cur ? ' ex-cur' : ''}`);
+    return cur ? markNextSet(html, en, ei) : html;
+  }
   const ws = workSets(en), done = ws.filter(s => s.done);
   const complete = en.sets.length > 0 && en.sets.every(s => s.done);
   const fmt = s => type === 'sec' ? secTxt(s) : (s.weightKg ? `${wNum(s.weightKg)}×${repsTxt(s)}` : repsTxt(s));

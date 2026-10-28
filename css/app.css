@@ -307,6 +307,42 @@
   --c1: var(--accent); --c2: #f1f1ec; --c3: #8c8c88; --c4: #74a0ff; --c5: #ffc83a; --c6: #4fc27c; --c7: #c2c2bc; --c8: #ff9aa3;
 }
 
+/* ---------- Fokus: Tunnelblick ----------
+   Fast schwarz (bzw. hell) mit dunklerem Rand wie ein Tunnel, eine Signalfarbe (Laser-Cyan) nur fürs Wichtige,
+   Saira für Zahlen und Titel wie auf einem Sport-Display, Nebentexte treten deutlich zurück. */
+[data-design="fokus"] {
+  --rs: .85;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Saira", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-num: "Saira", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --title-spacing: 0;
+  --fw-x: 700; --fw-b: 600;
+}
+[data-design="fokus"][data-theme="dark"] {
+  --bg: #060708; --surface: #0f1113; --surface-2: #171a1d; --surface-3: #22262a;
+  --border: #191c1f; --border-strong: #2d3237;
+  --text: #f2f5f7; --text-dim: #8a929b; --text-faint: #5f666e;
+  --accent: #2ad8ff; --accent-dim: #135a6b; --accent-text: #62e3ff; --accent-ink: #00141a; --accent-soft: rgba(42, 216, 255, .12);
+  --danger: #ff5c6c; --danger-soft: rgba(255, 92, 108, .14); --warning: #ffb547; --warning-soft: rgba(255, 181, 71, .13);
+  --success: #3ddc97; --info: #2ad8ff;
+  --shadow: 0 24px 60px rgba(0, 0, 0, .7), 0 0 0 1px #1f2327; --grid: #16191c;
+  --card-shadow: none;
+  --tun-in: #121519; --tun-out: #000000;
+  --glow: 0 0 26px -6px rgba(42, 216, 255, .6);
+}
+[data-design="fokus"][data-theme="light"] {
+  --bg: #e8ebee; --surface: #ffffff; --surface-2: #f1f3f5; --surface-3: #e2e6ea;
+  --border: #e1e5e9; --border-strong: #c3cad1;
+  --text: #0a0c0e; --text-dim: #5a626b; --text-faint: #8b929a;
+  --accent: #0a7ea2; --accent-dim: #8fcadb; --accent-text: #06708f; --accent-ink: #ffffff; --accent-soft: rgba(10, 126, 162, .1);
+  --danger: #d42a3c; --danger-soft: rgba(212, 42, 60, .09); --warning: #a65f00; --warning-soft: rgba(166, 95, 0, .1);
+  --success: #12865a; --info: #0a7ea2;
+  --shadow: 0 24px 60px rgba(10, 20, 30, .18), 0 0 0 1px rgba(10, 20, 30, .06); --grid: #edf0f2;
+  --card-shadow: 0 1px 2px rgba(10, 20, 30, .05);
+  --tun-in: #f9fafb; --tun-out: #d7dce1;
+  --glow: 0 8px 22px -8px rgba(10, 126, 162, .55);
+}
+
 /* ---------- Tag & Nacht: der Himmel als Hintergrund – vier Phasen statt Hell/Dunkel ----------
    data-phase (dawn, day, dusk, night) setzt js/sky.js nach dem Sonnenstand, data-theme folgt (hell bei Dämmerung
    und Tag, dunkel bei Sonnenuntergang und Nacht). Flächen sind leicht durchscheinend, dahinter liegt der Himmel (#sky).
@@ -1731,6 +1767,67 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 /* Symbole etwas kräftiger, passend zur Grotesk */
 [data-design="plakat"] svg[stroke="currentColor"] { stroke-width: 2.1; }
 
+/* ---------- Fokus ----------
+   Tunnel: Rand dunkler als die Mitte. Fokus-Ecken (wie beim Autofokus einer Kamera) rahmen das Wichtigste:
+   den Start-Knopf und im Workout die aktuelle Übung. Spotlight: alles außer der aktuellen Übung (ex-cur) tritt
+   zurück, ihr nächster offener Satz (set-next) ist markiert – js/workout-ui.js setzt beide Klassen. */
+[data-design="fokus"] body { background: transparent; }
+[data-design="fokus"] body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none;
+  background: radial-gradient(130% 90% at 50% 36%, var(--tun-in) 0%, var(--bg) 58%, var(--tun-out) 100%); }
+[data-design="fokus"] .edge-ghost { background: radial-gradient(130% 90% at 50% 36%, var(--tun-in) 0%, var(--bg) 58%, var(--tun-out) 100%); }
+[data-design="fokus"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { border-color: transparent; }
+[data-design="fokus"][data-theme="dark"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035); }
+/* Schrift: Sport-Display für Titel und Zahlen, kleine gesperrte Labels */
+[data-design="fokus"] :is(h1, .topbar-title, .section-head h2, .modal-head h2, .sum-title, .hello h1) { font-family: var(--font-display); font-weight: 650; letter-spacing: 0; }
+[data-design="fokus"] :is(.stat .stat-value, .cc-big b, .pr-box b) { font-family: var(--font-num); font-weight: 600; letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+[data-design="fokus"] .stat .stat-value { font-size: calc(34px * var(--fs)); line-height: 1.05; }
+[data-design="fokus"] .stat .stat-value small { font-family: var(--font); letter-spacing: 0; }
+[data-design="fokus"] :is(.stat .stat-label, .cc-title, .set-head) { text-transform: uppercase; letter-spacing: .06em; font-size: calc(11px * var(--fs)); font-weight: 650; color: var(--text-dim); }
+[data-design="fokus"] .stat .stat-label svg { color: var(--text-faint); }
+[data-design="fokus"] .start-date { letter-spacing: .16em; font-size: calc(12px * var(--fs)); color: var(--text-faint); }
+[data-design="fokus"] .section-head h2 { font-size: calc(21px * var(--fs)); }
+[data-design="fokus"] .section-head h4 { letter-spacing: .12em; color: var(--text-faint); }
+/* Knöpfe & Felder: ruhige Flächen, nur die Hauptaktion leuchtet */
+[data-design="fokus"] .btn-secondary { background: var(--surface-2); border-color: transparent; }
+[data-design="fokus"] :is(.btn-primary, .btn-hero, .fab) { box-shadow: var(--glow); }
+[data-design="fokus"] .btn-hero { position: relative; font-family: var(--font-display); font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+[data-design="fokus"] :is(.input, .select, .textarea, .set-in, .set-rpe, .stepper, .pe-step) { background-color: var(--surface-2); border-color: transparent; }
+[data-design="fokus"] :is(.input, .select, .textarea, .set-in):focus { border-color: var(--accent); background-color: var(--surface); box-shadow: 0 0 0 3px var(--accent-soft); }
+[data-design="fokus"] .chip { background: var(--surface-2); border-color: transparent; }
+[data-design="fokus"] .seg { background: var(--surface-2); border-color: transparent; }
+[data-design="fokus"] .seg button.active { background: var(--surface-3); color: var(--text); box-shadow: none; }
+[data-design="fokus"][data-theme="light"] .seg button.active { background: var(--surface); box-shadow: 0 1px 3px rgba(10, 20, 30, .14); }
+[data-design="fokus"] .week-dots i.on { background: var(--accent); box-shadow: 0 0 6px color-mix(in srgb, var(--accent) 60%, transparent); }
+[data-design="fokus"] .week-dots i.today { box-shadow: 0 0 0 2px var(--accent-text); }
+[data-design="fokus"][data-theme="dark"] :is(.rest-ring, .hiit-ring) .ring-fg { filter: drop-shadow(0 0 6px color-mix(in srgb, var(--accent) 45%, transparent)); }
+[data-design="fokus"] .wo-progress i { box-shadow: 0 0 10px var(--accent); }
+/* Leisten: dunkel und ruhig, der aktive Tab ist ein leuchtender Punkt */
+[data-design="fokus"] .bottom-nav { background: color-mix(in srgb, var(--bg) 88%, transparent); }
+[data-design="fokus"] .nav-btn.active::after { content: ''; position: absolute; bottom: 5px; left: 50%; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); box-shadow: 0 0 8px var(--accent); }
+[data-design="fokus"] .side-btn.active { background: transparent; box-shadow: inset 2px 0 0 var(--accent); }
+[data-design="fokus"] .modal { border-color: var(--border); }
+/* Fokus-Ecken: acht kurze Linien in den vier Ecken */
+[data-design="fokus"] :is(.btn-hero, .ex-card.ex-cur)::after, .tp[data-design="fokus"] .tp-card::after {
+  --fc: var(--accent); --fl: 14px; --fw: 2px;
+  content: ''; position: absolute; pointer-events: none;
+  background: linear-gradient(var(--fc), var(--fc)) 0 0 / var(--fl) var(--fw), linear-gradient(var(--fc), var(--fc)) 0 0 / var(--fw) var(--fl),
+    linear-gradient(var(--fc), var(--fc)) 100% 0 / var(--fl) var(--fw), linear-gradient(var(--fc), var(--fc)) 100% 0 / var(--fw) var(--fl),
+    linear-gradient(var(--fc), var(--fc)) 0 100% / var(--fl) var(--fw), linear-gradient(var(--fc), var(--fc)) 0 100% / var(--fw) var(--fl),
+    linear-gradient(var(--fc), var(--fc)) 100% 100% / var(--fl) var(--fw), linear-gradient(var(--fc), var(--fc)) 100% 100% / var(--fw) var(--fl);
+  background-repeat: no-repeat;
+}
+[data-design="fokus"] .btn-hero::after { inset: -7px; }
+[data-design="fokus"] .ex-card.ex-cur::after { inset: 5px; --fl: 12px; opacity: .9; }
+/* Spotlight im Workout: nur die aktuelle Übung ist voll da (antippen holt die anderen nach vorn) */
+[data-design="fokus"] .ex-card { transition: opacity .35s var(--ease-out, ease), box-shadow .35s; }
+[data-design="fokus"] #tab-training:has(.ex-cur) .ex-card:not(.ex-cur) { opacity: .42; }
+[data-design="fokus"] #tab-training:has(.ex-cur) .ex-card:not(.ex-cur):focus-within { opacity: 1; }
+@media (hover: hover) { [data-design="fokus"] #tab-training:has(.ex-cur) .ex-card:not(.ex-cur):hover { opacity: .75; } }
+[data-design="fokus"] .ex-card.ex-cur { position: relative; box-shadow: 0 0 0 1px var(--accent-dim), var(--glow); }
+[data-design="fokus"] .ex-cur .set-row.done { opacity: .55; }
+[data-design="fokus"] .ex-cur .set-row.set-next { background: var(--accent-soft); box-shadow: inset 3px 0 0 var(--accent); }
+[data-design="fokus"] .ex-cur .set-row.set-next .set-num { color: var(--accent-text); }
+
 /* ---------- Tag & Nacht ----------
    Der Himmel (#sky, in index.html) liegt fest hinter allem; js/sky.js setzt die Farben und Positionen als --sk-*, --sun-*,
    --moon-* und --glow-* auf <body>. Karten scheinen leicht durch, Leisten und Fenster sind mattes Glas. */
@@ -1980,6 +2077,12 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tp[data-design="plakat"] .tp-title { font-size: 15px; letter-spacing: -.04em; }
 .tp[data-design="plakat"] .tp-dot { border-radius: 0; }   /* Vorschau zeigt das Design selbst, ohne Nutzer-Ecken */
 .tp[data-design="plakat"] .tp-dot.on { background: var(--text); }
+/* Fokus: Tunnel-Hintergrund, Fokus-Ecken um die Karte */
+.tp[data-design="fokus"] { background: radial-gradient(130% 100% at 50% 40%, var(--tun-in), var(--bg) 60%, var(--tun-out)); }
+.tp[data-design="fokus"] .tp-title { font-family: "Saira", system-ui, sans-serif; letter-spacing: .03em; }
+.tp[data-design="fokus"] .tp-card { position: relative; border-color: transparent; }
+.tp[data-design="fokus"] .tp-card::after { inset: -3px; --fl: 6px; --fw: 1.5px; }
+.tp[data-design="fokus"] .tp-btn { box-shadow: var(--glow); }
 /* Tag & Nacht: vier Himmel (Dämmerung, Tag, Sonnenuntergang, Nacht) mit Sonne bzw. Mond */
 .dt-pair.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
 .tp[data-design="sky"] { background: linear-gradient(180deg, var(--sk-top), var(--sk-up) 40%, var(--sk-low) 76%, var(--sk-hor)); padding: 5px 4px; justify-content: flex-end; }

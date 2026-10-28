@@ -105,7 +105,7 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 8 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit) – nur „Tag & Nacht“ wechselt von selbst mit dem Sonnenstand:
 
 | Design | Look |
@@ -117,6 +117,7 @@ Unter **Mehr → Darstellung** gibt es 8 Designs, jedes in **Hell und Dunkel**
 | Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
 | Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
 | Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |
+| Fokus | Tunnelblick: fast schwarz (bzw. hell) mit dunklerem Rand, eine Signalfarbe (Laser-Cyan) nur fürs Wichtige, Zahlen und Titel in Saira wie auf einem Sport-Display, **Fokus-Ecken** wie beim Kamera-Autofokus um den Start-Knopf. Im Workout **Spotlight**: nur die aktuelle Übung ist voll da (die anderen treten zurück, antippen holt sie nach vorn), der nächste offene Satz ist markiert, erledigte Sätze sind gedimmt. Teilen-Bild mit Fokus-Ecken um den Score |
 | Tag & Nacht | Der Himmel als Hintergrund, in vier Phasen: **Dämmerung** (Lavendel & Pfirsich), **Tag** (Himmelblau, Sonnengelb), **Sonnenuntergang** (Violett & Orange, dunkel) und **Nacht** (Nachtblau, Mondsilber, Sterne). Siehe unten |
 
 **Tag & Nacht** im Detail:

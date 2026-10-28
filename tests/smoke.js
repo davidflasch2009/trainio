@@ -421,6 +421,20 @@ async function dataFlow(page) {
   check(flip === 'day/light night/dark', 'Tag & Nacht: Phase wechselt von selbst (12:00 Tag/hell → 23:30 Nacht/dunkel)', flip);
   await page.evaluate(() => { switchLook(() => {}); });
   await pause(page, 300);
+  // Fokus: Tunnel, Fokus-Ecken, Spotlight auf aktuelle Übung und nächsten Satz
+  const fk = await page.evaluate(async () => {
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    setLook('design', 'fokus'); App.go('start'); await sleep(500);
+    const hero = document.querySelector('#tab-start .btn-hero'), brackets = hero ? getComputedStyle(hero, '::after').backgroundImage.split('linear-gradient').length - 1 : 0;
+    Workout.start({ name: 'Fokus-Test', entries: [Workout.makeEntry('ex_bankdruecken'), Workout.makeEntry('ex_kniebeuge')] });
+    const w = Workout.cur(); w.entries[0].sets[0].weightKg = 80; w.entries[0].sets[0].reps = 8; w.entries[0].sets[0].done = true; Workout.save();
+    App.go('training'); App.renderCurrent(); await sleep(700);
+    const cur = document.querySelector('#tab-training .ex-card.ex-cur'), other = document.querySelector('#tab-training .ex-card:not(.ex-cur)');
+    const next = cur && cur.querySelector('.set-row.set-next');
+    const out = { d: document.documentElement.dataset.design, brackets, cur: !!cur, nextSi: next ? next.dataset.si : null, otherOp: other ? +getComputedStyle(other).opacity : null, tunnel: getComputedStyle(document.body, '::before').backgroundImage.startsWith('radial-gradient') };
+    Workout.discard(); App.go('start');
+    return out; });
+  check(fk.d === 'fokus' && fk.brackets === 8 && fk.cur && fk.nextSi === '1' && fk.otherOp < .8 && fk.tunnel, 'Design „Fokus": Tunnel, Fokus-Ecken, Spotlight auf aktuelle Übung und nächsten Satz', JSON.stringify(fk));
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
   const logged = await appErrors(page);

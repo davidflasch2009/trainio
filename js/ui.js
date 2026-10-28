@@ -609,6 +609,8 @@ const DESIGN_FONTS = {
   paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
   // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
   plakat: GF + 'Archivo:wght@400;500;600;700',
+  // Fokus: Saira – Zahlen und Titel wie auf einem Sport-Display
+  fokus: GF + 'Saira:wght@500;600;700',
   // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
   sky: GF + 'Fraunces:opsz,wght,SOFT@9..144,400..700,100'
 };
@@ -623,6 +625,7 @@ const DESIGNS = [
   { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
   { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
   { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },
+  { id: 'fokus', name: 'Fokus', desc: 'Tunnelblick: fast schwarz, eine Signalfarbe, Fokus-Ecken – im Workout Spotlight auf die aktuelle Übung und den nächsten Satz', nav: 'classic', surf: { dark: '#0f1113', light: '#ffffff' } },
   { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel als Hintergrund: Dämmerung, Tag, Sonnenuntergang & Nacht – wechselt von selbst mit dem Sonnenstand', nav: 'floating', phased: true,
     surf: { dawn: '#f6eff4', day: '#f2f8fe', dusk: '#2e1b31', night: '#121a30', light: '#f2f8fe', dark: '#121a30' } }
 ];
