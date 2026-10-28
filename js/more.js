@@ -191,7 +191,8 @@ function lookGroup(s) {
           'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
         `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" decoding="async"></button>`).join('')}</div>${iconHintHtml()}`],
       ['Farben & Modus', [
-        st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
+        D.phased ? st('Tageszeit', Sky.settingsSub(), Sky.settingsHtml(), 'hell dunkel dark light nachtmodus tag nacht sonne mond dämmerung sonnenuntergang zeitraffer')
+          : st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel – „Tag & Nacht" folgt von selbst dem Himmel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
         st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
           <button class="swatch def ${accent ? '' : 'active'}" data-act="lookSet" data-k="accent" data-v="" aria-label="Design-Standard" title="Design-Standard">${accent ? '' : icon('check')}</button>
           ${ACCENTS.map(([h, n]) => `<button class="swatch ${accent === h ? 'active' : ''}" style="background:${h};color:${Color.contrast('#fff', h) > 2.2 ? '#fff' : '#111'}" data-act="lookSet" data-k="accent" data-v="${h}" aria-label="${n}" title="${n}">${accent === h ? icon('check') : ''}</button>`).join('')}
@@ -305,7 +306,7 @@ Changes.lookColor = el => setLook('accent', el.value.toLowerCase());
 // Farbwähler live (ohne Speichern/Re-Render, sonst schließt sich der Picker)
 Inputs.lookColor = el => {
   const D = designOf(S().design), mode = resolvedTheme();
-  document.documentElement.style.cssText = accentCss(el.value, mode, D.surf[mode]) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
+  document.documentElement.style.cssText = accentCss(el.value, mode, lookSurf(D)) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
 };
 Actions.lookReset = async () => {
   if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;

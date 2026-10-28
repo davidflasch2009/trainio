@@ -307,6 +307,68 @@
   --c1: var(--accent); --c2: #f1f1ec; --c3: #8c8c88; --c4: #74a0ff; --c5: #ffc83a; --c6: #4fc27c; --c7: #c2c2bc; --c8: #ff9aa3;
 }
 
+/* ---------- Tag & Nacht: der Himmel als Hintergrund – vier Phasen statt Hell/Dunkel ----------
+   data-phase (dawn, day, dusk, night) setzt js/sky.js nach dem Sonnenstand, data-theme folgt (hell bei Dämmerung
+   und Tag, dunkel bei Sonnenuntergang und Nacht). Flächen sind leicht durchscheinend, dahinter liegt der Himmel (#sky).
+   --sk-*: Himmelsfarben der Phasenmitte – gelten bis js/sky.js sie minutengenau setzt, und in der Vorschau.
+   --text/--text-dim jeder Phase stehen auch in js/sky.js (INK): danach richtet sich die Lesbarkeit des Himmels. */
+[data-design="sky"] {
+  --rs: 1.45;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-num: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --title-spacing: -.01em;
+  --fw-x: 650; --fw-b: 600;
+}
+[data-design="sky"][data-phase="dawn"] {
+  --bg: #efe5ef; --surface: rgba(255, 251, 252, .74); --surface-2: rgba(96, 70, 130, .08); --surface-3: rgba(96, 70, 130, .15);
+  --border: rgba(96, 70, 130, .12); --border-strong: rgba(96, 70, 130, .26);
+  --text: #251d36; --text-dim: #574c6c; --text-faint: #827797;
+  --accent: #dc4f78; --accent-dim: #eba3b9; --accent-text: #b2325a; --accent-ink: #ffffff; --accent-soft: rgba(220, 79, 120, .13);
+  --danger: #c4283d; --danger-soft: rgba(196, 40, 61, .1); --warning: #a05600; --warning-soft: rgba(160, 86, 0, .11);
+  --success: #2a8650; --info: #5160c9;
+  --shadow: 0 24px 60px rgba(60, 40, 100, .24), 0 6px 18px rgba(60, 40, 100, .12); --grid: rgba(96, 70, 130, .1);
+  --bar: rgba(250, 243, 248, .62); --sheet: rgba(250, 245, 249, .9); --tip: rgba(252, 248, 251, .97);
+  --edge: rgba(255, 255, 255, .72); --soft: 0 12px 32px -14px rgba(90, 60, 130, .34); --knob: #ffffff;
+  --sk-top: #e6e7f3; --sk-up: #eeebf6; --sk-low: #f0adbb; --sk-hor: #ffd0a4; --sk-far: #a6a1cb; --sk-near: #8f8ab9; --sk-cloud: #ffd9df;
+}
+[data-design="sky"][data-phase="day"] {
+  --bg: #e1effb; --surface: rgba(255, 255, 255, .76); --surface-2: rgba(30, 80, 140, .07); --surface-3: rgba(30, 80, 140, .13);
+  --border: rgba(30, 80, 140, .11); --border-strong: rgba(30, 80, 140, .24);
+  --text: #0f2236; --text-dim: #44607a; --text-faint: #758da3;
+  --accent: #f59e0b; --accent-dim: #f7cd84; --accent-text: #985700; --accent-ink: #2b1700; --accent-soft: rgba(245, 158, 11, .17);
+  --danger: #d0362a; --danger-soft: rgba(208, 54, 42, .1); --warning: #a35a00; --warning-soft: rgba(163, 90, 0, .11);
+  --success: #1f8a4c; --info: #1f6fd1;
+  --shadow: 0 24px 60px rgba(20, 60, 120, .22), 0 6px 18px rgba(20, 60, 120, .1); --grid: rgba(30, 80, 140, .09);
+  --bar: rgba(240, 248, 255, .62); --sheet: rgba(243, 249, 255, .9); --tip: rgba(248, 252, 255, .97);
+  --edge: rgba(255, 255, 255, .78); --soft: 0 12px 32px -14px rgba(20, 70, 140, .3); --knob: #ffffff;
+  --sk-top: #cfe5fa; --sk-up: #d4e9fb; --sk-low: #a6d2f8; --sk-hor: #e0f0ff; --sk-far: #a6c0dc; --sk-near: #8fabcd; --sk-cloud: #ffffff;
+}
+[data-design="sky"][data-phase="dusk"] {
+  --bg: #24142f; --surface: rgba(40, 20, 48, .68); --surface-2: rgba(255, 220, 205, .08); --surface-3: rgba(255, 220, 205, .14);
+  --border: rgba(255, 214, 196, .12); --border-strong: rgba(255, 214, 196, .24);
+  --text: #fff3ea; --text-dim: #e2c6c0; --text-faint: #ad919c;
+  --accent: #ff8a4c; --accent-dim: #8f4a3c; --accent-text: #ffa877; --accent-ink: #2a0f00; --accent-soft: rgba(255, 138, 76, .2);
+  --danger: #ff6b6b; --danger-soft: rgba(255, 107, 107, .16); --warning: #ffc04d; --warning-soft: rgba(255, 192, 77, .15);
+  --success: #5fd08a; --info: #8fb0ff;
+  --shadow: 0 24px 60px rgba(10, 0, 20, .55), 0 6px 18px rgba(10, 0, 20, .35); --grid: rgba(255, 214, 196, .09);
+  --bar: rgba(38, 18, 44, .62); --sheet: rgba(42, 22, 48, .92); --tip: rgba(46, 24, 52, .97);
+  --edge: rgba(255, 220, 200, .14); --soft: 0 14px 34px -14px rgba(10, 0, 20, .6); --knob: rgba(255, 236, 226, .2);
+  --sk-top: #1f193f; --sk-up: #4a2249; --sk-low: #5e2b30; --sk-hor: #7c4c27; --sk-far: #4d2e53; --sk-near: #301c43; --sk-cloud: #7a4442;
+}
+[data-design="sky"][data-phase="night"] {
+  --bg: #070d1c; --surface: rgba(16, 24, 50, .72); --surface-2: rgba(200, 215, 255, .07); --surface-3: rgba(200, 215, 255, .13);
+  --border: rgba(200, 215, 255, .1); --border-strong: rgba(200, 215, 255, .2);
+  --text: #eaf0fb; --text-dim: #a9b6d0; --text-faint: #75829e;
+  --accent: #8fb3ff; --accent-dim: #3c5285; --accent-text: #a8c4ff; --accent-ink: #08122a; --accent-soft: rgba(143, 179, 255, .18);
+  --danger: #ff6b7a; --danger-soft: rgba(255, 107, 122, .15); --warning: #ffc24d; --warning-soft: rgba(255, 194, 77, .14);
+  --success: #5fd08a; --info: #8fb3ff;
+  --shadow: 0 24px 60px rgba(0, 0, 10, .6), 0 6px 18px rgba(0, 0, 10, .4); --grid: rgba(200, 215, 255, .08);
+  --bar: rgba(10, 16, 36, .62); --sheet: rgba(14, 20, 42, .92); --tip: rgba(16, 22, 46, .97);
+  --edge: rgba(200, 215, 255, .12); --soft: 0 14px 34px -14px rgba(0, 0, 10, .7); --knob: rgba(220, 230, 255, .2);
+  --sk-top: #04070f; --sk-up: #08122a; --sk-low: #0f1f3d; --sk-hor: #19294b; --sk-far: #0d1630; --sk-near: #060b1c; --sk-cloud: #1c2747;
+}
+
 /* ==========================================================================
    2. Basis
    ========================================================================== */
@@ -1655,6 +1717,124 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 /* Symbole etwas kräftiger, passend zur Grotesk */
 [data-design="plakat"] svg[stroke="currentColor"] { stroke-width: 2.1; }
 
+/* ---------- Tag & Nacht ----------
+   Der Himmel (#sky, in index.html) liegt fest hinter allem; js/sky.js setzt die Farben und Positionen als --sk-*, --sun-*,
+   --moon-* und --glow-* auf <body>. Karten scheinen leicht durch, Leisten und Fenster sind mattes Glas. */
+#sky { display: none; }
+[data-design="sky"] body { background: transparent; }
+[data-design="sky"] #sky { display: block; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none; overflow: hidden; }
+#sky > * { position: absolute; }
+.sky-grad, .sky-glow, .sky-stars, .sky-clouds { inset: 0; }
+.sky-grad { background: linear-gradient(180deg, var(--sk-top) 0%, var(--sk-up) 38%, var(--sk-low) 74%, var(--sk-hor) 100%); }
+.sky-glow { opacity: var(--sk-glow-a, .3); background: radial-gradient(circle 62vmax at var(--glow-x, 72%) var(--glow-y, 62vh), var(--sk-glow, transparent) 0%, transparent 100%); }
+.sky-stars { opacity: var(--sk-stars, 0); }
+.sky-stars i { position: absolute; top: 0; left: 0; width: 1.6px; height: 1.6px; border-radius: 50%; }
+.sky-stars i:nth-child(2) { width: 2.2px; height: 2.2px; animation: skyTwinkle 4.6s ease-in-out infinite alternate; }
+.sky-stars i:nth-child(3) { width: 3px; height: 3px; filter: drop-shadow(0 0 3px rgba(255, 255, 255, .85)); animation: skyTwinkle 6.8s ease-in-out -2s infinite alternate; }
+@keyframes skyTwinkle { from { opacity: 1; } to { opacity: .3; } }
+/* Sternschnuppen: selten, schräg nach unten, nur so sichtbar wie die Sterne */
+.sky-shoot { position: absolute; top: 13vh; left: 80vw; width: 120px; height: 1.6px; border-radius: 2px; background: linear-gradient(90deg, #fff, rgba(255, 255, 255, 0)); opacity: 0; transform-origin: 0 50%; transform: rotate(-28deg); animation: skyShoot 23s linear 8s infinite; }
+.sky-shoot.two { top: 27vh; left: 46vw; width: 86px; animation-duration: 37s; animation-delay: 21s; }
+@keyframes skyShoot {
+  0%, 94% { opacity: 0; transform: rotate(-28deg) translateX(0); }
+  95% { opacity: 1; }
+  98%, 100% { opacity: 0; transform: rotate(-28deg) translateX(-34vw); }
+}
+/* Scheibe bis zum Rand gefüllt, der Schein (box-shadow) setzt direkt daran an – sonst entsteht ein Ring */
+.sky-sun { left: var(--sun-x, 70%); top: var(--sun-y, 30vh); width: 46px; height: 46px; margin: -23px 0 0 -23px; border-radius: 50%; opacity: var(--sun-o, 0);
+  background: radial-gradient(circle closest-side, #fff 0 46%, var(--sk-sun, #fff3d0) 100%);
+  box-shadow: 0 0 34px 12px color-mix(in srgb, var(--sk-sun, #fff3d0) 55%, transparent), 0 0 120px 46px color-mix(in srgb, var(--sk-sun, #fff3d0) 20%, transparent); }
+/* Abends steht die Sonne tief zwischen Überschriften und Links: etwas gedämpft, ohne weißen Kern */
+[data-theme="dark"] .sky-sun { opacity: calc(var(--sun-o, 0) * .8); background: radial-gradient(circle closest-side, color-mix(in srgb, var(--sk-sun, #ffb070) 60%, #fff) 0 34%, var(--sk-sun, #ffb070) 100%); }
+.sky-moon { left: var(--moon-x, 30%); top: var(--moon-y, 24vh); width: 46px; height: 46px; margin: -23px 0 0 -23px; overflow: visible; opacity: var(--moon-o, 0); filter: drop-shadow(0 0 10px rgba(214, 226, 255, .55)); }
+.sky-moon .dark { fill: rgba(190, 205, 240, .1); }
+.sky-moon .lit { fill: #eef2fb; }
+/* Wolken: weiche Ellipsen, ziehen langsam von links nach rechts. Bewegt wird nur transform (läuft auf der Grafikkarte),
+   Größe und Form trägt ::before */
+.sky-clouds { opacity: var(--sk-cloud-a, .8); }
+.sky-clouds i { position: absolute; left: 0; width: 300px; height: 110px; animation: skyDrift 230s linear infinite; }
+.sky-clouds i::before { content: ''; position: absolute; inset: 0;
+  background: radial-gradient(closest-side, var(--sk-cloud) 50%, transparent) 18px 44px / 124px 64px no-repeat,
+    radial-gradient(closest-side, var(--sk-cloud) 50%, transparent) 74px 12px / 140px 98px no-repeat,
+    radial-gradient(closest-side, var(--sk-cloud) 50%, transparent) 156px 32px / 120px 80px no-repeat,
+    radial-gradient(closest-side, var(--sk-cloud) 55%, transparent) 0 60px / 300px 46px no-repeat; }
+.sky-clouds i:nth-child(1) { top: 8vh; transform: translateX(14vw); animation-delay: -60s; }
+.sky-clouds i:nth-child(2) { top: 25vh; transform: translateX(62vw); opacity: .75; animation-duration: 310s; animation-delay: -200s; }
+.sky-clouds i:nth-child(2)::before { transform: scale(.62); }
+.sky-clouds i:nth-child(3) { top: 45vh; transform: translateX(30vw); opacity: .55; animation-duration: 270s; animation-delay: -130s; }
+.sky-clouds i:nth-child(3)::before { transform: scale(1.15); }
+@keyframes skyDrift { from { transform: translateX(-340px); } to { transform: translateX(calc(100vw + 40px)); } }
+.sky-hills { left: 0; bottom: 0; width: 100%; height: 26%; }
+.sky-hills .far { fill: var(--sk-far); }
+.sky-hills .near { fill: var(--sk-near); }
+:root[data-motion] #sky * { animation: none !important; }
+/* Phasenwechsel: ruhig überblenden (View Transitions, wo vorhanden) */
+:root.sky-fade::view-transition-old(root), :root.sky-fade::view-transition-new(root) { animation-duration: 1.6s; }
+/* Karten, Listen, Kacheln: helles bzw. dunkles Milchglas mit weichem Schatten */
+[data-design="sky"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { border-color: var(--edge); box-shadow: var(--soft); }
+[data-design="sky"][data-theme="dark"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { box-shadow: var(--soft), inset 0 1px 0 rgba(255, 255, 255, .05); }
+@media (hover: hover) and (pointer: fine) {
+  [data-design="sky"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) { -webkit-backdrop-filter: blur(18px) saturate(150%); backdrop-filter: blur(18px) saturate(150%); }
+}
+[data-design="sky"] .ex-card.complete, [data-design="sky"] .ex-card.ex-open { border-color: var(--accent-dim); }
+[data-design="sky"] .edge-ghost { background: linear-gradient(180deg, var(--sk-top) 0%, var(--sk-up) 38%, var(--sk-low) 74%, var(--sk-hor) 100%); }
+/* Schrift: weiche Fraunces für Titel und große Zahlen, Systemschrift für alles andere */
+[data-design="sky"] :is(h1, .topbar-title, .section-head h2, .modal-head h2, .sum-title, .hello h1) { font-family: var(--font-display); font-weight: 600; letter-spacing: -.012em; }
+[data-design="sky"] :is(.stat .stat-value, .cc-big b, .pr-box b) { font-family: var(--font-display); font-weight: 600; letter-spacing: -.02em; font-variant-numeric: lining-nums tabular-nums; }
+[data-design="sky"] .stat .stat-value { font-size: calc(30px * var(--fs)); }
+[data-design="sky"] .stat .stat-value small { font-family: var(--font); letter-spacing: 0; }
+[data-design="sky"] .stat .stat-label svg { color: var(--accent-text); }
+[data-design="sky"] .section-head h2 { font-size: calc(22px * var(--fs)); }
+[data-design="sky"] .topbar-title { font-size: calc(22px * var(--fs)); }
+[data-design="sky"] .start-date { font-family: var(--font-display); font-size: calc(31px * var(--fs)); font-weight: 600; color: var(--text); text-transform: none; letter-spacing: -.015em; line-height: 1.15; }
+/* Text direkt auf dem Himmel: Schein in Himmelsfarbe – unsichtbar auf freiem Himmel, hält Text über Mond und Sonne lesbar.
+   Auf Flächen (Karten, Knöpfe, Leisten, Fenster) wieder aus */
+[data-design="sky"] :is(.tab, .topbar) { text-shadow: 0 0 2px var(--sk-up), 0 0 8px var(--sk-up), 0 0 16px var(--sk-up); }
+[data-design="sky"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item, .btn, .chip, .seg, .badge, .input, .select, .textarea, .prog-controls, .wo-head, .design-tile, .icon-tile, .swatch) { text-shadow: none; }
+[data-design="sky"] .sky-next svg { filter: drop-shadow(0 0 4px var(--sk-up)); }
+.sky-next { display: flex; align-items: center; gap: 7px; margin-top: 6px; font-size: calc(13.5px * var(--fs)); font-weight: 600; color: var(--text-dim); }
+.sky-next svg { width: 18px; height: 18px; color: var(--accent-text); }
+/* Knöpfe: rund und weich, Hauptaktion mit Licht von oben */
+[data-design="sky"] .btn { border-radius: calc(22px * var(--rs)); }
+[data-design="sky"] .btn-icon { border-radius: calc(22px * var(--rs)); }
+[data-design="sky"] .btn-secondary { background: var(--surface); border-color: var(--edge); }
+[data-design="sky"] :is(.card, .list, .ex-card, .modal, .chart-card) .btn-secondary { background: var(--surface-2); border-color: transparent; }
+[data-design="sky"] :is(.btn-primary, .btn-hero, .fab, .banner) {
+  background: linear-gradient(180deg, color-mix(in srgb, var(--btn-bg, var(--accent)) 82%, #fff), var(--btn-bg, var(--accent)) 72%);
+  box-shadow: 0 10px 24px -10px color-mix(in srgb, var(--btn-bg, var(--accent)) 85%, transparent), inset 0 1px 0 rgba(255, 255, 255, .35); border-color: transparent; }
+[data-design="sky"] .btn-hero { min-height: 56px; font-size: calc(17px * var(--fs)); }
+[data-design="sky"] .chip { background: var(--surface); border-color: var(--edge); }
+[data-design="sky"] .chip.active:not(.soft) { border-color: transparent; }
+[data-design="sky"] .seg { background: var(--surface-2); border-color: transparent; border-radius: calc(16px * var(--rs)); }
+[data-design="sky"] .seg button { border-radius: calc(13px * var(--rs)); }
+[data-design="sky"] .seg button.active { background: var(--knob); box-shadow: 0 2px 8px rgba(10, 20, 50, .14); }
+[data-design="sky"] :is(.input, .select, .textarea, .set-in, .set-rpe, .stepper, .pe-step) { background-color: var(--surface-2); border-color: transparent; }
+[data-design="sky"] :is(.input, .select, .textarea, .set-in):focus { border-color: transparent; background-color: var(--surface); box-shadow: 0 0 0 2px var(--accent); }
+[data-design="sky"] .set-row.done :is(.set-in, .set-rpe) { background: transparent; }
+[data-design="sky"] .set-row.done { background: color-mix(in srgb, var(--accent) 9%, transparent); }
+[data-design="sky"] :is(.set-check, .set-num) { border-radius: 50%; }
+[data-design="sky"] .week-dots i.today { box-shadow: 0 0 0 2px var(--accent-text); }
+[data-design="sky"] .wo-progress i { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 60%, #fff), var(--accent)); }
+/* Leisten: oben unsichtbar bis zum Scrollen, dann Glas in der Farbe des Himmels; Tab-Leiste schwebt */
+[data-design="sky"] .topbar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-design="sky"] .topbar.scrolled { background: color-mix(in srgb, var(--sk-top) 72%, transparent); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border-bottom-color: transparent; }
+[data-design="sky"] #sbShade, [data-design="sky"] .edge-sb { background: linear-gradient(to bottom, color-mix(in srgb, var(--sk-top) 90%, transparent) 0%, color-mix(in srgb, var(--sk-top) 70%, transparent) 55%, transparent 100%); }
+[data-design="sky"] .wo-head { background: color-mix(in srgb, var(--sk-top) 86%, transparent) !important; }
+[data-design="sky"] .prog-controls { background: var(--tip); border-color: var(--edge) !important; box-shadow: var(--soft); }
+[data-design="sky"] .bottom-nav { background: var(--bar); border-color: var(--edge); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%); }
+[data-design="sky"][data-nav="floating"] .bottom-nav { box-shadow: var(--soft), inset 0 1px 0 var(--edge); }
+[data-design="sky"] .nav-btn { isolation: isolate; }
+[data-design="sky"] .nav-btn.active::before { content: ''; position: absolute; inset: 7px 13%; border-radius: 999px; background: var(--accent-soft); z-index: -1; }
+[data-design="sky"] .sidebar { margin: 12px 0 12px 12px; height: calc(100dvh - 24px); top: 12px; border-radius: calc(24px * var(--rs)); border: 1px solid var(--edge); background: var(--bar);
+  box-shadow: var(--soft); -webkit-backdrop-filter: blur(24px) saturate(160%); backdrop-filter: blur(24px) saturate(160%); }
+/* Fenster, Meldungen, Pause, Menüs: mattes Glas */
+[data-design="sky"] .modal-backdrop { background: rgba(12, 10, 40, .28); }
+[data-design="sky"] .modal { background: var(--sheet); border-color: var(--edge); -webkit-backdrop-filter: blur(30px) saturate(170%); backdrop-filter: blur(30px) saturate(170%); }
+[data-design="sky"] .modal-foot { background: transparent; }
+@media (max-width: 699px) { [data-design="sky"] .modal:not(.alert)::before { background: var(--sheet); } }
+[data-design="sky"] :is(.toast, .rest-dock, .popover, .dd-menu) { background: var(--sheet); border-color: var(--edge); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(26px) saturate(170%); backdrop-filter: blur(26px) saturate(170%); }
+[data-design="sky"] .toast.pr { background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 26%, var(--tip)), var(--tip)); border-color: var(--accent-dim); }
+
 /* ==========================================================================
    7. Nutzer-Overrides (gewinnen gegen das Design)
    ========================================================================== */
@@ -1787,9 +1967,42 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tp[data-design="plakat"] .tp-title { font-size: 15px; letter-spacing: -.04em; }
 .tp[data-design="plakat"] .tp-dot { border-radius: 0; }   /* Vorschau zeigt das Design selbst, ohne Nutzer-Ecken */
 .tp[data-design="plakat"] .tp-dot.on { background: var(--text); }
+/* Tag & Nacht: vier Himmel (Dämmerung, Tag, Sonnenuntergang, Nacht) mit Sonne bzw. Mond */
+.dt-pair.four { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 3px; }
+.tp[data-design="sky"] { background: linear-gradient(180deg, var(--sk-top), var(--sk-up) 40%, var(--sk-low) 76%, var(--sk-hor)); padding: 5px 4px; justify-content: flex-end; }
+.tp[data-design="sky"] .tp-card { background: var(--surface); border-color: var(--edge); border-radius: 6px; padding: 4px; gap: 4px; }
+.tp[data-design="sky"] .tp-line { width: 80%; }
+.tp[data-design="sky"] .tp-btn { height: 9px; border-radius: 999px; }
+.tp-orb { display: none; }
+.tp[data-design="sky"] .tp-orb { display: block; position: absolute; left: 50%; top: 30px; width: 13px; height: 13px; margin-left: -6.5px; border-radius: 50%; }
+.tp[data-phase="dawn"] .tp-orb { top: 40px; background: #ffd9a8; box-shadow: 0 0 12px 5px rgba(255, 190, 150, .7); }
+.tp[data-phase="day"] .tp-orb { top: 12px; background: #fffbe8; box-shadow: 0 0 14px 6px rgba(255, 246, 210, .9); }
+.tp[data-phase="dusk"] .tp-orb { top: 42px; background: #ff9a5a; box-shadow: 0 0 14px 6px rgba(255, 120, 60, .55); }
+.tp[data-phase="night"] .tp-orb { top: 14px; background: transparent; box-shadow: inset -4px -2px 0 0 #eef2fb; filter: drop-shadow(0 0 4px rgba(214, 226, 255, .6)); }
+.tp[data-phase="night"]::before { content: ''; position: absolute; top: 8px; left: 6px; width: 1.5px; height: 1.5px; border-radius: 50%;
+  box-shadow: 4px 6px #fff, 22px 2px #fff, 30px 22px rgba(255,255,255,.7), 8px 30px rgba(255,255,255,.8), 26px 38px rgba(255,255,255,.6), 14px 16px rgba(255,255,255,.6); }
 .tp-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--surface-3); flex-shrink: 0; }
 .tp-dot.on { background: var(--accent); }
 .tp-mode { position: absolute; right: 5px; bottom: 4px; font-size: 9px; font-weight: var(--fw-x); color: var(--text-faint); font-family: -apple-system, system-ui, sans-serif; }
+/* Tag & Nacht in der Darstellung: Tagesband, die vier Phasen mit Uhrzeit, Sonne & Mond, Zeitraffer */
+.sky-set { display: flex; flex-direction: column; gap: 10px; width: 100%; }
+.sky-strip { position: relative; height: 34px; border-radius: calc(10px * var(--rs)); box-shadow: inset 0 0 0 1px var(--border); }
+.sky-now { position: absolute; top: -4px; bottom: -4px; width: 4px; margin-left: -2px; border-radius: 2px; background: var(--text); box-shadow: 0 0 0 2px var(--surface); }
+.sky-hours { display: flex; justify-content: space-between; margin-top: -4px; font-size: calc(11px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
+.sky-phs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.sky-ph { display: grid; grid-template-columns: 20px minmax(0, 1fr); column-gap: 9px; align-items: center; padding: 8px 10px; border-radius: calc(12px * var(--rs)); background: var(--surface-2); transition: background .3s, box-shadow .3s; }
+.sky-ph i { grid-row: span 2; width: 20px; height: 20px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .08); }
+.sky-ph b { font-size: calc(13.5px * var(--fs)); line-height: 1.2; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; }
+.sky-ph span { font-size: calc(12px * var(--fs)); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.sky-ph.on { background: var(--accent-soft); box-shadow: inset 0 0 0 1.5px var(--accent-dim); }
+.sky-ph[data-ph="dawn"] i { background: linear-gradient(#8f8ac4, #f4b3b9 60%, #ffd2a4); }
+.sky-ph[data-ph="day"] i { background: linear-gradient(#3f8ae2, #a6d2f8 70%, #e0f0ff); }
+.sky-ph[data-ph="dusk"] i { background: linear-gradient(#33296b, #853d84 45%, #ff9d4f); }
+.sky-ph[data-ph="night"] i { background: radial-gradient(circle at 66% 34%, #eef2fb 0 3px, transparent 3.5px), linear-gradient(#04070f, #19294b); }
+.sky-meta { display: flex; flex-wrap: wrap; gap: 4px 14px; font-size: calc(12.5px * var(--fs)); color: var(--text-dim); font-variant-numeric: tabular-nums; }
+.sky-meta span { display: inline-flex; align-items: center; gap: 5px; }
+.sky-meta svg { width: 16px; height: 16px; color: var(--text-faint); }
+.sky-set .btn { align-self: flex-start; }
 .swatches { display: flex; flex-wrap: wrap; gap: 10px; }
 .swatch { width: 38px; height: 38px; border-radius: 50%; border: 0; padding: 0; position: relative; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .12); display: flex; align-items: center; justify-content: center; color: #fff; }
 .swatch.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--text); }

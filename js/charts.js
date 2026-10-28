@@ -33,7 +33,8 @@ const Charts = (() => {
     C.defaults.responsive = true;
     C.defaults.animation.duration = S().motion === 'full' ? 350 : 0;
     const tt = C.defaults.plugins.tooltip;
-    Object.assign(tt, { backgroundColor: cssVar('--surface-3'), titleColor: c.text, bodyColor: c.text, borderColor: cssVar('--border-strong'), borderWidth: 1, padding: 10, cornerRadius: 10, boxPadding: 4, usePointStyle: true });
+    Object.assign(tt, { backgroundColor: cssVar('--tip') || cssVar('--surface-3'),   // --tip: fast deckend, wo Flächen durchscheinen (Tag & Nacht)
+      titleColor: c.text, bodyColor: c.text, borderColor: cssVar('--border-strong'), borderWidth: 1, padding: 10, cornerRadius: 10, boxPadding: 4, usePointStyle: true });
     Object.assign(C.defaults.plugins.legend.labels, { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14, color: c.dim });
     Object.assign(C.defaults.elements.point, { radius: 0, hoverRadius: 6, hitRadius: 14 });
     C.defaults.elements.line.borderWidth = 2;

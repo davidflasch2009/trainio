@@ -105,8 +105,8 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 7 Designs, jedes in **Hell und Dunkel**
-(oder automatisch nach System / Uhrzeit):
+Unter **Mehr → Darstellung** gibt es 8 Designs, jedes in **Hell und Dunkel**
+(oder automatisch nach System / Uhrzeit) – nur „Tag & Nacht“ wechselt von selbst mit dem Sonnenstand:
 
 | Design | Look |
 | --- | --- |
@@ -117,6 +117,23 @@ Unter **Mehr → Darstellung** gibt es 7 Designs, jedes in **Hell und Dunkel**
 | Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
 | Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
 | Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |
+| Tag & Nacht | Der Himmel als Hintergrund, in vier Phasen: **Dämmerung** (Lavendel & Pfirsich), **Tag** (Himmelblau, Sonnengelb), **Sonnenuntergang** (Violett & Orange, dunkel) und **Nacht** (Nachtblau, Mondsilber, Sterne). Siehe unten |
+
+**Tag & Nacht** im Detail:
+- **Wechselt von selbst** mit dem echten Sonnenstand: Sonnenauf- und -untergang werden aus Datum und Zeitzone
+  berechnet (ohne Standort-Abfrage; z. B. Europe/Vienna → Wien). Dämmerung ab 45 min vor Sonnenaufgang, Tag ab
+  60 min danach, Sonnenuntergang ab 50 min vor dem Untergang, Nacht ab 45 min danach. Hell/Dunkel ergibt sich daraus –
+  statt „Modus“ zeigt die Darstellung deshalb **Tageszeit**: ein Farbband über 24 Stunden mit „jetzt“-Markierung,
+  die vier Phasen mit Uhrzeit, Sonnenauf-/-untergang und Mondphase.
+- **Der Himmel wandert fließend** mit der Uhrzeit: Farbverlauf, Sonne auf ihrem Tagesbogen (im Winter flacher),
+  Mond mit **echter Mondphase**, funkelnde Sterne und gelegentlich eine Sternschnuppe, ziehende Wolken und Berge am
+  Horizont, hinter denen die Sonne untergeht. Jede Himmelsfarbe wird so weit aufgehellt bzw. abgedunkelt, dass Text
+  darauf immer lesbar bleibt (oben mindestens 7:1).
+- Phasenwechsel ohne Neustart (jede Minute und beim Zurückkehren in die App, sanft überblendet – nicht mitten in
+  einer Eingabe). **Zeitraffer** unter Darstellung → Tageszeit: ein ganzer Tag in 12 Sekunden.
+- Weich & rund: Milchglas-Karten, schwebende Tab-Leiste, Titel und große Zahlen in der weichen Fraunces,
+  auf der Startseite der nächste Sonnenauf- oder -untergang. Auch das Teilen-Bild zeigt den Himmel von jetzt.
+- Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich wie überall frei einstellen.
 
 Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
 hat, landet automatisch bei Trainio.
@@ -436,6 +453,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/seeds.js` | Übungs-Bibliothek (Seed-Daten) |
 | `js/store.js` | Datenspeicher (lokal + Firestore) und Google-Anmeldung |
 | `js/ui.js` | UI-Kern: Toasts, Dialoge, Navigation, Designs |
+| `js/sky.js` | Design „Tag & Nacht“: Sonnenstand, Phasen, Himmel (Sonne, Mond, Sterne), Zeitraffer |
 | `js/analytics.js` | Übungs-Helfer, Auswertungen, Rekorde |
 | `js/workout.js` | Workout-Engine (aktives Workout) |
 | `js/training.js` | Start-Tab + Training-Tab (Pläne, Verlauf, Workout-Detail, Teilen) |
@@ -443,6 +461,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
 | `js/progress.js` | Fortschritt-Tab |
+| `js/heart.js` | Herz & Ausdauer: Ruhepuls, VO2max, Pulszonen, Intervall-Timer, Herz-Plan |
 | `js/more.js` | Mehr-Tab: Gruppen-Seiten, Einstellungs-Suche, Konto, Daten (Export CSV/PDF/JSON) |
 | `js/import.js` | Arrow-Import |
 | `js/boot.js` | Start der App |

@@ -607,10 +607,13 @@ const DESIGN_FONTS = {
   carbon: GF + 'Titillium+Web:wght@400;600;700',
   paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
   // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
-  plakat: GF + 'Archivo:wght@400;500;600;700'
+  plakat: GF + 'Archivo:wght@400;500;600;700',
+  // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
+  sky: GF + 'Fraunces:opsz,wght,SOFT@9..144,400..700,100'
 };
 const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
-/* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben) */
+/* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben).
+   phased: kein Hell/Dunkel zum Auswählen – das Design folgt der Tageszeit (js/sky.js), surf dann je Phase */
 const DESIGNS = [
   { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#141518', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
@@ -618,7 +621,9 @@ const DESIGNS = [
   { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
   { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
   { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
-  { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } }
+  { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },
+  { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel als Hintergrund: Dämmerung, Tag, Sonnenuntergang & Nacht – wechselt von selbst mit dem Sonnenstand', nav: 'floating', phased: true,
+    surf: { dawn: '#f6eff4', day: '#f2f8fe', dusk: '#2e1b31', night: '#121a30', light: '#f2f8fe', dark: '#121a30' } }
 ];
 const designOf = id => DESIGNS.find(d => d.id === id) || DESIGNS[0];
 const ACCENTS = [['#39ff88', 'Neon'], ['#a3e635', 'Lime'], ['#10b981', 'Smaragd'], ['#14b8a6', 'Türkis'], ['#06b6d4', 'Cyan'], ['#0a84ff', 'Blau'],
@@ -645,6 +650,7 @@ function accentCss(hex, mode, surf) {
 }
 
 function resolvedTheme() {
+  if (S().design === 'sky') return Sky.theme();
   const t = S().theme;
   if (t === 'system') return matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
   if (t === 'time') { const h = new Date().getHours(); return h >= 19 || h < 7 ? 'dark' : 'light'; }
@@ -654,6 +660,7 @@ function lookAttrs(s = S()) {
   const D = designOf(s.design);
   return {
     'data-design': D.id,
+    'data-phase': D.phased ? Sky.phase() : null,
     'data-radius': s.radius && s.radius !== 'auto' ? s.radius : null,
     'data-font': s.font && s.font !== 'auto' ? s.font : null,
     'data-text': s.textSize && s.textSize !== 'm' ? s.textSize : null,
@@ -675,6 +682,8 @@ function ensureFont(href) {
   document.head.appendChild(l);
 }
 let _lookSig = '';
+/** Kartenfarbe des Designs im aktuellen Modus bzw. in der aktuellen Phase (Tag & Nacht) */
+const lookSurf = D => D.surf[D.phased ? Sky.phase() : resolvedTheme()];
 /** Alle Darstellungs-Einstellungen auf <html> anwenden → true, wenn sich sichtbar etwas geändert hat */
 function applyTheme() {
   const s = S();
@@ -686,7 +695,8 @@ function applyTheme() {
   for (const [k, v] of Object.entries(attrs)) { if (v == null) root.removeAttribute(k); else root.setAttribute(k, v); }
   const accent = Color.valid(s.accent) ? s.accent : '';
   const blur = { off: '0px', light: '12px', normal: '22px', strong: '36px' }[s.glassBlur] || '22px';
-  root.style.cssText = (accent ? accentCss(accent, mode, D.surf[mode]) : '') + (D.id === 'glass' ? `--glass-blur:${blur};` : '');
+  root.style.cssText = (accent ? accentCss(accent, mode, lookSurf(D)) : '') + (D.id === 'glass' ? `--glass-blur:${blur};` : '');
+  Sky.sync(D.id === 'sky');
   const fonts = [DESIGN_FONTS[D.id], USER_FONTS[s.font]].filter(Boolean);
   fonts.forEach(ensureFont);
   const meta = $('meta[name="theme-color"]');
@@ -695,7 +705,9 @@ function applyTheme() {
     localStorage.setItem(LS.theme, s.theme);
     localStorage.setItem(LS.look, JSON.stringify({
       theme: s.theme, attrs, fonts,
-      accent: accent ? { light: accentCss(accent, 'light', D.surf.light), dark: accentCss(accent, 'dark', D.surf.dark) } : null,
+      // je Modus – bei Tag & Nacht zusätzlich je Phase; sky = Phasen-Grenzen von heute (Minuten) fürs Startskript
+      accent: accent ? Object.fromEntries((D.phased ? [...Sky.PHASES, 'light', 'dark'] : ['light', 'dark']).map(k => [k, accentCss(accent, Sky.THEME[k] || k, D.surf[k])])) : null,
+      sky: D.phased ? Sky.bounds() : null,
       extra: D.id === 'glass' ? `--glass-blur:${blur};` : ''
     }));
   } catch (e) {}
@@ -743,7 +755,11 @@ function designPreview(id, mode) {
       <div class="tp-row"><span class="tp-dot on"></span><span class="tp-dot"></span><span class="tp-btn"></span></div></div>
     <span class="tp-mode">${mode === 'dark' ? '☾' : '☀'}</span></div>`;
 }
-const designPair = id => `<div class="dt-pair">${designPreview(id, 'light')}${designPreview(id, 'dark')}</div>`;
+/* Tag & Nacht: vier kleine Himmel statt Hell/Dunkel – Sonne bzw. Mond, eine Karte, ein Knopf */
+const skyPreview = ph => `<div class="tp" data-design="sky" data-phase="${ph}" data-theme="${Sky.THEME[ph]}" aria-hidden="true">
+    <i class="tp-orb"></i><div class="tp-card"><div class="tp-line"></div><div class="tp-row"><span class="tp-btn"></span></div></div></div>`;
+const designPair = id => designOf(id).phased ? `<div class="dt-pair four">${Sky.PHASES.map(skyPreview).join('')}</div>`
+  : `<div class="dt-pair">${designPreview(id, 'light')}${designPreview(id, 'dark')}</div>`;
 const THEME_LABEL = { dark: 'Dunkel', light: 'Hell', system: 'System', time: 'Nach Uhrzeit' };
 
 const stackLine = (title, sub, control) => `<div class="set-line stack"><div class="sl-main"><div class="sl-title">${title}</div>${sub ? `<div class="sl-sub">${sub}</div>` : ''}</div>${control}</div>`;

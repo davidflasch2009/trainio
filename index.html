@@ -28,11 +28,17 @@
       if (t === 'system') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
       else if (t === 'time') t = h >= 19 || h < 7 ? 'dark' : 'light';
       else if (t !== 'light') t = 'dark';
+      var a = L.attrs || {}, ph = null;
+      if (a['data-design'] && !/^(gymlog|glass|iron|pure|carbon|paper|plakat|sky)$/.test(a['data-design'])) { a['data-design'] = 'gymlog'; L.fonts = []; }
+      // Tag & Nacht: Phase aus den Sonnenzeiten des letzten Starts (Minuten ab Mitternacht) – Hell/Dunkel folgt der Phase
+      if (a['data-design'] === 'sky') {
+        var b = L.sky, mm = h * 60 + new Date().getMinutes();
+        ph = b ? (mm < b[0] ? 'night' : mm < b[1] ? 'dawn' : mm < b[2] ? 'day' : mm < b[3] ? 'dusk' : 'night') : (a['data-phase'] || 'day');
+        a['data-phase'] = ph; t = ph === 'dawn' || ph === 'day' ? 'light' : 'dark';
+      } else a['data-phase'] = null;
       d.setAttribute('data-theme', t);
-      var a = L.attrs || {};
-      if (a['data-design'] && !/^(gymlog|glass|iron|pure|carbon|paper|plakat)$/.test(a['data-design'])) { a['data-design'] = 'gymlog'; L.fonts = []; }
       for (var k in a) if (a[k] != null) d.setAttribute(k, a[k]);
-      d.style.cssText = (L.accent ? L.accent[t] : '') + (L.extra || '');
+      d.style.cssText = (L.accent ? L.accent[ph || t] || '' : '') + (L.extra || '');
       (L.fonts || []).forEach(function (f) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = f; l.crossOrigin = 'anonymous'; document.head.appendChild(l); });
     } catch (e) {}
     // App-Icon: ?icon=N (aus „Auf dem Home-Bildschirm übernehmen") oder gespeicherte Wahl – vor „Zum Home-Bildschirm"
@@ -50,9 +56,19 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/app.css?v=1.31.1">
+<link rel="stylesheet" href="css/app.css?v=1.32.0">
 </head>
 <body>
+<!-- Himmel für das Design „Tag & Nacht" (js/sky.js malt Farben, Sonne, Mond; sonst ausgeblendet). Berge wie Sky-HILLS -->
+<div id="sky" aria-hidden="true">
+  <div class="sky-grad"></div>
+  <div class="sky-glow"></div>
+  <div class="sky-stars"><i></i><i></i><i></i><b class="sky-shoot"></b><b class="sky-shoot two"></b></div>
+  <svg class="sky-moon" viewBox="-22 -22 44 44"><circle class="dark" r="18"/><path class="lit"/></svg>
+  <div class="sky-sun"></div>
+  <div class="sky-clouds"><i></i><i></i><i></i></div>
+  <svg class="sky-hills" viewBox="0 0 1200 300" preserveAspectRatio="none"><path class="far" d="M0 300V170C60 160 110 120 170 112S260 140 320 128 420 70 500 78 600 132 680 126 780 88 860 96 980 140 1050 130 1150 104 1200 112V300Z"/><path class="near" d="M0 300V226C80 214 150 196 240 200S400 236 500 228 650 190 760 194 900 230 1000 222 1130 196 1200 204V300Z"/></svg>
+</div>
 <div id="app">
   <aside class="sidebar" id="sidebar" aria-label="Navigation"></aside>
   <div class="main-col">
@@ -76,22 +92,23 @@
 <div id="popover" class="popover" hidden></div>
 <noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.31.1"></script>
-<script src="js/core.js?v=1.31.1"></script>
-<script src="js/seeds.js?v=1.31.1"></script>
-<script src="js/store.js?v=1.31.1"></script>
-<script src="js/ui.js?v=1.31.1"></script>
-<script src="js/motion.js?v=1.31.1"></script>
-<script src="js/analytics.js?v=1.31.1"></script>
-<script src="js/workout.js?v=1.31.1"></script>
-<script src="js/training.js?v=1.31.1"></script>
-<script src="js/workout-ui.js?v=1.31.1"></script>
-<script src="js/exercises.js?v=1.31.1"></script>
-<script src="js/charts.js?v=1.31.1"></script>
-<script src="js/progress.js?v=1.31.1"></script>
-<script src="js/heart.js?v=1.31.1"></script>
-<script src="js/more.js?v=1.31.1"></script>
-<script src="js/import.js?v=1.31.1"></script>
-<script src="js/boot.js?v=1.31.1"></script>
+<script src="js/config.js?v=1.32.0"></script>
+<script src="js/core.js?v=1.32.0"></script>
+<script src="js/seeds.js?v=1.32.0"></script>
+<script src="js/store.js?v=1.32.0"></script>
+<script src="js/ui.js?v=1.32.0"></script>
+<script src="js/sky.js?v=1.32.0"></script>
+<script src="js/motion.js?v=1.32.0"></script>
+<script src="js/analytics.js?v=1.32.0"></script>
+<script src="js/workout.js?v=1.32.0"></script>
+<script src="js/training.js?v=1.32.0"></script>
+<script src="js/workout-ui.js?v=1.32.0"></script>
+<script src="js/exercises.js?v=1.32.0"></script>
+<script src="js/charts.js?v=1.32.0"></script>
+<script src="js/progress.js?v=1.32.0"></script>
+<script src="js/heart.js?v=1.32.0"></script>
+<script src="js/more.js?v=1.32.0"></script>
+<script src="js/import.js?v=1.32.0"></script>
+<script src="js/boot.js?v=1.32.0"></script>
 </body>
 </html>

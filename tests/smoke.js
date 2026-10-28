@@ -383,6 +383,33 @@ async function dataFlow(page) {
   // Startskript in index.html (Darstellung vor dem ersten Bild) kennt jedes Design – sonst springt es kurz auf „Trainio"
   const boot = await page.evaluate(async () => { const html = await (await fetch('index.html')).text(); const m = html.match(/!\/\^\(([a-z|]+)\)\$\//); return { ids: m ? m[1].split('|') : [], all: DESIGNS.map(d => d.id) }; });
   check(boot.all.every(id => boot.ids.includes(id)), 'Startskript kennt alle Designs', JSON.stringify(boot));
+  // Tag & Nacht: Phase nach Sonnenstand statt Hell/Dunkel, Himmel sichtbar, vier Vorschau-Himmel, Tageszeit statt Modus
+  await page.evaluate(() => openMoreSub('look'));
+  await pause(page, 500);
+  await page.click('#tab-more [data-k="design"][data-v="sky"]');
+  await pause(page, 900);
+  const sk = await page.evaluate(() => { const r = document.documentElement, b = getComputedStyle(document.body), ph = r.dataset.phase;
+    return { d: r.dataset.design, ph, okTheme: r.dataset.theme === Sky.THEME[ph], sky: getComputedStyle(document.getElementById('sky')).display, top: b.getPropertyValue('--sk-top').trim(),
+      previews: document.querySelectorAll('#tab-more .design-tile.active .tp').length, tageszeit: !!document.querySelector('#tab-more .sky-set'), modus: !!document.querySelector('#tab-more [data-k="theme"]'),
+      cache: (JSON.parse(localStorage.getItem('gymlog.look')) || {}).sky }; });
+  check(sk.d === 'sky' && ['dawn', 'day', 'dusk', 'night'].includes(sk.ph) && sk.okTheme && sk.sky === 'block' && /^#/.test(sk.top) && sk.previews === 4 && sk.tageszeit && !sk.modus && Array.isArray(sk.cache) && sk.cache.length === 4,
+    'Design „Tag & Nacht": Phase nach Sonnenstand, Himmel, vier Vorschau-Himmel, Tageszeit statt Modus', JSON.stringify(sk));
+  // Über 24 Stunden: Phasen in der richtigen Reihenfolge, Text auf dem Himmel immer lesbar (oben 7:1)
+  const day = await page.evaluate(() => { const d0 = new Date(); d0.setHours(0, 0, 0, 0); const seq = [], bad = [];
+    for (let i = 0; i < 96; i++) { const t = d0.getTime() + i * 15 * 6e4, c = Sky.compute(t); if (seq[seq.length - 1] !== c.ph) seq.push(c.ph);
+      const k = Color.contrast(Sky.INK[c.ph][0], c.sky.top); if (k < 7) bad.push(i + ':' + c.ph + ':' + k.toFixed(1)); }
+    return { seq: seq.join(' '), bad, noon: Sky.state(d0.getTime() + 12 * 36e5).ph }; });
+  check(day.seq === 'night dawn day dusk night' && !day.bad.length && day.noon === 'day', 'Tag & Nacht: Nacht → Dämmerung → Tag → Sonnenuntergang → Nacht, Himmel immer lesbar', JSON.stringify(day));
+  // Phasenwechsel ohne Neustart: Uhr auf 12:00, dann 23:30 stellen → beim Zurückkehren in die App wechselt die Phase
+  const flip = await page.evaluate(async () => { const real = Date.now, r = document.documentElement, out = [];
+    try {
+      for (const [h, m] of [[12, 0], [23, 30]]) { const d = new Date(); d.setHours(h, m, 0, 0); const t = d.getTime(); Date.now = () => t;
+        document.dispatchEvent(new Event('visibilitychange')); await new Promise(res => setTimeout(res, 2200)); out.push(r.dataset.phase + '/' + r.dataset.theme); }
+      return out.join(' ');
+    } finally { Date.now = real; } });
+  check(flip === 'day/light night/dark', 'Tag & Nacht: Phase wechselt von selbst (12:00 Tag/hell → 23:30 Nacht/dunkel)', flip);
+  await page.evaluate(() => { switchLook(() => {}); });
+  await pause(page, 300);
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
   const logged = await appErrors(page);

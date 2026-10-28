@@ -23,6 +23,7 @@ Views.start = {
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
     el.innerHTML = `
       <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</div>
+      ${S().design === 'sky' ? Sky.startLine() : ''}
       ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
           <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
           <h3 class="mt-8">${esc(w.name)}</h3>
@@ -1057,7 +1058,8 @@ async function shareImage(wo) {
 
   // Hintergrund: Design-Farbe mit weichem Licht – Glass mit Aurora, Carbon mit Karbon-Muster, Paper mit Körnung
   x.fillStyle = C.bg; x.fillRect(0, 0, W, H);
-  if (design === 'glass') {
+  if (design === 'sky') Sky.drawShare(x, W, H);   // Tag & Nacht: der Himmel von jetzt mit Sonne bzw. Mond und Bergen
+  else if (design === 'glass') {
     (dark ? [[80, 120, 900, '#3a60ff', .38], [1040, 260, 760, '#a840c8', .26], [960, 1780, 900, '#10a0aa', .26], [40, 1860, 900, '#6440f0', .28]]
       : [[80, 120, 900, '#76b0ff', .55], [1040, 260, 760, '#ffa0cd', .5], [960, 1780, 900, '#96e8d0', .5], [40, 1860, 900, '#c4acff', .55]]).forEach(([cx, cy, r, col, a]) => glow(cx, cy, r, col, a));
   } else if (design === 'plakat') {
@@ -1173,7 +1175,7 @@ async function shareImage(wo) {
   }
 
   // Fuß: „getrackt mit Trainio“
-  x.textAlign = 'center'; font('600', 30, FN.body); x.fillStyle = C.faint;
+  x.textAlign = 'center'; font('600', 30, FN.body); x.fillStyle = design === 'sky' ? C.dim : C.faint;   // Tag & Nacht: über den Bergen
   x.fillText(`getrackt mit ${APP.name}`, W / 2, H - 82);
   return new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
 }
