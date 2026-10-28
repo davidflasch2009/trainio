@@ -1060,11 +1060,7 @@ async function shareImage(wo) {
     (dark ? [[80, 120, 900, '#3a60ff', .38], [1040, 260, 760, '#a840c8', .26], [960, 1780, 900, '#10a0aa', .26], [40, 1860, 900, '#6440f0', .28]]
       : [[80, 120, 900, '#76b0ff', .55], [1040, 260, 760, '#ffa0cd', .5], [960, 1780, 900, '#96e8d0', .5], [40, 1860, 900, '#c4acff', .55]]).forEach(([cx, cy, r, col, a]) => glow(cx, cy, r, col, a));
   } else if (design === 'fokus') {
-    // Fokus: Tunnel – Mitte heller, Rand dunkel, ein Hauch Signalfarbe hinter dem Ring
-    const g = x.createRadialGradient(W / 2, H * .36, 0, W / 2, H * .36, H * .78);
-    g.addColorStop(0, v('--tun-in') || C.bg); g.addColorStop(.58, C.bg); g.addColorStop(1, v('--tun-out') || C.bg);
-    x.fillStyle = g; x.fillRect(0, 0, W, H);
-    glow(W / 2, H * .38, 760, C.accent, dark ? .12 : .06);
+    // Fokus: schlicht – nur die Hintergrundfarbe
   } else if (design === 'plakat') {
     // Plakat: kein Leuchten – ein roter Block oben links und eine kräftige Linie wie auf einem Sportplakat
     x.fillStyle = C.accent; x.fillRect(0, 0, W, 28);
@@ -1126,17 +1122,8 @@ async function shareImage(wo) {
     x.strokeStyle = C.surf3; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
     let arcCol = C.accent;
     if (perfect) { const g = x.createLinearGradient(cx - R, cy - R, cx + R, cy + R); g.addColorStop(0, '#ffe9a8'); g.addColorStop(.45, '#f6bb2a'); g.addColorStop(1, '#d38800'); arcCol = g; }
-    x.save(); if (design !== 'plakat') { x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34; }
+    x.save(); if (design !== 'plakat' && design !== 'fokus') { x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34; }
     x.strokeStyle = arcCol; x.beginPath(); x.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(.005, sc.score / 100)); x.stroke(); x.restore();
-    if (design === 'fokus') {   // Fokus-Ecken um den Ring wie beim Autofokus
-      const m = R + 46, l = 46, t = 6;
-      x.fillStyle = C.accent;
-      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
-        const px = cx + sx * m, py = cy + sy * m;
-        x.fillRect(sx < 0 ? px : px - l, sy < 0 ? py : py - t, l, t);
-        x.fillRect(sx < 0 ? px : px - t, sy < 0 ? py : py - l, t, l);
-      });
-    }
     x.textAlign = 'center'; x.fillStyle = perfect ? C.gold : C.text;
     font(fwx, Math.round(150 * k), FN.num); x.fillText(String(sc.score), cx, cy + 54 * k);
     y = cy + R + rBot;

@@ -560,7 +560,8 @@ function confetti(o = {}) {
   c.width = W * dpr; c.height = H * dpr;
   const ctx = c.getContext('2d');
   ctx.scale(dpr, dpr);
-  const colors = o.colors || [cssVar('--accent'), '#ffffff', '#ffb020', '#5aa9ff', '#ff6fae'];
+  // Fokus ist schwarz-weiß – auch das Konfetti
+  const colors = o.colors || (S().design === 'fokus' ? ['#ffffff', '#000000', '#8e8e8e', '#d6d6d6', '#4a4a4a'] : [cssVar('--accent'), '#ffffff', '#ffb020', '#5aa9ff', '#ff6fae']);
   const parts = Array.from({ length: o.n || 130 }, () => ({
     x: (o.x != null ? o.x : W / 2) + (Math.random() - .5) * 60, y: o.y != null ? o.y : H * .32, vx: (Math.random() - .5) * 15, vy: -Math.random() * 13 - 4,
     s: Math.random() * 6 + 4, r: Math.random() * 6, vr: (Math.random() - .5) * .35, c: colors[Math.random() * colors.length | 0]
@@ -609,8 +610,6 @@ const DESIGN_FONTS = {
   paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
   // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
   plakat: GF + 'Archivo:wght@400;500;600;700',
-  // Fokus: Saira – Zahlen und Titel wie auf einem Sport-Display
-  fokus: GF + 'Saira:wght@500;600;700',
   // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
   sky: GF + 'Fraunces:opsz,wght,SOFT@9..144,400..700,100'
 };
@@ -625,7 +624,7 @@ const DESIGNS = [
   { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
   { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
   { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },
-  { id: 'fokus', name: 'Fokus', desc: 'Tunnelblick: fast schwarz, eine Signalfarbe, Fokus-Ecken – im Workout Spotlight auf die aktuelle Übung und den nächsten Satz', nav: 'classic', surf: { dark: '#0f1113', light: '#ffffff' } },
+  { id: 'fokus', name: 'Fokus', desc: 'Schwarz-weiß und ruhig – im Workout tritt alles außer der aktuellen Übung zurück', nav: 'classic', surf: { dark: '#0e0e0e', light: '#ffffff' } },
   { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel als Hintergrund: Dämmerung, Tag, Sonnenuntergang & Nacht – wechselt von selbst mit dem Sonnenstand', nav: 'floating', phased: true,
     surf: { dawn: '#f6eff4', day: '#f2f8fe', dusk: '#2e1b31', night: '#121a30', light: '#f2f8fe', dark: '#121a30' } }
 ];
