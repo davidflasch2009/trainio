@@ -116,7 +116,7 @@ Unter **Mehr → Darstellung** gibt es 7 Designs, jedes in **Hell und Dunkel**
 | Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
 | Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
 | Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
-| Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil |
+| Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |
 
 Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
 hat, landet automatisch bei Trainio.
@@ -124,7 +124,8 @@ hat, landet automatisch bei Trainio.
 Dazu einstellbar: Akzentfarbe (12 Vorgaben oder eigene Farbe – Kontrast wird automatisch
 angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, hoher Kontrast,
 Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
-Konfetti und Inhalte der Startseite.
+Konfetti und Inhalte der Startseite. Diese Einstellungen gelten in jedem Design – auch dort, wo das Design selbst
+etwas vorgibt (z. B. „Ecken: Rund“ im eckigen Plakat).
 
 **Startseite** (Mehr → Darstellung → Startseite): Statistik-Kacheln frei wählen und sortieren (je zwei nebeneinander,
 beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl der letzten Workouts. 17 Kacheln:

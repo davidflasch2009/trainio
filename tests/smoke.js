@@ -373,6 +373,16 @@ async function dataFlow(page) {
   const pl = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), st = document.querySelector('#tab-start .stat'), hero = document.querySelector('#tab-start .btn-hero');
     return { d: document.documentElement.dataset.design, rs: cs.getPropertyValue('--rs').trim(), accent: cs.getPropertyValue('--accent').trim(), statTop: st && getComputedStyle(st).borderTopWidth, statBg: st && getComputedStyle(st).backgroundColor, heroR: hero && getComputedStyle(hero).borderRadius }; });
   check(pl.d === 'plakat' && pl.rs === '0' && pl.accent === '#e2001a' && pl.statTop === '2px' && pl.statBg === 'rgba(0, 0, 0, 0)' && pl.heroR === '0px', 'Design „Plakat": eckig, Linien statt Karten, Signalrot', JSON.stringify(pl));
+  // Eigene Einstellungen gelten auch im Plakat: „Rund" rundet Knöpfe, Chips und Schalter, eigene Farbe färbt Diagramme
+  await page.evaluate(() => { setLook('radius', 'round'); setLook('accent', '#a3e635'); openMoreSub('look'); });
+  await pause(page, 700);
+  const plr = await page.evaluate(() => { const r = sel => { const e = document.querySelector(sel); return e ? parseFloat(getComputedStyle(e).borderTopLeftRadius) : -1; };
+    return { btn: r('#tab-more .look-preview .btn'), chip: r('#tab-more .look-preview .chip'), seg: r('#tab-more .seg'), sw: r('#tab-more .switch span'), c1: cssVar('--c1') }; });
+  check(plr.btn >= 15 && plr.chip >= 18 && plr.seg >= 15 && plr.sw >= 15 && plr.c1 === '#a3e635', 'Plakat: Ecken „Rund" und eigene Akzentfarbe wirken', JSON.stringify(plr));
+  await page.evaluate(() => { setLook('radius', 'auto'); setLook('accent', ''); });
+  // Startskript in index.html (Darstellung vor dem ersten Bild) kennt jedes Design – sonst springt es kurz auf „Trainio"
+  const boot = await page.evaluate(async () => { const html = await (await fetch('index.html')).text(); const m = html.match(/!\/\^\(([a-z|]+)\)\$\//); return { ids: m ? m[1].split('|') : [], all: DESIGNS.map(d => d.id) }; });
+  check(boot.all.every(id => boot.ids.includes(id)), 'Startskript kennt alle Designs', JSON.stringify(boot));
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
   const logged = await appErrors(page);

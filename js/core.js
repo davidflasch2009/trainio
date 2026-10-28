@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.31.0',
+  version: '1.31.1',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
