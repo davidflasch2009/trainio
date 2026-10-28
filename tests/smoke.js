@@ -364,6 +364,15 @@ async function dataFlow(page) {
   await pause(page, 600);   // Überblendung zu Ende
   const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="iron"]') }));
   check(look.d === 'iron' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
+  // Plakat: eckig, Linien statt Karten, Rot nur als Akzent
+  await page.click('#tab-more [data-k="accent"][data-v=""]').catch(() => page.evaluate(() => Store.saveSettings({ accent: '' })));
+  await page.click('#tab-more [data-k="design"][data-v="plakat"]');
+  await pause(page, 900);
+  await page.evaluate(() => App.go('start'));
+  await pause(page, 500);
+  const pl = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), st = document.querySelector('#tab-start .stat'), hero = document.querySelector('#tab-start .btn-hero');
+    return { d: document.documentElement.dataset.design, rs: cs.getPropertyValue('--rs').trim(), accent: cs.getPropertyValue('--accent').trim(), statTop: st && getComputedStyle(st).borderTopWidth, statBg: st && getComputedStyle(st).backgroundColor, heroR: hero && getComputedStyle(hero).borderRadius }; });
+  check(pl.d === 'plakat' && pl.rs === '0' && pl.accent === '#e2001a' && pl.statTop === '2px' && pl.statBg === 'rgba(0, 0, 0, 0)' && pl.heroR === '0px', 'Design „Plakat": eckig, Linien statt Karten, Signalrot', JSON.stringify(pl));
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
   const logged = await appErrors(page);

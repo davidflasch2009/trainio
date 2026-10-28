@@ -1032,7 +1032,7 @@ async function shareImage(wo) {
   const design = root.dataset.design, dark = root.dataset.theme === 'dark';
   const C = { bg: v('--bg'), surf: v('--surface'), surf3: v('--surface-3'), border: v('--border'), text: v('--text'), dim: v('--text-dim'), faint: v('--text-faint'), accent: v('--accent'), acc: v('--accent-text'), gold: v('--gold-text') || '#f6bb2a' };
   const FN = { body: v('--font') || 'system-ui, sans-serif', disp: v('--font-display') || v('--font') || 'system-ui, sans-serif', num: v('--font-num') || v('--font') || 'system-ui, sans-serif' };
-  const fwx = v('--fw-x') || '700', upper = v('--title-transform') === 'uppercase', rs = parseFloat(v('--rs')) || 1;
+  const fwx = v('--fw-x') || '700', upper = v('--title-transform') === 'uppercase', rsv = parseFloat(v('--rs')), rs = Number.isFinite(rsv) ? rsv : 1;
   // Web-Schriften des Designs (Barlow, Titillium, Newsreader) vor dem Zeichnen laden
   await Promise.race([Promise.all(['400', '600', fwx].flatMap(w => [FN.body, FN.disp, FN.num].map(f => document.fonts.load(`${w} 60px ${f}`).catch(() => {})))), new Promise(r => setTimeout(r, 1500))]);
   const logo = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = iconSrc('icon-192.png'); });
@@ -1060,6 +1060,9 @@ async function shareImage(wo) {
   if (design === 'glass') {
     (dark ? [[80, 120, 900, '#3a60ff', .38], [1040, 260, 760, '#a840c8', .26], [960, 1780, 900, '#10a0aa', .26], [40, 1860, 900, '#6440f0', .28]]
       : [[80, 120, 900, '#76b0ff', .55], [1040, 260, 760, '#ffa0cd', .5], [960, 1780, 900, '#96e8d0', .5], [40, 1860, 900, '#c4acff', .55]]).forEach(([cx, cy, r, col, a]) => glow(cx, cy, r, col, a));
+  } else if (design === 'plakat') {
+    // Plakat: kein Leuchten – ein roter Block oben links und eine kräftige Linie wie auf einem Sportplakat
+    x.fillStyle = C.accent; x.fillRect(0, 0, W, 28);
   } else {
     glow(W * .12, H * .06, 980, C.accent, dark ? .2 : .1);
     glow(W * .95, H * .92, 1100, C.accent, dark ? .13 : .07);
@@ -1114,11 +1117,11 @@ async function shareImage(wo) {
   // Score-Ring (bei 100 in Gold)
   if (sc) {
     const cx = W / 2, cy = y + rTop + R, perfect = sc.score >= 100, k = R / 170;
-    x.lineCap = 'round'; x.lineWidth = Math.round(32 * Math.max(.8, k));
+    x.lineCap = design === 'plakat' ? 'butt' : 'round'; x.lineWidth = Math.round(32 * Math.max(.8, k));
     x.strokeStyle = C.surf3; x.beginPath(); x.arc(cx, cy, R, 0, Math.PI * 2); x.stroke();
     let arcCol = C.accent;
     if (perfect) { const g = x.createLinearGradient(cx - R, cy - R, cx + R, cy + R); g.addColorStop(0, '#ffe9a8'); g.addColorStop(.45, '#f6bb2a'); g.addColorStop(1, '#d38800'); arcCol = g; }
-    x.save(); x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34;
+    x.save(); if (design !== 'plakat') { x.shadowColor = withA(perfect ? '#f6bb2a' : C.accent, .55); x.shadowBlur = 34; }
     x.strokeStyle = arcCol; x.beginPath(); x.arc(cx, cy, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * Math.max(.005, sc.score / 100)); x.stroke(); x.restore();
     x.textAlign = 'center'; x.fillStyle = perfect ? C.gold : C.text;
     font(fwx, Math.round(150 * k), FN.num); x.fillText(String(sc.score), cx, cy + 54 * k);
@@ -1134,35 +1137,39 @@ async function shareImage(wo) {
        F('f_prs') ? ['PRs', String(prIds.size)] : ['Ø RPE', row && row.avgRpe ? nf(row.avgRpe, 1) : '–']];
   tiles.forEach(([l, val], i) => {
     const tx = P + i * (tw + gap);
-    rr(tx, y, tw, th, tr); x.fillStyle = C.surf; x.fill();
-    if (design !== 'pure' && design !== 'glass') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
+    if (design === 'plakat') { x.fillStyle = C.text; x.fillRect(tx, y, tw, 5); }
+    else { rr(tx, y, tw, th, tr); x.fillStyle = C.surf; x.fill(); }
+    if (design !== 'pure' && design !== 'glass' && design !== 'plakat') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
     if (design === 'iron') { x.fillStyle = C.accent; x.fillRect(tx, y, tw, 5); }
-    x.textAlign = 'left'; font('600', 27, FN.body); x.fillStyle = C.dim; x.fillText(upper ? l.toUpperCase() : l, tx + 24, y + th * .32);
-    x.fillStyle = l === 'PRs' && +val > 0 ? C.acc : C.text; shrink(val, fwx, 50, FN.num, tw - 44); x.fillText(val, tx + 24, y + th * .76);
+    const tpad = design === 'plakat' ? 0 : 24;
+    x.textAlign = 'left'; font(design === 'plakat' ? '700' : '600', 27, FN.body); x.fillStyle = C.dim; x.fillText(upper || design === 'plakat' ? l.toUpperCase() : l, tx + tpad, y + th * .32);
+    x.fillStyle = l === 'PRs' && +val > 0 ? C.acc : C.text; shrink(val, fwx, design === 'plakat' ? 58 : 50, FN.num, tw - 2 * tpad - (tpad ? 0 : 8)); x.fillText(val, tx + tpad, y + th * .76);
   });
   y += th + 40 + extra;
 
   // Übungen: bester Satz je Übung, PRs mit Pokal; was nicht passt → „+ N weitere“
   if (items.length) {
-    rr(P, y, W - 2 * P, listH, Math.round(32 * rs)); x.fillStyle = C.surf; x.fill();
-    if (design !== 'pure' && design !== 'glass') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
+    const li = design === 'plakat' ? 0 : 36;   // Einrückung der Liste (Plakat: bündig)
+    if (design === 'plakat') { x.fillStyle = C.text; x.fillRect(P, y, W - 2 * P, 5); }
+    else { rr(P, y, W - 2 * P, listH, Math.round(32 * rs)); x.fillStyle = C.surf; x.fill(); }
+    if (design !== 'pure' && design !== 'glass' && design !== 'plakat') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
     let ry = y + pad;
     x.textAlign = 'left'; font('700', 27, FN.body); spacing('4px'); x.fillStyle = C.faint;
-    x.fillText('ÜBUNGEN', P + 36, ry + 34); spacing('0px');
-    x.textAlign = 'right'; font('600', 27, FN.body); x.fillText(`${items.length} ${items.length === 1 ? 'Übung' : 'Übungen'}`, W - P - 36, ry + 34);
+    x.fillText('ÜBUNGEN', P + li, ry + 34); spacing('0px');
+    x.textAlign = 'right'; font('600', 27, FN.body); x.fillText(`${items.length} ${items.length === 1 ? 'Übung' : 'Übungen'}`, W - P - li, ry + 34);
     ry += headH;
     shown.forEach(({ en, b }, i) => {
-      if (i) { x.fillStyle = C.border; x.fillRect(P + 36, ry, W - 2 * P - 72, 2); }
+      if (i) { x.fillStyle = C.border; x.fillRect(P + li, ry, W - 2 * P - 2 * li, 2); }
       const pr = prIds.has(en.exerciseId);
       x.textAlign = 'right'; font(fwx, 38, FN.num); const bw = Math.min(x.measureText(b.best).width, 420);
-      x.fillStyle = pr ? C.acc : C.text; x.fillText(fit(b.best, 420), W - P - 36, ry + rowH * .62);
-      if (pr) trophy(W - P - 36 - bw - 50, ry + rowH * .62 - 32, 36, C.acc);
+      x.fillStyle = pr ? C.acc : C.text; x.fillText(fit(b.best, 420), W - P - li, ry + rowH * .62);
+      if (pr) trophy(W - P - li - bw - 50, ry + rowH * .62 - 32, 36, C.acc);
       x.textAlign = 'left'; font('600', 38, FN.body); x.fillStyle = C.text;
-      x.fillText(fit(Ex.entryName(en), W - 2 * P - 72 - bw - (pr ? 72 : 30)), P + 36, ry + rowH * .49);
-      font('500', 27, FN.body); x.fillStyle = C.dim; x.fillText(b.sub, P + 36, ry + rowH * .87);
+      x.fillText(fit(Ex.entryName(en), W - 2 * P - 2 * li - bw - (pr ? 72 : 30)), P + li, ry + rowH * .49);
+      font('500', 27, FN.body); x.fillStyle = C.dim; x.fillText(b.sub, P + li, ry + rowH * .87);
       ry += rowH;
     });
-    if (more) { x.fillStyle = C.border; x.fillRect(P + 36, ry, W - 2 * P - 72, 2); x.textAlign = 'left'; font('600', 32, FN.body); x.fillStyle = C.dim; x.fillText(`+ ${more} weitere ${more === 1 ? 'Übung' : 'Übungen'}`, P + 36, ry + rowH * .62); }
+    if (more) { x.fillStyle = C.border; x.fillRect(P + li, ry, W - 2 * P - 2 * li, 2); x.textAlign = 'left'; font('600', 32, FN.body); x.fillStyle = C.dim; x.fillText(`+ ${more} weitere ${more === 1 ? 'Übung' : 'Übungen'}`, P + li, ry + rowH * .62); }
   }
 
   // Fuß: „getrackt mit Trainio“

@@ -605,7 +605,9 @@ const GF = 'https://fonts.googleapis.com/css2?display=swap&family=';
 const DESIGN_FONTS = {
   iron: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700',
   carbon: GF + 'Titillium+Web:wght@400;600;700',
-  paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600'
+  paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
+  // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
+  plakat: GF + 'Archivo:wght@400;500;600;700'
 };
 const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben) */
@@ -615,7 +617,8 @@ const DESIGNS = [
   { id: 'iron', name: 'Iron', desc: 'Industrial-Gym: Stahl, Orange, Condensed', surf: { dark: '#17191b', light: '#f9f8f5' } },
   { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
   { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
-  { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } }
+  { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
+  { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } }
 ];
 const designOf = id => DESIGNS.find(d => d.id === id) || DESIGNS[0];
 const ACCENTS = [['#39ff88', 'Neon'], ['#a3e635', 'Lime'], ['#10b981', 'Smaragd'], ['#14b8a6', 'Türkis'], ['#06b6d4', 'Cyan'], ['#0a84ff', 'Blau'],

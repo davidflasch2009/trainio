@@ -105,7 +105,7 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 6 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung** gibt es 7 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit):
 
 | Design | Look |
@@ -116,6 +116,7 @@ Unter **Mehr → Darstellung** gibt es 6 Designs, jedes in **Hell und Dunkel**
 | Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
 | Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
 | Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
+| Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil |
 
 Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
 hat, landet automatisch bei Trainio.

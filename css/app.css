@@ -272,6 +272,41 @@
   --grain: .035;
 }
 
+/* ---------- Plakat: Schweizer Sportplakat – Raster, Grotesk, Schwarz/Weiß & Signalrot ----------
+   Echte Helvetica Neue auf iPhone/Mac (vorinstalliert), sonst Archivo. Keine Karten, keine Schatten,
+   keine Verläufe: Flächen werden durch Linien gegliedert, Zahlen stehen groß, Rot nur für Aktionen. */
+[data-design="plakat"] {
+  --rs: 0;
+  --font: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --font-num: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --title-spacing: -.035em;
+  --fw-x: 700; --fw-b: 600;
+  --rule: 2px;
+}
+[data-design="plakat"][data-theme="light"] {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #f0f0ee; --surface-3: #e0e0dd;
+  --border: #e3e3e0; --border-strong: #111111;
+  --text: #111111; --text-dim: #575754; --text-faint: #8c8c88;
+  --accent: #e2001a; --accent-dim: #f3a1aa; --accent-text: #c50017; --accent-ink: #ffffff; --accent-soft: rgba(226, 0, 26, .07);
+  --danger: #b00014; --danger-soft: rgba(176, 0, 20, .08); --warning: #965800; --warning-soft: rgba(150, 88, 0, .09);
+  --success: #1b7a3c; --info: #1d4fbf;
+  --shadow: 0 18px 44px rgba(0, 0, 0, .16), 0 0 0 1px rgba(0, 0, 0, .08); --grid: #ebebe8;
+  --card-shadow: none;
+  --c1: #e2001a; --c2: #111111; --c3: #8c8c88; --c4: #1d4fbf; --c5: #f0b400; --c6: #1b7a3c; --c7: #5a5a57; --c8: #f29aa4;
+}
+[data-design="plakat"][data-theme="dark"] {
+  --bg: #0b0b0b; --surface: #0b0b0b; --surface-2: #1a1a19; --surface-3: #2a2a28;
+  --border: #252524; --border-strong: #f1f1ec;
+  --text: #f1f1ec; --text-dim: #a5a5a0; --text-faint: #6e6e6a;
+  --accent: #ff2a3a; --accent-dim: #7d1520; --accent-text: #ff4f5c; --accent-ink: #ffffff; --accent-soft: rgba(255, 42, 58, .13);
+  --danger: #ff6a6a; --danger-soft: rgba(255, 106, 106, .14); --warning: #f2b23c; --warning-soft: rgba(242, 178, 60, .13);
+  --success: #4fc27c; --info: #74a0ff;
+  --shadow: 0 18px 44px rgba(0, 0, 0, .75), 0 0 0 1px #2a2a28; --grid: #1c1c1b;
+  --card-shadow: none;
+  --c1: #ff2a3a; --c2: #f1f1ec; --c3: #8c8c88; --c4: #74a0ff; --c5: #ffc83a; --c6: #4fc27c; --c7: #c2c2bc; --c8: #ff9aa3;
+}
+
 /* ==========================================================================
    2. Basis
    ========================================================================== */
@@ -1519,6 +1554,103 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="paper"] .bottom-nav { background: color-mix(in srgb, var(--bg) 92%, transparent); }
 [data-design="paper"] .set-row.done { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 
+/* ---------- Plakat ---------- */
+/* Gliederung durch Linien statt Karten: oben eine kräftige Linie, keine Füllung, kein Schatten, bündig im Raster */
+[data-design="plakat"] :is(.card, .stat, .chart-card, .ex-card, .list, .mini-wo, .pe-row) { background: transparent; border: 0; border-top: var(--rule) solid var(--text); border-radius: 0; box-shadow: none; }
+[data-design="plakat"] :is(.card, .chart-card, .mini-wo) { padding-left: 0; padding-right: 0; }
+[data-design="plakat"] .stat { padding: 10px 0 4px; min-height: 96px; }
+[data-design="plakat"] .stat-grid { gap: 18px 14px; }
+[data-design="plakat"] .charts-grid { gap: 26px; }
+[data-design="plakat"] .ex-card.complete, [data-design="plakat"] .ex-card.ex-open { border-top-color: var(--text); }
+[data-design="plakat"] .ex-card.ex-open { border-top-width: 4px; }
+[data-design="plakat"] .list-item { padding-left: 0; padding-right: 0; }
+[data-design="plakat"] .ex-item { background: transparent; border: 0; border-bottom: 1px solid var(--border); border-radius: 0; box-shadow: none; padding-left: 0; padding-right: 0; }
+[data-design="plakat"] .modal .list, [data-design="plakat"] .modal .card { border-top-width: 1px; }
+/* Typografie: große, eng gesetzte Grotesk-Zahlen, kleine Versal-Labels */
+[data-design="plakat"] :is(h1, h2, h3, .topbar-title, .start-date b, .section-head h2, .modal-head h2, .ex-name, .exc-name) { letter-spacing: -.03em; }
+[data-design="plakat"] :is(.stat .stat-value, .cc-big b, .pr-box b, .start-date b) { font-weight: 700; letter-spacing: -.045em; line-height: 1; font-variant-numeric: tabular-nums; }
+[data-design="plakat"] .stat .stat-value { font-size: calc(38px * var(--fs)); }
+[data-design="plakat"] .cc-big b { font-size: calc(34px * var(--fs)); }
+[data-design="plakat"] .stat .stat-value small { letter-spacing: 0; font-weight: 600; }
+[data-design="plakat"] :is(.stat .stat-label, .cc-title, .mini-label, .set-head, .field > span, .field-label, .section-head h4, .li-kicker, .pr-box > span, .exs-goal, .stepper-label) { text-transform: uppercase; letter-spacing: .07em; font-size: calc(11px * var(--fs)); font-weight: 700; }
+[data-design="plakat"] .cc-title { color: var(--text); }
+[data-design="plakat"] .stat .stat-label > svg { display: none; }
+[data-design="plakat"] .section-head h2 { font-size: calc(26px * var(--fs)); font-weight: 700; }
+[data-design="plakat"] .start-date { letter-spacing: .1em; font-size: calc(12px * var(--fs)); color: var(--text); }
+[data-design="plakat"] .start-date b { font-size: calc(36px * var(--fs)); }
+[data-design="plakat"] .topbar-title { font-size: calc(22px * var(--fs)); }
+[data-design="plakat"] .topbar.scrolled { border-bottom: var(--rule) solid var(--text); }
+/* Buttons: Rot für die Hauptaktion, sonst schwarze Kontur; Haupt-Button linksbündig mit Pfeil */
+[data-design="plakat"] .btn { border-radius: 0; font-weight: 700; letter-spacing: -.01em; }
+[data-design="plakat"] .btn-secondary { background: transparent; border: 1.5px solid var(--text); color: var(--text); }
+[data-design="plakat"] .btn-secondary:hover { background: var(--surface-2); }
+[data-design="plakat"] .btn-hero { justify-content: space-between; padding: 0 18px 0 20px; min-height: 64px; font-size: calc(19px * var(--fs)); letter-spacing: -.02em; }
+[data-design="plakat"] .btn-hero svg { display: none; }
+[data-design="plakat"] .btn-hero::after { content: '→'; font-size: calc(26px * var(--fs)); font-weight: 400; line-height: 1; }
+[data-design="plakat"] .btn-icon { border-radius: 0; }
+[data-design="plakat"] .link-btn { text-decoration: underline; text-underline-offset: 3px; text-decoration-thickness: 1.5px; }
+/* Auswahl: schwarz gefüllt statt Akzentfarbe – Rot bleibt den Aktionen vorbehalten */
+[data-design="plakat"] :is(.chip, .badge, .hint-chip, .uni-chip, .ws-item, .fc-pill, .sync-pill, .set-num, .set-check, .exc-idx, .hz-n, .tile-row, .design-tile, .icon-tile, .swatch, .rest-mini, .cal button) { border-radius: 0; }
+[data-design="plakat"] .chip { border: 1.5px solid var(--border-strong); background: transparent; color: var(--text); }
+[data-design="plakat"] .chip.active:not(.soft), [data-design="plakat"] .chip.soft.active { background: var(--text); border-color: var(--text); color: var(--bg); }
+[data-design="plakat"] .seg { background: transparent; border: 1.5px solid var(--text); border-radius: 0; padding: 0; gap: 0; }
+[data-design="plakat"] .seg button { border-radius: 0; color: var(--text); }
+[data-design="plakat"] .seg button + button { box-shadow: inset 1px 0 0 var(--border); }
+[data-design="plakat"] .seg button.active { background: var(--text); color: var(--bg); box-shadow: none; }
+[data-design="plakat"] .badge { background: transparent; border: 1px solid currentColor; }
+[data-design="plakat"] .badge.accent { color: var(--accent-text); }
+[data-design="plakat"] .switch span { border-radius: 0; }
+[data-design="plakat"] .switch span::after { border-radius: 0; box-shadow: none; }
+[data-design="plakat"] .switch input:checked + span { background: var(--text); }
+[data-design="plakat"] .switch input:checked + span::after { background: var(--bg); }
+/* Felder: flach, eckig, Fokus als schwarze Kontur */
+[data-design="plakat"] :is(.input, .select, .textarea, .set-in, .set-rpe, .stepper, .pe-step) { border-radius: 0; border-color: transparent; }
+[data-design="plakat"] :is(.input, .select, .textarea, .set-in):focus { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+/* Workout: Sätze als Tabelle mit Haarlinien, erledigt = rotes Quadrat */
+[data-design="plakat"] .set-row { border-bottom: 1px solid var(--border); }
+[data-design="plakat"] .set-row.done { background: transparent; }
+[data-design="plakat"] .set-row.done .set-in { background: transparent; }
+[data-design="plakat"] .set-check { border-width: 1.5px; }
+[data-design="plakat"] .set-num { background: transparent; color: var(--text); font-size: calc(16px * var(--fs)); }
+[data-design="plakat"] :is(.wo-progress, .wo-progress i, .hp-bar, .hp-bar i, .hr-prog, .hr-prog i) { border-radius: 0; }
+[data-design="plakat"] .wo-progress { height: 6px; }
+[data-design="plakat"] .exc-idx { background: transparent; border: 1.5px solid var(--text); color: var(--text); }
+[data-design="plakat"] .exc.complete .exc-idx { background: var(--text); border-color: var(--text); color: var(--bg); }
+/* Leisten: Tab-Leiste mit Linie oben, aktiver Tab mit rotem Balken */
+[data-design="plakat"] .bottom-nav { background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border-top: var(--rule) solid var(--text); }
+[data-design="plakat"] .nav-btn span { text-transform: uppercase; letter-spacing: .07em; font-size: calc(9.5px * var(--fs)); font-weight: 700; }
+[data-design="plakat"] .nav-btn.active { color: var(--text); }
+[data-design="plakat"] .nav-btn.active::after { content: ''; position: absolute; top: calc(-1 * var(--rule)); left: 22%; right: 22%; height: 5px; background: var(--accent); }
+[data-design="plakat"] .side-btn { border-radius: 0; }
+[data-design="plakat"] .side-btn.active { background: transparent; color: var(--text); box-shadow: inset 4px 0 0 var(--accent); }
+/* Fenster, Meldungen, Pausen-Leiste: eckig, Fenster mit Linie oben */
+[data-design="plakat"] .modal { border-radius: 0; border: 0; border-top: var(--rule) solid var(--text); }
+[data-design="plakat"] .modal-foot { border-radius: 0; }
+[data-design="plakat"] .modal-head::before { border-radius: 0; height: 3px; }
+[data-design="plakat"] .toast { border-radius: 0; background: var(--text); color: var(--bg); border: 0; box-shadow: 0 10px 30px rgba(0, 0, 0, .25); }
+[data-design="plakat"] .toast .t-act { color: var(--bg); text-decoration: underline; }
+[data-design="plakat"] .toast.pr { background: var(--accent); color: var(--accent-ink); }
+[data-design="plakat"] .toast.pr .t-ic { color: var(--accent-ink); }
+[data-design="plakat"] :is(.rest-dock, .banner, .fab, .hiit-pill, .fix-card, .hz-row, .hp-card) { border-radius: 0; }
+[data-design="plakat"] .rest-dock { border: 0; border-top: var(--rule) solid var(--text); background: var(--bg); }
+[data-design="plakat"] .fab { box-shadow: none; }
+[data-design="plakat"] .design-tile.active { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
+[data-design="plakat"] .design-tile .dt-name svg { color: var(--text); }
+/* Kennzahl-Kästen (Zusammenfassung, Übung, Score): Linie statt Fläche */
+[data-design="plakat"] :is(.pr-box, .sb-item) { background: transparent; border-radius: 0; border-top: 1.5px solid var(--text); padding: 8px 0 6px; }
+[data-design="plakat"] :is(.pr-grid, .score-bd) { gap: 14px 14px; }
+[data-design="plakat"] .pr-box b { font-size: calc(24px * var(--fs)); }
+[data-design="plakat"] .sb-item span { text-transform: uppercase; letter-spacing: .07em; font-size: calc(11px * var(--fs)); font-weight: 700; }
+[data-design="plakat"] :is(.sb-item i, .sb-item i::after) { border-radius: 0; }
+[data-design="plakat"] :is(.score-ring, .rest-ring, .hiit-ring, .hr-ring) .ring-fg { stroke-linecap: butt; filter: none; }
+[data-design="plakat"] .week-dots i { border-radius: 0; }
+[data-design="plakat"] .week-dots i.on { background: var(--text); }
+[data-design="plakat"] .week-dots i.today { box-shadow: 0 0 0 2px var(--accent); }
+/* Fortschritt-Leiste oben: flacher Block mit Linien statt schwebender Karte */
+[data-design="plakat"] .prog-controls { border-radius: 0; box-shadow: none; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border: 0 !important; border-top: var(--rule) solid var(--text) !important; border-bottom: 1px solid var(--border) !important; padding: 8px 0; }
+/* Symbole etwas kräftiger, passend zur Grotesk */
+[data-design="plakat"] svg[stroke="currentColor"] { stroke-width: 2.1; }
+
 /* ==========================================================================
    7. Nutzer-Overrides (gewinnen gegen das Design)
    ========================================================================== */
@@ -1642,6 +1774,11 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .tp[data-design="carbon"] .tp-title { font-family: "Titillium Web", system-ui, sans-serif; }
 .tp[data-design="carbon"] .tp-btn { background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 86%, #fff), var(--accent) 52%, color-mix(in srgb, var(--accent) 84%, #000)); }
 .tp[data-design="paper"] .tp-title { font-family: "Newsreader", Georgia, serif; font-weight: 600; font-size: 13px; }
+.tp[data-design="plakat"] .tp-card { border: 0; border-top: 2px solid var(--text); box-shadow: none; padding: 5px 0 0; }
+.tp[data-design="plakat"] .tp-title { font-size: 15px; letter-spacing: -.04em; }
+.tp[data-design="plakat"] .tp-dot { border-radius: 0; }
+[data-design="plakat"] .look-preview .week-dots i { border-radius: 0; }
+.tp[data-design="plakat"] .tp-dot.on { background: var(--text); }
 .tp-dot { width: 15px; height: 15px; border-radius: 50%; background: var(--surface-3); flex-shrink: 0; }
 .tp-dot.on { background: var(--accent); }
 .tp-mode { position: absolute; right: 5px; bottom: 4px; font-size: 9px; font-weight: var(--fw-x); color: var(--text-faint); font-family: -apple-system, system-ui, sans-serif; }
