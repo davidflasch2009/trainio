@@ -512,15 +512,22 @@ const BENCHMARKS = {
   ex_bankdruecken: [1.0, 1.5, 2.0], ex_kniebeuge: [1.25, 1.75, 2.5], ex_kniebeuge_lowbar: [1.25, 1.75, 2.5],
   ex_kreuzheben: [1.5, 2.0, 2.75], ex_sumo_kreuzheben: [1.5, 2.0, 2.75], ex_military_press: [0.6, 0.85, 1.1], ex_ohp_kh: [0.6, 0.85, 1.1]
 };
-/** Kraftzuwachs je Übung: bestes e1RM bis zum Tag ÷ erste Session im Zeitraum (mind. 3 Sessions im Zeitraum) */
+const median = a => { const v = [...a].sort((x, y) => x - y), m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; };
+/** Robuste Kraftkurve einer Übung: Bezug = Median der ersten k Sessions im Zeitraum, Wert = Median der letzten k Sessions
+   bis zum jeweiligen Tag (k = 3, bei wenigen Sessions weniger). Früher: bestes e1RM bis zum Tag ÷ erste Session – so ein
+   laufendes Maximum steigt schon durch Tagesform-Schwankungen um 3–6 % (docs/redesign/recherche/trainio-score.md). */
+function robustSeries(pts) {
+  const k = Math.min(3, Math.max(1, Math.floor(pts.length / 2)));
+  const base = median(pts.slice(0, k).map(s => s.best));
+  return { base, series: pts.map((s, i) => { const v = median(pts.slice(Math.max(0, i - k + 1), i + 1).map(p => p.best)); return { x: s.dn, v, ratio: v / base }; }) };
+}
+/** Kraftzuwachs je Übung (mind. 3 Sessions im Zeitraum): aktuelle Form gegenüber dem Start im Zeitraum, robust gemittelt */
 function strengthGains(ix, ids, r) {
   return ids.map(id => {
     const pts = sinceFix(ix.sessions[id] || [], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
     if (pts.length < 3) return null;
-    const base = pts[0].best;
-    let run = 0;
-    const series = pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, ratio: run / base }; });
-    return { id, base, best: run, gain: (run / base - 1) * 100, series, n: pts.length };
+    const { base, series } = robustSeries(pts), cur = series[series.length - 1].v;
+    return { id, base, cur, gain: (cur / base - 1) * 100, series: series.map(p => ({ x: p.x, ratio: p.ratio })), n: pts.length };
   }).filter(Boolean);
 }
 /** Kraft-Index (verkettet): Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten */
@@ -553,9 +560,9 @@ ProgressViews.strength = body => {
   // Kraft im Vergleich: e1RM der meist-trainierten Übungen (der Auswahl), Start im Zeitraum = 100 %
   const cmpCard = ids => {
     const cmp = ids.map(id => ({ id, pts: sinceFix(ix.sessions[id], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
-      .map((x, i) => { let run = 0; return { id: x.id, color: c.series[i], pts: x.pts.map(s => { run = Math.max(run, s.best); return { x: s.dn, y: round(run / x.pts[0].best * 100, 1), label: `${nf(run / x.pts[0].best * 100, 0)} % (bestes e1RM ${fmtW(run)})` }; }) }; });
+      .map((x, i) => ({ id: x.id, color: c.series[i], pts: robustSeries(x.pts).series.map(p => ({ x: p.x, y: round(p.ratio * 100, 1), label: `${nf(p.ratio * 100, 0)} % (e1RM ${fmtW(p.v)}, Mittel der letzten Sessions)` })) }));
     const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
-    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Bestes geschätztes 1RM bis zum jeweiligen Tag für deine meist-trainierten Übungen (mind. 3 Sessions im Zeitraum), bei der ersten Session im Zeitraum auf 100 % gesetzt. So siehst du auf einer Skala, welche Übung am schnellsten wächst.',
+    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Deine Form in den meist-trainierten Übungen (mind. 3 Sessions im Zeitraum): Median des geschätzten 1RM aus den letzten 3 Sessions, verglichen mit den ersten 3 Sessions im Zeitraum (= 100 %). So siehst du auf einer Skala, welche Übung am schnellsten wächst – einzelne gute oder schlechte Tage verfälschen das Bild nicht.',
       big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
       factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null });
   };
@@ -566,9 +573,9 @@ ProgressViews.strength = body => {
     const fx = ids.length === 1 ? lastFix(ix.sessions[ids[0]] || []) : null, fixNewer = fx && (!last || fx.dn > last.dn);
     const since = fixNewer ? t - fx.dn : last ? t - last.dn : t - firstDn;
     return `<div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Wird rot, wenn dein letzter Rekord ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'} mehr als 60 Tage zurückliegt – Zeit für einen neuen Reiz (Deload, andere Wiederholungsbereiche, Variation).`)}</div>
-        <div class="cc-big"><b style="font-size:46px;${since > 60 ? 'color:var(--danger)' : ''}">${since}</b><small>${since === 1 ? 'Tag' : 'Tage'}</small></div>
-        <div class="cc-sub">${fixNewer ? `Seit dem Form-Fix am ${fmtDate(fx.date)} noch kein neuer PR` : last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 60 ? ' · ⚠ Zeit für einen neuen Reiz' : ''}</div>
+        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Tage seit deinem letzten Rekord (geschätztes 1RM) ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'}. Wer lange trainiert, wird nur noch langsam stärker – 2–3 Monate ohne neuen Rekord sind dann normal. Bleibt es deutlich länger still, kann ein neuer Reiz helfen (Deload, andere Wiederholungsbereiche, Variation).`)}</div>
+        <div class="cc-big"><b style="font-size:46px">${since}</b><small>${since === 1 ? 'Tag' : 'Tage'}</small></div>
+        <div class="cc-sub">${fixNewer ? `Seit dem Form-Fix am ${fmtDate(fx.date)} noch kein neuer PR` : last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 120 ? ' · vielleicht Zeit für einen neuen Reiz' : ''}</div>
       </div>`;
   };
   const head = `
@@ -594,14 +601,14 @@ ProgressViews.strength = body => {
     const firstDn = Math.min(...ids.map(id => ix.sessions[id][0].dn));
     body.innerHTML = `${head}
     <div class="charts-grid">
-      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist – als Durchschnitt ${what} mit mind. 3 Sessions. Je Übung zählt das beste geschätzte 1RM bis zum jeweiligen Tag im Vergleich zur ersten Session im Zeitraum. Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten.`,
+      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist – als Durchschnitt ${what} mit mind. 3 Sessions. Je Übung zählt deine Form der letzten 3 Sessions (Median des geschätzten 1RM) im Vergleich zu den ersten 3 Sessions im Zeitraum – so verfälschen einzelne gute oder schlechte Tage das Ergebnis nicht. Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten.`,
         big: idxNow != null ? (idxNow >= 0 ? '+' : '') + nf(idxNow, 1) + ' %' : '–', small: gains.length ? `Ø aus ${gains.length} ${gains.length === 1 ? 'Übung' : 'Übungen'}` : 'mind. 3 Sessions je Übung nötig',
         factory: () => idxPts.length > 1 ? timeLine([lineDS('Kraftzuwachs', idxPts.map(p => ({ x: p.x, y: p.y, label: `${p.y >= 0 ? '+' : ''}${nf(p.y, 1)} % (${p.n} Übungen)` })), c.accent)],
           { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %', yMin: 0 }) : null })}
-      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum: bestes geschätztes 1RM im Vergleich zur ersten Session im Zeitraum (mind. 3 Sessions).`, size: top.length > 5 ? 'lg' : '',
+      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum: Form der letzten 3 Sessions im Vergleich zu den ersten 3 im Zeitraum (Median des geschätzten 1RM, mind. 3 Sessions).`, size: top.length > 5 ? 'lg' : '',
         big: top.length ? esc(Ex.name(top[0].id)) : '–', small: top.length ? `${top[0].gain >= 0 ? '+' : ''}${nf(top[0].gain, 0)} %` : 'mind. 3 Sessions je Übung nötig',
         factory: () => top.length ? barChart(top.map(g => Ex.name(g.id)), [barDS('Zuwachs', top.map(g => round(g.gain, 1)), top.map(g => g.gain > 0.05 ? c.accent : c.faint))],
-          { horizontal: true, yFmt: v => nf(v, 0) + ' %', tooltipFmt: (v, ctx) => `${v >= 0 ? '+' : ''}${nf(v, 1)} % · ${fmtW(top[ctx.dataIndex].base)} → ${fmtW(top[ctx.dataIndex].best)}` }) : null })}
+          { horizontal: true, yFmt: v => nf(v, 0) + ' %', tooltipFmt: (v, ctx) => `${v >= 0 ? '+' : ''}${nf(v, 1)} % · ${fmtW(top[ctx.dataIndex].base)} → ${fmtW(top[ctx.dataIndex].cur)}` }) : null })}
       ${cmpCard(ids)}
       ${cb.card({ id: 'kp', wide: true, title: 'PR-Timeline', info: `Neue Rekorde (geschätztes 1RM) ${what} pro Woche. Die laufende Woche ist blass.`,
         big: prR.length, small: 'PRs im Zeitraum', delta: deltaHtml(prR.length, prPrev, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }), sub: prv ? prevLabel : '',
@@ -1111,7 +1118,7 @@ ProgressViews.muscles = body => {
   const rSets = regionSets(rows);
   const rpw = k => rSets[k] / nWeeks;
   const regList = Object.keys(REGIONS).sort((a, b) => rpw(b) - rpw(a));
-  const ratioBadge = (v, lo, hi) => v == null ? '' : v < lo || v > hi ? `<span class="badge warn">${icon('warn')} Dysbalance</span>` : `<span class="badge accent">${icon('check')} ausgewogen</span>`;
+  const ratioBadge = (v, lo, hi) => v == null ? '' : v < lo || v > hi ? `<span class="badge">weicht ab</span>` : `<span class="badge accent">${icon('check')} ausgewogen</span>`;
   const cb = chartBuilder();
   body.innerHTML = `
     <div class="charts-grid">
@@ -1140,10 +1147,10 @@ ProgressViews.muscles = body => {
           return barChart(all.map(x => x[0]), [barDS('Anteil', all.map(x => round(x[1] / tot * 100, 1)), all.map(x => x[0] === 'Andere' ? c.faint : c.accent))],
             { horizontal: true, yFmt: v => v + ' %', tooltipFmt: (v, ctx) => `${nf(v, 0)} % · ${all[ctx.dataIndex][1]} Sätze` });
         } })}
-      ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Verhältnis Pull-Sätze zu Push-Sätzen. Ideal ≈ 1,0 (Rücken/Brust-Balance). Warnung unter 0,8 oder über 1,2.',
+      ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Verhältnis Pull-Sätze zu Push-Sätzen. Richtwert aus der Trainingspraxis, nicht aus Studien: etwa 0,8–1,2 – also ungefähr gleich viel Ziehen wie Drücken.',
         big: ppRatio != null ? nf(ppRatio, 2) : '–', small: `${pull} Pull / ${push} Push`, top: `<div class="mt-8">${ratioBadge(ppRatio, 0.8, 1.2)}</div>`,
         factory: () => { const d = weekly(rs => { const p = sum(rs.map(w => w.cats.Push || 0)), q = sum(rs.map(w => w.cats.Pull || 0)); return p ? round(q / p, 2) : null; }); const mx = Math.max(1.5, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Pull/Push', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.8, label: '0,8', color: c.faint }, { value: 1.2, label: '1,2', color: c.faint }] } }) : null; } })}
-      ${cb.card({ id: 'm5', title: 'Beine vs. Oberkörper', info: 'Verhältnis Leg-Sätze zu Push+Pull-Sätzen. Ausgewogen zwischen 0,4 und 0,8. Warnung unter 0,4 oder über 0,8.',
+      ${cb.card({ id: 'm5', title: 'Beine vs. Oberkörper', info: 'Verhältnis Bein-Sätze zu Push+Pull-Sätzen. Richtwert aus der Trainingspraxis, nicht aus Studien: etwa 0,4–0,8.',
         big: luRatio != null ? nf(luRatio, 2) : '–', small: `${legs} Beine / ${push + pull} Oberkörper`, top: `<div class="mt-8">${ratioBadge(luRatio, 0.4, 0.8)}</div>`,
         factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); const mx = Math.max(1, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.4, label: '0,4', color: c.faint }, { value: 0.8, label: '0,8', color: c.faint }] } }) : null; } })}
       <div class="chart-card">
@@ -1385,8 +1392,8 @@ ProgressViews.body = body => {
         factory: () => mSeries.length ? timeLine(mSeries.map(s => lineDS(s.l, s.data.map(p => ({ x: p.x, y: round(p.y - s.data[0].y, 1), label: `${nf(p.y, 1)} cm (${p.y - s.data[0].y >= 0 ? '+' : '−'}${nf(Math.abs(p.y - s.data[0].y), 1)})` })), s.color, { fill: false, pointRadius: s.data.length <= 30 ? 3 : 0 })),
           { legend: true, tooltipFmt: v => nf(v, 1) + ' cm', yFmt: v => (v > 0 ? '+' : '') + nf(v, 1), thresholds: { axis: 'y', lines: [{ value: 0, label: '', color: c.faint }] } }) : null })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Schulter/Taille: „Adonis-Index", ideal ≈ 1,618. Taille/Hüfte: gesund bei Männern < 0,9, Frauen < 0,85. Arm/Oberschenkel: Proportion Ober- zu Unterkörper.')}</div>
-        <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim">Ziel 1,62</span></div>
+        <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Schulter/Taille: je höher, desto breiter wirkt der Oberkörper (oft „Adonis-Index“ genannt – ein „idealer“ Wert ist nicht belegt). Taille/Hüfte: gesund bei Männern < 0,9, Frauen < 0,85 (WHO). Arm/Oberschenkel: Proportion Ober- zu Unterkörper.')}</div>
+        <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim"></span></div>
         <div class="ratio-row"><span class="grow">Taille / Hüfte</span><b>${whr ? nf(whr, 2) : '–'}</b><span class="tiny dim">${whr ? (whr < (S().sex === 'f' ? .85 : .9) ? '✓ gesund' : '⚠ erhöht') : ''}</span></div>
         <div class="ratio-row"><span class="grow">Arm / Oberschenkel</span><b>${armThigh ? nf(armThigh, 2) : '–'}</b><span class="tiny dim"></span></div>
       </div>` : ''}

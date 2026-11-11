@@ -663,6 +663,17 @@ async function anzeigeFlow(page) {
   await pause(page, 600);
   const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
   check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
+  // Kraftzuwachs robust: Tagesform-Schwankungen (±3 %) ohne echten Fortschritt ergeben im Mittel ≈ 0 %
+  // (das frühere laufende Maximum gegen die erste Session lag hier bei ≈ +2,6 %), echte Steigerung bleibt sichtbar
+  const kz = await page.evaluate(() => {
+    let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
+    const sessions = {}, ids = [];
+    for (let k = 0; k < 300; k++) { ids.push('n' + k); sessions['n' + k] = Array.from({ length: 12 }, (_, i) => ({ dn: 1000 + i * 4, best: 100 * (1 + (rnd() - 0.5) * 0.06) })); }
+    sessions.up = Array.from({ length: 12 }, (_, i) => ({ dn: 1000 + i * 4, best: 100 + i * 1.5 }));
+    const g = strengthGains({ sessions }, [...ids, 'up'], { from: 0, to: 99999 });
+    return { noiseAvg: round(avg(g.filter(x => x.id !== 'up').map(x => x.gain)), 2), up: round(g.find(x => x.id === 'up').gain, 1) };
+  });
+  check(Math.abs(kz.noiseAvg) < 0.5 && kz.up > 10, 'Kraftzuwachs: reine Tagesform-Schwankungen ergeben im Mittel ≈ 0 %, echte Steigerung sichtbar', JSON.stringify(kz));
   // Blasse Anteile (z. B. mitgeholfene Sätze) auch bei „Hoher Kontrast“, wo Farben als color-mix() kommen
   const al = await page.evaluate(() => [alpha('color-mix(in srgb, #000000 50%, #ffffff)', .3), alpha('#ff0000', .5)]);
   check(/^rgba\(12[78], 12[78], 12[78], 0\.3\)$/.test(al[0]) && al[1] === 'rgba(255, 0, 0, 0.5)', 'Diagramme: blasse Anteile auch bei „Hoher Kontrast“ (color-mix wird aufgelöst)', al.join(' | '));

@@ -423,7 +423,11 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
   Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,
   Max-Gewicht, Intensität, relative Kraft, **Gewicht vs. Kraft** (Körpergewicht und e1RM in einem Diagramm),
-  PR-Timeline.
+  PR-Timeline. Kraftzuwachs, Top-Aufsteiger und Kraft im Vergleich rechnen **robust**: Median des e1RM aus den letzten
+  3 Sessions gegen die ersten 3 Sessions im Zeitraum – so zeigen Tagesform-Schwankungen keinen Scheinzuwachs (früher
+  laufendes Maximum gegen die erste Session). „Tage seit letztem PR“ färbt sich nicht mehr rot: Wer lange trainiert,
+  hat oft 2–3 Monate keinen neuen Rekord. Push vs. Pull und Beine vs. Oberkörper sind Richtwerte aus der Praxis
+  (Abzeichen „weicht ab“ statt „Dysbalance“).
 - **Volumen**: Tonnage, Sätze und Wiederholungen pro Woche, Volumen pro Workout, **Volumen pro Workout-Typ**
   (nach Workout-Name, z. B. „Push A" und „Push B" getrennt), Trainingsdichte, Wochentage, Top-Übungen,
   Trend pro Übung, Intensitäts-Mix, Jahresvergleich.
