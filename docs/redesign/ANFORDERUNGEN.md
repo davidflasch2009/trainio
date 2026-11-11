@@ -26,7 +26,7 @@ Zahlen-Darstellung, Komponenten (Karte, Liste, Knopf, Eingabe, Segment, Kachel, 
 Diagramm-Stil und Symbole.
 
 - ⏳ Ausgangslage – [Bestandsaufnahme: Was wirkt heute unprofessionell?](tickets/01-bestandsaufnahme.md)
-- ⏳ Vorbilder – [Vorbilder: Was macht Fitness-Apps professionell?](tickets/02-vorbilder.md)
+- Vorbilder – [Recherche](recherche/vorbilder.md) erledigt (Grundlage für die Festlegung, keine Anforderung)
 - ⏳ Festlegung – [Die neue Basis](tickets/03-basis.md)
 
 ## 4. Designs

@@ -44,6 +44,7 @@ markiert ist. Gebaut wird erst danach.
 
 <!-- eine Zeile je erledigtem Ticket: [Titel](Link): Kern der Antwort -->
 
+- [Vorbilder: Was macht Fitness-Apps professionell?](tickets/02-vorbilder.md): Professionell heißt konsistent – wenige Schriftstufen, 8er-Raster, eine Akzentfarbe, ein Symbolsatz, Klartext-Deutung; Liquid Glass laut Apple nur in der Navigationsebene.
 - [Darstellung neu ordnen: oben, Feinanpassung und alte Einstellungen](tickets/07-darstellung.md): Feinanpassung als Unterseite ganz unten und je Design, Akzentfarben je Design kuratiert, Startseite als eigene Mehr-Gruppe, beim Umstieg werden Übersteuerungen zurückgesetzt.
 
 ## Noch nicht festgelegt

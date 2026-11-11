@@ -18,4 +18,6 @@ Zu klären:
 - Lesbarkeit und Tempo auf dem iPhone (Unschärfe ist teuer)
 - Teilen-Bild, Workout-Score-Ring, Konfetti, Diagramme und Animationen in Liquid Glass
 - Akzentfarben-Auswahl (4–6 Farben, die erste ist der Standard), siehe [Darstellung neu ordnen](07-darstellung.md)
+- Apple empfiehlt Glas nur für die Navigationsebene, nicht auf Inhaltskarten und kein Glas auf Glas – heute liegt
+  Glas auch auf den Karten. Siehe [Vorbilder](../recherche/vorbilder.md), Abschnitt 1.7.
 - Hell und Dunkel

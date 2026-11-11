@@ -14,6 +14,8 @@ Wie sieht die neue gemeinsame Basis aus, auf der alle vier Designs aufsetzen? Fe
 - Diagramm-Stil (Linien, Achsen, Beschriftung, Farben) und Symbole (statt Emojis?)
 - Was ein Design übersteuern darf und was immer gleich bleibt
 
+Grundlage: [Vorbilder](../recherche/vorbilder.md), Abschnitt 4 (12 Vorschläge und eine mögliche Aufteilung Basis/Design).
+
 Prototyp: Startseite, laufendes Workout und Fortschritt → Übersicht in einer neutralen Haut (Hell und Dunkel,
 390 px), damit David reagieren kann. Rahmen: Aufbau und Funktionen bleiben, innerhalb eines Bildschirms darf
 alles neu angeordnet werden.
