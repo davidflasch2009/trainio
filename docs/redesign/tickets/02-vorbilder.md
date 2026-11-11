@@ -2,7 +2,7 @@
 
 - **Typ:** research (AFK)
 - **Status:** offen
-- **Übernommen von:** –
+- **Übernommen von:** Claude (Recherche-Agent)
 - **Blockiert durch:** –
 
 ## Frage
