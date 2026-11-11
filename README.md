@@ -431,9 +431,15 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   vernachlässigte Muskeln, Muskel-Fortschritt, **Muskeln über Zeit** (gestapelt), Übungs-Vielfalt.
 - **Direkte vs. mitgeholfene Sätze**: Ein Satz zählt direkt für den Hauptmuskel der Übung (erster
   Muskel), für die übrigen nur als „mitgeholfen“ (z. B. Bizeps beim Klimmzug). Sätze pro Muskelgruppe
-  und Muskel-Fortschritt zeigen direkt kräftig und mitgeholfen blass; für MEV/MAV/MRV und
-  „Vernachlässigt“ zählen mitgeholfene Sätze halb. Verteilung, Muskeln über Zeit, Übungs-Vielfalt sowie
-  Kraft/Volumen „Pro Muskelgruppe“ zählen nur Übungen mit diesem Hauptmuskel.
+  und Muskel-Fortschritt zeigen direkt kräftig und mitgeholfen blass (volle Länge). Für die Bereiche und
+  „Vernachlässigt“ zählen mitgeholfene Sätze halb, ebenso leichte Sätze mit eingetragenem RPE 5 oder weniger. Verteilung, Muskeln über Zeit,
+  Übungs-Vielfalt sowie Kraft/Volumen „Pro Muskelgruppe“ zählen nur Übungen mit diesem Hauptmuskel.
+- **Sätze pro Muskel und Woche – Bereiche nach der Forschung** (Recherche:
+  [docs/redesign/recherche/saetze-pro-woche.md](docs/redesign/recherche/saetze-pro-woche.md)): unter 4 **wenig**
+  (reicht eher zum Halten), 4–10 **wirksam** (Muskel wächst messbar), 10–20 **viel** (mehr Wachstum, jeder Satz bringt
+  etwas weniger), über 20 **sehr viel** (kaum Zusatznutzen, mehr Ermüdung). Linien bei 4, 10 und 20 statt der früheren
+  Coaching-Werte MEV/MAV/MRV, keine Warnfarbe – eine feste Obergrenze ist nicht belegt. „Vernachlässigt“ heißt: unter
+  4 Sätzen pro Woche. Kniebeugen zählen nicht mehr für Beinbeuger und unteren Rücken (die wachsen dabei kaum mit).
 - **Körper → Umfänge**: Veränderung in cm seit Zeitraumbeginn statt flacher Linien auf einer Skala.
 
 ## Übungen & Muskel-Diagramm

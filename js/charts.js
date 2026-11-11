@@ -7,10 +7,12 @@
    13. Charts (Chart.js v4, lazy geladen)
    ========================================================================== */
 function chartColors() {
+  // Farben wie color-mix() (z. B. bei „Hoher Kontrast“) in rgb() umrechnen – das versteht jede Canvas
+  const cv = n => { const v = cssVar(n); return !v || /^(#|rgb)/i.test(v) ? v : alpha(v, 1); };
   return {
-    accent: cssVar('--accent'), text: cssVar('--text'), dim: cssVar('--text-dim'), faint: cssVar('--text-faint'),
-    grid: cssVar('--grid'), surface: cssVar('--surface'), danger: cssVar('--danger'), warning: cssVar('--warning'),
-    success: cssVar('--success'), series: [1, 2, 3, 4, 5, 6, 7, 8].map(i => cssVar('--c' + i))
+    accent: cv('--accent'), text: cv('--text'), dim: cv('--text-dim'), faint: cv('--text-faint'),
+    grid: cv('--grid'), surface: cv('--surface'), danger: cv('--danger'), warning: cv('--warning'),
+    success: cv('--success'), series: [1, 2, 3, 4, 5, 6, 7, 8].map(i => cv('--c' + i))
   };
 }
 const Charts = (() => {
@@ -111,7 +113,7 @@ const Charts = (() => {
   return { ensure, applyDefaults, mount, destroy, destroyIn, get };
 })();
 
-/* Hilfslinien (MEV/MAV/MRV, Benchmarks) als kleines Inline-Plugin */
+/* Hilfslinien (Satz-Bereiche, Benchmarks) als kleines Inline-Plugin */
 const thresholdPlugin = {
   id: 'thresholds',
   afterDatasetsDraw(chart, args, opts) {

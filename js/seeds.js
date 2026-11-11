@@ -53,8 +53,8 @@ const SEED_EXERCISES = [
   ['preacher_curl', 'Preacher Curl', 'Pull', ['Bizeps'], 'Langhantel', 'kg', 'Oberarme flach auf dem Polster, unten nicht ganz überstrecken.', ['Preacher Curl (Barbell)', 'Scott Curl', 'Scottcurl', 'Preacher Curl (Machine)']],
   ['kabel_curl', 'Kabel-Bizeps-Curl', 'Pull', ['Bizeps'], 'Kabel', 'kg', 'Konstante Spannung, Ellbogen bleiben fixiert.', ['Cable Curl', 'Bicep Curl (Cable)', 'Biceps Curl (Cable)']],
   // --- Legs ---
-  ['kniebeuge', 'Kniebeuge', 'Legs', ['Quadrizeps', 'Gesäß', 'Unterer Rücken'], 'Langhantel', 'kg', 'High-Bar: Stange auf dem Trapez, Knie folgen den Zehen, tief gehen.', ['Squat', 'Back Squat', 'Squat (Barbell)', 'Kniebeuge High-Bar', 'High Bar Squat', 'Kniebeugen']],
-  ['kniebeuge_lowbar', 'Kniebeuge Low-Bar', 'Legs', ['Quadrizeps', 'Gesäß', 'Beinbeuger', 'Unterer Rücken'], 'Langhantel', 'kg', 'Stange auf der hinteren Schulter, mehr Hüftbeugung, Brust raus.', ['Low Bar Squat', 'Low-Bar Squat']],
+  ['kniebeuge', 'Kniebeuge', 'Legs', ['Quadrizeps', 'Gesäß'], 'Langhantel', 'kg', 'High-Bar: Stange auf dem Trapez, Knie folgen den Zehen, tief gehen.', ['Squat', 'Back Squat', 'Squat (Barbell)', 'Kniebeuge High-Bar', 'High Bar Squat', 'Kniebeugen']],
+  ['kniebeuge_lowbar', 'Kniebeuge Low-Bar', 'Legs', ['Quadrizeps', 'Gesäß'], 'Langhantel', 'kg', 'Stange auf der hinteren Schulter, mehr Hüftbeugung, Brust raus.', ['Low Bar Squat', 'Low-Bar Squat']],
   ['frontkniebeuge', 'Front-Kniebeuge', 'Legs', ['Quadrizeps', 'Gesäß', 'Bauch'], 'Langhantel', 'kg', 'Ellbogen hoch, Oberkörper bleibt aufrecht.', ['Front Squat', 'Front Squat (Barbell)', 'Frontkniebeuge']],
   ['beinpresse', 'Beinpresse', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Rücken bleibt am Polster, Knie oben nicht durchstrecken.', ['Leg Press', 'Leg Press (Machine)']],
   ['hackenschmidt', 'Hackenschmidt', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Füße schulterbreit, kontrolliert tief gehen.', ['Hack Squat', 'Hack Squat (Machine)']],
@@ -164,7 +164,7 @@ const SEED_EXERCISES_2 = [
   ['smith_kniebeuge', 'Kniebeuge Multipresse', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Füße leicht vor der Stange, tief und kontrolliert.', ['Smith Machine Squat', 'Squat (Smith Machine)']],
   ['pendel_kniebeuge', 'Pendel-Kniebeuge', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Rücken am Polster, Knie weit nach vorn.', ['Pendulum Squat']],
   ['belt_squat', 'Belt Squat', 'Legs', ['Quadrizeps', 'Gesäß', 'Adduktoren'], 'Maschine', 'kg', 'Last an der Hüfte – schont den Rücken.', ['Belt Squat (Machine)']],
-  ['box_squat', 'Box Squat', 'Legs', ['Quadrizeps', 'Gesäß', 'Beinbeuger'], 'Langhantel', 'kg', 'Kurz auf der Box absitzen, Spannung halten.', ['Box Squats']],
+  ['box_squat', 'Box Squat', 'Legs', ['Quadrizeps', 'Gesäß'], 'Langhantel', 'kg', 'Kurz auf der Box absitzen, Spannung halten.', ['Box Squats']],
   ['zercher_squat', 'Zercher Squat', 'Legs', ['Quadrizeps', 'Gesäß', 'Bauch'], 'Langhantel', 'kg', 'Stange in den Ellenbeugen, Oberkörper aufrecht.', ['Zercher Squats']],
   ['sumo_squat', 'Sumo-Kniebeuge', 'Legs', ['Quadrizeps', 'Adduktoren', 'Gesäß'], 'Kurzhantel', 'kg', 'Weiter Stand, Zehen nach außen, Knie folgen den Zehen.', ['Sumo Squat', 'Plie Squat']],
   ['beinpresse_einbeinig', 'Beinpresse einbeinig', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Knie bleibt über dem Fuß, Becken stabil.', ['Single Leg Press']],
@@ -321,7 +321,7 @@ const SEED_EXERCISES_3 = [
   ['hamstring_curl_machine', 'Hamstring Curl Machine', 'Legs', ['Beinbeuger'], 'Maschine', 'kg', 'Fersen zum Gesäß ziehen, Hüfte bleibt am Polster, langsam zurück.', ['Beinbeuger Maschine', 'Hamstring Curl', 'Hamstring Curl (Machine)', 'Leg Curl Machine']],
   ['beinpresse_horizontal', 'Beinpresse sitzend', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Horizontal sitzend, Knie folgen den Zehen, unten nicht abrunden.', ['Seated Leg Press', 'Horizontal Leg Press']],
   ['v_squat', 'V-Squat Maschine', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Schultern unter den Polstern, tief und kontrolliert.', ['V Squat', 'V-Squat']],
-  ['reverse_hack', 'Reverse Hack Squat', 'Legs', ['Gesäß', 'Quadrizeps', 'Beinbeuger'], 'Maschine', 'kg', 'Gesicht zur Maschine, Hüfte weit nach hinten.', ['Reverse Hack Squat (Machine)']],
+  ['reverse_hack', 'Reverse Hack Squat', 'Legs', ['Gesäß', 'Quadrizeps'], 'Maschine', 'kg', 'Gesicht zur Maschine, Hüfte weit nach hinten.', ['Reverse Hack Squat (Machine)']],
   ['split_squat_multipresse', 'Split Squat Multipresse', 'Legs', ['Quadrizeps', 'Gesäß'], 'Maschine', 'kg', 'Schrittstellung unter der Stange, hinteres Knie Richtung Boden.', ['Smith Machine Split Squat', 'Smith Machine Lunge']],
   ['hip_thrust_multipresse', 'Hip Thrust Multipresse', 'Legs', ['Gesäß', 'Beinbeuger'], 'Maschine', 'kg', 'Oberer Rücken auf der Bank, oben Gesäß fest anspannen.', ['Smith Machine Hip Thrust']],
   ['hip_thrust_kh', 'Hip Thrust Kurzhantel', 'Legs', ['Gesäß', 'Beinbeuger'], 'Kurzhantel', 'kg', 'Hantel auf der Hüfte, Kinn zur Brust.', ['Dumbbell Hip Thrust']],
@@ -362,7 +362,15 @@ const SEED_EXERCISES_3 = [
 ];
 
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 5;
+const SEED_VERSION = 6;
+/* Korrigierte Muskeln (v6): Bei Kniebeugen wachsen Beinbeuger praktisch nicht mit (Kubo 2019), der untere Rücken hält
+   nur – siehe docs/redesign/recherche/saetze-pro-woche.md. Alte Liste → neue Liste, nur wenn niemand sie geändert hat. */
+const SEED_MUSCLE_FIX = {
+  ex_kniebeuge: [['Quadrizeps', 'Gesäß', 'Unterer Rücken'], ['Quadrizeps', 'Gesäß']],
+  ex_kniebeuge_lowbar: [['Quadrizeps', 'Gesäß', 'Beinbeuger', 'Unterer Rücken'], ['Quadrizeps', 'Gesäß']],
+  ex_box_squat: [['Quadrizeps', 'Gesäß', 'Beinbeuger'], ['Quadrizeps', 'Gesäß']],
+  ex_reverse_hack: [['Gesäß', 'Quadrizeps', 'Beinbeuger'], ['Gesäß', 'Quadrizeps']]
+};
 /** Neue Bibliotheks-Übungen bei bestehenden Konten einmalig ergänzen (nur fehlende IDs) */
 function ensureSeeds() {
   const v = S().seedVersion || 1;
@@ -378,6 +386,13 @@ function ensureSeeds() {
     // Neue Bibliotheks-Übungen ergänzen (Cardio, Oktober-Erweiterung)
     const have = new Set(Store.all('exercises').map(e => e.id));
     seedExerciseDocs().filter(e => !have.has(e.id)).forEach(e => { ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: e, replace: true }); added++; });
+  }
+  if (v < 6) {
+    for (const [id, [from, to]] of Object.entries(SEED_MUSCLE_FIX)) {
+      const e = Store.raw('exercises', id);
+      if (!e || e.isCustom || (e.muscleGroups || []).join('|') !== from.join('|')) continue;
+      ops.push({ type: 'put', coll: 'exercises', id, doc: { ...e, muscleGroups: to.slice(), updatedAt: Date.now() }, replace: true });
+    }
   }
   let patch = { seedVersion: SEED_VERSION };
   if (v < 3) {

@@ -150,7 +150,7 @@ function buildIndex(W, EX, F = 'epley') {
       id: w.id, date: w.date, dn, name: w.planDayName || w.name || 'Freies Workout', startedAt: w.startedAt || null,
       dur: w.durationSec || 0, ton: 0, sets: 0, reps: 0, rpeSum: 0, rpeN: 0, rpeVol: 0, planned: 0, done: 0,
       cSec: 0, cKm: 0, cBy: {}, cardioOnly: false,
-      muscles: {}, mP: {}, mS: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exReps: {}, imp: !!w.importId,
+      muscles: {}, mP: {}, mS: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exSetsW: {}, exReps: {}, imp: !!w.importId,
       bw: w.bodyWeightKg || null, planId: w.planId || null, estDur: !!w.durationEstimated
     };
     const times = [];
@@ -180,7 +180,7 @@ function buildIndex(W, EX, F = 'epley') {
         (sessions[exId] || (sessions[exId] = [])).push(sess);
         continue;
       }
-      let best = 0, bestSet = null, maxW = 0, repsAtMax = 0, vol = 0, n = 0, reps = 0, secs = 0, volN = 0, setsN = 0;
+      let best = 0, bestSet = null, maxW = 0, repsAtMax = 0, vol = 0, n = 0, nW = 0, reps = 0, secs = 0, volN = 0, setsN = 0;
       const list = [];
       for (const s of (en.sets || [])) {
         if (!s || s.warmup) continue;
@@ -207,8 +207,11 @@ function buildIndex(W, EX, F = 'epley') {
           else if (wt === maxW && r > repsAtMax) repsAtMax = r;
         }
         if (r > 0) row.bins[r <= 5 ? 0 : r <= 10 ? 1 : r <= 15 ? 2 : 3]++;
-        // Erster Muskel = Hauptmuskel (direkter Satz), weitere = helfen mit (z. B. Bizeps beim Klimmzug)
-        (meta.muscleGroups || []).forEach((m, i) => { row.muscles[m] = (row.muscles[m] || 0) + 1; const t = i ? row.mS : row.mP; t[m] = (t[m] || 0) + 1; });
+        // Erster Muskel = Hauptmuskel (direkter Satz), weitere = helfen mit (z. B. Bizeps beim Klimmzug).
+        // Leichte Sätze (RPE ≤ 5, also 5+ Wdh. in Reserve) sind ein schwächerer Wachstumsreiz – für Muskeln zählen sie halb
+        const sw = s.rpe && +s.rpe <= 5 ? 0.5 : 1;
+        nW += sw;
+        (meta.muscleGroups || []).forEach((m, i) => { row.muscles[m] = (row.muscles[m] || 0) + 1; const t = i ? row.mS : row.mP; t[m] = (t[m] || 0) + sw; });
         const cat = meta.category || 'Full Body';
         row.cats[cat] = (row.cats[cat] || 0) + 1;
         const it = uniS ? { r, w: wt, rpe: s.rpe || null, sec, u: [rL, rR], us: [sL, sR] } : { r, w: wt, rpe: s.rpe || null, sec };
@@ -219,6 +222,7 @@ function buildIndex(W, EX, F = 'epley') {
       row.sets += n; row.reps += reps; row.ton += vol;
       row.exVol[exId] = (row.exVol[exId] || 0) + vol;
       row.exSets[exId] = (row.exSets[exId] || 0) + n;
+      row.exSetsW[exId] = (row.exSetsW[exId] || 0) + nW;
       row.exReps[exId] = (row.exReps[exId] || 0) + reps;
       if (row.ex.indexOf(exId) < 0) row.ex.push(exId);
       const sess = { wid: w.id, date: w.date, dn, best, bestSet, maxW, repsAtMax, vol, sets: n, reps, secs, list, volN, setsN };

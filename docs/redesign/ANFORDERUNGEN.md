@@ -128,7 +128,7 @@ Entschieden in [Trainio-Score: die Formel](tickets/09-score-formel.md). Grundlag
 | Teil | Anteil | Was gemessen wird |
 | --- | --- | --- |
 | **Kraft** | 50 | Entwicklung des geschätzten 1RM je Übung im Vergleich zum erwarteten Tempo |
-| **Trainingsreiz** | 30 | Arbeitssätze je Körperbereich und Woche (Hauptmuskel 1, Hilfsmuskel 0,5), mit abflachender Kurve |
+| **Trainingsreiz** | 30 | Arbeitssätze je Muskelgruppe und Woche (Hauptmuskel 1, Hilfsmuskel 0,5, leichte Sätze mit RPE ≤ 5 halb), mit abflachender Kurve, dann je Körperbereich gemittelt |
 | **Gewichtstrend** | 20 | Veränderung des Körpergewichts in % pro Woche im Vergleich zur Spanne der Phase |
 
 Fehlt ein Teil, z. B. weil kein Gewicht eingetragen ist, fällt er weg. Die übrigen Teile werden dann auf 100
@@ -146,8 +146,8 @@ auf 0–100.
 
 | Phase | Kraft 100 / 85 / 50 / 0 | Trainingsreiz voll ab | Gewicht „gut“ |
 | --- | --- | --- | --- |
-| **Bulk** | 1,5 r / r / ±0 / −r | 12–15 Sätze je Körperbereich und Woche | +0,1 bis +0,5 % |
-| **Cut** | +r/2 / gehalten / −3 % / −6 % | 6–8 Sätze | −0,25 bis −1,0 % |
+| **Bulk** | 1,5 r / r / ±0 / −r | 18 Sätze je Muskelgruppe und Woche | +0,1 bis +0,5 % |
+| **Cut** | +r/2 / gehalten / −3 % / −6 % | 8 Sätze | −0,25 bis −1,0 % |
 | **Erhalt, Sonstiges, ohne Phase** | r / r/2 / −2 % / −5 % | 10 Sätze | −0,25 bis +0,25 % |
 
 - Hat eine Phase eine **eigene Gewichtsspanne**, gilt diese. Bei „Sonstiges“ ohne eigene Spanne fällt der
@@ -173,6 +173,15 @@ Trainingsreiz („Beine hängen hinterher“).
 Den Kraft-Trend eines Körperbereichs bilden nur Übungen, deren Hauptmuskel dort liegt. Hilfsmuskeln zählen nur
 beim Trainingsreiz, und zwar zur Hälfte.
 
+**Trainingsreiz-Kurve** (entschieden nach der [Recherche zu Sätzen pro Woche](recherche/saetze-pro-woche.md)):
+
+- **Je Muskelgruppe rechnen, dann im Körperbereich mitteln.** Würden die Sätze von Bizeps, Trizeps und Unterarmen
+  zu „Arme“ summiert, wäre der Bereich viel zu leicht voll.
+- **Abflachende Kurve statt harter Schwelle.** Für den Bulk gilt: 0 Sätze → 0, 4 → 0,35, 10 → 0,65, 15 → 0,85,
+  ab 18 → 1. Für Cut (voll ab 8) und Erhalt (voll ab 10) gilt dieselbe Form, nur gestaucht. Zwischen den Punkten
+  wird linear gerechnet.
+- **Keine Abzüge für viele Sätze.** Ein Schaden durch hohes Volumen ist nicht belegt.
+
 **Messung**
 
 - **Kraft:** je Übung das beste geschätzte 1RM pro Woche. Verglichen wird der Median der letzten 4 Wochen mit dem
@@ -197,7 +206,8 @@ beim Trainingsreiz, und zwar zur Hälfte.
 ersetzt sie nicht.
 
 - Kraft: „Kraft steigt“ / „Kraft gehalten“ / „Kraft sinkt leicht“ / „Kraft sinkt deutlich“
-- Reiz: „guter Aufbau-Reiz“ / „Reiz reicht zum Halten“ / „wenig Reiz für Beine“
+- Reiz: „guter Aufbau-Reiz“ (ab etwa 10 Sätzen) / „wirksamer Reiz“ (4–10) / „wenig Reiz für Beine“ (unter 4).
+  Liegt ein Bereich bei 4–10 Sätzen und die Kraft steigt, heißt es „Reiz reicht – Fortschritt da“, nicht „wenig Reiz“.
 - Gewicht: „Zunahme im Plan“ / „Zunahme zu schnell – eher Fett“ / „Abnahme zu schnell – Muskeln in Gefahr“ /
   „Gewicht stabil“
 - Hinweise: „Beine hängen hinterher“, „noch unsicher – wenige Daten“, „Phase läuft erst kurz“

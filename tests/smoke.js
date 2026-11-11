@@ -694,13 +694,57 @@ async function anzeigeFlow(page) {
   await page.evaluate(() => Workout.discard ? Workout.discard() : null);
 }
 
+/* Sätze pro Muskel und Woche – Bereiche nach der Recherche (docs/redesign/recherche/saetze-pro-woche.md) */
+async function muskelFlow(page) {
+  console.log('Sätze pro Muskel');
+  await page.evaluate(async () => {
+    const ops = [];
+    // 4 Wochen: je Woche 4 direkte Bizeps-Sätze (Curls) + 9 Sätze Rudern (Bizeps hilft mit) → zählt als 8,5
+    for (let wk = 0; wk < 4; wk++) {
+      const st = Date.now() - (3 + wk * 7) * 864e5;
+      const sets = n => Array.from({ length: n }, () => ({ reps: 10, weightKg: 20, done: true }));
+      ops.push({ type: 'put', coll: 'workouts', id: 'mu' + wk, doc: { date: isoDate(new Date(st)), startedAt: st, durationSec: 3000, name: 'Pull', entries: [
+        { exerciseId: 'ex_curl_kh', exerciseName: 'Curl', sets: sets(4) }, { exerciseId: 'ex_lh_rudern', exerciseName: 'Rudern', sets: sets(9) }] } });
+    }
+    // Leichte Sätze: 4 Curls mit RPE 5 zählen für Muskeln halb
+    const st = Date.now() - 50 * 864e5;
+    ops.push({ type: 'put', coll: 'workouts', id: 'murpe', doc: { date: isoDate(new Date(st)), startedAt: st, durationSec: 1200, name: 'Arme', entries: [
+      { exerciseId: 'ex_curl_kh', exerciseName: 'Curl', sets: [1, 2, 3, 4].map(() => ({ reps: 12, weightKg: 10, rpe: 5, done: true })) }] } });
+    await Store.batch(ops);
+    UI.period = '4w'; UI.progSub = 'muscles'; App.go('progress');
+  });
+  await pause(page, 1500);
+  const rpe = await page.evaluate(() => { const r = Analytics.cur().rows.find(x => x.id === 'murpe'); return r && { mP: r.mP['Bizeps'], sets: r.sets }; });
+  check(rpe && rpe.mP === 2 && rpe.sets === 4, 'Leichte Sätze (RPE ≤ 5) zählen für den Muskel halb, als Satz voll', JSON.stringify(rpe));
+  const v = await page.evaluate(() => {
+    const card = [...document.querySelectorAll('#tab-progress .chart-card')].find(c => /Sätze pro Muskelgruppe/.test(c.innerText));
+    const ch = card && Chart.getChart(card.querySelector('canvas'));
+    const neg = [...document.querySelectorAll('#tab-progress .chart-card')].find(c => /Vernachlässigte Muskelgruppen/.test(c.innerText));
+    return { lines: ch ? ch.options.plugins.thresholds.lines.map(l => l.value + ' ' + l.label).join(', ') : null, mev: /\b(MEV|MAV|MRV)\b/.test(document.querySelector('#tab-progress').innerText), negBizeps: neg ? /Bizeps/.test(neg.innerText) : null, negRueckenOk: neg ? !/\bRücken\b/.test(neg.innerText) : null };
+  });
+  check(v.lines === '4 wirksam, 10 viel, 20 sehr viel' && !v.mev, 'Sätze pro Muskelgruppe: Linien bei 4 / 10 / 20 statt MEV/MAV/MRV', JSON.stringify(v));
+  check(v.negBizeps === false && v.negRueckenOk, 'Vernachlässigt erst unter 4: Bizeps mit 4 direkt + 9 mitgeholfen (8,5) gilt als wirksam', JSON.stringify(v));
+  // Kniebeugen ohne Beinbeuger/unteren Rücken – auch bei bestehenden Konten (nur, wenn niemand die Muskeln geändert hat)
+  const sq = await page.evaluate(async () => {
+    const e1 = Store.raw('exercises', 'ex_kniebeuge'), e2 = Store.raw('exercises', 'ex_kniebeuge_lowbar');
+    await Store.batch([
+      { type: 'put', coll: 'exercises', id: 'ex_kniebeuge', doc: { ...e1, muscleGroups: ['Quadrizeps', 'Gesäß', 'Unterer Rücken'] }, replace: true },
+      { type: 'put', coll: 'exercises', id: 'ex_kniebeuge_lowbar', doc: { ...e2, muscleGroups: ['Quadrizeps', 'Gesäß', 'Beinbeuger', 'Waden'] }, replace: true }]);
+    Store.saveSettings({ seedVersion: 5 });
+    ensureSeeds();
+    await new Promise(r => setTimeout(r, 300));
+    return { hb: Store.raw('exercises', 'ex_kniebeuge').muscleGroups.join(','), lb: Store.raw('exercises', 'ex_kniebeuge_lowbar').muscleGroups.join(','), v: S().seedVersion };
+  });
+  check(sq.hb === 'Quadrizeps,Gesäß' && sq.lb === 'Quadrizeps,Gesäß,Beinbeuger,Waden' && sq.v >= 6, 'Kniebeuge: unterer Rücken entfernt, selbst geänderte Übungen bleiben unberührt', JSON.stringify(sq));
+}
+
 (async () => {
   staticChecks();
   const srv = await serve();
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige', name === 'iphone' ? IPHONE : undefined);

@@ -647,7 +647,7 @@ ProgressViews.strength = body => {
   const signKg = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + fmtW(Math.abs(d));
   body.innerHTML = `${head}
     <div class="charts-grid">
-      ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: 'Pro Session der beste Satz, umgerechnet mit Epley: Gewicht × (1 + Wdh./30). Gestrichelt: lineare Trendlinie im Zeitraum.',
+      ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: `Pro Session der beste Satz, umgerechnet mit ${S().e1rmFormula === 'brzycki' ? 'Brzycki: Gewicht × 36 ÷ (37 − Wdh.)' : S().e1rmFormula === 'avg' ? 'dem Mittelwert aus Epley und Brzycki' : 'Epley: Gewicht × (1 + Wdh./30)'} (einstellbar unter Mehr → Training → 1RM-Formel). Gestrichelt: lineare Trendlinie im Zeitraum.`,
         big: bestNow ? fmtW(bestNow) : '–', small: fixInR ? `bestes seit Form-Fix (${fmtDateShort(fx.date)})` : 'bestes im Zeitraum', delta: deltaHtml(bestNow, bestPrev), sub: inP.length ? prevLabel : '',
         factory: () => {
           if (!inR.length) return null;
@@ -796,7 +796,7 @@ ProgressViews.volume = body => {
       ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Σ Wiederholungen × Gewicht pro Kalenderwoche (${scopeName}). Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.`,
         big: fmtTon(tot(x => x.ton)), small: 'im Zeitraum', delta: deltaHtml(tot(x => x.ton), totP(x => x.ton)), sub: prv ? prevLabel : '',
         factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { running: ri, tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
-      ${scope === 'muscle' ? cb.card({ id: 'v2', title: 'Sätze pro Woche', info: `Kräftig: direkte Sätze – Übungen, bei denen ${mm} der Hauptmuskel ist. Blass: Sätze, bei denen ${mm} nur mithilft (z. B. Bizeps beim Klimmzug oder Rudern). Gestrichelt: Ø der direkten Sätze. Die laufende Woche ist heller.`,
+      ${scope === 'muscle' ? cb.card({ id: 'v2', title: 'Sätze pro Woche', info: `Kräftig: direkte Sätze – Übungen, bei denen ${mm} der Hauptmuskel ist. Blass: Sätze, bei denen ${mm} nur mithilft (z. B. Bizeps beim Klimmzug oder Rudern). Gestrichelt: Ø der direkten Sätze. Leichte Sätze (RPE 5 oder weniger) zählen halb. Die laufende Woche ist heller.`,
           big: nf(tot(x => x.sets), 0), small: 'direkte Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
           sub: sum(helpW) ? `+ ${nf(sum(helpW), 0)} mitgeholfen${helpTop.length ? ` (${esc(helpTop.join(', '))})` : ''}` : '',
           factory: () => inR.length || sum(helpW) ? barChart(wLabels, [
@@ -842,7 +842,7 @@ ProgressViews.volume = body => {
           if (lr) ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
           return timeLine(ds, { tooltipFmt: v => fmtTon(fromU(v)) });
         } })}
-      ${cb.card({ id: 'v8', wide: true, title: 'Set-Intensitäts-Mix', info: 'Anteil deiner Sätze je Wiederholungsbereich pro Woche: 1–5 = Kraft, 6–10 = Hypertrophie/Kraft, 11–15 = Hypertrophie, 16+ = Kraftausdauer.',
+      ${cb.card({ id: 'v8', wide: true, title: 'Set-Intensitäts-Mix', info: 'Anteil deiner Sätze je Wiederholungsbereich pro Woche. Für Muskelaufbau wirken alle Bereiche ähnlich gut, solange die Sätze nah am Muskelversagen enden. Schwere Sätze (1–5 Wdh.) steigern die Maximalkraft am stärksten.',
         factory: () => {
           const bw = weeks.map(w => inR.filter(x => x.dn >= w && x.dn < w + 7).reduce((b, x) => x.bins.map((v, i) => v + b[i]), [0, 0, 0, 0]));
           if (!sum(bw.map(sum))) return null;
@@ -1062,18 +1062,22 @@ function bodySvg(view, valueOf, labelOf) {
 function regionSets(rows) {
   const out = {};
   Object.keys(REGIONS).forEach(k => { out[k] = 0; });
-  for (const w of rows) for (const [id, n] of Object.entries(w.exSets || {})) {
+  for (const w of rows) for (const [id, n] of Object.entries(w.exSetsW || {})) {
     const regs = exRegions(Ex.get(id));
     for (const [r, wt] of Object.entries(regs)) out[r] += n * wt;
   }
   return out;
 }
-/* Farbskala: 0 = Muskel grau, wenig → zarter Akzent, Zielbereich → voller Akzent, viel → leuchtend */
+/* Sätze pro Muskel und Woche (direkt 1, mitgeholfen ½) – Bereiche nach der Forschung, siehe
+   docs/redesign/recherche/saetze-pro-woche.md: ab etwa 4 wächst ein Muskel messbar, mehr bringt mehr mit abnehmendem
+   Ertrag, über etwa 20 kaum Zusatznutzen. Eine feste Obergrenze ist nicht belegt (deshalb keine Warnfarbe). */
+const volBand = v => v < 4 ? 'wenig' : v < 10 ? 'wirksam' : v <= 20 ? 'viel' : 'sehr viel';
+const volBandLines = c => [{ value: 4, label: 'wirksam', color: c.dim }, { value: 10, label: 'viel', color: c.dim }, { value: 20, label: 'sehr viel', color: c.dim }];
+/* Farbskala: 0 = Muskel grau, unter 4 zarter Akzent, 4–10 bis voller Akzent, 10–20 leuchtend */
 const regionColor = pw => {
-  const k = clamp(pw / 20, 0, 1);
-  if (k <= 0) return 'var(--mus-off)';
-  if (k < .6) return `color-mix(in srgb, var(--accent) ${Math.round(28 + 72 * k / .6)}%, var(--mus-off))`;
-  return `color-mix(in srgb, var(--mus-hi) ${Math.round((k - .6) / .4 * 65)}%, var(--accent))`;
+  if (!(pw > 0)) return 'var(--mus-off)';
+  if (pw < 10) return `color-mix(in srgb, var(--accent) ${Math.round(pw < 4 ? 20 + 30 * pw / 4 : 50 + 50 * (pw - 4) / 6)}%, var(--mus-off))`;
+  return `color-mix(in srgb, var(--mus-hi) ${Math.round(clamp((pw - 10) / 10, 0, 1) * 65)}%, var(--accent))`;
 };
 
 ProgressViews.muscles = body => {
@@ -1087,8 +1091,7 @@ ProgressViews.muscles = body => {
   MUSCLES.forEach(m => { setsM[m] = sum(rows.map(w => w.mP[m] || 0)); helpM[m] = sum(rows.map(w => w.mS[m] || 0)); });
   const pwD = m => setsM[m] / nWeeks, pwH = m => helpM[m] / nWeeks;
   const perWeek = m => pwD(m) + pwH(m) / 2;
-  const lmText = v => v < 10 ? 'unter MEV' : v > 20 ? 'über MRV' : 'im Zielbereich';
-  const lmColor = m => perWeek(m) < 10 ? c.faint : perWeek(m) > 20 ? c.warning : c.accent;
+  const lmColor = m => perWeek(m) < 4 ? c.faint : c.accent;
   const cats = k => sum(rows.map(w => w.cats[k] || 0));
   const push = cats('Push'), pull = cats('Pull'), legs = cats('Legs');
   const ppRatio = push ? pull / push : null;
@@ -1098,7 +1101,7 @@ ProgressViews.muscles = body => {
   const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
   // Muskeln über Zeit: Top 7 Muskelgruppen im Zeitraum, Rest = Andere
   const topM = MUSCLES.filter(m => setsM[m] > 0).sort((a, b) => setsM[b] - setsM[a]).slice(0, 7);
-  const neglected = MUSCLES.filter(m => perWeek(m) < 10);
+  const neglected = MUSCLES.filter(m => perWeek(m) < 4);
   const usage = {};
   for (const [id, ss] of Object.entries(ix.sessions)) usage[id] = ss.length;
   const suggest = m => Store.all('exercises').filter(e => (e.muscleGroups || [])[0] === m || (e.muscleGroups || []).includes(m)).sort((a, b) => ((b.muscleGroups || [])[0] === m) - ((a.muscleGroups || [])[0] === m) || (usage[b.id] || 0) - (usage[a.id] || 0)).slice(0, 2);
@@ -1113,21 +1116,21 @@ ProgressViews.muscles = body => {
   body.innerHTML = `
     <div class="charts-grid">
       <div class="chart-card wide">
-        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn(`${Object.keys(REGIONS).length} Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln anteilig. Schrägbank trifft z. B. die obere Brust, Hammer-Curls den Brachialis, Trizepsdrücken über Kopf den langen Trizepskopf, Rudern die Rhomboiden & den mittleren Trapez, Beinstrecken den Rectus femoris, Wadenheben sitzend den Soleus. Tippe auf einen Muskel für Details.`)}</div>
+        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn(`${Object.keys(REGIONS).length} Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln anteilig. Schrägbank trifft z. B. die obere Brust, Hammer-Curls den Brachialis, Trizepsdrücken über Kopf den langen Trizepskopf, Rudern die Rhomboiden & den mittleren Trapez, Beinstrecken den Rectus femoris, Wadenheben sitzend den Soleus. Ab etwa 4 Sätzen pro Woche wächst ein Muskel messbar, ab 10 ist die Farbe voll. Leichte Sätze (RPE 5 oder weniger) zählen halb. Tippe auf einen Muskel für Details.`)}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
-        <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 40%, var(--mus-off)), var(--accent) 60%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
+        <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 50%, var(--mus-off)) 20%, var(--accent) 50%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
       </div>
-      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Kräftig: direkte Sätze (der Muskel ist Hauptmuskel der Übung). Blass: Sätze, bei denen er nur mithilft (z. B. Bizeps beim Klimmzug). Für die Richtwerte zählen mitgeholfene Sätze halb – die Farbe zeigt das Ergebnis. MEV (10) = Minimum für Wachstum, MAV (15) = optimaler Bereich, MRV (20) = maximal erholbar.',
+      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Kräftig: direkte Sätze (der Muskel ist Hauptmuskel der Übung). Blass: Sätze, bei denen er nur mithilft (z. B. Bizeps beim Klimmzug) – sie zählen halb, das passt laut Studien am besten. Orientierung aus Studien, jeder Mensch ist anders: Ab etwa 4 Sätzen wächst ein Muskel messbar (wirksam). Mehr Sätze bringen mehr, aber jeder weitere etwas weniger (viel ab 10). Über etwa 20 ist der Zusatznutzen klein und die Ermüdung größer. Für Kraft reichen deutlich weniger Sätze. Leichte Sätze (RPE 5 oder weniger) zählen halb.',
         factory: () => {
           const cfg = barChart(MUSCLES, [
             barDS('Direkt', MUSCLES.map(m => round(pwD(m), 1)), MUSCLES.map(lmColor), { borderRadius: 0 }),
             barDS('Mitgeholfen', MUSCLES.map(m => round(pwH(m), 1)), MUSCLES.map(m => alpha(lmColor(m), .3)))
           ], {
             horizontal: true, stacked: true, legend: true, tooltipFmt: v => `${nf(v, 1)} Sätze`,
-            thresholds: { axis: 'x', lines: [{ value: 10, label: 'MEV', color: c.dim }, { value: 15, label: 'MAV', color: c.accent }, { value: 20, label: 'MRV', color: c.warning }] }, xMax: Math.max(24, Math.ceil(Math.max(...MUSCLES.map(m => pwD(m) + pwH(m))) + 2))
+            thresholds: { axis: 'x', lines: volBandLines(c) }, xMax: Math.max(24, Math.ceil(Math.max(...MUSCLES.map(m => pwD(m) + pwH(m))) + 2))
           });
-          cfg.options.plugins.tooltip.callbacks.footer = items => items.length ? `zählt als ${nf(perWeek(MUSCLES[items[0].dataIndex]), 1)} (${lmText(perWeek(MUSCLES[items[0].dataIndex]))})` : '';
+          cfg.options.plugins.tooltip.callbacks.footer = items => items.length ? `zählt als ${nf(perWeek(MUSCLES[items[0].dataIndex]), 1)} (${volBand(perWeek(MUSCLES[items[0].dataIndex]))})` : '';
           return cfg;
         } })}
       ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der direkten Sätze je Muskelgruppe im Zeitraum (Top 7, Rest = Andere). Jeder Satz zählt nur für den Hauptmuskel der Übung.', size: '',
@@ -1144,16 +1147,16 @@ ProgressViews.muscles = body => {
         big: luRatio != null ? nf(luRatio, 2) : '–', small: `${legs} Beine / ${push + pull} Oberkörper`, top: `<div class="mt-8">${ratioBadge(luRatio, 0.4, 0.8)}</div>`,
         factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); const mx = Math.max(1, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.4, label: '0,4', color: c.faint }, { value: 0.8, label: '0,8', color: c.faint }] } }) : null; } })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter MEV (10 Sätze/Woche) lagen – mit passenden Übungsvorschlägen. Direkte Sätze zählen voll, mitgeholfene halb.')}</div>
-        ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W${helpM[m] ? ` (${nf(pwD(m), 1)} direkt)` : ''}</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Alle Muskelgruppen über MEV – top! ✅</p>'}
+        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter 4 Sätzen pro Woche lagen – darunter wächst ein Muskel laut Studien kaum messbar. Mit passenden Übungsvorschlägen. Direkte Sätze zählen voll, mitgeholfene halb.')}</div>
+        ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W${helpM[m] ? ` (${nf(pwD(m), 1)} direkt)` : ''}</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Jede Muskelgruppe bekommt mindestens 4 Sätze pro Woche.</p>'}
       </div>
-      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit. Kräftig: direkte Sätze, blass darüber: Sätze, bei denen der Muskel nur mithilft.',
+      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit. Kräftig: direkte Sätze, blass darüber: Sätze, bei denen der Muskel nur mithilft (sie zählen halb). Linien: ab 4 wirksam, ab 10 viel, über 20 sehr viel. Leichte Sätze (RPE 5 oder weniger) zählen halb.',
         top: `<select class="select mt-8" data-ch="muscleSel" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.muscleSel ? 'selected' : ''}>${m}</option>`).join('')}</select>`,
         factory: () => { const ms = UI.muscleSel, d = weekly(rs => sum(rs.map(w => w.mP[ms] || 0))), h = weekly(rs => sum(rs.map(w => w.mS[ms] || 0))); return sum(d) + sum(h) ? barChart(wLabels, [
           { type: 'line', label: 'Direkt', data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .16), fill: 'origin', pointRadius: 3, tension: .3 },
           { type: 'line', label: 'Mitgeholfen', data: h, borderColor: alpha(c.accent, .4), backgroundColor: alpha(c.accent, .07), fill: '-1', pointRadius: 0, borderWidth: 1.5, tension: .3, runAlpha: .2 }
-        ], { stacked: true, legend: sum(h) > 0, running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: [{ value: 10, label: 'MEV', color: c.faint }, { value: 20, label: 'MRV', color: c.warning }] } }) : null; } })}
-      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Direkte Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Jeder Satz zählt nur für den Hauptmuskel der Übung. Die laufende Woche ist blass.', size: 'lg',
+        ], { stacked: true, legend: sum(h) > 0, running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: volBandLines(c) } }) : null; } })}
+      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Direkte Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Jeder Satz zählt nur für den Hauptmuskel der Übung. Leichte Sätze (RPE 5 oder weniger) zählen halb. Die laufende Woche ist blass.', size: 'lg',
         factory: () => topM.length ? barChart(wLabels, [
           ...topM.map((m, i) => barDS(m, weekly(rs => sum(rs.map(w => w.mP[m] || 0))), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })),
           ...(MUSCLES.length > topM.length ? [barDS('Andere', weekly(rs => sum(rs.map(w => sum(MUSCLES.filter(m => !topM.includes(m)).map(m => w.mP[m] || 0))))), c.faint, { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })] : [])
@@ -1172,10 +1175,10 @@ Actions.muscleTap = el => {
   const rows = Analytics.rowsIn(r);
   const nWeeks = Math.max(1, r.len / 7);
   const exCount = {};
-  for (const w of rows) for (const [id, n] of Object.entries(w.exSets || {})) { const wt = exRegions(Ex.get(id))[k]; if (wt) exCount[id] = (exCount[id] || 0) + n * wt; }
+  for (const w of rows) for (const [id, n] of Object.entries(w.exSetsW || {})) { const wt = exRegions(Ex.get(id))[k]; if (wt) exCount[id] = (exCount[id] || 0) + n * wt; }
   const sets = sum(Object.values(exCount));
   const pw = sets / nWeeks;
-  const status = pw < 10 ? ['danger', 'unter MEV – mehr Volumen hilft'] : pw <= 20 ? ['accent', 'im Zielbereich (MEV–MRV)'] : ['warn', 'über MRV – auf Erholung achten'];
+  const status = pw < 4 ? ['', 'wenig – reicht eher zum Halten'] : pw < 10 ? ['accent', 'wirksam – der Muskel wächst messbar'] : pw <= 20 ? ['accent', 'viel – mehr Wachstum, jeder Satz bringt etwas weniger'] : ['accent', 'sehr viel – kaum Zusatznutzen, mehr Ermüdung'];
   $$('.body-map .mus').forEach(p => p.classList.toggle('sel', p.dataset.m === k));
   const lib = Store.all('exercises').filter(e => exRegions(e)[k] === 1 && !exCount[e.id]).slice(0, 8);
   Modal.open({
@@ -1375,7 +1378,7 @@ ProgressViews.body = body => {
       </div>
       ${F('f_bodyFat') ? `${cb.card({ id: 'b2', title: 'Körperfett', info: 'Körperfettanteil in Prozent – falls eingetragen.', big: bf.length ? nf(bf[bf.length - 1].bodyFatPct, 1) + ' %' : '–',
         factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: yAuto(' %') }) : null })}
-      ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie, baust du Muskeln auf.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
+      ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie über Wochen, spricht das für Muskelaufbau. Kurzfristig schwankt sie mit Wasser und Glykogen, z. B. in den ersten Tagen eines Bulks oder Cuts.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
         factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}` : ''}
       ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Veränderung jedes Umfangs in cm seit dem ersten Eintrag im Zeitraum – so werden auch kleine Änderungen sichtbar. Der Tooltip zeigt zusätzlich den Messwert. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
         sub: 'Veränderung in cm seit Zeitraumbeginn',

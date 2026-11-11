@@ -38,3 +38,9 @@ Entschieden mit David. Ausformuliert in [ANFORDERUNGEN.md, Abschnitt 6](../ANFOR
 
 Die Details (Rückblick 8 Wochen, Mindestdaten, Pausen, Phasenwechsel, RPE, neue Übungen) hat Claude im Rahmen
 festgelegt.
+
+**Nachtrag (nach der [Recherche zu Sätzen pro Woche](../recherche/saetze-pro-woche.md), mit David entschieden):**
+Der Trainingsreiz wird je Muskelgruppe gerechnet und im Körperbereich gemittelt. Die Kurve verläuft
+4 → 0,35, 10 → 0,65, 15 → 0,85 und ist im Bulk ab 18 Sätzen voll (Cut ab 8, Erhalt ab 10). Viele Sätze geben keinen
+Abzug, leichte Sätze (RPE ≤ 5) zählen halb. Der Klartext sagt „Reiz reicht – Fortschritt da“, wenn bei 4–10 Sätzen
+die Kraft steigt.
