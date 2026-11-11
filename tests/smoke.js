@@ -663,6 +663,9 @@ async function anzeigeFlow(page) {
   await pause(page, 600);
   const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
   check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
+  // Blasse Anteile (z. B. mitgeholfene Sätze) auch bei „Hoher Kontrast“, wo Farben als color-mix() kommen
+  const al = await page.evaluate(() => [alpha('color-mix(in srgb, #000000 50%, #ffffff)', .3), alpha('#ff0000', .5)]);
+  check(/^rgba\(12[78], 12[78], 12[78], 0\.3\)$/.test(al[0]) && al[1] === 'rgba(255, 0, 0, 0.5)', 'Diagramme: blasse Anteile auch bei „Hoher Kontrast“ (color-mix wird aufgelöst)', al.join(' | '));
   // 3. Pausen-Leiste: Nach jedem Satz bleibt der nächste Satz samt „Satz erledigt“ sichtbar über der Leiste
   await page.evaluate(() => {
     Store.put('templates', 'taz', { name: 'Brust', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 8, reps: '8', restSec: 90, notes: '' }], createdAt: Date.now() });

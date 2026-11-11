@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.33.2',
+  version: '1.33.3',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -277,10 +277,22 @@ function loadScript(src) {
 }
 
 function cssVar(name) { return getComputedStyle(document.documentElement).getPropertyValue(name).trim(); }
+/** Beliebige CSS-Farbe (color-mix, var(), Namen …) vom Browser ausrechnen lassen – z. B. bei „Hoher Kontrast“ */
+function resolveColor(c) {
+  const p = resolveColor.el || (resolveColor.el = Object.assign(document.createElement('i'), { hidden: true }));
+  if (!p.isConnected) document.documentElement.appendChild(p);
+  p.style.color = '';
+  p.style.color = c;
+  return p.style.color ? getComputedStyle(p).color : c;
+}
 function alpha(color, a) {
-  const c = String(color || '').trim();
+  let c = String(color || '').trim();
+  if (c && !/^(rgba?\(|#)/i.test(c)) c = resolveColor(c);
   const m = c.match(/^rgba?\(\s*([\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
   if (m) return `rgba(${m[1]}, ${m[2]}, ${m[3]}, ${a})`;
+  // color-mix() rechnen Browser als „color(srgb r g b)“ mit Werten von 0 bis 1 aus
+  const s = c.match(/^color\(srgb\s+([\d.e-]+)\s+([\d.e-]+)\s+([\d.e-]+)/i);
+  if (s) return `rgba(${[s[1], s[2], s[3]].map(v => Math.round(Math.min(1, Math.max(0, +v)) * 255)).join(', ')}, ${a})`;
   if (c.startsWith('#')) {
     let h = c.slice(1);
     if (h.length === 3) h = h.split('').map(x => x + x).join('');
