@@ -16,6 +16,9 @@ Wie sieht die neue gemeinsame Basis aus, auf der alle vier Designs aufsetzen? Fe
 
 Grundlage: [Bestandsaufnahme](../bestandsaufnahme.md) (was heute stört, mit Zahlen) und [Vorbilder](../recherche/vorbilder.md), Abschnitt 4 (12 Vorschläge und eine mögliche Aufteilung Basis/Design).
 
+Die Startseite bekommt oben den **Trainio-Score als Hauptplatz** (siehe [Formel](09-score-formel.md)). Im
+Basis-Prototyp ist dafür ein Platz vorzusehen, die genaue Gestaltung klärt [Trainio-Score: Hauptplatz, Karte und Klartext](10-score-darstellung.md).
+
 Prototyp: Startseite, laufendes Workout und Fortschritt → Übersicht in einer neutralen Haut (Hell und Dunkel,
 390 px), damit David reagieren kann. Rahmen: Aufbau und Funktionen bleiben, innerhalb eines Bildschirms darf
 alles neu angeordnet werden.

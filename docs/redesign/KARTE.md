@@ -47,6 +47,7 @@ markiert ist. Gebaut wird erst danach.
 - [Bestandsaufnahme: Was wirkt heute unprofessionell?](tickets/01-bestandsaufnahme.md): Kein Raster (34 Schriftgrößen, 154 Abstände), alles gleich laut, Akzentfarbe überall, zu viele Komponenten-Varianten, Designs unterscheiden sich fast nur in Farbe.
 - [Vorbilder: Was macht Fitness-Apps professionell?](tickets/02-vorbilder.md): Professionell heißt konsistent – wenige Schriftstufen, 8er-Raster, eine Akzentfarbe, ein Symbolsatz, Klartext-Deutung; Liquid Glass laut Apple nur in der Navigationsebene.
 - [Recherche: Kraft- und Muskelentwicklung aus Workouts und Körpergewicht schätzen](tickets/08-recherche-score.md): Erwartbarer e1RM-Zuwachs nach Erfahrung, Sätze pro Muskel als stärkster Wachstums-Treiber, Gewichtsraten je Phase, 8-Wochen-Rückblick; Vorschlag Kraft 50 / Reiz 30 / Gewicht 20.
+- [Trainio-Score: die Formel](tickets/09-score-formel.md): Kraft 50 / Reiz 30 / Gewicht 20, Maßstab nach Trainingserfahrung, erwartetes Tempo ≈ 85, 7 Körperbereiche, 8-Wochen-Rückblick; Hauptplatz oben auf der Startseite, grafisch statt nur Text.
 - [Darstellung neu ordnen: oben, Feinanpassung und alte Einstellungen](tickets/07-darstellung.md): Feinanpassung als Unterseite ganz unten und je Design, Akzentfarben je Design kuratiert, Startseite als eigene Mehr-Gruppe, beim Umstieg werden Übersteuerungen zurückgesetzt.
 
 ## Noch nicht festgelegt

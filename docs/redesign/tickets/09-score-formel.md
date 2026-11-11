@@ -1,7 +1,7 @@
 # Trainio-Score: die Formel
 
 - **Typ:** grilling (HITL)
-- **Status:** offen
+- **Status:** erledigt
 - **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Recherche: Kraft- und Muskelentwicklung aus Workouts und Körpergewicht schätzen](08-recherche-score.md)
 
@@ -20,3 +20,21 @@ Zu entscheiden:
 - Muskelgruppen der Aufschlüsselung und wie Übungen zugeordnet werden (Hauptmuskel, Hilfsmuskeln)
 - Umgang mit Form-Fix, Aufwärmsätzen, Cardio und Pausen (Urlaub, Krankheit)
 - Klartext-Stufen (z. B. „Kraft steigt, guter Aufbau-Reiz“)
+
+## Antwort
+
+Entschieden mit David. Ausformuliert in [ANFORDERUNGEN.md, Abschnitt 6](../ANFORDERUNGEN.md#6-trainio-score).
+
+1. **Bestandteile:** Kraft 50, Trainingsreiz 30, Gewichtstrend 20, in jeder Phase gleich gewichtet. David hat
+   das Claude überlassen, gewählt wurde der Vorschlag der Recherche.
+2. **Maßstab für Kraft:** Trainingserfahrung, über die neue Einstellung „Trainiere seit“ (sonst das erste Workout).
+3. **Skala:** Das erwartete Tempo ergibt etwa 85, 100 ist selten.
+4. **Aufschlüsselung:** 7 grobe Körperbereiche.
+5. **Vernachlässigte Bereiche** senken den Gesamtwert.
+6. **Zu schnelles Zu- oder Abnehmen** gibt einen Abzug und einen Hinweis.
+7. **Klartext:** eine Hauptzeile plus höchstens zwei Hinweise, sachlich. **Neu von David:** Der Score ist die
+   wichtigste Information der App. Er steht als **Hauptplatz oben auf der Startseite** und ist **nicht nur Text**,
+   sondern grafisch. Die geplante Startseiten-Kachel entfällt.
+
+Die Details (Rückblick 8 Wochen, Mindestdaten, Pausen, Phasenwechsel, RPE, neue Übungen) hat Claude im Rahmen
+festgelegt.

@@ -38,6 +38,14 @@ _Avoid_: Score (ohne Zusatz)
 Die geschätzte Entwicklung von Kraft und Muskulatur über einen festen Rückblick, von 0 bis 100 mit Klartext – gemessen an dem, was die aktuelle Phase verlangt.
 _Avoid_: Aufbau-Score, Gains-Score, Fortschritts-Score, Muskelzuwachs (als Messwert)
 
+**Körperbereich**:
+Einer der 7 groben Bereiche, nach denen der Trainio-Score aufgeschlüsselt wird (Brust, Rücken, Schultern, Arme, Beine vorne, Gesäß & Beine hinten, Rumpf); fasst mehrere Muskelgruppen zusammen.
+_Avoid_: Muskelgruppe (für diese groben Bereiche), Core
+
+**Trainingserfahrung**:
+Wie lange jemand schon regelmäßig Krafttraining macht; legt fest, welcher Kraftzuwachs als gut gilt.
+_Avoid_: Trainingsalter, Level
+
 **Phase**:
 Ein benannter Zeitraum mit Typ (Bulk, Cut, Erhalt, Sonstiges), auf den sich Auswertungen beziehen lassen.
 _Avoid_: Zyklus, Block

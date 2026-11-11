@@ -98,25 +98,109 @@ Die Startseite bleibt unberührt.
 
 ## 6. Trainio-Score
 
-**Festgelegt:**
+Entschieden in [Trainio-Score: die Formel](tickets/09-score-formel.md). Grundlage ist die
+[Recherche](recherche/trainio-score.md).
+
+**Was er ist**
 
 - **Name:** Trainio-Score. Er ist eigenständig, der Workout-Score bleibt, wie er ist.
 - **Aussage:** nur die **Entwicklung** („Werde ich stärker, baue ich Muskeln auf?“), nicht das absolute
   Kraft-Niveau.
 - **Eingaben:** nur Workouts und Körpergewicht.
-- **Ausgabe:** Zahl **0–100 plus Klartext**, keine geschätzten kg Muskel. Er ist erkennbar eine Schätzung.
-- **Kennt die Phase:** Bulk → Zuwachs ist gut, Cut → Erhalt ist gut, Erhalt → leichter Zuwachs ist gut.
-  Ohne Phase gilt Erhalt.
-- **Fester Rückblick** (z. B. die letzten Wochen gegenüber den Wochen davor), unabhängig vom gewählten Zeitraum im
-  Fortschritt. Dazu ein Verlauf als Diagramm.
-- **Aufschlüsselung pro Muskelgruppe** (z. B. „Beine hängen hinterher“).
-- **Ort:** eigene Karte oben in Fortschritt → Übersicht (mit Aufschlüsselung und Verlauf) und als Startseiten-Kachel.
+- **Ausgabe:** Zahl **0–100**, als **Grafik** dargestellt, mit Klartext dazu. Keine geschätzten kg Muskel.
+  Im (i) steht „Schätzung aus Training und Gewicht“.
+- **Berechnung:** aus den gespeicherten Daten wie beim Workout-Score. Auch ältere und importierte Workouts zählen
+  sofort.
+- **Abschaltbar** unter Mehr → Tabs & Funktionen wie jede Auswertung. Ist er aus, sieht die Startseite aus wie ohne
+  Score.
 
-**Offen:**
+**Wo er steht**
 
-- Grundlagen – [Recherche](recherche/trainio-score.md) erledigt (Grundlage für die Formel, keine Anforderung)
-- ⏳ Berechnung – [Trainio-Score: die Formel](tickets/09-score-formel.md)
-- ⏳ Aussehen – [Trainio-Score: Karte, Kachel und Klartext](tickets/10-score-darstellung.md)
+- **Hauptplatz oben auf der Startseite.** Er ist die wichtigste Information der App (David), deshalb nicht nur
+  Text: Zahl in grafischer Form, Aufschlüsselung nach Körperbereichen und Verlauf als Grafik, ergänzt um Klartext.
+  Antippen öffnet die Details.
+- **Fortschritt → Übersicht:** ausführliche Karte ganz oben mit Aufschlüsselung, Verlauf und Erklärung.
+- Eine eigene Startseiten-Kachel gibt es nicht, der Hauptplatz ersetzt sie.
+- ⏳ Aussehen – [Trainio-Score: Hauptplatz, Karte und Klartext](tickets/10-score-darstellung.md)
+
+**Bestandteile** (in jeder Phase gleich gewichtet, nur die Ziele ändern sich)
+
+| Teil | Anteil | Was gemessen wird |
+| --- | --- | --- |
+| **Kraft** | 50 | Entwicklung des geschätzten 1RM je Übung im Vergleich zum erwarteten Tempo |
+| **Trainingsreiz** | 30 | Arbeitssätze je Körperbereich und Woche (Hauptmuskel 1, Hilfsmuskel 0,5), mit abflachender Kurve |
+| **Gewichtstrend** | 20 | Veränderung des Körpergewichts in % pro Woche im Vergleich zur Spanne der Phase |
+
+Fehlt ein Teil, z. B. weil kein Gewicht eingetragen ist, fällt er weg. Die übrigen Teile werden dann auf 100
+hochgerechnet.
+
+**Maßstab für Kraft:** das erwartete Tempo nach **Trainingserfahrung**. Unter 1 Jahr 3 % pro Monat, 1–3 Jahre 1 %,
+über 3 Jahre 0,5 %. Neue Einstellung **„Trainiere seit“** (Monat und Jahr) unter Mehr → Konto & Profil. Ohne
+Eintrag gilt das Datum des ersten Workouts in Trainio.
+
+**Skala:** Das erwartete Tempo der Phase ergibt **etwa 85**. **100 ist selten** und gibt es nur bei deutlich mehr
+(etwa dem 1,5-fachen Tempo). Stillstand im Bulk liegt bei 50. Zwischen den Ankern wird linear gerechnet, begrenzt
+auf 0–100.
+
+**Ziele je Phase** (`r` = erwartetes Tempo, Kraft in % pro Monat, Gewicht in % Körpergewicht pro Woche)
+
+| Phase | Kraft 100 / 85 / 50 / 0 | Trainingsreiz voll ab | Gewicht „gut“ |
+| --- | --- | --- | --- |
+| **Bulk** | 1,5 r / r / ±0 / −r | 12–15 Sätze je Körperbereich und Woche | +0,1 bis +0,5 % |
+| **Cut** | +r/2 / gehalten / −3 % / −6 % | 6–8 Sätze | −0,25 bis −1,0 % |
+| **Erhalt, Sonstiges, ohne Phase** | r / r/2 / −2 % / −5 % | 10 Sätze | −0,25 bis +0,25 % |
+
+- Hat eine Phase eine **eigene Gewichtsspanne**, gilt diese. Bei „Sonstiges“ ohne eigene Spanne fällt der
+  Gewichtsteil weg.
+- **Bulk zu schnell** (über +0,5 %): leichter Abzug und der Hinweis „Zunahme zu schnell – eher Fett“. Abnahme im
+  Bulk gibt einen deutlichen Abzug.
+- **Cut zu schnell** (über −1 %): Abzug und der Hinweis „Abnahme zu schnell – Muskeln in Gefahr“. Kaum Abnahme
+  gibt halbe Punkte.
+
+**Körperbereiche:** 7, im Gesamtwert alle gleich gewichtet. Eine vernachlässigte Gruppe senkt den Score über den
+Trainingsreiz („Beine hängen hinterher“).
+
+| Körperbereich | Muskelgruppen |
+| --- | --- |
+| Brust | Brust |
+| Rücken | Rücken, Trapez |
+| Schultern | Schulter, Hintere Schulter |
+| Arme | Bizeps, Trizeps, Unterarme |
+| Beine vorne | Quadrizeps, Adduktoren |
+| Gesäß & Beine hinten | Gesäß, Beinbeuger, Abduktoren, Waden |
+| Rumpf | Bauch, Unterer Rücken |
+
+Den Kraft-Trend eines Körperbereichs bilden nur Übungen, deren Hauptmuskel dort liegt. Hilfsmuskeln zählen nur
+beim Trainingsreiz, und zwar zur Hälfte.
+
+**Messung**
+
+- **Kraft:** je Übung das beste geschätzte 1RM pro Woche. Verglichen wird der Median der letzten 4 Wochen mit dem
+  der 4 Wochen davor. Ein laufendes Maximum wird nicht verwendet.
+  - Gezählt werden nur Sätze bis 12 Wdh. (Wdh. + Wdh. in Reserve).
+  - RPE wird genutzt, wenn eingetragen (Wdh. in Reserve = 10 − RPE). Sätze mit RPE ≤ 5 zählen nicht.
+  - Neue Übungen zählen ab der 5. Einheit. Ein Form-Fix startet die Übung neu.
+- **Was nicht zählt:** Cardio und Aufwärmsätze zählen nicht. Form-Fix-Sätze zählen beim Trainingsreiz mit, beim
+  Kraft-Trend nicht.
+- **Rückblick:** fest 8 Wochen (die letzten 4 gegen die 4 davor), unabhängig vom Zeitraum im Fortschritt. Der
+  Verlauf wird jede Woche neu berechnet. Für die Körperbereiche gelten dieselben 8 Wochen, bei wenigen Daten werden
+  ihre Werte stärker zur Mitte gezogen.
+- **Mindestdaten:** 6 Krafteinheiten in 8 Wochen, verteilt auf mindestens 4 Wochen. Davor steht „Noch zu wenig
+  Daten – noch N Workouts“. Der Gewichtsteil zählt erst ab 6 Messungen in 3 Wochen.
+- **Unsicherheit:** Bei wenigen Daten wird der Wert zur Mitte gezogen und als „noch unsicher“ markiert.
+- **Pausen bis 3 Wochen** (Urlaub, Krankheit) bestrafen nicht, das Fenster verlängert sich entsprechend. Bei
+  längeren Pausen steht „Pause – Score ruht“.
+- **Phasenwechsel:** Gewertet werden nur Daten seit Beginn der Phase. In den ersten 2 Wochen nach einem Wechsel
+  Bulk ↔ Cut zählt das Gewicht nicht. Bei einer Phase, die jünger als 3 Wochen ist, steht „Phase läuft erst kurz“.
+
+**Klartext:** eine Hauptzeile plus höchstens zwei Hinweise, sachlich und ohne Emojis. Er ergänzt die Grafik und
+ersetzt sie nicht.
+
+- Kraft: „Kraft steigt“ / „Kraft gehalten“ / „Kraft sinkt leicht“ / „Kraft sinkt deutlich“
+- Reiz: „guter Aufbau-Reiz“ / „Reiz reicht zum Halten“ / „wenig Reiz für Beine“
+- Gewicht: „Zunahme im Plan“ / „Zunahme zu schnell – eher Fett“ / „Abnahme zu schnell – Muskeln in Gefahr“ /
+  „Gewicht stabil“
+- Hinweise: „Beine hängen hinterher“, „noch unsicher – wenige Daten“, „Phase läuft erst kurz“
 
 ## 7. Nicht Teil dieses Vorhabens
 
