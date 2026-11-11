@@ -2,7 +2,7 @@
 
 - **Typ:** grilling (HITL)
 - **Status:** offen
-- **Übernommen von:** –
+- **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Recherche: Kraft- und Muskelentwicklung aus Workouts und Körpergewicht schätzen](08-recherche-score.md)
 
 ## Frage

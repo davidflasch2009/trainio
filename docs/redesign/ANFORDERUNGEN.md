@@ -114,7 +114,7 @@ Die Startseite bleibt unberührt.
 
 **Offen:**
 
-- ⏳ Grundlagen – [Recherche: Kraft- und Muskelentwicklung schätzen](tickets/08-recherche-score.md)
+- Grundlagen – [Recherche](recherche/trainio-score.md) erledigt (Grundlage für die Formel, keine Anforderung)
 - ⏳ Berechnung – [Trainio-Score: die Formel](tickets/09-score-formel.md)
 - ⏳ Aussehen – [Trainio-Score: Karte, Kachel und Klartext](tickets/10-score-darstellung.md)
 
