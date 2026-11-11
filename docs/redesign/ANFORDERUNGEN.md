@@ -48,13 +48,53 @@ Diagramm-Stil und Symbole.
 - **Entfallen:** Trainio, Iron, Pure, Carbon, Paper, Plakat und Tag & Nacht, außer eines davon wird Design 3 oder 4.
 - Wer ein entferntes Design nutzt, landet automatisch beim neuen Standard.
 
-## 5. Darstellung & Feinanpassung
+## 5. Darstellung, Feinanpassung & Startseite
 
-- Jedes Design legt Ecken, Schrift, Dichte und Glas-Hintergrund **selbst** fest.
-- Die Regler zum Übersteuern **bleiben**, stehen aber in einer eigenen Gruppe **Feinanpassung ganz am Ende**
-  der Darstellung, nicht mehr prominent oben.
-- ⏳ Was oben bleibt, wie die Akzentfarbe gewählt wird und was mit vorhandenen Einstellungen passiert –
-  [Darstellung neu ordnen](tickets/07-darstellung.md)
+Entschieden in [Darstellung neu ordnen](tickets/07-darstellung.md).
+
+**Mehr → Darstellung** von oben nach unten:
+
+1. **Vorschau**
+2. **Design:** die vier Design-Kacheln
+3. **App-Icon** (wie heute)
+4. **Modus** und **Akzentfarbe**
+5. **Lesbarkeit:** Textgröße, Hoher Kontrast
+6. **Bewegung & Feedback:** Animationen, Vibration, Konfetti
+7. **Feinanpassung ›:** eine einzige Zeile ganz unten, die eine eigene Unterseite öffnet
+8. Darstellung zurücksetzen
+
+**Feinanpassung**
+
+- Enthält Ecken, Schrift, Dichte, Tab-Leiste (Stil und Beschriftung) und die eigene Akzentfarbe.
+  ⏳ Ob der Glas-Hintergrund dazukommt: [Liquid Glass auf der neuen Basis](tickets/06-liquid-glass.md)
+- Gilt **je Design**: Jedes Design merkt sich seine eigenen Anpassungen. Nach einem Wechsel sieht man das neue
+  Design so, wie es gedacht ist.
+- Die Zeile zeigt den Zustand: „Wie im Design“ oder z. B. „2 Änderungen“.
+- Die Unterseite hat „Auf Design zurücksetzen“, das nur für das aktuelle Design gilt.
+- Die Suche im Mehr-Tab findet die Regler weiterhin und öffnet die Unterseite.
+
+**Akzentfarbe**
+
+- Jedes Design bietet eine kleine, passende Auswahl (4–6 Farben, die erste ist die Standardfarbe des Designs).
+  Fokus hat womöglich gar keine, weil Farbe dort nur Signal ist.
+  ⏳ Die Auswahl je Design entscheiden die Design-Tickets.
+- Eine eigene Farbe gibt es nur noch in der Feinanpassung. Der Kontrast wird wie heute automatisch angepasst.
+
+**Startseite**: eine eigene Gruppe im Mehr-Tab direkt unter Darstellung. Sie enthält Statistik-Kacheln
+(Auswahl und Reihenfolge), die Karte „Herz diese Woche“, Letzte Workouts und „Beim Öffnen“ (welcher Tab zuerst
+erscheint).
+
+**Darstellung zurücksetzen** setzt alles in der Darstellung zurück, auch die Feinanpassungen aller Designs.
+Die Startseite bleibt unberührt.
+
+**Umstieg auf die neuen Designs** (einmalig, für alle Nutzer):
+
+- **Bleibt:** Modus, Textgröße, Hoher Kontrast, Animationen, Vibration, Konfetti, Startseite, App-Icon.
+- **Zurück auf „vom Design“:** Ecken, Schrift, Dichte, Tab-Leiste.
+- **Akzentfarbe:** bleibt, wenn das neue Design sie anbietet, sonst gilt die Standardfarbe des Designs.
+- Wer ein entferntes Design nutzt, landet beim neuen Standard.
+- Wurde wirklich etwas zurückgesetzt, erscheint einmal der Hinweis „Neue Designs – deine Anpassungen wurden
+  zurückgesetzt“.
 
 ## 6. Trainio-Score
 

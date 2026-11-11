@@ -17,4 +17,5 @@ Zu klären:
 - Wallpaper: bleibt die Auswahl, und gehört sie in die Feinanpassung?
 - Lesbarkeit und Tempo auf dem iPhone (Unschärfe ist teuer)
 - Teilen-Bild, Workout-Score-Ring, Konfetti, Diagramme und Animationen in Liquid Glass
+- Akzentfarben-Auswahl (4–6 Farben, die erste ist der Standard), siehe [Darstellung neu ordnen](07-darstellung.md)
 - Hell und Dunkel

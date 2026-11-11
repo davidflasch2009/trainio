@@ -16,4 +16,5 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
   Fokus ist minimal-monochrom, Liquid Glass atmosphärisch-materiell. Die beiden neuen müssen andere Typen abdecken,
   z. B. ausdrucksstark-grafisch und ruhig-hochwertig mit Farbe.
 - Standard: Welches Design sieht man beim ersten Öffnen? Heißt es wieder „Trainio“?
-- Für jedes neue Design eine erste Idee für sein Markenzeichen.
+- Für jedes neue Design eine erste Idee für sein Markenzeichen und seine Akzentfarben (4–6, siehe
+  [Darstellung neu ordnen](07-darstellung.md)).

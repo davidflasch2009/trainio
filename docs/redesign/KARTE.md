@@ -44,9 +44,12 @@ markiert ist. Gebaut wird erst danach.
 
 <!-- eine Zeile je erledigtem Ticket: [Titel](Link): Kern der Antwort -->
 
+- [Darstellung neu ordnen: oben, Feinanpassung und alte Einstellungen](tickets/07-darstellung.md): Feinanpassung als Unterseite ganz unten und je Design, Akzentfarben je Design kuratiert, Startseite als eigene Mehr-Gruppe, beim Umstieg werden Übersteuerungen zurückgesetzt.
+
 ## Noch nicht festgelegt
 
-- **Steckbriefe der zwei neuen Designs:** Look, Markenzeichen, Teilen-Bild, Ring, Konfetti und Diagramme je Design.
+- **Steckbriefe der zwei neuen Designs:** Look, Markenzeichen, Akzentfarben-Auswahl, Teilen-Bild, Ring, Konfetti und
+  Diagramme je Design.
   Lässt sich erst fassen, wenn feststeht, welche zwei es werden.
 - **Die einzelnen Bildschirme auf der neuen Basis:** Reicht die Festlegung der Basis, oder brauchen Workout,
   Fortschritt, Training, Mehr sowie Fenster & Menüs eigene Entscheidungen? Das zeigt sich erst am Basis-Prototyp.

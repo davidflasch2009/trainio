@@ -16,4 +16,6 @@ Zu klären:
 - Was sich durch die neue Basis an Fokus ändert und was bewusst anders bleibt als in der Basis
 - Ob und wie das Spotlight weiterentwickelt wird
 - Teilen-Bild, Workout-Score-Ring, Konfetti, Diagramme und Animationen in Fokus
+- Akzentfarbe: Bekommt Fokus eine kleine Auswahl (4–6 Farben) oder gar keine, weil Farbe dort nur Signal ist?
+  Siehe [Darstellung neu ordnen](07-darstellung.md).
 - Hell und Dunkel

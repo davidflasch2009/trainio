@@ -25,8 +25,8 @@ Die Signalfarbe für Aktionen und Hervorhebungen innerhalb eines Designs.
 _Avoid_: Primärfarbe, Hauptfarbe
 
 **Feinanpassung**:
-Die Gruppe ganz am Ende der Darstellung, in der man die Vorgaben eines Designs (Ecken, Schrift, Dichte, Glas-Hintergrund …) übersteuern kann.
-_Avoid_: Experten-Einstellungen, Erweitert
+Die Unterseite ganz am Ende der Darstellung, in der man die Vorgaben eines Designs (Ecken, Schrift, Dichte, Tab-Leiste, eigene Akzentfarbe) übersteuert – für jedes Design einzeln.
+_Avoid_: Experten-Einstellungen, Erweitert, Feinschliff
 
 ## Auswertung
 
