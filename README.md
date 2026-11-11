@@ -41,7 +41,8 @@ Gold-Ring). Im Ring steht nur die Zahl. Darunter die Aufschlüsselung:
   bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
 - **Erledigt (35):** erledigte Arbeitssätze ÷ geplante.
 - **Anstrengung (20):** RPE je Satz, volle Punkte bei RPE 7–9.
-- **PR-Bonus:** +3 je neuem e1RM-Rekord, höchstens +9 (Score bleibt bei max. 100).
+- **e1RM-Bonus:** +3 je neuem e1RM-Rekord, höchstens +9 (Score bleibt bei max. 100). Andere PRs (Gewicht, Volumen,
+  Wiederholungen) erscheinen in der Liste „Neue PRs“, zählen aber nicht für den Bonus.
 
 Fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet. Der Score wird aus den gespeicherten
 Workouts berechnet – auch alte und importierte haben einen. Zu sehen beim Abschluss, im Workout-Detail und als
@@ -100,6 +101,7 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
   darunter gleiten mit; der Fortschrittsbalken füllt sich weich und leuchtet bei 100 % auf.
 - **Pausen-Leiste:** gleitet von unten herein, Ring läuft ab, die letzten 3 Sekunden pulsieren, am Ende stupst sie
   einmal sanft an; beim Beenden gleitet sie nach unten weg.
+  Läge der nächste Satz (mit „Satz erledigt“) darunter, rückt die Ansicht ihn knapp darüber (wenn „Scrollen“ an ist).
 - **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, die Werte-Kacheln erscheinen nacheinander, neue PRs
   mit Glanz.
 

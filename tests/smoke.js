@@ -639,16 +639,68 @@ async function desktopFlow(page) {
   check(!page.errors.length, 'keine JavaScript-Fehler', page.errors.join(' | '));
 }
 
+/* Anzeige-Fehler aus der Bestandsaufnahme (docs/redesign/bestandsaufnahme.md, H4–H6) */
+async function anzeigeFlow(page) {
+  console.log('Anzeige-Fehler');
+  await page.evaluate(async () => {
+    const day = n => { const st = Date.now() - n * 864e5; return { date: isoDate(new Date(st)), startedAt: st }; };
+    const bank = (n, kg, reps) => ({ ...day(n), durationSec: 3000, name: 'Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [1, 2, 3].map(() => ({ reps, weightKg: kg, done: true })) }] });
+    await Store.batch([
+      { type: 'put', coll: 'workouts', id: 'az1', doc: bank(20, 100, 8) },
+      { type: 'put', coll: 'workouts', id: 'az2', doc: bank(10, 105, 3) },   // schwerer (Gewichts-PR), aber kein besseres e1RM
+      { type: 'put', coll: 'workouts', id: 'az3', doc: { ...day(1), durationSec: 1800, name: 'Laufen', entries: [{ exerciseId: 'ex_laufband', exerciseName: 'Laufband (Joggen)', sets: [{ durationSec: 1800, distKm: 5, done: true }] }] } }
+    ]);
+    await PR.recalcAll();
+  });
+  // 1. Workout-Score: der Bonus zählt nur e1RM-Rekorde und sagt das auch – kein „kein neuer Rekord“ neben „Neuer PR“
+  const bd = await page.evaluate(() => { const sc = Analytics.score('az2'); return { prs: sc.prs, html: scoreBreakdownHtml(sc) }; });
+  check(bd.prs === 0 && /e1RM-Bonus/.test(bd.html) && /kein neuer e1RM-Rekord/.test(bd.html) && !/PR-Bonus|kein neuer Rekord/.test(bd.html),
+    'Workout-Score: Bonus heißt „e1RM-Bonus“ – ein Gewichts-PR ohne neues e1RM widerspricht ihm nicht', JSON.stringify(bd.prs));
+  // 2. Reine Cardio-Workouts erscheinen nicht als 0 kg
+  const cv = await page.evaluate(() => { const ix = Analytics.cur(); return { cardio: ix.rows.some(r => r.id === 'az3' && r.cardioOnly), total: scopeItems(ix, 'total').map(x => x.ton) }; });
+  check(cv.cardio && cv.total.length === 2 && cv.total.every(t => t > 0), 'Volumen pro Workout: reine Cardio-Workouts zählen nicht mit (keine Punkte auf der Nulllinie)', JSON.stringify(cv));
+  await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress'); });
+  await pause(page, 600);
+  const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
+  check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
+  // 3. Pausen-Leiste: Nach jedem Satz bleibt der nächste Satz samt „Satz erledigt“ sichtbar über der Leiste
+  await page.evaluate(() => {
+    Store.put('templates', 'taz', { name: 'Brust', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 8, reps: '8', restSec: 90, notes: '' }], createdAt: Date.now() });
+    Store.saveSettings({ woStyle: 'detailed', autoRest: true, autoScroll: true, finishConfirm: 'never' });
+    Workout.start({ templateId: 'taz' });
+  });
+  await pause(page, 600);
+  const covered = [];
+  for (let i = 0; i < 6; i++) {
+    await page.evaluate(si => {
+      Workout.set(w => Object.assign(w.entries[0].sets[si], { weightKg: 60, reps: 8 }));
+      App.renderCurrent();
+      [...document.querySelectorAll(`#tab-training [data-act="setDone"][data-ei="0"][data-si="${si}"]`)].find(n => n.offsetParent).click();
+    }, i);
+    await pause(page, 800);
+    const r = await page.evaluate(() => {
+      const sel = Workout.cur().sel, dock = document.querySelector('.rest-dock:not(.leaving)');
+      if (!dock || sel.e < 0) return null;
+      const q = `[data-ei="${sel.e}"][data-si="${sel.s}"]`;
+      const bottom = Math.max(...[...document.querySelectorAll(`#tab-training .set-row${q}, #tab-training [data-act="setDone"]${q}`)].filter(n => n.offsetParent).map(n => n.getBoundingClientRect().bottom));
+      return { s: sel.s, bottom: Math.round(bottom), dock: Math.round(dock.getBoundingClientRect().top) };
+    });
+    if (r && r.bottom > r.dock) covered.push(r);
+  }
+  check(!covered.length, 'Pausen-Leiste verdeckt den nächsten Satz nicht (ausführliche Eingabe, 6 Sätze nacheinander)', JSON.stringify(covered));
+  await page.evaluate(() => Workout.discard ? Workout.discard() : null);
+}
+
 (async () => {
   staticChecks();
   const srv = await serve();
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
-      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix', name === 'iphone' ? IPHONE : undefined);
+      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige', name === 'iphone' ? IPHONE : undefined);
       await flow(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';

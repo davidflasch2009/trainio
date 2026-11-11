@@ -332,7 +332,7 @@ const Analytics = (() => {
   }
   /* Workout-Score 0–100 aus dem Index (gilt damit auch für alte und importierte Workouts):
      Fortschritt 45 + Erledigt 35 + Anstrengung 20; fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet.
-     PR-Bonus: +3 je neuem e1RM-Rekord, höchstens +9; Ergebnis höchstens 100.
+     e1RM-Bonus: +3 je neuem e1RM-Rekord, höchstens +9; Ergebnis höchstens 100.
      Mit echten Daten abgestimmt: Ø ca. 85, eine 100 bei etwa jedem 8. Workout. */
   const SCORE_W = { prog: 45, done: 35, rpe: 20 };
   const scoreCache = new WeakMap();

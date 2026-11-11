@@ -295,8 +295,8 @@ ProgressViews.overview = body => {
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Letzte 7 Tage</span>${infoBtn('Jede Zelle ist ein Tag; je kräftiger das Grün, desto mehr Volumen. Tippen öffnet das Workout.')}</div>
-        <div class="heat7">${days7.map(d => `<button style="background:${heatColor(d.lv)};${d.lv >= 3 ? 'color:var(--accent-ink)' : ''}" class="${d.dn === t ? 'today' : ''}" ${d.rs.length ? `data-act="openWorkout" data-id="${esc(d.rs[d.rs.length - 1].id)}"` : 'disabled'} title="${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) + ' · ' + fmtTon(d.ton) : 'Ruhetag'}" aria-label="${WD_SHORT[dowOfDN(d.dn)]}: ${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) : 'Ruhetag'}">
-          <span>${WD_SHORT[dowOfDN(d.dn)]}</span><span style="font-size:10px;opacity:.8">${d.rs.length ? fmtTon(d.ton).replace(' ', '') : '·'}</span></button>`).join('')}</div>
+        <div class="heat7">${days7.map(d => `<button style="background:${heatColor(d.lv)};${d.lv >= 3 ? 'color:var(--accent-ink)' : ''}" class="${d.dn === t ? 'today' : ''}" ${d.rs.length ? `data-act="openWorkout" data-id="${esc(d.rs[d.rs.length - 1].id)}"` : 'disabled'} title="${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) + ' · ' + dayVolTxt(d.rs, d.ton) : 'Ruhetag'}" aria-label="${WD_SHORT[dowOfDN(d.dn)]}: ${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) : 'Ruhetag'}">
+          <span>${WD_SHORT[dowOfDN(d.dn)]}</span><span style="font-size:10px;opacity:.8">${d.rs.length ? dayVolTxt(d.rs, d.ton).replace(' ', '') : '·'}</span></button>`).join('')}</div>
       </div>
       <div class="chart-card wide">
         <div class="cc-head"><span class="cc-title">Trainings-Konsistenz (52 Wochen)</span>${infoBtn('GitHub-Style: jede Zelle ein Tag, Farbintensität nach Tagesvolumen (Quartile). Tippen öffnet das Workout.')}</div>
@@ -342,6 +342,8 @@ function nextPRAttack(ix) {
   const weight = Math.ceil(target / (1 + reps / 30) / step) * step;
   return { ...best, reps, weight };
 }
+/** Volumen eines Tages als Text – reine Cardio-Tage heißen „Cardio“ statt „0 kg“ */
+const dayVolTxt = (rs, ton) => rs.every(r => r.cardioOnly) ? 'Cardio' : fmtTon(ton);
 function ghHeatmap(ix) {
   const t = todayDN();
   const ws = weekStartDN(t);
@@ -365,7 +367,7 @@ function ghHeatmap(ix) {
       const rs = byDn[dn];
       const ton = rs ? sum(rs.map(r => r.ton)) : 0;
       const lv = rs ? level(ton) : 0;
-      cells += `<rect x="${left + wi * (cs + gap)}" y="${top + di * (cs + gap)}" width="${cs}" height="${cs}" rx="3" fill="${heatColor(lv)}" ${rs ? `data-act="openWorkout" data-id="${esc(rs[rs.length - 1].id)}" style="cursor:pointer"` : ''}><title>${fmtDN(dn)}${rs ? ': ' + esc(rs.map(r => r.name).join(', ')) + ' · ' + fmtTon(ton) : ''}</title></rect>`;
+      cells += `<rect x="${left + wi * (cs + gap)}" y="${top + di * (cs + gap)}" width="${cs}" height="${cs}" rx="3" fill="${heatColor(lv)}" ${rs ? `data-act="openWorkout" data-id="${esc(rs[rs.length - 1].id)}" style="cursor:pointer"` : ''}><title>${fmtDN(dn)}${rs ? ': ' + esc(rs.map(r => r.name).join(', ')) + ' · ' + dayVolTxt(rs, ton) : ''}</title></rect>`;
     }
   }
   const lbl = S().weekStart === 'sunday' ? ['', 'Mo', '', 'Mi', '', 'Fr', ''] : ['Mo', '', 'Mi', '', 'Fr', '', 'So'];
@@ -727,7 +729,8 @@ function scopeItems(ix, scope) {
       return { dn: w.dn, ton: sum(ss.map(s => s.vol)), sets: w.mP[m], reps: sum(ss.map(s => s.reps)), bins: ss.reduce((b, s) => binsOfList(s.list).map((v, i) => v + b[i]), [0, 0, 0, 0]), name: w.name };
     });
   }
-  return ix.rows.map(w => ({ dn: w.dn, ton: w.ton, sets: w.sets, reps: w.reps, bins: w.bins, name: w.name, restAvg: w.restAvg }));
+  // Reine Cardio-Workouts haben kein Volumen – sonst Punkte auf der Nulllinie und ein verfälschter Ø
+  return ix.rows.filter(w => !w.cardioOnly).map(w => ({ dn: w.dn, ton: w.ton, sets: w.sets, reps: w.reps, bins: w.bins, name: w.name, restAvg: w.restAvg }));
 }
 ProgressViews.volume = body => {
   const ix = Analytics.cur();

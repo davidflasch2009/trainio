@@ -1117,7 +1117,21 @@ Actions.setDone = el => {
   else if (focus && w.focusE !== ei) Scroll.to(0, true);
   // Letzter Satz abgehakt: zum „Workout beenden"-Knopf unten scrollen
   if (wasLast && !focus && S().autoScroll !== false) requestAnimationFrame(() => { const b = $('#woFinishEnd'); if (b) b.scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+  // Gleiche Übung geht weiter: die Pausen-Leiste darf den nächsten Satz (und seinen „Satz erledigt"-Knopf) nicht verdecken
+  else if (!exDone && S().autoScroll !== false) requestAnimationFrame(() => revealAboveDock(w.sel));
 };
+/** Liegt der gewählte Satz unter der Pausen-Leiste, so weit hochscrollen, dass er knapp darüber frei steht */
+function revealAboveDock(sel) {
+  const dock = $('.rest-dock:not(.leaving)');
+  if (!dock || !sel || sel.e < 0) return;
+  const q = `[data-ei="${sel.e}"][data-si="${sel.s}"]`;
+  const els = $$(`.set-row${q}, [data-act="setDone"]${q}`).filter(n => n.offsetParent && !n.closest('.modal'));
+  if (!els.length) return;
+  // Oberkante der Leiste aus ihrer festen Position – unabhängig davon, ob sie gerade noch hereingleitet
+  const dockTop = innerHeight - (parseFloat(getComputedStyle(dock).bottom) || 0) - dock.offsetHeight;
+  const over = Math.max(...els.map(n => n.getBoundingClientRect().bottom)) - (dockTop - 12);
+  if (over > 0) Scroll.to(Scroll.y + over, S().motion === 'full');
+}
 /* ---------- Wischgesten auf Satz-Zeilen: → abhaken, ← löschen (mit Rückgängig) ---------- */
 function deleteSetWithUndo(ei, si) {
   const w = Workout.cur(); if (!w) return;
@@ -1406,7 +1420,7 @@ function scoreBreakdownHtml(sc) {
     ? `<div class="sb-item na"><span>${l}</span><b>–</b><small>${why}</small></div>`
     : `<div class="sb-item"><span>${l}</span><b>${Math.round(sc.parts[k] * W[k])}<small> / ${W[k]}</small></b><i style="--p:${Math.round(sc.parts[k] * 100)}%"></i></div>`;
   return `<div class="score-bd">${item('prog', 'Fortschritt', 'keine Vergleichswerte')}${item('done', 'Erledigt', '')}${item('rpe', 'Anstrengung', 'kein RPE eingetragen')}
-    <div class="sb-item"><span>PR-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer Rekord' : 'neue Rekorde'}` : 'kein neuer Rekord'}</small></div></div>
+    <div class="sb-item"><span>e1RM-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer e1RM-Rekord' : 'neue e1RM-Rekorde'}` : 'kein neuer e1RM-Rekord'}</small></div></div>
     ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}`;
 }
 /** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen.
