@@ -15,9 +15,15 @@ markiert ist. Gebaut wird erst danach.
 - **Begriffe:** [CONTEXT.md](../../CONTEXT.md) – Design, Modus, Basis, Akzentfarbe, Feinanpassung, Markenzeichen,
   Workout-Score, Trainio-Score, Phase. Neue Begriffe dort sofort eintragen.
 - **Skills:** grilling-Tickets → Skill „grilling“ und „domain-modeling“; prototype → „prototype“; research → „research“.
-- **Nur planen:** Diese Karte verändert die App nicht. Prototypen sind Wegwerf-Dateien unter
-  `docs/redesign/prototypen/`, Screenshots unter `docs/redesign/bilder/`. Planungs-Dateien werden ohne Release auf
-  `main` committet.
+- **Nur planen:** Diese Karte verändert die App nicht. Gebaut wird erst, wenn ANFORDERUNGEN.md kein ⏳ mehr hat
+  (David, bestätigt beim Start der Umsetzung). Planungs-Dateien werden ohne Release auf `main` committet,
+  Screenshots liegen unter `docs/redesign/bilder/`.
+- **Prototypen** bekommt David als eigene Seite mit Link (privates Artifact), am iPhone zum Durchtippen –
+  Wegwerf-Entwürfe, nie in der echten App. Quelle unter `docs/redesign/prototypen/`.
+- **Wer entscheidet:** David alles, was den Geschmack prägt (Look der Basis, die vier Designs, Bestandteile und
+  Klartext des Scores). Details im festgelegten Rahmen (genaue Abstände, Schriftgrößen, Randfälle) entscheidet
+  Claude selbst und schreibt sie nachlesbar in ANFORDERUNGEN.md.
+- **Reihenfolge:** Darstellung → Trainio-Score → Basis und Designs; die Bestandsaufnahme läuft nebenher.
 - **Feste Vorlieben von David:** Kein Feature fällt weg, alles bleibt abschaltbar. Neue Regler wandern in die
   Feinanpassung, nicht nach oben. Lieber klar und ehrlich als scheingenau.
 - **Ergebnis jedes Tickets:** Die Antwort steht im Ticket. Was daraus Anforderung wird, wandert zusätzlich in
@@ -45,7 +51,8 @@ markiert ist. Gebaut wird erst danach.
 - **Die einzelnen Bildschirme auf der neuen Basis:** Reicht die Festlegung der Basis, oder brauchen Workout,
   Fortschritt, Training, Mehr sowie Fenster & Menüs eigene Entscheidungen? Das zeigt sich erst am Basis-Prototyp.
 - **Reihenfolge der Umsetzung:** Basis zuerst? Alte Designs auf einmal oder schrittweise entfernen? In welchen
-  Releases? Wie lange laufen alte und neue Gestaltung nebeneinander?
+  Releases? Fest: Auch andere nutzen Trainio – jeder Release muss in sich fertig sein, nichts darf halb umgebaut
+  live gehen.
 - **Der Trainio-Score an weiteren Orten:** Teilen-Bild, Meilensteine, Hinweis bei starker Veränderung – vage,
   hängt an Formel und Darstellung.
 

@@ -2,7 +2,7 @@
 
 - **Typ:** task (AFK)
 - **Status:** offen
-- **Übernommen von:** –
+- **Übernommen von:** Claude (Agent)
 - **Blockiert durch:** –
 
 ## Frage
