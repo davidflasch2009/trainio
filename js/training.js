@@ -36,7 +36,7 @@ Views.start = {
           <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
         </div>`,
         volume: `<div class="stat">
-          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Summe aus Wiederholungen × Gewicht aller erledigten Sätze dieser Woche. Vergleich mit der Vorwoche bis zum gleichen Wochentag – der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast.')}</div>
+          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Wiederholungen × Gewicht aller Sätze dieser Woche. Vergleich: Vorwoche bis zum gleichen Tag.')}</div>
           <div class="stat-value">${fmtTon(volNow)}</div>
           <div class="stat-sub">diese Woche ${deltaHtml(volNow, volPrev)}</div>
         </div>`,

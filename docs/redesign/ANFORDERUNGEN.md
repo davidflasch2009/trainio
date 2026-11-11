@@ -16,6 +16,10 @@ Dazu kommt der **Trainio-Score**, der zeigt, wie sich Kraft und Muskulatur entwi
 - **Der Aufbau bleibt:** Tabs, Bildschirme und Funktionen bleiben erhalten, kein Feature fällt weg.
   Innerhalb eines Bildschirms darf alles neu angeordnet werden (Reihenfolge, Hierarchie, Komponenten).
 - **Alle Funktionen bleiben einzeln abschaltbar** (Mehr → Tabs & Funktionen).
+- **Wenig Text (David: „extrem wichtig“):** Jede Erklärung im (i) hat **höchstens 2 kurze Sätze**: was die Zahl
+  oder das Diagramm zeigt und, nur wenn nötig, wie man es liest. Keine Herleitungen, Formeln oder Quellen (die stehen
+  in README und Recherche), keine Wiederholung von Standards wie „die laufende Woche ist blass“ – das zeigt die
+  Gestaltung. Auch sonst keine Fülltexte auf den Bildschirmen: so kurz und klar wie möglich.
 - **Alles folgt dem Design:** Teilen-Bild, Workout-Score-Ring & Konfetti, Diagramme und Animationen.
 - Sprache: Deutsch.
 

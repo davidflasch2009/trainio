@@ -747,6 +747,21 @@ async function muskelFlow(page) {
     return { hb: Store.raw('exercises', 'ex_kniebeuge').muscleGroups.join(','), lb: Store.raw('exercises', 'ex_kniebeuge_lowbar').muscleGroups.join(','), v: S().seedVersion };
   });
   check(sq.hb === 'Quadrizeps,Gesäß' && sq.lb === 'Quadrizeps,Gesäß,Beinbeuger,Waden' && sq.v >= 6, 'Kniebeuge: unterer Rücken entfernt, selbst geänderte Übungen bleiben unberührt', JSON.stringify(sq));
+  // Wenig Text: jede Erklärung im (i) hat höchstens 2 kurze Sätze (docs/redesign/ANFORDERUNGEN.md, Abschnitt 2)
+  const infos = new Set();
+  const grab = async () => (await page.evaluate(() => [...document.querySelectorAll('[data-info]')].map(b => b.dataset.info))).forEach(t => infos.add(t));
+  await page.evaluate(() => Store.saveSettings({ f_bodyFat: true, f_measures: true }));
+  for (const sub of ['overview', 'strength', 'volume', 'muscles', 'cardio', 'body']) {
+    for (const sc of sub === 'strength' || sub === 'volume' ? ['total', 'exercise', 'muscle'] : ['total']) {
+      await page.evaluate(([s, sc]) => { UI.progSub = s; UI.kraftScope = sc; UI.volScope = sc; App.go('progress'); }, [sub, sc]);
+      await pause(page, 500); await grab();
+    }
+  }
+  for (const t of ['start', 'training', 'more']) { await page.evaluate(t => App.go(t), t); await pause(page, 400); await grab(); }
+  const ABBR = /\b(z\. B|d\. h|u\. a|bzw|ca|Wdh|usw|evtl|inkl|min|Std|Nr|vs|ggf|max|mind|etc)\./g;
+  const sentences = t => t.replace(ABBR, m => m.replace(/\./g, '·')).replace(/\d\.\d/g, 'x').split(/[.!?…](?:\s|$)/).filter(x => x.trim().length > 2).length;
+  const long = [...infos].filter(t => sentences(t) > 2 || t.length > 150);
+  check(infos.size > 40 && !long.length, `Erklärungen im (i): höchstens 2 kurze Sätze (${infos.size} geprüft)`, long.slice(0, 3).join(' | '));
 }
 
 (async () => {

@@ -603,9 +603,9 @@ const Heart = (() => {
       <div class="hr-actions"><button class="btn btn-primary grow" data-act="rhrMeasure">${icon('heart')} Ruhepuls messen</button><button class="btn btn-secondary grow" data-act="hiitQuick">${icon('timer')} Intervall-Timer</button></div>
       <div class="charts-grid">
         ${pw ? `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan · diese Woche</span><button class="btn-icon" style="width:36px;height:36px" data-act="heartPlan" aria-label="Herz-Plan bearbeiten">${icon('edit')}</button></div>${planBars(pw)}</div>`
-          : `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan</span>${infoBtn('Ein Wochenziel fürs Herztraining, z. B. 3 Einheiten, davon 1× hart (Intervalle), 90 Minuten locker in Zone 2 – alles frei einstellbar.')}</div>
+          : `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan</span>${infoBtn('Dein Wochenziel fürs Herztraining, z. B. 3 Einheiten, davon 1× hart.')}</div>
             <div><button class="btn btn-secondary btn-sm mt-8" data-act="heartPlan">${icon('plus')} Herz-Plan einrichten</button></div></div>`}
-        ${cb.card({ id: 'h1', wide: true, title: 'Ruhepuls', info: 'Herzschläge pro Minute in völliger Ruhe – am besten morgens direkt nach dem Aufwachen gemessen. Sinkt er über Wochen, arbeitet dein Herz effizienter. Die Linie zeigt den Ø der letzten 7 Tage (einzelne Tage schwanken), die Punkte die einzelnen Messungen.',
+        ${cb.card({ id: 'h1', wide: true, title: 'Ruhepuls', info: 'Herzschläge pro Minute in Ruhe, am besten morgens gemessen. Sinkt er über Wochen, arbeitet dein Herz effizienter.',
           big: now ? nf(now.base, 0) : '–', small: now ? `Ø 7 Tage · zuletzt ${now.last.v} ${relDays(now.last.dn)}` : 'noch nicht gemessen',
           delta: now && baseFirst && first.dn < now.last.dn ? deltaHtml(now.base, baseFirst, { invert: true, fmt: x => (x > 0 ? '+' : '') + nf(x, 0) }) : '', sub: now && baseFirst && first.dn < now.last.dn ? `seit ${fmtDateShort(first.date)}` : '',
           extra: `<div class="row mt-8" style="gap:8px"><button class="btn btn-secondary btn-sm" data-act="heartHistory">${icon('list')} Alle Werte</button></div>`,
@@ -613,7 +613,7 @@ const Heart = (() => {
             lineDS('Ø 7 Tage', inR.map(x => ({ x: x.dn, y: round(rhrAt(x.dn, l), 1) })), c.accent),
             { ...lineDS('Messung', inR.map(x => ({ x: x.dn, y: x.v })), c.faint), showLine: false, fill: false, pointRadius: 3 }
           ], { tooltipFmt: x => nf(x, 0) + '/min', thresholds: goalLine(p && p.rhrGoal, 'Ziel') }) : null })}
-        ${cb.card({ id: 'h2', wide: true, title: 'VO2max', info: 'Maximale Sauerstoffaufnahme in ml pro kg Körpergewicht und Minute – das beste Einzelmaß für Ausdauer und Herzgesundheit. Ohne Uhr schätzt Trainio sie nach Uth et al. (2004): 15,3 × Maximalpuls ÷ Ruhepuls (Ø 7 Tage). Das ist ein Richtwert (etwa ±10 %), der Trend ist aber aussagekräftig. Gemessene Werte (z. B. aus einer Leistungsdiagnostik) haben Vorrang. Einordnung nach Alter und Geschlecht (Shvartz & Reibold).',
+        ${cb.card({ id: 'h2', wide: true, title: 'VO2max', info: 'Das beste Einzelmaß für Ausdauer, aus deinem Puls geschätzt (etwa ±10 %). Gemessene Werte haben Vorrang.',
           big: v ? nf(v.v, 1) : '–', small: v ? `ml/kg/min · ${v.est ? 'geschätzt' : 'gemessen'}` : !maxHr() ? 'Geburtsjahr fehlt' : 'erst Ruhepuls messen',
           sub: cls ? `<div class="vo2-scale" aria-hidden="true">${VO2_LABELS.map((_, i) => `<i class="${i === cls.i ? 'on' : ''}"></i>`).join('')}</div><div class="vo2-lbl"><b>${cls.label}</b> für ${a} Jahre${a < 20 ? ' (Werte ab 20 Jahren)' : ''}</div>` : '',
           extra: `<div class="row mt-8" style="gap:8px">${maxHr() ? '' : ageCta}<button class="btn btn-secondary btn-sm" data-act="vo2Entry">${icon('plus')} Messwert eintragen</button></div>`,
@@ -622,12 +622,12 @@ const Heart = (() => {
             ...(measR.length ? [{ ...lineDS('gemessen', measR, c.series[1]), showLine: measR.length > 1, fill: false, pointRadius: 4 }] : [])
           ], { tooltipFmt: x => nf(x, 1), legend: estR.length > 0 && measR.length > 0, thresholds: goalLine(p && p.vo2Goal, 'Ziel') }) : null })}
         <div class="chart-card">
-          <div class="cc-head"><span class="cc-title">Deine Pulszonen</span>${infoBtn('Berechnet aus Maximal- und Ruhepuls (Karvonen-Formel: Ruhepuls + Anteil der Herzfrequenz-Reserve); ohne Ruhepuls als Anteil des Maximalpulses. Der Maximalpuls wird aus dem Alter geschätzt (208 − 0,7 × Alter, Tanaka) – kennst du deinen echten, trag ihn ein. Fürs Herz am wichtigsten: viel Zeit in Zone 2 und ab und zu kurz Zone 4–5.')}</div>
+          <div class="cc-head"><span class="cc-title">Deine Pulszonen</span>${infoBtn('Deine Zonen aus Maximal- und Ruhepuls. Fürs Herz am wichtigsten: viel Zone 2, ab und zu kurz Zone 4–5.')}</div>
           ${z ? `<div class="hz-list mt-8">${z.list.map(x => `<div class="hz-row hz-${x.i}"><span class="hz-n">${x.i}</span><span class="grow"><b>${x.name}</b><small>${x.feel}</small></span><span class="hz-b">${x.lo}–${x.hi}</span></div>`).join('')}</div>
             <div class="tiny dim mt-8">Max-Puls ${z.max.v}${z.max.est ? ' (geschätzt)' : ''}${z.rest ? ` · Ruhepuls ${z.rest}` : ' · ohne Ruhepuls'} · <button class="link-btn hz-edit" data-act="heartMax">ändern</button></div>`
           : `<p class="small dim mt-8">Für deine persönlichen Zonen braucht Trainio dein Alter (oder deinen Maximalpuls).</p><div>${ageCta}</div>`}
         </div>
-        ${cb.card({ id: 'h3', title: 'Intensität pro Woche', info: 'Cardio-Minuten je Woche nach Intensität – eingestellt im Workout bei der Cardio-Übung (locker / mittel / hart) oder aus dem Ø Puls. Bewährt für Herz und VO2max: etwa 80 % locker (Zone 2), 20 % hart. „Mittel" bringt pro Minute am wenigsten.',
+        ${cb.card({ id: 'h3', title: 'Intensität pro Woche', info: 'Cardio-Minuten pro Woche nach Intensität. Bewährt: etwa 80 % locker, 20 % hart.',
           big: rated ? Math.round(sum(effW.easy) / rated * 100) + ' %' : '–', small: rated ? 'locker im Zeitraum' : 'noch keine Intensität erfasst',
           factory: () => items.length ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [
             stack('locker', effW.easy, c.success), stack('mittel', effW.mod, c.warning), stack('hart', effW.hard, c.danger),

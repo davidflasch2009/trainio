@@ -56,7 +56,7 @@ function moreGroups() {
         : `
           <div class="acc-card">
             <div class="avatar">${icon('user')}</div>
-            <div class="grow"><div class="bold">Lokaler Modus${Auth.configured() ? infoBtn('Melde dich an, um iPhone und Laptop zu synchronisieren.' + (Auth.providers().length > 1 ? ' Jeder Anmeldeweg ist ein eigenes Konto – angemeldet kannst du weitere verknüpfen, sie führen dann zu denselben Daten.' : '')) : ''}</div>${Auth.configured() ? '' : '<div class="small dim">Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.</div>'}</div>
+            <div class="grow"><div class="bold">Lokaler Modus${Auth.configured() ? infoBtn('Melde dich an, um iPhone und Laptop zu synchronisieren.' + (Auth.providers().length > 1 ? ' Jeder Anmeldeweg ist ein eigenes Konto, angemeldet lassen sie sich verknüpfen.' : '')) : ''}</div>${Auth.configured() ? '' : '<div class="small dim">Firebase ist noch nicht konfiguriert – deine Daten bleiben auf diesem Gerät.</div>'}</div>
           </div>
           ${Auth.providers().map((k, i) => `<button class="btn btn-secondary btn-block ${i ? 'mt-8' : 'mt-12'}" data-act="signIn" data-p="${k}" ${Auth.configured() ? '' : 'disabled'}>${Auth.provider(k).icon} Mit ${Auth.provider(k).label} anmelden</button>`).join('')}
           ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
@@ -127,7 +127,7 @@ function moreGroups() {
       ] },
     lookGroup(s),
     { id: 'toasts', title: 'Meldungen', ic: 'info',
-      intro: 'Kurze Meldungen oben im Bildschirm. Fehler, Hinweise wie „Bitte ein Gewicht eintragen" und Meldungen mit Knopf (z. B. „Rückgängig") kommen immer. Antippen oder nach oben bzw. zur Seite wischen schließt eine Meldung sofort.',
+      intro: 'Kurze Meldungen oben im Bildschirm. Fehler und Meldungen mit Knopf (z. B. „Rückgängig“) kommen immer.',
       sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, sub, toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
     { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', val: hidden ? `${hidden} ausgeblendet` : '',
       intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',

@@ -248,16 +248,16 @@ ProgressViews.overview = body => {
         <div class="minibars" role="img" aria-label="Workouts pro Woche, letzte 12 Wochen">${wCounts.map((n, i) => `<i class="${n ? '' : 'zero'}${i === 11 ? ' run' : ''}" style="height:${Math.max(4, n / mxW * 100)}%" title="KW ${isoWeek(weeks12[i]).week}: ${n}${i === 11 ? ' (läuft noch)' : ''}"></i>`).join('')}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn(`Diese Woche im Vergleich zur Vorwoche bis zum gleichen Wochentag – so ist der Vergleich fair, auch mitten in der Woche. Der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast; vorher wird in beiden Wochen bis gestern verglichen. Volumen = Σ Wiederholungen × Gewicht aller erledigten Arbeitssätze.`)}</div>
+        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn('Diese Woche gegen die Vorwoche, jeweils bis zum gleichen Wochentag. Heute zählt erst nach deinem Workout.')}</div>
         ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev), `${e < cw ? 'Noch kein abgeschlossener Tag diese Woche' : `Vorwoche bis ${wdName}`}${todayNote} · ganze Vorwoche: ${wkFull.n} ${wkFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(wkFull.ton)}`)}
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Unterschiedliche Tage mit Training im aktuellen Monat. Verglichen wird mit dem anteiligen Durchschnitt der letzten 6 Monate bis zum heutigen Tag (heute zählt erst nach deinem Workout).')}</div>
+        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Tage mit Training in diesem Monat. Vergleich: dein Ø der letzten 6 Monate bis zum gleichen Tag.')}</div>
         <div class="cc-big"><b>${curMonth}</b><small>Ø ${nf(avg6, 1)} / Monat (6 M.)</small>${now.getDate() >= 3 ? deltaHtml(curMonth, expected) : ''}</div>
         <div class="cc-sub">Soll bis heute (anteilig): ${nf(expected, 1)} Tage · Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} im Vergleich zum ${monthName(pmD)} bis zum gleichen Tag. Der heutige Tag zählt erst, wenn du heute ein Workout gespeichert hast. Körpergewicht: Durchschnitt aller Einträge im ganzen Monat.`)}</div>
+        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} gegen ${monthName(pmD)}, jeweils bis zum gleichen Tag. Körpergewicht: Ø des ganzen Monats.`)}</div>
         ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
           `${e < ms ? 'Noch kein abgeschlossener Tag diesen Monat' : `${monthName(pmD)} bis zum ${e - ms + 1}.`}${todayNote} · ganzer Monat: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}`)}
       </div>
@@ -266,7 +266,7 @@ ProgressViews.overview = body => {
         const rS = Analytics.range(), sOf = rs => rs.map(x => ({ x, s: Analytics.score(x.id) })).filter(o => o.s);
         const cur = sOf(Analytics.rowsIn(rS)), prv = sOf(Analytics.rowsIn(Analytics.prevRange(rS)));
         const a = cur.length ? avg(cur.map(o => o.s.score)) : null, b = prv.length ? avg(prv.map(o => o.s.score)) : null;
-        return cb.card({ id: 'score', wide: true, title: 'Workout-Score', info: 'Score 0–100 je Workout: Fortschritt gegenüber dem letzten Mal (45), erledigte Sätze (35) und Anstrengung laut RPE (20); fehlt ein Teil, wird hochgerechnet. Neue e1RM-Rekorde geben +3 (höchstens +9). Punkte = einzelne Workouts, Linie = Ø der letzten 3 Wochen.',
+        return cb.card({ id: 'score', wide: true, title: 'Workout-Score', info: 'Die Bewertung jedes Workouts von 0 bis 100. Punkte: einzelne Workouts, Linie: Ø der letzten 3 Wochen.',
           big: a != null ? nf(a, 0) : '–', small: 'Ø im Zeitraum', delta: a != null && b != null ? deltaHtml(a, b, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }) : '',
           factory: () => {
             if (cur.length < 2) return null;
@@ -282,7 +282,7 @@ ProgressViews.overview = body => {
         size: 'sm', factory: () => sum(ppl) ? donut(['Push', 'Pull', 'Legs', 'Andere'], ppl, [c.series[0], c.series[1], c.series[2], c.faint], { tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null
       })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">${icon('target', 'cc-ic')} Nächster PR-Angriff</span>${infoBtn('Übung mit der höchsten PR-Dringlichkeit: Deine Form der letzten 4 Wochen ist nah am Bestwert und du hast sie länger nicht trainiert. Vorschlag zielt auf ein ~1,5 % höheres e1RM.')}</div>
+        <div class="cc-head"><span class="cc-title">${icon('target', 'cc-ic')} Nächster PR-Angriff</span>${infoBtn('Die Übung, bei der ein neuer Rekord am nächsten liegt. Der Vorschlag zielt auf etwa 1,5 % mehr e1RM.')}</div>
         ${attack ? `<div class="cc-big"><b style="font-size:20px">${esc(Ex.name(attack.exId))}</b></div>
           <div class="cc-sub">Versuche <b class="accent">${fmtW(attack.weight)} × ${attack.reps}</b> · aktueller e1RM-PR ${fmtW(attack.pr)} · zuletzt ${relDays(attack.lastDn)}</div>
           <button class="btn btn-secondary btn-sm mt-12" data-act="openExercise" data-id="${esc(attack.exId)}">Verlauf ansehen</button>`
@@ -424,7 +424,7 @@ function renderMoreStats(el) {
       factory: () => durs.length ? barChart(bins.map(b => b[2]), [barDS('Workouts', bins.map(([a, z]) => durs.filter(d => d >= a && d < z).length), c.accent)], { tooltipFmt: v => `${v} Workouts` }) : null })}
     ${cb.card({ id: 'setsw', title: 'Sätze pro Workout', info: 'Anzahl erledigter Arbeitssätze je Workout.', big: rows.length ? nf(avg(rows.map(w => w.sets)), 1) : '–', small: 'Ø',
       factory: () => rows.length > 1 ? timeLine([lineDS('Sätze', rows.map(w => ({ x: w.dn, y: w.sets })), c.accent)], { tooltipFmt: v => nf(v, 0) }) : null })}
-    ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Anzahl neuer e1RM-Bestwerte pro Monat (letzte 12 Monate). Der laufende Monat ist blass.', big: sum(prMonth), small: 'PRs in 12 Monaten',
+    ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Neue e1RM-Rekorde pro Monat in den letzten 12 Monaten.', big: sum(prMonth), small: 'PRs in 12 Monaten',
       factory: () => barChart(months12.map(k => MONTHS[+k.slice(5) - 1]), [barDS('PRs', prMonth, c.accent)], { tooltipFmt: v => `${v} PRs`, running: 11 }) })}
     <div class="chart-card">
       <div class="cc-head"><span class="cc-title">${icon('trophy', 'cc-ic')} Rekord-Workout</span>${infoBtn('Deine Session mit der höchsten Tonnage aller Zeiten.')}</div>
@@ -436,7 +436,7 @@ function renderMoreStats(el) {
       <div class="cc-sub">= ${nf(totalTon / 0.23, 0)} Big Macs · ${nf(totalTon / 1500, 1)} Autos · ${nf(totalTon / 6000, 1)} Elefanten</div>
     </div>
     <div class="chart-card wide">
-      <div class="cc-head"><span class="cc-title">${icon('warn', 'cc-ic')} Erste-Hilfe-Ampel</span>${infoBtn('Vergleicht das beste e1RM der letzten 4 Wochen mit den 4 Wochen davor. Grün: Fortschritt oder neuer PR. Gelb: Stagnation. Rot: Rückschritt > 3 %.')}</div>
+      <div class="cc-head"><span class="cc-title">${icon('warn', 'cc-ic')} Erste-Hilfe-Ampel</span>${infoBtn('Bestes e1RM der letzten 4 Wochen gegen die 4 Wochen davor. Grün: besser, gelb: gleich, rot: über 3 % schlechter.')}</div>
       ${ampel.length ? `<div>${ampel.map(a => `<button class="ampel-row" style="width:100%;background:none;border-left:0;border-right:0;border-top:0;color:inherit;text-align:left" data-act="openExercise" data-id="${esc(a.id)}"><span class="ampel-dot" style="background:${ampelColor[a.st]}"></span><span class="grow">${esc(Ex.name(a.id))}</span><span class="small dim">${ampelText[a.st]}</span><span class="small num" style="min-width:110px;text-align:right">${a.recMax ? wNum(a.recMax, 1) : '–'} ← ${a.prMax ? wNum(a.prMax, 1) : '–'} ${unit()}</span></button>`).join('')}</div>` : '<p class="dim small mt-8">Trainiere Übungen regelmäßig – dann erscheint hier ihre Ampel.</p>'}
     </div>
   </div>`;
@@ -562,7 +562,7 @@ ProgressViews.strength = body => {
     const cmp = ids.map(id => ({ id, pts: sinceFix(ix.sessions[id], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
       .map((x, i) => ({ id: x.id, color: c.series[i], pts: robustSeries(x.pts).series.map(p => ({ x: p.x, y: round(p.ratio * 100, 1), label: `${nf(p.ratio * 100, 0)} % (e1RM ${fmtW(p.v)}, Mittel der letzten Sessions)` })) }));
     const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
-    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Deine Form in den meist-trainierten Übungen (mind. 3 Sessions im Zeitraum): Median des geschätzten 1RM aus den letzten 3 Sessions, verglichen mit den ersten 3 Sessions im Zeitraum (= 100 %). So siehst du auf einer Skala, welche Übung am schnellsten wächst – einzelne gute oder schlechte Tage verfälschen das Bild nicht.',
+    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Deine Form je Übung, der Start im Zeitraum ist 100 %. So siehst du, welche Übung am schnellsten wächst.',
       big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
       factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null });
   };
@@ -573,9 +573,9 @@ ProgressViews.strength = body => {
     const fx = ids.length === 1 ? lastFix(ix.sessions[ids[0]] || []) : null, fixNewer = fx && (!last || fx.dn > last.dn);
     const since = fixNewer ? t - fx.dn : last ? t - last.dn : t - firstDn;
     return `<div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Tage seit deinem letzten Rekord (geschätztes 1RM) ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'}. Wer lange trainiert, wird nur noch langsam stärker – 2–3 Monate ohne neuen Rekord sind dann normal. Bleibt es deutlich länger still, kann ein neuer Reiz helfen (Deload, andere Wiederholungsbereiche, Variation).`)}</div>
+        <div class="cc-head"><span class="cc-title">Tage seit letztem PR</span>${infoBtn(`Tage seit deinem letzten Rekord ${ids.length > 1 ? 'in diesen Übungen' : 'in dieser Übung'}.`)}</div>
         <div class="cc-big"><b style="font-size:46px">${since}</b><small>${since === 1 ? 'Tag' : 'Tage'}</small></div>
-        <div class="cc-sub">${fixNewer ? `Seit dem Form-Fix am ${fmtDate(fx.date)} noch kein neuer PR` : last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}${since > 120 ? ' · vielleicht Zeit für einen neuen Reiz' : ''}</div>
+        <div class="cc-sub">${fixNewer ? `Seit dem Form-Fix am ${fmtDate(fx.date)} noch kein neuer PR` : last ? `Letzter PR: ${ids.length > 1 ? esc(Ex.name(last.exId)) + ' ' : ''}${fmtW(last.w)} × ${last.r} am ${fmtDate(last.date)}` : 'Noch kein PR – seit der ersten Session'}</div>
       </div>`;
   };
   const head = `
@@ -589,7 +589,7 @@ ProgressViews.strength = body => {
   /* ----- Gesamt / Pro Muskelgruppe: Prozent-Ansicht (kg verschiedener Übungen lassen sich nicht addieren) ----- */
   if (scope !== 'exercise') {
     const ids = scope === 'muscle' ? exIds.filter(id => isPrimary(id, muscle)) : exIds;
-    const what = scope === 'muscle' ? `deiner ${muscle}-Übungen (${muscle} als Hauptmuskel)` : 'aller Übungen';
+    const what = scope === 'muscle' ? `deiner ${muscle}-Übungen` : 'aller Übungen';
     const gains = strengthGains(ix, ids, r);
     const idxPts = gainIndex(gains);
     const idxNow = idxPts.length ? idxPts[idxPts.length - 1].y : null;
@@ -601,16 +601,16 @@ ProgressViews.strength = body => {
     const firstDn = Math.min(...ids.map(id => ix.sessions[id][0].dn));
     body.innerHTML = `${head}
     <div class="charts-grid">
-      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist – als Durchschnitt ${what} mit mind. 3 Sessions. Je Übung zählt deine Form der letzten 3 Sessions (Median des geschätzten 1RM) im Vergleich zu den ersten 3 Sessions im Zeitraum – so verfälschen einzelne gute oder schlechte Tage das Ergebnis nicht. Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten.`,
+      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist, als Ø ${what}. Einzelne gute oder schlechte Tage zählen nicht.`,
         big: idxNow != null ? (idxNow >= 0 ? '+' : '') + nf(idxNow, 1) + ' %' : '–', small: gains.length ? `Ø aus ${gains.length} ${gains.length === 1 ? 'Übung' : 'Übungen'}` : 'mind. 3 Sessions je Übung nötig',
         factory: () => idxPts.length > 1 ? timeLine([lineDS('Kraftzuwachs', idxPts.map(p => ({ x: p.x, y: p.y, label: `${p.y >= 0 ? '+' : ''}${nf(p.y, 1)} % (${p.n} Übungen)` })), c.accent)],
           { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %', yMin: 0 }) : null })}
-      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum: Form der letzten 3 Sessions im Vergleich zu den ersten 3 im Zeitraum (Median des geschätzten 1RM, mind. 3 Sessions).`, size: top.length > 5 ? 'lg' : '',
+      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum.`, size: top.length > 5 ? 'lg' : '',
         big: top.length ? esc(Ex.name(top[0].id)) : '–', small: top.length ? `${top[0].gain >= 0 ? '+' : ''}${nf(top[0].gain, 0)} %` : 'mind. 3 Sessions je Übung nötig',
         factory: () => top.length ? barChart(top.map(g => Ex.name(g.id)), [barDS('Zuwachs', top.map(g => round(g.gain, 1)), top.map(g => g.gain > 0.05 ? c.accent : c.faint))],
           { horizontal: true, yFmt: v => nf(v, 0) + ' %', tooltipFmt: (v, ctx) => `${v >= 0 ? '+' : ''}${nf(v, 1)} % · ${fmtW(top[ctx.dataIndex].base)} → ${fmtW(top[ctx.dataIndex].cur)}` }) : null })}
       ${cmpCard(ids)}
-      ${cb.card({ id: 'kp', wide: true, title: 'PR-Timeline', info: `Neue Rekorde (geschätztes 1RM) ${what} pro Woche. Die laufende Woche ist blass.`,
+      ${cb.card({ id: 'kp', wide: true, title: 'PR-Timeline', info: `Neue e1RM-Rekorde ${what} pro Woche.`,
         big: prR.length, small: 'PRs im Zeitraum', delta: deltaHtml(prR.length, prPrev, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }), sub: prv ? prevLabel : '',
         factory: () => prR.length ? barChart(weeks.map(w => 'KW ' + isoWeek(w).week), [barDS('PRs', prW.map(x => x.length), c.accent)],
           { running: ri, tooltipFmt: (v, ctx) => `${v}${prW[ctx.dataIndex].length ? ' · ' + uniq(prW[ctx.dataIndex].map(p => Ex.name(p.exId))).slice(0, 3).join(', ') : ''}` }) : null })}
@@ -654,7 +654,7 @@ ProgressViews.strength = body => {
   const signKg = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + fmtW(Math.abs(d));
   body.innerHTML = `${head}
     <div class="charts-grid">
-      ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: `Pro Session der beste Satz, umgerechnet mit ${S().e1rmFormula === 'brzycki' ? 'Brzycki: Gewicht × 36 ÷ (37 − Wdh.)' : S().e1rmFormula === 'avg' ? 'dem Mittelwert aus Epley und Brzycki' : 'Epley: Gewicht × (1 + Wdh./30)'} (einstellbar unter Mehr → Training → 1RM-Formel). Gestrichelt: lineare Trendlinie im Zeitraum.`,
+      ${cb.card({ id: 'k1', wide: true, title: 'Geschätztes 1RM', info: `Bestes geschätztes 1RM je Session (Formel: ${(E1RM_FORMULAS.find(f => f[0] === S().e1rmFormula) || E1RM_FORMULAS[0])[1]}). Gestrichelt: Trend im Zeitraum.`,
         big: bestNow ? fmtW(bestNow) : '–', small: fixInR ? `bestes seit Form-Fix (${fmtDateShort(fx.date)})` : 'bestes im Zeitraum', delta: deltaHtml(bestNow, bestPrev), sub: inP.length ? prevLabel : '',
         factory: () => {
           if (!inR.length) return null;
@@ -665,7 +665,7 @@ ProgressViews.strength = body => {
           if (lr) ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
           return timeLine(ds, { tooltipFmt: v => fmtW(fromU(v)), legend: !!lr || old.length > 0, thresholds: fixMarks });
         } })}
-      ${cb.card({ id: 'k12', wide: true, title: 'Rep-Maxima', info: 'Dein schwerstes Gewicht für mindestens 1, 2, 3 … 12 Wiederholungen – über alle Sessions dieser Übung. Wo zwei Balken fast gleich hoch sind, liegt dein nächster Rep-PR in Reichweite.',
+      ${cb.card({ id: 'k12', wide: true, title: 'Rep-Maxima', info: 'Dein schwerstes Gewicht für 1 bis 12 Wiederholungen. Sind zwei Balken fast gleich hoch, ist ein neuer Rekord nah.',
         big: repMax.length ? fmtW(repMax[0].w) : '–', small: repMax.length ? (repMax[0].n === 1 && repMax[0].r === 1 ? 'echtes 1RM' : `schwerster Satz (${repMax[0].r} Wdh.)`) : '',
         sub: (newestRep ? `Neuester Rep-PR: ${fmtW(newestRep.w)} × ${newestRep.r} am ${fmtDN(newestRep.dn, { day: '2-digit', month: '2-digit', year: '2-digit' })}` : '') + (ssF !== ss ? ` · seit dem Form-Fix am ${fmtDate(ssF[0].date)}` : ''),
         factory: () => repMax.length ? barChart(repMax.map(x => x.n + '×'), [barDS('Bestes Gewicht', repMax.map(x => toU(x.w)), c.accent)],
@@ -674,10 +674,10 @@ ProgressViews.strength = body => {
       ${cb.card({ id: 'k2', title: 'Max-Gewicht pro Session', info: 'Schwerstes bewegtes Gewicht je Session (mind. 1 Wiederholung).',
         big: inRF.length ? fmtW(maxOf(inRF, s => s.maxW)) : '–', small: fixInR ? 'seit Form-Fix' : '',
         factory: () => inR.length ? timeLine([lineDS('Max-Gewicht', inR.map(s => ({ x: s.dn, y: toU(s.maxW), label: `${fmtW(s.maxW)} × ${s.repsAtMax}` })), c.accent, { pointRadius: 4, fill: false })], { tooltipFmt: v => fmtW(fromU(v)), thresholds: fixMarks }) : null })}
-      ${cb.card({ id: 'k4', title: 'Trainings-Intensität', info: 'Schwerstes Gewicht der Session geteilt durch dein bis dahin bestes e1RM × 100 %. Zeigt, wie schwer du trainierst (z. B. 85 % ≈ 5er-Bereich).',
+      ${cb.card({ id: 'k4', title: 'Trainings-Intensität', info: 'Schwerstes Gewicht der Session in % deines besten e1RM. 85 % entspricht etwa 5 Wiederholungen.',
         big: inR.length ? nf(inR[inR.length - 1].maxW / runBest.get(inR[inR.length - 1]) * 100, 0) + ' %' : '–', small: 'letzte Session',
         factory: () => inR.length ? timeLine([lineDS('Intensität', inR.map(s => ({ x: s.dn, y: round(s.maxW / runBest.get(s) * 100, 1) })), c.accent)], { tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => v + ' %', yMax: 100 }) : null })}
-      ${cb.card({ id: 'k5', title: 'Relative Kraft', info: 'e1RM geteilt durch dein Körpergewicht am jeweiligen Tag. Linien: Richtwerte solide / fortgeschritten / elite (für Big 3 und Overhead Press).',
+      ${cb.card({ id: 'k5', title: 'Relative Kraft', info: 'e1RM geteilt durch dein Körpergewicht. Linien: solide, fortgeschritten, elite.',
         big: hasBw && inR.length && Analytics.bwAt(inR[inR.length - 1].dn) ? nf(inR[inR.length - 1].best / Analytics.bwAt(inR[inR.length - 1].dn), 2) + ' ×' : '–', small: hasBw ? 'Körpergewicht' : 'Körpergewicht im Körper-Tab eintragen',
         factory: () => {
           if (!hasBw) return null;
@@ -687,7 +687,7 @@ ProgressViews.strength = body => {
           const ys = pts.map(p => p.y);
           return timeLine([lineDS('Relative Kraft', pts, c.accent)], { tooltipFmt: v => nf(v, 2) + ' × KG', yFmt: v => nf(v, 1), thresholds: lines ? { lines, axis: 'y' } : null, yMin: Math.max(0, Math.min(...ys, bench ? bench[0] : 99) - .2), yMax: bench ? Math.max(...ys, bench[2]) + .15 : undefined });
         } })}
-      ${cb.card({ id: 'kgw', wide: true, title: 'Gewicht vs. Kraft', info: 'Geschätztes 1RM dieser Übung (linke Achse) und dein Körpergewicht als 7-Tage-Durchschnitt (rechte Achse) im selben Zeitraum. So siehst du, ob du stärker wirst, während du ab- oder zunimmst.',
+      ${cb.card({ id: 'kgw', wide: true, title: 'Gewicht vs. Kraft', info: 'Geschätztes 1RM (links) und Körpergewicht (rechts) im selben Zeitraum. So siehst du, ob du beim Zu- oder Abnehmen stärker wirst.',
         big: e1Delta != null ? signKg(e1Delta) : '–', small: e1Delta != null ? 'Kraft (e1RM)' : 'mind. 2 Sessions im Zeitraum nötig',
         sub: hasBw ? (bwDelta != null ? `Körpergewicht im selben Zeitraum: ${signKg(bwDelta)}` : 'Zu wenige Gewichts-Einträge im Zeitraum') : 'Körpergewicht im Körper-Tab eintragen',
         factory: () => {
@@ -800,21 +800,21 @@ ProgressViews.volume = body => {
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="volMuscle" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.volMuscle ? 'selected' : ''}>${m}</option>`).join('')}</select>` : ''}
     </div>
     <div class="charts-grid">
-      ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Σ Wiederholungen × Gewicht pro Kalenderwoche (${scopeName}). Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.`,
+      ${cb.card({ id: 'v1', wide: true, title: 'Tonnage pro Woche', info: `Wiederholungen × Gewicht pro Woche (${scopeName}). Gestrichelt: Ø der abgeschlossenen Wochen.`,
         big: fmtTon(tot(x => x.ton)), small: 'im Zeitraum', delta: deltaHtml(tot(x => x.ton), totP(x => x.ton)), sub: prv ? prevLabel : '',
         factory: () => inR.length ? barChart(wLabels, [barDS('Tonnage', tonW.map(toU), c.accent), avgLine(tonW.map(toU))], { running: ri, tooltipFmt: v => fmtTon(fromU(v)), yFmt: v => nf(v / (unit() === 'kg' && v >= 1000 ? 1000 : 1), 1) + (unit() === 'kg' && v >= 1000 ? ' t' : '') }) : null })}
-      ${scope === 'muscle' ? cb.card({ id: 'v2', title: 'Sätze pro Woche', info: `Kräftig: direkte Sätze – Übungen, bei denen ${mm} der Hauptmuskel ist. Blass: Sätze, bei denen ${mm} nur mithilft (z. B. Bizeps beim Klimmzug oder Rudern). Gestrichelt: Ø der direkten Sätze. Leichte Sätze (RPE 5 oder weniger) zählen halb. Die laufende Woche ist heller.`,
+      ${scope === 'muscle' ? cb.card({ id: 'v2', title: 'Sätze pro Woche', info: `Kräftig: ${mm} ist Hauptmuskel, blass: ${mm} hilft nur mit. Gestrichelt: Ø der direkten Sätze.`,
           big: nf(tot(x => x.sets), 0), small: 'direkte Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
           sub: sum(helpW) ? `+ ${nf(sum(helpW), 0)} mitgeholfen${helpTop.length ? ` (${esc(helpTop.join(', '))})` : ''}` : '',
           factory: () => inR.length || sum(helpW) ? barChart(wLabels, [
             barDS('Direkt', setsW, c.accent, { borderRadius: 0 }),
             barDS('Mitgeholfen', helpW, alpha(c.accent, .3), { runAlpha: .12 }),
             avgLine(setsW)], { stacked: true, legend: true, running: ri, tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null })
-        : cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Anzahl erledigter Arbeitssätze pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
+        : cb.card({ id: 'v2', title: 'Sätze pro Woche', info: 'Erledigte Arbeitssätze pro Woche.', big: nf(tot(x => x.sets), 0), small: 'Sätze', delta: deltaHtml(tot(x => x.sets), totP(x => x.sets)),
         factory: () => inR.length ? barChart(wLabels, [barDS('Sätze', setsW, c.accent), avgLine(setsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
-      ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Summe aller Wiederholungen pro Woche. Die laufende Woche ist blass.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
+      ${cb.card({ id: 'v3', title: 'Wiederholungen pro Woche', info: 'Alle Wiederholungen pro Woche.', big: nf(tot(x => x.reps), 0), small: 'Wdh.', delta: deltaHtml(tot(x => x.reps), totP(x => x.reps)),
         factory: () => inR.length ? barChart(wLabels, [barDS('Wiederholungen', repsW, c.accent), avgLine(repsW)], { running: ri, tooltipFmt: v => nf(v, 0) }) : null })}
-      ${cb.card({ id: 'v4', wide: true, title: scope === 'total' ? 'Volumen pro Workout' : 'Volumen pro Session', info: 'Jeder Punkt ist ein Workout. Die Linie ist der Durchschnitt der jeweils letzten 3 Wochen – so siehst du den Trend, ohne dass Push-, Pull- und Beintage durcheinanderspringen.',
+      ${cb.card({ id: 'v4', wide: true, title: scope === 'total' ? 'Volumen pro Workout' : 'Volumen pro Session', info: 'Jeder Punkt ist ein Workout, die Linie der Ø der letzten 3 Wochen.',
         big: inR.length ? fmtTon(avg(inR.map(x => x.ton))) : '–', small: 'Ø', delta: inP && inP.length ? deltaHtml(avg(inR.map(x => x.ton)), avg(inP.map(x => x.ton))) : '',
         factory: () => {
           if (inR.length < 2) return null;
@@ -824,11 +824,11 @@ ProgressViews.volume = body => {
             lineDS('Ø 3 Wochen', timeAvg(pts), c.accent, { fill: false, pointRadius: 0 })
           ], { legend: true, tooltipFmt: v => fmtTon(fromU(v)) });
         } })}
-      ${scope === 'total' ? `${cb.card({ id: 'vt', wide: true, title: 'Volumen pro Workout-Typ', info: 'Volumen je Workout, getrennt nach Workout-Name (z. B. „Push A" und „Push B" einzeln) – so vergleichst du gleiche Trainingstage miteinander. Die 5 häufigsten Workouts mit mind. 2 Einheiten im Zeitraum. Trend: Ø der letzten 3 Einheiten gegen die ersten 3.',
+      ${scope === 'total' ? `${cb.card({ id: 'vt', wide: true, title: 'Volumen pro Workout-Typ', info: 'Volumen je Workout, getrennt nach Name (z. B. „Push A“ und „Push B“). Trend: die letzten 3 Einheiten gegen die ersten 3.',
         big: types.length ? nf(types.length, 0) : '–', small: types.length ? (types.length === 1 ? 'Workout-Typ' : 'Workout-Typen') : 'mind. 2 gleichnamige Workouts nötig',
         factory: () => types.length ? timeLine(types.map(tp => lineDS(tp.name, tp.ws.map(w => ({ x: w.dn, y: toU(w.ton), label: fmtTon(w.ton) })), tp.color, { fill: false, pointRadius: 3 })), { legend: true, tooltipFmt: v => fmtTon(fromU(v)) }) : null,
         extra: types.length ? `<div class="mt-8">${types.map(tp => `<div class="ratio-row small"><span class="ampel-dot" style="background:${tp.color}"></span><span class="grow">${esc(tp.name)} <span class="dim">${tp.ws.length}×</span></span><span class="dim">Ø ${fmtTon(tp.avgTon)}</span>${deltaHtml(tp.last, tp.first)}</div>`).join('')}</div>` : '' })}
-      ${cb.card({ id: 'v12', title: 'Trainingsdichte', info: 'Tonnage pro Trainingsminute je Workout (kg/min). Steigt sie, schaffst du mehr Arbeit in derselben Zeit. Linie: Ø der letzten 3 Wochen.',
+      ${cb.card({ id: 'v12', title: 'Trainingsdichte', info: 'Wiederholungen × Gewicht pro Trainingsminute. Steigt sie, schaffst du mehr in derselben Zeit.',
         big: dens.length ? nf(avg(dens.map(p => p.y)), 0) : '–', small: unit() + '/min Ø',
         factory: () => dens.length > 1 ? timeLine([
           lineDS('Workout', dens, c.faint, { showLine: false, fill: false, pointRadius: 3, pointBackgroundColor: c.faint, pointBorderWidth: 0 }),
@@ -849,7 +849,7 @@ ProgressViews.volume = body => {
           if (lr) ds.push({ label: 'Trend', data: [{ x: pts[0].x, y: lr.slope * pts[0].x + lr.intercept }, { x: pts[pts.length - 1].x, y: lr.slope * pts[pts.length - 1].x + lr.intercept }], borderColor: c.dim, borderDash: [6, 4], borderWidth: 1.5, pointRadius: 0, fill: false, tension: 0 });
           return timeLine(ds, { tooltipFmt: v => fmtTon(fromU(v)) });
         } })}
-      ${cb.card({ id: 'v8', wide: true, title: 'Set-Intensitäts-Mix', info: 'Anteil deiner Sätze je Wiederholungsbereich pro Woche. Für Muskelaufbau wirken alle Bereiche ähnlich gut, solange die Sätze nah am Muskelversagen enden. Schwere Sätze (1–5 Wdh.) steigern die Maximalkraft am stärksten.',
+      ${cb.card({ id: 'v8', wide: true, title: 'Set-Intensitäts-Mix', info: 'Anteil deiner Sätze je Wiederholungsbereich. Für Muskelaufbau wirken alle Bereiche, solange die Sätze hart sind.',
         factory: () => {
           const bw = weeks.map(w => inR.filter(x => x.dn >= w && x.dn < w + 7).reduce((b, x) => x.bins.map((v, i) => v + b[i]), [0, 0, 0, 0]));
           if (!sum(bw.map(sum))) return null;
@@ -1118,17 +1118,17 @@ ProgressViews.muscles = body => {
   const rSets = regionSets(rows);
   const rpw = k => rSets[k] / nWeeks;
   const regList = Object.keys(REGIONS).sort((a, b) => rpw(b) - rpw(a));
-  const ratioBadge = (v, lo, hi) => v == null ? '' : v < lo || v > hi ? `<span class="badge">weicht ab</span>` : `<span class="badge accent">${icon('check')} ausgewogen</span>`;
+  const ratioBadge = (v, lo, hi) => v == null ? '' : v < lo || v > hi ? `<span class="badge warn">${icon('warn')} Dysbalance</span>` : `<span class="badge accent">${icon('check')} ausgewogen</span>`;
   const cb = chartBuilder();
   body.innerHTML = `
     <div class="charts-grid">
       <div class="chart-card wide">
-        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn(`${Object.keys(REGIONS).length} Muskelregionen, eingefärbt nach gewichteten Sätzen pro Woche: Hauptmuskel der Übung zählt voll, Hilfsmuskeln anteilig. Schrägbank trifft z. B. die obere Brust, Hammer-Curls den Brachialis, Trizepsdrücken über Kopf den langen Trizepskopf, Rudern die Rhomboiden & den mittleren Trapez, Beinstrecken den Rectus femoris, Wadenheben sitzend den Soleus. Ab etwa 4 Sätzen pro Woche wächst ein Muskel messbar, ab 10 ist die Farbe voll. Leichte Sätze (RPE 5 oder weniger) zählen halb. Tippe auf einen Muskel für Details.`)}</div>
+        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn('Deine Muskeln, eingefärbt nach Sätzen pro Woche. Antippen zeigt Details.')}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
         <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 50%, var(--mus-off)) 20%, var(--accent) 50%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
       </div>
-      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Durchschnittliche Arbeitssätze pro Woche im Zeitraum. Kräftig: direkte Sätze (der Muskel ist Hauptmuskel der Übung). Blass: Sätze, bei denen er nur mithilft (z. B. Bizeps beim Klimmzug) – sie zählen halb, das passt laut Studien am besten. Orientierung aus Studien, jeder Mensch ist anders: Ab etwa 4 Sätzen wächst ein Muskel messbar (wirksam). Mehr Sätze bringen mehr, aber jeder weitere etwas weniger (viel ab 10). Über etwa 20 ist der Zusatznutzen klein und die Ermüdung größer. Für Kraft reichen deutlich weniger Sätze. Leichte Sätze (RPE 5 oder weniger) zählen halb.',
+      ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Sätze pro Woche je Muskel, blass heißt mitgeholfen (zählt halb). Ab 4 wächst ein Muskel messbar, über 20 kaum noch mehr.',
         factory: () => {
           const cfg = barChart(MUSCLES, [
             barDS('Direkt', MUSCLES.map(m => round(pwD(m), 1)), MUSCLES.map(lmColor), { borderRadius: 0 }),
@@ -1140,35 +1140,35 @@ ProgressViews.muscles = body => {
           cfg.options.plugins.tooltip.callbacks.footer = items => items.length ? `zählt als ${nf(perWeek(MUSCLES[items[0].dataIndex]), 1)} (${volBand(perWeek(MUSCLES[items[0].dataIndex]))})` : '';
           return cfg;
         } })}
-      ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der direkten Sätze je Muskelgruppe im Zeitraum (Top 7, Rest = Andere). Jeder Satz zählt nur für den Hauptmuskel der Übung.', size: '',
+      ${cb.card({ id: 'm3', title: 'Muskelgruppen-Verteilung', info: 'Anteil der Sätze je Muskelgruppe, gezählt beim Hauptmuskel der Übung.', size: '',
         factory: () => {
           if (!top7.length) return null;
           const all = [...top7, ...(rest ? [['Andere', rest]] : [])], tot = sum(all.map(x => x[1]));
           return barChart(all.map(x => x[0]), [barDS('Anteil', all.map(x => round(x[1] / tot * 100, 1)), all.map(x => x[0] === 'Andere' ? c.faint : c.accent))],
             { horizontal: true, yFmt: v => v + ' %', tooltipFmt: (v, ctx) => `${nf(v, 0)} % · ${all[ctx.dataIndex][1]} Sätze` });
         } })}
-      ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Verhältnis Pull-Sätze zu Push-Sätzen. Richtwert aus der Trainingspraxis, nicht aus Studien: etwa 0,8–1,2 – also ungefähr gleich viel Ziehen wie Drücken.',
+      ${cb.card({ id: 'm4', title: 'Push vs. Pull', info: 'Pull-Sätze geteilt durch Push-Sätze. Ausgewogen zwischen 0,8 und 1,2.',
         big: ppRatio != null ? nf(ppRatio, 2) : '–', small: `${pull} Pull / ${push} Push`, top: `<div class="mt-8">${ratioBadge(ppRatio, 0.8, 1.2)}</div>`,
         factory: () => { const d = weekly(rs => { const p = sum(rs.map(w => w.cats.Push || 0)), q = sum(rs.map(w => w.cats.Pull || 0)); return p ? round(q / p, 2) : null; }); const mx = Math.max(1.5, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Pull/Push', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.8, label: '0,8', color: c.faint }, { value: 1.2, label: '1,2', color: c.faint }] } }) : null; } })}
-      ${cb.card({ id: 'm5', title: 'Beine vs. Oberkörper', info: 'Verhältnis Bein-Sätze zu Push+Pull-Sätzen. Richtwert aus der Trainingspraxis, nicht aus Studien: etwa 0,4–0,8.',
+      ${cb.card({ id: 'm5', title: 'Beine vs. Oberkörper', info: 'Bein-Sätze geteilt durch Oberkörper-Sätze. Ausgewogen zwischen 0,4 und 0,8.',
         big: luRatio != null ? nf(luRatio, 2) : '–', small: `${legs} Beine / ${push + pull} Oberkörper`, top: `<div class="mt-8">${ratioBadge(luRatio, 0.4, 0.8)}</div>`,
         factory: () => { const d = weekly(rs => { const u = sum(rs.map(w => (w.cats.Push || 0) + (w.cats.Pull || 0))), l = sum(rs.map(w => w.cats.Legs || 0)); return u ? round(l / u, 2) : null; }); const mx = Math.max(1, ...d.filter((v, i) => v != null && i !== ri)); return d.some(v => v != null) ? barChart(wLabels, [{ type: 'line', label: 'Beine/Oberkörper', data: d, borderColor: c.accent, backgroundColor: c.accent, pointRadius: 3, spanGaps: true, tension: .3 }], { running: ri, xMax: Math.ceil(mx * 1.15 * 2) / 2, yFmt: v => nf(v, 1), tooltipFmt: v => nf(v, 2), thresholds: { axis: 'y', lines: [{ value: 0.4, label: '0,4', color: c.faint }, { value: 0.8, label: '0,8', color: c.faint }] } }) : null; } })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen, die im Zeitraum im Schnitt unter 4 Sätzen pro Woche lagen – darunter wächst ein Muskel laut Studien kaum messbar. Mit passenden Übungsvorschlägen. Direkte Sätze zählen voll, mitgeholfene halb.')}</div>
+        <div class="cc-head"><span class="cc-title">Vernachlässigte Muskelgruppen</span>${infoBtn('Muskelgruppen mit weniger als 4 Sätzen pro Woche, darunter wächst ein Muskel kaum. Mit passenden Übungen.')}</div>
         ${neglected.length ? neglected.map(m => `<div class="ratio-row small"><span class="ampel-dot" style="background:var(--danger)"></span><span class="grow"><b style="font-size:14px">${esc(m)}</b> <span class="dim">${nf(perWeek(m), 1)}/W${helpM[m] ? ` (${nf(pwD(m), 1)} direkt)` : ''}</span><br><span class="dim">${suggest(m).map(e => `<button class="link-btn" style="min-height:28px;padding:0 6px 0 0;font-size:12.5px" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</span></span></div>`).join('') : '<p class="dim small mt-8">Jede Muskelgruppe bekommt mindestens 4 Sätze pro Woche.</p>'}
       </div>
-      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe über die Zeit. Kräftig: direkte Sätze, blass darüber: Sätze, bei denen der Muskel nur mithilft (sie zählen halb). Linien: ab 4 wirksam, ab 10 viel, über 20 sehr viel. Leichte Sätze (RPE 5 oder weniger) zählen halb.',
+      ${cb.card({ id: 'm7', title: 'Muskel-Fortschritt', info: 'Sätze pro Woche für die gewählte Muskelgruppe, blass heißt mitgeholfen.',
         top: `<select class="select mt-8" data-ch="muscleSel" style="min-height:38px;padding-top:4px;padding-bottom:4px" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.muscleSel ? 'selected' : ''}>${m}</option>`).join('')}</select>`,
         factory: () => { const ms = UI.muscleSel, d = weekly(rs => sum(rs.map(w => w.mP[ms] || 0))), h = weekly(rs => sum(rs.map(w => w.mS[ms] || 0))); return sum(d) + sum(h) ? barChart(wLabels, [
           { type: 'line', label: 'Direkt', data: d, borderColor: c.accent, backgroundColor: alpha(c.accent, .16), fill: 'origin', pointRadius: 3, tension: .3 },
           { type: 'line', label: 'Mitgeholfen', data: h, borderColor: alpha(c.accent, .4), backgroundColor: alpha(c.accent, .07), fill: '-1', pointRadius: 0, borderWidth: 1.5, tension: .3, runAlpha: .2 }
         ], { stacked: true, legend: sum(h) > 0, running: ri, tooltipFmt: v => `${v} Sätze`, thresholds: { axis: 'y', lines: volBandLines(c) } }) : null; } })}
-      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Direkte Arbeitssätze pro Woche je Muskelgruppe, gestapelt – die 7 meist-trainierten Gruppen im Zeitraum, der Rest als „Andere". Jeder Satz zählt nur für den Hauptmuskel der Übung. Leichte Sätze (RPE 5 oder weniger) zählen halb. Die laufende Woche ist blass.', size: 'lg',
+      ${cb.card({ id: 'm9', wide: true, title: 'Muskeln über Zeit', info: 'Sätze pro Woche der 7 meist-trainierten Muskelgruppen, gezählt beim Hauptmuskel.', size: 'lg',
         factory: () => topM.length ? barChart(wLabels, [
           ...topM.map((m, i) => barDS(m, weekly(rs => sum(rs.map(w => w.mP[m] || 0))), c.series[i], { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })),
           ...(MUSCLES.length > topM.length ? [barDS('Andere', weekly(rs => sum(rs.map(w => sum(MUSCLES.filter(m => !topM.includes(m)).map(m => w.mP[m] || 0))))), c.faint, { borderRadius: 0, borderColor: c.surface, borderWidth: { top: 1 } })] : [])
         ], { stacked: true, legend: true, running: ri, tooltipFmt: v => `${nf(v, 0)} Sätze` }) : null })}
-      ${cb.card({ id: 'm8', title: 'Übungs-Vielfalt', info: 'Wie viele unterschiedliche Übungen pro Muskelgruppe du im Zeitraum gemacht hast (Variety Score) – gezählt beim Hauptmuskel der Übung.', size: 'lg',
+      ${cb.card({ id: 'm8', title: 'Übungs-Vielfalt', info: 'Wie viele verschiedene Übungen du je Muskelgruppe gemacht hast.', size: 'lg',
         big: new Set(rows.flatMap(w => w.ex)).size, small: 'verschiedene Übungen gesamt',
         factory: () => variety.some(x => x[1]) ? barChart(variety.map(x => x[0]), [barDS('Übungen', variety.map(x => x[1]), c.series[0])], { horizontal: true, tooltipFmt: v => `${v} Übungen` }) : null })}
     </div>`;
@@ -1247,7 +1247,7 @@ ProgressViews.cardio = body => {
   const curKm = tot(rowsR, 'cKm'), prevKm = rowsP ? tot(rowsP, 'cKm') : null;
   body.innerHTML = `${heart}
     <div class="charts-grid">
-      ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Summe der Cardio-Dauer pro Kalenderwoche – nach dem Krafttraining und als eigene Einheit. Gestrichelt: Durchschnitt der abgeschlossenen Wochen. Die laufende Woche ist blass.',
+      ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Cardio-Minuten pro Woche. Gestrichelt: Ø der abgeschlossenen Wochen.',
         big: fmtDur(curMin * 60), small: `im Zeitraum · ${units(rowsR)} Einheiten`, delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',
         factory: () => sum(minW) ? barChart(wLabels, [barDS('Minuten', minW, c.accent), avgLine(minW)], { running: ri, tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
       ${cb.card({ id: 'c2', wide: true, title: 'Distanz pro Woche', info: 'Summe aller Distanzen (km) pro Kalenderwoche – nur Arten mit Distanz (Laufen, Rad, Rudern …).',
@@ -1266,7 +1266,7 @@ ProgressViews.cardio = body => {
       ${cb.card({ id: 'c4', title: 'Verteilung nach Art', info: 'Anteil der Cardio-Minuten je Art im Zeitraum (Top 6, Rest = Andere).',
         factory: () => top6.length ? donut([...top6.map(([id]) => Ex.name(id)), ...(rest ? ['Andere'] : [])], [...top6.map(x => round(x[1], 0)), ...(rest ? [round(rest, 0)] : [])], [...c.series.slice(0, top6.length), c.faint], { tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Bestleistungen</span>${infoBtn('Deine besten Einheiten je Cardio-Art (gesamt, unabhängig vom Zeitraum): längste Dauer, weiteste Distanz, schnellstes Tempo. Neue Bestleistungen werden nach dem Workout gefeiert.')}</div>
+        <div class="cc-head"><span class="cc-title">Bestleistungen</span>${infoBtn('Deine besten Einheiten je Cardio-Art, unabhängig vom Zeitraum.')}</div>
         <div class="col mt-8" style="gap:12px">${bests.slice(0, 8).map(b => { const info = cardioInfo(Ex.get(b.id)); return `<div>
           <button class="link-btn" style="padding:0;min-height:28px;color:var(--text)" data-act="openExercise" data-id="${esc(b.id)}"><b>${esc(Ex.name(b.id))}</b> <span class="tiny dim">${b.n}×</span></button>
           <div class="cd-bests">${bestCell('Längste', b.dur, fmtDur(b.dur && b.dur.secs))}${info.mode === 'dist' ? bestCell('Weiteste', b.km && b.km.km ? b.km : null, b.km ? fmtKm(b.km.km) : '') + bestCell('Schnellste', b.kmh, b.kmh ? fmtKmh(b.kmh.kmh) : '') : ''}</div></div>`; }).join('')}</div>
@@ -1329,7 +1329,7 @@ ProgressViews.body = body => {
       </div>
     </div>
     <div class="charts-grid">
-      ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge (Körper-Tab und Workouts). Grüne Linie: gleitender 7-Tage-Durchschnitt – er glättet Wasser-Schwankungen. Trend = lineare Veränderung im gewählten Zeitraum.',
+      ${cb.card({ id: 'b1', wide: true, title: 'Körpergewicht', info: 'Alle Gewichts-Einträge. Die Linie ist der Ø der letzten 7 Tage, sie glättet Wasser-Schwankungen.',
         big: latest ? fmtW(latest.kg) : '–', delta: latest && monthAgo ? deltaHtml(latest.kg, monthAgo.kg, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '',
         sub: [monthAgo ? 'vs. vor 4 Wochen' : '', perWeek != null ? `Trend ${signW(perWeek)} pro Woche` : '', goal ? `Ziel ${fmtW(goal)}${latest ? ` · noch ${fmtW(Math.abs(goal - latest.kg))}` : ''}${eta ? ` · ca. ${fmtDN(eta, { day: 'numeric', month: 'short' })}` : ''}` : ''].filter(Boolean).join(' · '),
         top: `<div class="row mt-8"><button class="chip sm" data-act="bwGoalSet">${icon('target')} ${goal ? 'Ziel: ' + fmtW(goal) : 'Zielgewicht festlegen'}</button></div>`,
@@ -1343,7 +1343,7 @@ ProgressViews.body = body => {
           return timeLine(ds, { legend: true, tooltipFmt: v => nf(v, 1) + ' ' + unit(), thresholds: goal ? { axis: 'y', lines: [{ value: toU(goal), label: 'Ziel', color: c.dim }] } : null,
             yMin: Math.floor(Math.min(...ys) - .5), yMax: Math.ceil(Math.max(...ys) + .5) });
         } })}
-      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: rateNow || rules.some(Boolean) ? 'Wochendurchschnitt im Vergleich zur Vorwoche. Grün = im Bereich deines Wochenziels, orange = darüber oder darunter, das blasse Band zeigt den erlaubten Bereich. Das Ziel stellst du hier oder pro Phase ein (Fortschritt → „+ Phase"); in einer Phase gilt deren Bereich. Wochen ohne Eintrag werden übersprungen.' : 'Wochendurchschnitt im Vergleich zur Vorwoche. Blau = abgenommen, orange = zugenommen. Mit einem Wochenziel (Knopf oben) siehst du, welche Wochen im erlaubten Bereich lagen. Wochen ohne Eintrag werden übersprungen.',
+      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: rateNow || rules.some(Boolean) ? 'Wochendurchschnitt gegen die Vorwoche. Grün: im Bereich deines Wochenziels (blasses Band), orange: außerhalb.' : 'Wochendurchschnitt gegen die Vorwoche. Blau: abgenommen, orange: zugenommen.',
         top: `<div class="row mt-8"><button class="chip sm" data-act="bwRateSet">${icon('target')} ${rateNow ? `${rateNow.phase ? esc(rateNow.phase.name) : esc((RATE_GOALS.find(x => x[0] === rateNow.type) || [0, 'Ziel'])[1])}: ${esc(rateText(rateNow.lo, rateNow.hi))}` : 'Wochenziel festlegen'}</button></div>`,
         big: wkDiff.length ? signW(wkDiff[wkDiff.length - 1].d) : '–', small: wkDiff.length ? 'letzte Woche' : 'mind. 2 Wochen mit Einträgen nötig',
         sub: rules.some(Boolean) ? `${rateHit} von ${rules.filter(Boolean).length} Wochen im Bereich` : '',
@@ -1385,14 +1385,14 @@ ProgressViews.body = body => {
       </div>
       ${F('f_bodyFat') ? `${cb.card({ id: 'b2', title: 'Körperfett', info: 'Körperfettanteil in Prozent – falls eingetragen.', big: bf.length ? nf(bf[bf.length - 1].bodyFatPct, 1) + ' %' : '–',
         factory: () => bf.length ? timeLine([lineDS('KFA', bf.map(p => ({ x: dayNum(p.date), y: p.bodyFatPct })), c.accent)], { tooltipFmt: v => nf(v, 1) + ' %', yFmt: yAuto(' %') }) : null })}
-      ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Gewicht × (1 – KFA/100). Steigt sie über Wochen, spricht das für Muskelaufbau. Kurzfristig schwankt sie mit Wasser und Glykogen, z. B. in den ersten Tagen eines Bulks oder Cuts.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
+      ${cb.card({ id: 'b3', title: 'Fettfreie Masse', info: 'Dein Gewicht ohne Körperfett. Steigt sie über Wochen, spricht das für Muskelaufbau.', big: lean.length ? fmtW(fromU(lean[lean.length - 1].y)) : '–',
         factory: () => lean.length ? timeLine([lineDS('Fettfreie Masse', lean, c.accent)], { tooltipFmt: v => fmtW(fromU(v)) }) : null })}` : ''}
-      ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Veränderung jedes Umfangs in cm seit dem ersten Eintrag im Zeitraum – so werden auch kleine Änderungen sichtbar. Der Tooltip zeigt zusätzlich den Messwert. Tippe in der Legende auf eine Linie, um sie aus- oder einzublenden.', size: 'lg',
+      ${F('f_measures') ? `${cb.card({ id: 'b4', wide: true, title: 'Umfänge', info: 'Veränderung jedes Umfangs seit Beginn des Zeitraums. Antippen in der Legende blendet Linien aus oder ein.', size: 'lg',
         sub: 'Veränderung in cm seit Zeitraumbeginn',
         factory: () => mSeries.length ? timeLine(mSeries.map(s => lineDS(s.l, s.data.map(p => ({ x: p.x, y: round(p.y - s.data[0].y, 1), label: `${nf(p.y, 1)} cm (${p.y - s.data[0].y >= 0 ? '+' : '−'}${nf(Math.abs(p.y - s.data[0].y), 1)})` })), s.color, { fill: false, pointRadius: s.data.length <= 30 ? 3 : 0 })),
           { legend: true, tooltipFmt: v => nf(v, 1) + ' cm', yFmt: v => (v > 0 ? '+' : '') + nf(v, 1), thresholds: { axis: 'y', lines: [{ value: 0, label: '', color: c.faint }] } }) : null })}
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Schulter/Taille: je höher, desto breiter wirkt der Oberkörper (oft „Adonis-Index“ genannt – ein „idealer“ Wert ist nicht belegt). Taille/Hüfte: gesund bei Männern < 0,9, Frauen < 0,85 (WHO). Arm/Oberschenkel: Proportion Ober- zu Unterkörper.')}</div>
+        <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Verhältnisse deiner Umfänge. Taille/Hüfte gilt als gesund unter 0,9 (Männer) bzw. 0,85 (Frauen).')}</div>
         <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim"></span></div>
         <div class="ratio-row"><span class="grow">Taille / Hüfte</span><b>${whr ? nf(whr, 2) : '–'}</b><span class="tiny dim">${whr ? (whr < (S().sex === 'f' ? .85 : .9) ? '✓ gesund' : '⚠ erhöht') : ''}</span></div>
         <div class="ratio-row"><span class="grow">Arm / Oberschenkel</span><b>${armThigh ? nf(armThigh, 2) : '–'}</b><span class="tiny dim"></span></div>

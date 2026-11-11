@@ -13,6 +13,7 @@ Wie sieht die neue gemeinsame Basis aus, auf der alle vier Designs aufsetzen? Fe
 - Komponenten: Karte, Liste, Knopf, Eingabe, Segment, Kachel, Fenster, Menü von unten, Rückfrage, Meldung
 - Diagramm-Stil (Linien, Achsen, Beschriftung, Farben) und Symbole (statt Emojis?)
 - Was ein Design übersteuern darf und was immer gleich bleibt
+- Texte: höchstens 2 kurze Sätze im (i), keine Fülltexte (siehe [ANFORDERUNGEN.md](../ANFORDERUNGEN.md), Abschnitt 2)
 
 Grundlage: [Bestandsaufnahme](../bestandsaufnahme.md) (was heute stört, mit Zahlen) und [Vorbilder](../recherche/vorbilder.md), Abschnitt 4 (12 Vorschläge und eine mögliche Aufteilung Basis/Design).
 

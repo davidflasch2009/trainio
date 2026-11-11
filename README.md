@@ -320,7 +320,7 @@ Oben ein **Suchfeld** („pause", „rpe", „backup" …): Treffer erscheinen s
 umstellen. Darunter die Konto-Karte und die Gruppen – jede öffnet sich als eigene Seite (zurück über
 „‹ Mehr" oben, die Zurück-Taste/-Geste oder erneutes Tippen auf „Mehr"; beim Wechsel auf einen anderen Tab
 schließt sich die Gruppe und die Suche wird geleert). Aufgeräumt: Erklärungen stehen nicht als Text unter den
-Einstellungen, sondern im **(i)** neben dem Titel (auch in Fenstern wie Herz-Plan, Phase oder Aufwärmsätze) – die Suche
+Einstellungen, sondern im **(i)** neben dem Titel – überall **höchstens 2 kurze Sätze** (auch in Fenstern wie Herz-Plan, Phase oder Aufwärmsätze) – die Suche
 findet sie trotzdem. Sichtbar bleiben nur echte Infos wie aktuelle Werte, Zeiten oder Zustände; Design-Kacheln zeigen
 nur Vorschau und Namen, Menüs nur ihre Titel:
 
@@ -425,9 +425,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   Max-Gewicht, Intensität, relative Kraft, **Gewicht vs. Kraft** (Körpergewicht und e1RM in einem Diagramm),
   PR-Timeline. Kraftzuwachs, Top-Aufsteiger und Kraft im Vergleich rechnen **robust**: Median des e1RM aus den letzten
   3 Sessions gegen die ersten 3 Sessions im Zeitraum – so zeigen Tagesform-Schwankungen keinen Scheinzuwachs (früher
-  laufendes Maximum gegen die erste Session). „Tage seit letztem PR“ färbt sich nicht mehr rot: Wer lange trainiert,
-  hat oft 2–3 Monate keinen neuen Rekord. Push vs. Pull und Beine vs. Oberkörper sind Richtwerte aus der Praxis
-  (Abzeichen „weicht ab“ statt „Dysbalance“).
+  laufendes Maximum gegen die erste Session). „Tage seit letztem PR“ färbt sich nicht mehr rot.
 - **Volumen**: Tonnage, Sätze und Wiederholungen pro Woche, Volumen pro Workout, **Volumen pro Workout-Typ**
   (nach Workout-Name, z. B. „Push A" und „Push B" getrennt), Trainingsdichte, Wochentage, Top-Übungen,
   Trend pro Übung, Intensitäts-Mix, Jahresvergleich.
