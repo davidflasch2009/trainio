@@ -25,7 +25,7 @@ Die neue gemeinsame Gestaltung, auf der alle vier Designs aufsetzen: Raster & Ab
 Zahlen-Darstellung, Komponenten (Karte, Liste, Knopf, Eingabe, Segment, Kachel, Fenster, Menü),
 Diagramm-Stil und Symbole.
 
-- ⏳ Ausgangslage – [Bestandsaufnahme: Was wirkt heute unprofessionell?](tickets/01-bestandsaufnahme.md)
+- Ausgangslage – [Bestandsaufnahme](bestandsaufnahme.md) erledigt (Grundlage für die Festlegung, keine Anforderung)
 - Vorbilder – [Recherche](recherche/vorbilder.md) erledigt (Grundlage für die Festlegung, keine Anforderung)
 - ⏳ Festlegung – [Die neue Basis](tickets/03-basis.md)
 
