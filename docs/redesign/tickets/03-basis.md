@@ -30,4 +30,10 @@ alles neu angeordnet werden.
   Tabelle), B „Kacheln“ (Zahlen zuerst, eine Übung auf einmal), C „Klartext“ (ein Satz sagt die Lage, ohne
   Kartenrahmen, Eingabe fest unten). Jeweils Start, laufendes Workout, Fortschritt → Übersicht und die Seite
   „Bausteine“, hell und dunkel. Quelle: [prototypen/03-basis/index.html](../prototypen/03-basis/index.html),
-  Link für David: https://claude.ai/artifact/Ed68RGVAxiVwtJzk2YRGVw (privat). Wartet auf Davids Rückmeldung.
+  Link für David: https://claude.ai/artifact/Ed68RGVAxiVwtJzk2YRGVw (privat).
+- **Rückmeldung David zu Prototyp 1:** „Schon wieder viel zu viel Text.“ Genauere Werte erst nach Antippen, nicht nur
+  beim Score, sondern überall. Score als großer Kreis mit Zahl oben auf der Startseite
+  ([Skizze](../bilder/skizze-david-start-score.png)). In ANFORDERUNGEN.md (Abschnitt 2 und 6) übernommen.
+- **Prototyp 2** (gleicher Link, Fassung 1 in Commit bb5af6d): Kacheln nur mit Titel und Zahl, Details nach
+  Antippen, Score-Kreis oben. Zwei Varianten: A „Nur Zahlen“ (Details als Fenster von unten) und B „Mit Grafik“
+  (kleine Grafik ohne Achsen in der Kachel, Details als eigene Seite). Wartet auf Davids Rückmeldung.

@@ -20,6 +20,9 @@ Dazu kommt der **Trainio-Score**, der zeigt, wie sich Kraft und Muskulatur entwi
   oder das Diagramm zeigt und, nur wenn nötig, wie man es liest. Keine Herleitungen, Formeln oder Quellen (die stehen
   in README und Recherche), keine Wiederholung von Standards wie „die laufende Woche ist blass“ – das zeigt die
   Gestaltung. Auch sonst keine Fülltexte auf den Bildschirmen: so kurz und klar wie möglich.
+- **Details erst nach Antippen (David, 12.11.2026: „dass man nicht so überrumpelt wird“):** Übersichten zeigen je
+  Kachel nur **Titel und Zahl**, ohne Untertitel, Fußnoten oder Sätze. Verlauf, Vergleiche, Aufschlüsselung und die
+  Erklärung (i) erscheinen erst nach dem Antippen. Das gilt überall, nicht nur beim Score.
 - **Alles folgt dem Design:** Teilen-Bild, Workout-Score-Ring & Konfetti, Diagramme und Animationen.
 - Sprache: Deutsch.
 
@@ -120,9 +123,9 @@ Entschieden in [Trainio-Score: die Formel](tickets/09-score-formel.md). Grundlag
 
 **Wo er steht**
 
-- **Hauptplatz oben auf der Startseite.** Er ist die wichtigste Information der App (David), deshalb nicht nur
-  Text: Zahl in grafischer Form, Aufschlüsselung nach Körperbereichen und Verlauf als Grafik, ergänzt um Klartext.
-  Antippen öffnet die Details.
+- **Hauptplatz oben auf der Startseite.** Er ist die wichtigste Information der App (David): ein **großer Kreis mit
+  der Zahl**, sonst nichts ([Skizze von David](bilder/skizze-david-start-score.png)). Antippen öffnet die Details mit
+  Aufschlüsselung nach Körperbereichen, Verlauf und Klartext.
 - **Fortschritt → Übersicht:** ausführliche Karte ganz oben mit Aufschlüsselung, Verlauf und Erklärung.
 - Eine eigene Startseiten-Kachel gibt es nicht, der Hauptplatz ersetzt sie.
 - ⏳ Aussehen – [Trainio-Score: Hauptplatz, Karte und Klartext](tickets/10-score-darstellung.md)
