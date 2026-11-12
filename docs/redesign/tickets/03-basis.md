@@ -2,7 +2,7 @@
 
 - **Typ:** prototype (HITL)
 - **Status:** offen
-- **Übernommen von:** –
+- **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Bestandsaufnahme: Was wirkt heute unprofessionell?](01-bestandsaufnahme.md), [Vorbilder: Was macht Fitness-Apps professionell?](02-vorbilder.md)
 
 ## Frage
