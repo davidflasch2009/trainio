@@ -423,9 +423,14 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
   Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,
   Max-Gewicht, Intensität, relative Kraft, **Gewicht vs. Kraft** (Körpergewicht und e1RM in einem Diagramm),
-  PR-Timeline. Kraftzuwachs, Top-Aufsteiger und Kraft im Vergleich rechnen **robust**: Median des e1RM aus den letzten
-  3 Sessions gegen die ersten 3 Sessions im Zeitraum – so zeigen Tagesform-Schwankungen keinen Scheinzuwachs (früher
-  laufendes Maximum gegen die erste Session). „Tage seit letztem PR“ färbt sich nicht mehr rot.
+  PR-Timeline. Kraftzuwachs, Top-Aufsteiger, Kraft im Vergleich und die Kraft-Veränderung bei „Gewicht vs. Kraft“
+  rechnen **robust mit Wochenwerten**: je Übung und Woche das beste e1RM, Bezug ist der Median der ersten 2–3
+  Wochen im Zeitraum (ab dem letzten Form-Fix), der aktuelle Wert ein gleitender Median der letzten 2–3 Wochen
+  (3 ab 6 Trainingswochen). Eine Übung zählt ab **4 Trainingswochen** im Zeitraum. So zeigen Tagesform-Schwankungen
+  (± 2–4 %) keinen Scheinzuwachs – das frühere laufende Maximum gegen die erste Session ergab dabei +3–6 %; der Index
+  der Karte „Kraftzuwachs“ verkettet die Übungen über das geometrische Mittel und kann auch ins Minus gehen.
+  Hinweis: Wer mitten im Zeitraum deutlich öfter pro Woche trainiert, sieht wegen „bestes e1RM der Woche“ einen
+  kleinen Scheinzuwachs (bei 1 → 3 Sessions etwa +2–3 %). „Tage seit letztem PR“ färbt sich nicht mehr rot.
 - **Volumen**: Tonnage, Sätze und Wiederholungen pro Woche, Volumen pro Workout, **Volumen pro Workout-Typ**
   (nach Workout-Name, z. B. „Push A" und „Push B" getrennt), Trainingsdichte, Wochentage, Top-Übungen,
   Trend pro Übung, Intensitäts-Mix, Jahresvergleich.

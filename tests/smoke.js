@@ -663,17 +663,34 @@ async function anzeigeFlow(page) {
   await pause(page, 600);
   const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
   check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
-  // Kraftzuwachs robust: Tagesform-Schwankungen (±3 %) ohne echten Fortschritt ergeben im Mittel ≈ 0 %
-  // (das frühere laufende Maximum gegen die erste Session lag hier bei ≈ +2,6 %), echte Steigerung bleibt sichtbar
+  // Kraftzuwachs robust (bestes e1RM je Woche, Median der ersten gegen gleitenden Median der letzten Wochen):
+  // Tagesform-Schwankungen (σ 3 %) ohne echten Fortschritt ergeben ≈ 0 % – je Übung im Mittel und im verketteten Index
+  // der Karte „Kraftzuwachs“. Das frühere laufende Maximum gegen die erste Session zeigt bei denselben Daten ≈ +6 %.
   const kz = await page.evaluate(() => {
     let sd = 7; const rnd = () => (sd = (sd * 16807) % 2147483647) / 2147483647;
-    const sessions = {}, ids = [];
-    for (let k = 0; k < 300; k++) { ids.push('n' + k); sessions['n' + k] = Array.from({ length: 12 }, (_, i) => ({ dn: 1000 + i * 4, best: 100 * (1 + (rnd() - 0.5) * 0.06) })); }
-    sessions.up = Array.from({ length: 12 }, (_, i) => ({ dn: 1000 + i * 4, best: 100 + i * 1.5 }));
-    const g = strengthGains({ sessions }, [...ids, 'up'], { from: 0, to: 99999 });
-    return { noiseAvg: round(avg(g.filter(x => x.id !== 'up').map(x => x.gain)), 2), up: round(g.find(x => x.id === 'up').gain, 1) };
+    const gauss = () => { let u = -6; for (let i = 0; i < 12; i++) u += rnd(); return u; };
+    // 12 Wochen, 2 Sessions pro Woche; e1RM = Niveau (je nach Woche) × Tagesform
+    const w0 = weekStartDN(7000), mk = lvl => Array.from({ length: 24 }, (_, i) => ({ dn: w0 + (i >> 1) * 7 + (i % 2) * 3, best: lvl(i >> 1) * (1 + 0.03 * gauss()) }));
+    const sessions = {}, flat = [], up = [];
+    for (let k = 0; k < 300; k++) { flat.push('f' + k); sessions['f' + k] = mk(() => 100); }
+    for (let k = 0; k < 50; k++) { up.push('u' + k); sessions['u' + k] = mk(w => 100 * (1 + 0.01 * w)); }   // +1 % pro Woche
+    const all = { from: 0, to: 99999 }, ix = { sessions };
+    const gF = strengthGains(ix, flat, all), gU = strengthGains(ix, up, all), last = a => a[a.length - 1].y;
+    const old = avg(flat.map(id => { const ss = sessions[id]; return (Math.max(...ss.map(s => s.best)) / ss[0].best - 1) * 100; }));
+    return { n: gF.length, flat: round(avg(gF.map(g => g.gain)), 2), flatIdx: last(gainIndex(gF)), old: round(old, 1), up: round(avg(gU.map(g => g.gain)), 1), upIdx: last(gainIndex(gU)) };
   });
-  check(Math.abs(kz.noiseAvg) < 0.5 && kz.up > 10, 'Kraftzuwachs: reine Tagesform-Schwankungen ergeben im Mittel ≈ 0 %, echte Steigerung sichtbar', JSON.stringify(kz));
+  check(kz.n === 300 && Math.abs(kz.flat) < 0.5 && Math.abs(kz.flatIdx) < 0.5 && kz.old > 3, 'Kraftzuwachs: verrauschte, aber gleichbleibende Daten ergeben ≈ 0 % (früher laufendes Maximum: ≈ +6 %)', JSON.stringify(kz));
+  check(kz.up > 6 && kz.up < 12 && kz.upIdx > 6 && kz.upIdx < 12, 'Kraftzuwachs: echte Steigerung (+1 % pro Woche) bleibt sichtbar', JSON.stringify(kz));
+  // Form-Fix startet neu (Werte davor zählen nicht), unter 4 Trainingswochen gibt es keinen Wert,
+  // mehrere Sessions pro Woche zählen als eine Woche
+  const kf = await page.evaluate(() => {
+    const w0 = weekStartDN(7000), wk = (n, lvl, from = 0, perWeek = 1) => Array.from({ length: n * perWeek }, (_, i) => ({ dn: w0 + (from + Math.floor(i / perWeek)) * 7 + i % perWeek, best: lvl }));
+    const fix = [...wk(6, 120), ...wk(6, 100, 6)]; fix[6].fix = true;           // vor dem Fix 120 kg, danach 100 kg
+    const short = [...wk(9, 120), ...wk(3, 100, 9)]; short[9].fix = true;       // nach dem Fix erst 3 Wochen
+    const g = strengthGains({ sessions: { fix, short, often: wk(3, 100, 0, 3), weekly: wk(4, 100) } }, ['fix', 'short', 'often', 'weekly'], { from: 0, to: 99999 });
+    return g.map(x => `${x.id}:${round(x.gain, 1)}/${x.weeks}`).join(' ');
+  });
+  check(kf === 'fix:0/6 weekly:0/4', 'Kraftzuwachs: ab dem Form-Fix, erst ab 4 Trainingswochen je Übung', kf);
   // Blasse Anteile (z. B. mitgeholfene Sätze) auch bei „Hoher Kontrast“, wo Farben als color-mix() kommen
   const al = await page.evaluate(() => [alpha('color-mix(in srgb, #000000 50%, #ffffff)', .3), alpha('#ff0000', .5)]);
   check(/^rgba\(12[78], 12[78], 12[78], 0\.3\)$/.test(al[0]) && al[1] === 'rgba(255, 0, 0, 0.5)', 'Diagramme: blasse Anteile auch bei „Hoher Kontrast“ (color-mix wird aufgelöst)', al.join(' | '));

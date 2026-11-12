@@ -513,32 +513,47 @@ const BENCHMARKS = {
   ex_kreuzheben: [1.5, 2.0, 2.75], ex_sumo_kreuzheben: [1.5, 2.0, 2.75], ex_military_press: [0.6, 0.85, 1.1], ex_ohp_kh: [0.6, 0.85, 1.1]
 };
 const median = a => { const v = [...a].sort((x, y) => x - y), m = v.length >> 1; return v.length % 2 ? v[m] : (v[m - 1] + v[m]) / 2; };
-/** Robuste Kraftkurve einer Übung: Bezug = Median der ersten k Sessions im Zeitraum, Wert = Median der letzten k Sessions
-   bis zum jeweiligen Tag (k = 3, bei wenigen Sessions weniger). Früher: bestes e1RM bis zum Tag ÷ erste Session – so ein
-   laufendes Maximum steigt schon durch Tagesform-Schwankungen um 3–6 % (docs/redesign/recherche/trainio-score.md). */
+/** Kraftzuwachs braucht je Übung Werte aus mind. so vielen Wochen (im Zeitraum, ab dem letzten Form-Fix) */
+const GAIN_MIN_WEEKS = 4;
+const gainNeed = `mind. ${GAIN_MIN_WEEKS} Trainingswochen je Übung nötig`;
+/** Sessions einer Übung im Zeitraum, ab dem letzten Form-Fix (davor war die Technik eine andere) */
+const gainPts = (ix, id, r) => sinceFix(ix.sessions[id] || [], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
+/** Robuste Kraftkurve einer Übung (Sessions nach Datum sortiert):
+   1. je Woche ein Wert: das beste e1RM der Woche (Heavy-/Light-Tage in einer Woche stören so nicht),
+   2. Bezug (= 100 %) ist der Median der ersten k Wochenwerte (k = 2, ab 6 Wochen 3) – die Kurve steht dort auf 100 %,
+   3. danach gleitender Median der letzten k Wochenwerte.
+   Früher: bestes e1RM bis zum Tag ÷ erste Session. So ein laufendes Maximum steigt schon durch Tagesform-Schwankungen
+   (σ 2–4 %) um 3–6 % (docs/redesign/recherche/trainio-score.md, Abschnitt 5). null bei weniger als GAIN_MIN_WEEKS Wochen. */
 function robustSeries(pts) {
-  const k = Math.min(3, Math.max(1, Math.floor(pts.length / 2)));
-  const base = median(pts.slice(0, k).map(s => s.best));
-  return { base, series: pts.map((s, i) => { const v = median(pts.slice(Math.max(0, i - k + 1), i + 1).map(p => p.best)); return { x: s.dn, v, ratio: v / base }; }) };
+  const wk = [];
+  for (const s of pts) {
+    const w = weekStartDN(s.dn), last = wk[wk.length - 1];
+    if (last && last.w === w) { last.best = Math.max(last.best, s.best); last.dn = s.dn; }
+    else wk.push({ w, dn: s.dn, best: s.best });
+  }
+  if (wk.length < GAIN_MIN_WEEKS) return null;
+  const k = wk.length >= 6 ? 3 : 2, base = median(wk.slice(0, k).map(w => w.best));
+  // x = letzte Session der Woche (Stand an diesem Tag)
+  const series = wk.map((w, i) => { const start = i < k, v = start ? base : median(wk.slice(i - k + 1, i + 1).map(p => p.best)); return { x: w.dn, v, ratio: v / base, start }; });
+  return { base, cur: series[series.length - 1].v, k, weeks: wk.length, series };
 }
-/** Kraftzuwachs je Übung (mind. 3 Sessions im Zeitraum): aktuelle Form gegenüber dem Start im Zeitraum, robust gemittelt */
+/** Kraftzuwachs je Übung (mind. GAIN_MIN_WEEKS Trainingswochen im Zeitraum): aktuelle Form gegenüber dem Start im Zeitraum */
 function strengthGains(ix, ids, r) {
   return ids.map(id => {
-    const pts = sinceFix(ix.sessions[id] || [], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0);
-    if (pts.length < 3) return null;
-    const { base, series } = robustSeries(pts), cur = series[series.length - 1].v;
-    return { id, base, cur, gain: (cur / base - 1) * 100, series: series.map(p => ({ x: p.x, ratio: p.ratio })), n: pts.length };
+    const pts = gainPts(ix, id, r), rs = robustSeries(pts);
+    return rs && { id, base: rs.base, cur: rs.cur, gain: (rs.cur / rs.base - 1) * 100, series: rs.series.map(p => ({ x: p.x, ratio: p.ratio })), n: pts.length, weeks: rs.weeks };
   }).filter(Boolean);
 }
-/** Kraft-Index (verkettet): Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten */
+/** Kraft-Index (verkettet): Übungen, die später dazukommen, starten neutral und ziehen den Schnitt nicht nach unten.
+   Geometrisches Mittel der Veränderungen – das arithmetische Mittel schaukelt sich bei Rauschen über viele Schritte auf. */
 function gainIndex(gains) {
   const xs = uniq(gains.flatMap(g => g.series.map(p => p.x))).sort((a, b) => a - b);
   let level = 1, prev = new Map();
   return xs.map(x => {
     const cur = new Map();
     for (const g of gains) { let v = null; for (const p of g.series) { if (p.x <= x) v = p.ratio; else break; } if (v != null) cur.set(g.id, v); }
-    const ch = [...cur].filter(([id]) => prev.has(id)).map(([id, v]) => v / prev.get(id) - 1);
-    if (ch.length) level *= 1 + avg(ch);
+    const ch = [...cur].filter(([id]) => prev.has(id)).map(([id, v]) => Math.log(v / prev.get(id)));
+    if (ch.length) level *= Math.exp(avg(ch));
     prev = cur;
     return { x, y: round((level - 1) * 100, 1), n: cur.size };
   });
@@ -559,11 +574,12 @@ ProgressViews.strength = body => {
   const cb = chartBuilder();
   // Kraft im Vergleich: e1RM der meist-trainierten Übungen (der Auswahl), Start im Zeitraum = 100 %
   const cmpCard = ids => {
-    const cmp = ids.map(id => ({ id, pts: sinceFix(ix.sessions[id], r.to).filter(s => s.dn >= r.from && s.dn <= r.to && s.best > 0) })).filter(x => x.pts.length >= 3).sort((a, b) => b.pts.length - a.pts.length).slice(0, 4)
-      .map((x, i) => ({ id: x.id, color: c.series[i], pts: robustSeries(x.pts).series.map(p => ({ x: p.x, y: round(p.ratio * 100, 1), label: `${nf(p.ratio * 100, 0)} % (e1RM ${fmtW(p.v)}, Mittel der letzten Sessions)` })) }));
+    const cmp = ids.map(id => { const pts = gainPts(ix, id, r); return { id, n: pts.length, rs: robustSeries(pts) }; }).filter(x => x.rs).sort((a, b) => b.n - a.n).slice(0, 4)
+      .map((x, i) => ({ id: x.id, color: c.series[i], pts: x.rs.series.map(p => ({ x: p.x, y: round(p.ratio * 100, 1),
+        label: p.start ? `100 % (Start: e1RM ${fmtW(p.v)}, Median der ersten ${x.rs.k} Wochen)` : `${nf(p.ratio * 100, 0)} % (e1RM ${fmtW(p.v)}, Median der letzten ${x.rs.k} Wochen)` })) }));
     const cmpTop = cmp.length ? cmp.reduce((a, b) => b.pts[b.pts.length - 1].y > a.pts[a.pts.length - 1].y ? b : a) : null;
-    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Deine Form je Übung, der Start im Zeitraum ist 100 %. So siehst du, welche Übung am schnellsten wächst.',
-      big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : 'mind. 3 Sessions je Übung nötig',
+    return cb.card({ id: 'k13', wide: true, title: 'Kraft im Vergleich', info: 'Deine Form je Übung, die ersten Wochen im Zeitraum sind 100 %. So siehst du, welche Übung am schnellsten wächst.',
+      big: cmpTop ? (cmpTop.pts[cmpTop.pts.length - 1].y >= 100 ? '+' : '') + nf(cmpTop.pts[cmpTop.pts.length - 1].y - 100, 0) + ' %' : '–', small: cmpTop ? Ex.name(cmpTop.id) : gainNeed,
       factory: () => cmp.length ? timeLine(cmp.map(x => lineDS(Ex.name(x.id), x.pts, x.color, { fill: false })), { legend: true, tooltipFmt: v => nf(v, 0) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 100, label: 'Start', color: c.faint }] } }) : null });
   };
   // Tage seit letztem PR (für eine Übung oder eine Auswahl)
@@ -601,12 +617,12 @@ ProgressViews.strength = body => {
     const firstDn = Math.min(...ids.map(id => ix.sessions[id][0].dn));
     body.innerHTML = `${head}
     <div class="charts-grid">
-      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist, als Ø ${what}. Einzelne gute oder schlechte Tage zählen nicht.`,
-        big: idxNow != null ? (idxNow >= 0 ? '+' : '') + nf(idxNow, 1) + ' %' : '–', small: gains.length ? `Ø aus ${gains.length} ${gains.length === 1 ? 'Übung' : 'Übungen'}` : 'mind. 3 Sessions je Übung nötig',
+      ${cb.card({ id: 'kx', wide: true, title: 'Kraftzuwachs', info: `Wie viel stärker du im Zeitraum geworden bist, als Ø ${what}. Es zählen ganze Wochen, nicht einzelne Tage.`,
+        big: idxNow != null ? (idxNow >= 0 ? '+' : '') + nf(idxNow, 1) + ' %' : '–', small: gains.length ? `Ø aus ${gains.length} ${gains.length === 1 ? 'Übung' : 'Übungen'}` : gainNeed,
         factory: () => idxPts.length > 1 ? timeLine([lineDS('Kraftzuwachs', idxPts.map(p => ({ x: p.x, y: p.y, label: `${p.y >= 0 ? '+' : ''}${nf(p.y, 1)} % (${p.n} Übungen)` })), c.accent)],
-          { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %', yMin: 0 }) : null })}
-      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum.`, size: top.length > 5 ? 'lg' : '',
-        big: top.length ? esc(Ex.name(top[0].id)) : '–', small: top.length ? `${top[0].gain >= 0 ? '+' : ''}${nf(top[0].gain, 0)} %` : 'mind. 3 Sessions je Übung nötig',
+          { tooltipFmt: v => nf(v, 1) + ' %', yFmt: v => nf(v, 0) + ' %', thresholds: { axis: 'y', lines: [{ value: 0, label: '', color: c.faint }] } }) : null })}
+      ${cb.card({ id: 'kt', title: 'Top-Aufsteiger', info: `Die Übungen mit dem größten Kraftzuwachs im Zeitraum. Es zählen ganze Wochen, nicht einzelne Tage.`, size: top.length > 5 ? 'lg' : '',
+        big: top.length ? esc(Ex.name(top[0].id)) : '–', small: top.length ? `${top[0].gain >= 0 ? '+' : ''}${nf(top[0].gain, 0)} %` : gainNeed,
         factory: () => top.length ? barChart(top.map(g => Ex.name(g.id)), [barDS('Zuwachs', top.map(g => round(g.gain, 1)), top.map(g => g.gain > 0.05 ? c.accent : c.faint))],
           { horizontal: true, yFmt: v => nf(v, 0) + ' %', tooltipFmt: (v, ctx) => `${v >= 0 ? '+' : ''}${nf(v, 1)} % · ${fmtW(top[ctx.dataIndex].base)} → ${fmtW(top[ctx.dataIndex].cur)}` }) : null })}
       ${cmpCard(ids)}
@@ -648,8 +664,9 @@ ProgressViews.strength = body => {
     if (best) repMax.push(best);
   }
   const newestRep = repMax.length ? repMax.reduce((a, b) => b.dn > a.dn ? b : a) : null;
-  // Gewicht vs. Kraft: Veränderung im Zeitraum
-  const e1Delta = inRF.length > 1 ? maxOf(inRF, s => s.best) - inRF[0].best : null;
+  // Gewicht vs. Kraft: Veränderung im Zeitraum – robust wie der Kraftzuwachs (Wochenwerte, Median), kein laufendes Maximum
+  const e1Rs = robustSeries(gainPts(ix, exId, r));
+  const e1Delta = e1Rs ? e1Rs.cur - e1Rs.base : null;
   const bwDelta = bwR.length > 1 ? bwR[bwR.length - 1].kg - bwR[0].kg : null;
   const signKg = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + fmtW(Math.abs(d));
   body.innerHTML = `${head}
@@ -688,7 +705,7 @@ ProgressViews.strength = body => {
           return timeLine([lineDS('Relative Kraft', pts, c.accent)], { tooltipFmt: v => nf(v, 2) + ' × KG', yFmt: v => nf(v, 1), thresholds: lines ? { lines, axis: 'y' } : null, yMin: Math.max(0, Math.min(...ys, bench ? bench[0] : 99) - .2), yMax: bench ? Math.max(...ys, bench[2]) + .15 : undefined });
         } })}
       ${cb.card({ id: 'kgw', wide: true, title: 'Gewicht vs. Kraft', info: 'Geschätztes 1RM (links) und Körpergewicht (rechts) im selben Zeitraum. So siehst du, ob du beim Zu- oder Abnehmen stärker wirst.',
-        big: e1Delta != null ? signKg(e1Delta) : '–', small: e1Delta != null ? 'Kraft (e1RM)' : 'mind. 2 Sessions im Zeitraum nötig',
+        big: e1Delta != null ? signKg(e1Delta) : '–', small: e1Delta != null ? 'Kraft (e1RM)' : `mind. ${GAIN_MIN_WEEKS} Trainingswochen im Zeitraum nötig`,
         sub: hasBw ? (bwDelta != null ? `Körpergewicht im selben Zeitraum: ${signKg(bwDelta)}` : 'Zu wenige Gewichts-Einträge im Zeitraum') : 'Körpergewicht im Körper-Tab eintragen',
         factory: () => {
           if (!inR.length || !bwR.length) return null;
