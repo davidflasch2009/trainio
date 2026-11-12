@@ -23,6 +23,9 @@ Dazu kommt der **Trainio-Score**, der zeigt, wie sich Kraft und Muskulatur entwi
 - **Details erst nach Antippen (David, 12.11.2026: „dass man nicht so überrumpelt wird“):** Übersichten zeigen je
   Kachel nur **Titel und Zahl**, ohne Untertitel, Fußnoten oder Sätze. Verlauf, Vergleiche, Aufschlüsselung und die
   Erklärung (i) erscheinen erst nach dem Antippen. Das gilt überall, nicht nur beim Score.
+- **Schlicht und schön (David, 12.11.2026: „du übertreibst es immer, zu viele Diagramme und Striche“):** keine
+  Mini-Grafiken in Kacheln, keine Skalen, Zierlinien oder Deko-Elemente. Diagramme nur in den Details, dort höchstens
+  eins. Im Zweifel weglassen.
 - **Alles folgt dem Design:** Teilen-Bild, Workout-Score-Ring & Konfetti, Diagramme und Animationen.
 - Sprache: Deutsch.
 

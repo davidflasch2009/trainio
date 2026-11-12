@@ -25,7 +25,8 @@ markiert ist. Gebaut wird erst danach.
   Claude selbst und schreibt sie nachlesbar in ANFORDERUNGEN.md.
 - **Reihenfolge:** Darstellung → Trainio-Score → Basis und Designs; die Bestandsaufnahme läuft nebenher.
 - **Feste Vorlieben von David:** Kein Feature fällt weg, alles bleibt abschaltbar. Neue Regler wandern in die
-  Feinanpassung, nicht nach oben. Lieber klar und ehrlich als scheingenau.
+  Feinanpassung, nicht nach oben. Lieber klar und ehrlich als scheingenau. Schlicht und schön statt überladen: wenig Text, keine
+  Deko-Grafiken oder Zierlinien, Details erst nach Antippen.
 - **Ergebnis jedes Tickets:** Die Antwort steht im Ticket. Was daraus Anforderung wird, wandert zusätzlich in
   ANFORDERUNGEN.md, und das ⏳ dort wird ersetzt.
 

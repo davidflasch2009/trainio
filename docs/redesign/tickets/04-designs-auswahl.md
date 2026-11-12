@@ -42,3 +42,8 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
   60er-Skala und Marke bei 85, Beschriftungen in Monospace. Quelle:
   [prototypen/04-klarblau/index.html](../prototypen/04-klarblau/index.html),
   Link: https://claude.ai/artifact/AsrWSCWTkNWXqgvztva3rm (privat). Wartet auf Davids Rückmeldung.
+- **Rückmeldung David zu Klarblau 1:** „gefällt mir gar nicht, du übertreibst es immer, zu viele Diagramme und
+  Striche, einfach ein schlichtes schönes Design“. Als Regel in ANFORDERUNGEN.md (Abschnitt 2) und auf der Karte.
+- **Klarblau 2** (gleicher Link, Fassung 1 in Commit ccb9720): radikal schlicht – Systemschrift, Weiß mit hellgrauen
+  Flächen, ein Blau, Ecken 8 px, Kacheln nur Titel und Zahl, Score nur Kreis mit Zahl, Diagramme nur in Details.
+  Wartet auf Davids Rückmeldung.
