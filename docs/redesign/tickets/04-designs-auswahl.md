@@ -35,3 +35,10 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
   Zen, Topografie), Grafisch (Vollfarbe, Bauhaus, Riso, Varsity), Material & Retro (Analog, Studio, Chrom, Knete),
   Verspielt (Kreide, Synthwave, Pixel, Comic), Technisch (Terminal, Blaupause). Jedes mit Start, laufendem Workout
   und Fortschritt, hell und dunkel, eigener Score-Form, Markenzeichen-Idee und Akzentfarben. Wartet auf Davids Auswahl.
+- **Rückmeldung David zu Prototyp 2:** Gefallen nicht ganz – stattdessen ein eigenes Design komplett erstellen.
+  Vorgaben (Auswahl von David): clean und hell, schlichtes Blau, präzise und eckig, feine Linien und Details.
+- **Prototyp 3 „Klarblau“** (Arbeitstitel): klickbares Design mit Start, laufendem Workout, Fortschritt, Details,
+  Rückfrage und Abschluss, hell und dunkel. Weiß als Grund, Struktur nur über 1-px-Linien, Ecken 4 px, Score mit
+  60er-Skala und Marke bei 85, Beschriftungen in Monospace. Quelle:
+  [prototypen/04-klarblau/index.html](../prototypen/04-klarblau/index.html),
+  Link: https://claude.ai/artifact/AsrWSCWTkNWXqgvztva3rm (privat). Wartet auf Davids Rückmeldung.
