@@ -2,8 +2,9 @@
 
 - **Typ:** prototype (HITL)
 - **Status:** offen
-- **Übernommen von:** –
-- **Blockiert durch:** [Die neue Basis: Raster, Schrift, Komponenten, Diagramme](03-basis.md)
+- **Übernommen von:** Claude mit David
+- **Blockiert durch:** – (David hat am 12.11.2026 entschieden, die Auswahl vor der Basis zu treffen; Grundlage ist
+  Prototyp 2 aus [Die neue Basis](03-basis.md))
 
 ## Frage
 
