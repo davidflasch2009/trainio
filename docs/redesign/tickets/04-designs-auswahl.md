@@ -28,3 +28,10 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
   ähnlich, Carbon Iron. Je Design ein Markenzeichen zum Antippen und 4–5 Akzentfarben.
   Quelle: [prototypen/04-designs/index.html](../prototypen/04-designs/index.html),
   Link für David: https://claude.ai/artifact/697tVkYLNbD3WaJo5n5z3f (privat). Wartet auf Davids Auswahl.
+- **Rückmeldung David zu Prototyp 1:** Keins der Kandidaten. Die zwei neuen Designs sollen ganz neue Richtungen
+  sein, eins davon „Premium, dunkel“.
+- **Prototyp 2** (gleicher Link, Fassung 1 in Commit ce54e2d): 24 neue Re-Designs, erstellt mit dem Design-Skill,
+  in sieben Gruppen – Premium dunkel (Onyx, Glut, Jade, Titan, Velours), Edel (Chronograph, Marmor), Ruhig (Kontur,
+  Zen, Topografie), Grafisch (Vollfarbe, Bauhaus, Riso, Varsity), Material & Retro (Analog, Studio, Chrom, Knete),
+  Verspielt (Kreide, Synthwave, Pixel, Comic), Technisch (Terminal, Blaupause). Jedes mit Start, laufendem Workout
+  und Fortschritt, hell und dunkel, eigener Score-Form, Markenzeichen-Idee und Akzentfarben. Wartet auf Davids Auswahl.
