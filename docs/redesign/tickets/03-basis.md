@@ -23,3 +23,11 @@ Basis-Prototyp ist dafür ein Platz vorzusehen, die genaue Gestaltung klärt [Tr
 Prototyp: Startseite, laufendes Workout und Fortschritt → Übersicht in einer neutralen Haut (Hell und Dunkel,
 390 px), damit David reagieren kann. Rahmen: Aufbau und Funktionen bleiben, innerhalb eines Bildschirms darf
 alles neu angeordnet werden.
+
+## Stand
+
+- **Prototyp 1** (12.11.2026): drei Varianten der Basis – A „Listen“ (Apple-nah, gruppierte Listen, Workout als
+  Tabelle), B „Kacheln“ (Zahlen zuerst, eine Übung auf einmal), C „Klartext“ (ein Satz sagt die Lage, ohne
+  Kartenrahmen, Eingabe fest unten). Jeweils Start, laufendes Workout, Fortschritt → Übersicht und die Seite
+  „Bausteine“, hell und dunkel. Quelle: [prototypen/03-basis/index.html](../prototypen/03-basis/index.html),
+  Link für David: https://claude.ai/artifact/Ed68RGVAxiVwtJzk2YRGVw (privat). Wartet auf Davids Rückmeldung.

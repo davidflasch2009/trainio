@@ -1,0 +1,1028 @@
+<title>Trainio Basis-Prototyp</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* WEGWERF-PROTOTYP zu Ticket 03 „Die neue Basis“ (docs/redesign/tickets/03-basis.md) – nie in die echte App übernehmen.
+   Drei Varianten der Basis in neutraler Haut, umschaltbar über die Leiste oben (#a-start, #b-training, #c-fortschritt …).
+   Gleich in allen Varianten: Farbrollen (neutral, ein Platzhalter-Akzent, 3 Signalfarben), 4/8-Raster, Tap-Flächen ab 44 px,
+   ein Symbolsatz, ein Diagramm-Stil. Je Variante anders: Schriftstufen, Ecken, Abstände und der Aufbau der Bildschirme. */
+:root {
+  --bg: #F2F2F4; --desk: #E3E3E8; --surface: #FFFFFF; --surface-2: #F6F6F8; --fill: #E9E9ED; --seg-on: #FFFFFF;
+  --line: rgba(17, 18, 28, .11); --sheet-bg: #FFFFFF;
+  --text: #121318; --text-2: #4F525C; --text-3: #6E717C;
+  --accent: #3D55D1; --on-accent: #FFFFFF; --accent-soft: rgba(61, 85, 209, .12);
+  --good: #1D7F47; --warn: #9C6200; --bad: #C23A3A;
+  --chart-muted: #CBCDD5; --grid: rgba(17, 18, 28, .09);
+  --proto-bg: #121318; --proto-fg: #FFFFFF; --scrim: rgba(10, 10, 14, .32);
+  --card-shadow: 0 1px 2px rgba(10, 10, 20, .04), 0 4px 14px rgba(10, 10, 20, .05);
+  --sheet-shadow: 0 -10px 40px rgba(10, 10, 20, .16);
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-num: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --s1: 4px; --s2: 8px; --s3: 12px; --s4: 16px; --s5: 24px; --s6: 32px; --s7: 48px;
+  --tap: 44px; --bar-h: 56px; --top: 60px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0B0B0D; --desk: #000000; --surface: #17171A; --surface-2: #1D1D21; --fill: #2A2A30; --seg-on: #45454D;
+    --line: rgba(255, 255, 255, .10); --sheet-bg: #1E1E22;
+    --text: #F2F2F5; --text-2: #A7A9B3; --text-3: #82848F;
+    --accent: #8597FF; --on-accent: #0B0B0D; --accent-soft: rgba(133, 151, 255, .17);
+    --good: #3CC97D; --warn: #F0B03A; --bad: #FF6B6B;
+    --chart-muted: #3B3C44; --grid: rgba(255, 255, 255, .08);
+    --proto-bg: #F2F2F5; --proto-fg: #121318; --scrim: rgba(0, 0, 0, .55);
+    --card-shadow: none; --sheet-shadow: 0 -10px 40px rgba(0, 0, 0, .5);
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0B0B0D; --desk: #000000; --surface: #17171A; --surface-2: #1D1D21; --fill: #2A2A30; --seg-on: #45454D;
+  --line: rgba(255, 255, 255, .10); --sheet-bg: #1E1E22;
+  --text: #F2F2F5; --text-2: #A7A9B3; --text-3: #82848F;
+  --accent: #8597FF; --on-accent: #0B0B0D; --accent-soft: rgba(133, 151, 255, .17);
+  --good: #3CC97D; --warn: #F0B03A; --bad: #FF6B6B;
+  --chart-muted: #3B3C44; --grid: rgba(255, 255, 255, .08);
+  --proto-bg: #F2F2F5; --proto-fg: #121318; --scrim: rgba(0, 0, 0, .55);
+  --card-shadow: none; --sheet-shadow: 0 -10px 40px rgba(0, 0, 0, .5);
+  color-scheme: dark;
+}
+
+/* ---------- Varianten: Schriftstufen, Ecken, Abstände ---------- */
+/* A „Listen“: Apple-nah. 34 · 22 · 17 · 15 · 13, Zahlen 28 / 56 */
+body, body[data-v="a"] {
+  --fs-title: 34px; --lh-title: 41px; --fw-title: 700; --fs-head: 22px; --lh-head: 28px;
+  --fs-body: 17px; --lh-body: 22px; --fs-sub: 15px; --lh-sub: 20px; --fs-cap: 13px; --lh-cap: 18px; --fs-tab: 11px;
+  --fs-num: 28px; --fs-hero: 56px; --num-track: -.01em;
+  --r-card: 14px; --r-ctl: 10px; --r-btn: 12px; --r-sheet: 14px; --r-dialog: 14px; --gap-sec: 32px; --pad-card: 16px;
+}
+/* B „Kacheln“: kompakter Text, große Zahlen. 28 · 20 · 16 · 14 · 12, Zahlen 30 / 64 */
+body[data-v="b"] {
+  --fs-title: 28px; --lh-title: 34px; --fw-title: 700; --fs-head: 20px; --lh-head: 25px;
+  --fs-body: 16px; --lh-body: 21px; --fs-sub: 14px; --lh-sub: 19px; --fs-cap: 12px; --lh-cap: 16px; --fs-tab: 12px;
+  --fs-num: 30px; --fs-hero: 64px; --num-track: -.035em;
+  --r-card: 22px; --r-ctl: 14px; --r-btn: 999px; --r-sheet: 28px; --r-dialog: 24px; --gap-sec: 16px; --pad-card: 16px;
+}
+/* C „Klartext“: Sätze statt Kacheln, ohne Kartenrahmen. 28 · 20 · 17 · 15 · 13, Zahlen 40 / 48 */
+body[data-v="c"] {
+  --fs-title: 28px; --lh-title: 34px; --fw-title: 600; --fs-head: 20px; --lh-head: 26px;
+  --fs-body: 17px; --lh-body: 24px; --fs-sub: 15px; --lh-sub: 21px; --fs-cap: 13px; --lh-cap: 18px; --fs-tab: 13px;
+  --fs-num: 40px; --fs-hero: 48px; --num-track: -.02em;
+  --r-card: 0px; --r-ctl: 8px; --r-btn: 10px; --r-sheet: 12px; --r-dialog: 10px; --gap-sec: 24px; --pad-card: 0px;
+}
+
+/* ---------- Grundlagen ---------- */
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--font); font-size: var(--fs-body); line-height: var(--lh-body); -webkit-font-smoothing: antialiased; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+button { font: inherit; color: inherit; background: none; border: 0; padding: 0; margin: 0; cursor: pointer; text-align: inherit; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+h1, h2, h3, p, ul, ol { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+.app { max-width: 430px; margin: 0 auto; min-height: 100vh; position: relative; background: var(--bg); }
+@media (min-width: 600px) { body { background: var(--desk); } .app { box-shadow: 0 0 0 1px var(--line), 0 30px 80px rgba(0, 0, 0, .14); } }
+.screen { display: flex; flex-direction: column; gap: var(--gap-sec); padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: var(--top) var(--pad-bottom, 96px); }
+.ic { width: 1.25em; height: 1.25em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; vertical-align: -.25em; }
+
+/* Schrift */
+.t-title { font-size: var(--fs-title); line-height: var(--lh-title); font-weight: var(--fw-title); letter-spacing: -.02em; text-wrap: balance; }
+.t-head { font-size: var(--fs-head); line-height: var(--lh-head); font-weight: 600; letter-spacing: -.01em; text-wrap: balance; }
+.t-body { font-size: var(--fs-body); line-height: var(--lh-body); }
+.t-sub { font-size: var(--fs-sub); line-height: var(--lh-sub); }
+.t-cap { font-size: var(--fs-cap); line-height: var(--lh-cap); }
+.num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.n-num { font-family: var(--font-num); font-size: var(--fs-num); line-height: 1.1; font-weight: 700; letter-spacing: var(--num-track); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.hero-num { font-family: var(--font-num); font-size: var(--fs-hero); line-height: 1; font-weight: 700; letter-spacing: var(--num-track); font-variant-numeric: tabular-nums; }
+.u { font-size: max(var(--fs-cap), .4em); font-weight: 600; color: var(--text-2); margin-left: .25em; letter-spacing: 0; }
+.c2 { color: var(--text-2); } .c3 { color: var(--text-3); } .fw6 { font-weight: 600; } .fw4 { font-weight: 400; }
+.good { color: var(--good); } .warn { color: var(--warn); } .bad { color: var(--bad); }
+.trend { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; white-space: nowrap; }
+.trend .ic { width: 1em; height: 1em; vertical-align: 0; stroke-width: 2.2; }
+
+/* Knöpfe */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: var(--tap); padding: 0 16px; border-radius: var(--r-btn); font-size: var(--fs-body); font-weight: 600; line-height: 1.2; text-align: center; position: relative; transition: transform .12s, opacity .12s; }
+.btn:active { transform: scale(.98); opacity: .8; }
+.btn-primary { background: var(--accent); color: var(--on-accent); }
+.btn-secondary { background: var(--fill); color: var(--text); }
+.btn-text { color: var(--accent); padding: 0 8px; }
+.btn-danger { color: var(--bad); }
+.btn-block { width: 100%; }
+.btn-lg { min-height: 56px; }
+.btn-sm { min-height: 34px; padding: 0 12px; font-size: var(--fs-sub); }
+.btn-sm::after { content: ""; position: absolute; inset: -5px 0; }
+.btn-col { flex-direction: column; gap: 2px; }
+.btn-col small { font-size: var(--fs-cap); font-weight: 500; opacity: .85; }
+.ic-btn { width: var(--tap); height: var(--tap); display: inline-grid; place-items: center; border-radius: 50%; color: var(--text-2); font-size: 18px; flex: none; }
+.ic-btn:active { background: var(--fill); }
+.info { color: var(--text-3); font-size: 16px; margin: -12px -12px -12px 0; }
+
+/* Liste */
+.list { background: var(--surface); border-radius: var(--r-card); overflow: hidden; }
+.row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: var(--tap); padding: 11px 16px; position: relative; }
+.row + .row::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--line); }
+button.row:active { background: var(--fill); }
+.row-ic { color: var(--text-2); font-size: 17px; display: grid; place-items: center; width: 28px; height: 28px; border-radius: 8px; background: var(--fill); flex: none; }
+.row-ic .ic { vertical-align: 0; }
+.row-main { flex: 1; min-width: 0; }
+.row-val { text-align: right; white-space: nowrap; }
+.chev { color: var(--text-3); font-size: 15px; }
+.sec { display: flex; flex-direction: column; gap: var(--s2); }
+.sec-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 28px; }
+
+/* Karte, Kachel */
+.card { background: var(--surface); border-radius: var(--r-card); padding: var(--pad-card); box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+[role="button"].card { cursor: pointer; }
+.card-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 22px; }
+.lbl { font-size: var(--fs-sub); line-height: var(--lh-sub); font-weight: 600; }
+
+/* Eingaben */
+.seg { display: flex; background: var(--fill); border-radius: var(--r-ctl); padding: 2px; gap: 2px; }
+.seg button { flex: 1; min-height: 32px; padding: 0 8px; border-radius: calc(var(--r-ctl) - 2px); font-size: var(--fs-sub); font-weight: 600; color: var(--text-2); position: relative; text-align: center; white-space: nowrap; }
+.seg button::after { content: ""; position: absolute; inset: -6px 0; }
+.seg button.on { background: var(--seg-on); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+.stepper { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap); align-items: center; background: var(--fill); border-radius: var(--r-ctl); min-height: 48px; }
+.stepper > button { height: 48px; display: grid; place-items: center; font-size: 18px; color: var(--text); }
+.stepper > button:active { opacity: .5; }
+.stepper .val { text-align: center; font-weight: 600; font-size: var(--fs-body); white-space: nowrap; }
+.stepper .val small { font-size: var(--fs-cap); font-weight: 500; color: var(--text-2); margin-left: 3px; }
+.chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+.chips::-webkit-scrollbar { display: none; }
+.chip { flex: none; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--fill); font-size: var(--fs-sub); font-weight: 600; color: var(--text-2); position: relative; white-space: nowrap; }
+.chip::after { content: ""; position: absolute; inset: -5px 0; }
+.chip.on { background: var(--text); color: var(--bg); }
+.pt { height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; }
+.pt > i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+
+/* Tab-Leiste */
+.tabbar { position: fixed; z-index: 20; bottom: 0; left: 0; right: 0; margin: 0 auto; max-width: 430px; display: flex; background: var(--surface); border-top: 1px solid var(--line); padding: 4px max(4px, env(safe-area-inset-right, 0px)) calc(4px + env(safe-area-inset-bottom, 0px)) max(4px, env(safe-area-inset-left, 0px)); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; min-height: 48px; font-size: var(--fs-tab); line-height: 1.1; font-weight: 500; color: var(--text-3); position: relative; text-align: center; }
+.tab .ic { font-size: 18px; vertical-align: 0; }
+.tab.on { color: var(--accent); }
+.tdot { position: absolute; top: 6px; left: calc(50% + 9px); width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+body[data-v="b"] .tab .ic { box-sizing: content-box; padding: 3px 14px; border-radius: 999px; }
+body[data-v="b"] .tab.on { color: var(--text); font-weight: 600; }
+body[data-v="b"] .tab.on .ic { background: var(--accent-soft); color: var(--accent); }
+body[data-v="c"] .tab { font-weight: 500; }
+body[data-v="c"] .tab.on { color: var(--text); font-weight: 700; }
+body[data-v="c"] .tab.on::after { content: ""; position: absolute; bottom: 6px; width: 4px; height: 4px; border-radius: 50%; background: var(--accent); }
+body[data-v="c"] .tdot { top: 10px; left: calc(50% + 30px); }
+
+/* Feste Leisten über der Tab-Leiste (Pause, Hauptknopf, Eingabe) */
+.dock { position: fixed; z-index: 19; left: 0; right: 0; margin: 0 auto; max-width: 430px; bottom: calc(var(--bar-h) + env(safe-area-inset-bottom, 0px)); padding: 8px max(16px, env(safe-area-inset-right, 0px)) 8px max(16px, env(safe-area-inset-left, 0px)); }
+.dock-solid { background: var(--surface); border-top: 1px solid var(--line); }
+
+/* Prototyp-Leiste (nicht Teil des Designs) */
+.proto-band { position: fixed; z-index: 55; top: 0; left: 0; right: 0; height: calc(env(safe-area-inset-top, 0px) + 52px); background: var(--bg); pointer-events: none; }
+.proto { position: fixed; z-index: 60; top: calc(env(safe-area-inset-top, 0px) + 8px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 16px); display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 999px; background: var(--proto-bg); color: var(--proto-fg); font: 600 13px/1 var(--font); box-shadow: 0 6px 24px rgba(0, 0, 0, .22); white-space: nowrap; }
+.proto button { min-height: 36px; min-width: 36px; padding: 0 10px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.proto button:active { background: rgba(128, 128, 128, .3); }
+.proto .ic { width: 16px; height: 16px; vertical-align: 0; }
+.proto .ptag { font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .6; padding: 0 4px 0 10px; }
+.proto .psep { width: 1px; height: 20px; background: currentColor; opacity: .2; margin: 0 2px; }
+.proto .pv { min-width: 108px; }
+@media (max-width: 400px) { .proto .ptag { display: none; } }
+.proto-note { border: 1px dashed var(--text-3); border-radius: 10px; padding: 10px 12px; font-size: 13px; line-height: 18px; color: var(--text-2); }
+
+/* Fenster, Menü von unten, Rückfrage, Meldung, Erklärung */
+.scrim { position: fixed; inset: 0; z-index: 70; background: var(--scrim); animation: fade .2s; }
+.sheet { position: fixed; z-index: 71; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 430px; max-height: 88vh; overflow-y: auto; background: var(--sheet-bg); border-radius: var(--r-sheet) var(--r-sheet) 0 0; padding: 8px max(16px, env(safe-area-inset-right, 0px)) calc(16px + env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); box-shadow: var(--sheet-shadow); display: flex; flex-direction: column; gap: 16px; animation: up .28s cubic-bezier(.2, .8, .2, 1); }
+.grab { width: 36px; height: 5px; border-radius: 3px; background: var(--fill); margin: 0 auto -4px; flex: none; }
+.sheet-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; }
+.sheet .list { background: var(--surface-2); }
+.dialog { position: fixed; z-index: 71; left: 0; right: 0; top: 50%; margin: 0 auto; width: min(320px, calc(100% - 48px)); transform: translateY(-50%); background: var(--sheet-bg); border-radius: var(--r-dialog); padding: 20px 16px 16px; display: flex; flex-direction: column; gap: 8px; text-align: center; animation: pop .2s; }
+.dialog .btns { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+.toast { position: fixed; z-index: 90; top: calc(env(safe-area-inset-top, 0px) + 58px); left: 0; right: 0; margin: 0 auto; width: max-content; max-width: calc(100% - 32px); display: flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; background: var(--text); color: var(--bg); font-size: var(--fs-sub); line-height: var(--lh-sub); font-weight: 600; box-shadow: 0 8px 24px rgba(0, 0, 0, .2); animation: drop .25s; }
+.pop-scrim { position: fixed; inset: 0; z-index: 80; }
+.pop { position: fixed; z-index: 81; width: 264px; padding: 12px 14px; border-radius: 12px; background: var(--text); color: var(--bg); font-size: var(--fs-sub); line-height: var(--lh-sub); box-shadow: 0 8px 24px rgba(0, 0, 0, .2); animation: pop .15s; }
+@keyframes fade { from { opacity: 0; } }
+@keyframes up { from { transform: translateY(40px); opacity: 0; } }
+@keyframes pop { from { opacity: 0; scale: .96; } }
+@keyframes drop { from { transform: translateY(-12px); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+
+/* Diagramme: ein Stil für alle – Balken und Linie, 3 Gitterlinien, Achse rechts, aktuell = Akzent, Rest grau */
+.ch { display: block; width: 100%; height: auto; overflow: visible; }
+.ch .gl { stroke: var(--grid); stroke-width: 1; }
+.ch .ax { fill: var(--text-3); font-size: 11px; font-family: var(--font); font-variant-numeric: tabular-nums; }
+.ch .b { fill: var(--chart-muted); }
+.ch .b-cur { fill: var(--accent); }
+.ch .b-run { fill: var(--accent); opacity: .3; }
+.ch .ln { fill: none; stroke: var(--accent); stroke-width: 2; stroke-linejoin: round; stroke-linecap: round; }
+.ch .ln-m { fill: none; stroke: var(--chart-muted); stroke-width: 2; stroke-linejoin: round; }
+.ch .ar { fill: var(--accent); opacity: .1; }
+.ch .dot { fill: var(--chart-muted); }
+.ch .end { fill: var(--accent); stroke: var(--surface); stroke-width: 2; }
+.ch .ref { stroke: var(--text-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.ch .refl { fill: var(--text-2); font-size: 11px; font-weight: 600; font-family: var(--font); }
+.hm .h0 { fill: var(--fill); } .hm .h1 { fill: var(--accent); opacity: .3; } .hm .h2 { fill: var(--accent); opacity: .6; } .hm .h3 { fill: var(--accent); }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+/* Trainio-Score: Körperbereiche (Platzhalter, Gestaltung klärt Ticket 10) */
+.ar-bar { display: block; height: 6px; border-radius: 3px; background: var(--fill); overflow: hidden; }
+.ar-bar > i { display: block; height: 100%; border-radius: 3px; background: var(--accent); }
+.ar-bar > i.lo { background: var(--warn); }
+
+/* ===== A „Listen“ ===== */
+.ph { display: flex; flex-direction: column; gap: 2px; }
+.ph-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sc-a { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.sc-a-r { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; width: 128px; flex: none; }
+.areas-a { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) 28px; align-items: center; gap: 8px 12px; padding-top: 4px; border-top: 1px solid var(--line); padding-top: 12px; }
+.areas-a .num { text-align: right; }
+.parts-a { display: grid; gap: 8px; }
+.parts-a .prow { display: flex; justify-content: space-between; gap: 12px; }
+.utabs { display: flex; gap: 20px; overflow-x: auto; scrollbar-width: none; margin: 4px -16px 0; padding: 0 16px; border-bottom: 1px solid var(--line); -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent); mask-image: linear-gradient(90deg, #000 85%, transparent); }
+.utabs::-webkit-scrollbar { display: none; }
+.utabs button { min-height: 44px; font-size: var(--fs-sub); font-weight: 600; color: var(--text-2); white-space: nowrap; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.utabs button.on { color: var(--text); border-color: var(--text); }
+.goal-top { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; margin-bottom: 8px; }
+.wa-top { position: sticky; top: calc(env(safe-area-inset-top, 0px) + 52px); z-index: 5; background: var(--bg); margin: 0 -16px; padding: 4px 16px 10px; display: flex; flex-direction: column; gap: 10px; }
+.wa-top-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wa-exh { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; padding: 0 4px; }
+.wa-grid { display: grid; grid-template-columns: 34px minmax(0, 1fr) 54px 34px 34px 40px; align-items: center; gap: 6px; }
+.wa-hd { padding: 10px 12px 6px; color: var(--text-2); font-size: var(--fs-cap); font-weight: 600; }
+.wa-row { position: relative; padding: 4px 12px; min-height: 48px; font-size: var(--fs-body); width: 100%; }
+.wa-row + .wa-row::before, .wa-hd + .wa-row::before, .wa-edit + .wa-row::before { content: ""; position: absolute; top: 0; left: 12px; right: 0; height: 1px; background: var(--line); }
+.wa-row .r { text-align: right; }
+.wa-row.done { color: var(--text); }
+.wa-row.open { color: var(--text-3); }
+.wa-row.cur { background: var(--surface-2); color: var(--text); font-weight: 600; }
+.chk { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; border: 1.5px solid var(--line); color: var(--text-3); justify-self: end; position: relative; }
+.chk::after { content: ""; position: absolute; inset: -4px; }
+.chk.on { background: var(--accent); border-color: var(--accent); color: var(--on-accent); }
+.chk .ic { vertical-align: 0; stroke-width: 2.4; }
+.wa-edit { background: var(--surface-2); padding: 4px 12px 12px; display: flex; flex-direction: column; gap: 10px; }
+.wa-edit .two { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.rpe { display: flex; gap: 6px; align-items: center; }
+.rpe > span { width: 36px; flex: none; }
+.rpe button { flex: 1; min-height: 36px; border-radius: var(--r-ctl); background: var(--fill); font-size: var(--fs-sub); font-weight: 600; color: var(--text-2); position: relative; text-align: center; }
+.rpe button::after { content: ""; position: absolute; inset: -4px 0; }
+.rpe button.on { background: var(--text); color: var(--bg); }
+.rest-a { display: flex; align-items: center; gap: 12px; background: var(--surface); border: 1px solid var(--line); border-radius: var(--r-card); padding: 8px 8px 8px 14px; box-shadow: 0 8px 24px rgba(0, 0, 0, .12); }
+.rest-a .rest-t { flex: 1; min-width: 0; }
+.ring-s { width: 40px; height: 40px; flex: none; transform: rotate(-90deg); }
+.ring-s circle { fill: none; stroke-width: 4; }
+.ring-s .tr { stroke: var(--fill); } .ring-s .pr { stroke: var(--accent); stroke-linecap: round; }
+
+/* ===== B „Kacheln“ ===== */
+.tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { background: var(--surface); border-radius: var(--r-card); padding: 14px 16px; box-shadow: var(--card-shadow); display: grid; grid-template-rows: 20px 40px 22px; gap: 6px; align-items: end; min-width: 0; }
+.tile-h { display: flex; align-items: center; gap: 6px; align-self: start; font-size: var(--fs-cap); font-weight: 600; color: var(--text-2); }
+.tile-h .ic { vertical-align: 0; }
+.tile-f { display: flex; align-items: center; min-width: 0; overflow: hidden; }
+.span2 { grid-column: span 2; }
+.bento { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.sc-b-top { display: flex; align-items: center; gap: 16px; }
+.sc-b-side { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.pill-s { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 999px; font-size: var(--fs-cap); font-weight: 600; background: var(--fill); }
+.ar-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 16px; }
+.ar-cell { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ar-cell-v { display: flex; align-items: center; gap: 8px; }
+.ar-cell-v b { font-size: var(--fs-sub); width: 22px; flex: none; }
+.ar-cell-v .ar-bar { flex: 1; }
+.hscroll { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; scroll-snap-type: x mandatory; scroll-padding: 0 16px; }
+.hscroll::-webkit-scrollbar { display: none; }
+.hcard { flex: none; width: 168px; scroll-snap-align: start; background: var(--surface); border-radius: var(--r-card); padding: 14px 16px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; gap: 4px; }
+.weekdots { display: flex; gap: 5px; }
+.weekdots i { width: 10px; height: 10px; border-radius: 50%; background: var(--fill); }
+.weekdots i.on { background: var(--accent); }
+.weekdots i.today { box-shadow: 0 0 0 1.5px var(--text-2) inset; }
+.wb-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.wb-pager { display: grid; grid-template-columns: var(--tap) minmax(0, 1fr) var(--tap); align-items: center; text-align: center; gap: 4px; }
+.wb-pager .ic-btn { background: var(--surface); box-shadow: var(--card-shadow); color: var(--text); }
+.wb-pager .ic-btn:disabled { opacity: .35; }
+.sdots { display: flex; justify-content: center; gap: 8px; }
+.sdot { min-width: 44px; height: 32px; border-radius: 999px; background: var(--fill); font-size: var(--fs-sub); font-weight: 600; color: var(--text-2); display: inline-flex; align-items: center; justify-content: center; gap: 4px; padding: 0 12px; position: relative; }
+.sdot::after { content: ""; position: absolute; inset: -6px 0; }
+.sdot.done { background: var(--accent-soft); color: var(--accent); }
+.sdot.cur { background: var(--text); color: var(--bg); }
+.sdot .ic { width: 14px; height: 14px; vertical-align: 0; stroke-width: 2.4; }
+.wb-card { gap: 18px; padding: 20px 16px; }
+.wb-field { display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.wb-step { display: grid; grid-template-columns: 56px minmax(0, 1fr) 56px; align-items: center; width: 100%; }
+.wb-step > button { width: 56px; height: 56px; border-radius: 50%; background: var(--fill); display: grid; place-items: center; font-size: 22px; }
+.wb-step > button:active { opacity: .6; }
+.wb-val { text-align: center; white-space: nowrap; }
+.wb-val .hero-num { font-size: calc(var(--fs-hero) * .82); }
+.wb-rest { background: var(--text); color: var(--bg); border-radius: var(--r-card); padding: 12px 12px 12px 18px; display: flex; align-items: center; gap: 8px; }
+.wb-rest .grow { flex: 1; min-width: 0; }
+.wb-rest .btn { background: rgba(127, 127, 127, .28); color: inherit; min-height: 40px; padding: 0 12px; }
+.mini-bars { display: flex; align-items: flex-end; gap: 4px; height: 22px; width: 100%; }
+.mini-bars i { flex: 1; border-radius: 2px; background: var(--chart-muted); min-height: 2px; }
+.mini-bars i.on { background: var(--accent); }
+.linkcard { flex-direction: row; align-items: center; justify-content: space-between; text-align: left; }
+
+/* ===== C „Klartext“ ===== */
+body[data-v="c"] .card { box-shadow: none; background: none; }
+.c-sec { display: flex; flex-direction: column; gap: 12px; border-top: 1px solid var(--line); padding-top: 24px; }
+.c-sec.first { border-top: 0; padding-top: 0; }
+.c-kicker { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.gauge { position: relative; padding-bottom: 22px; }
+.g-track { position: relative; height: 10px; border-radius: 5px; background: var(--fill); }
+.g-track > i { position: absolute; inset: 0 auto 0 0; border-radius: 5px; background: var(--accent); }
+.g-tick { position: absolute; top: -4px; bottom: -4px; width: 2px; margin-left: -1px; background: var(--text-3); border-radius: 1px; }
+.g-lbl { position: absolute; left: 0; right: 0; bottom: 0; height: 18px; }
+.g-lbl span { position: absolute; transform: translateX(-50%); white-space: nowrap; }
+.g-lbl span:first-child { transform: none; }
+.dotplot { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr) 28px; gap: 10px 12px; align-items: center; }
+.dp-line { position: relative; height: 18px; }
+.dp-line::before { content: ""; position: absolute; left: 0; right: 0; top: 8px; height: 2px; border-radius: 1px; background: var(--fill); }
+.dp-line .exp { position: absolute; top: 2px; bottom: 2px; left: 85%; width: 1.5px; background: var(--text-3); }
+.dp-line b { position: absolute; top: 3px; width: 12px; height: 12px; margin-left: -6px; border-radius: 50%; background: var(--accent); }
+.dp-line b.lo { background: var(--warn); }
+.dotplot .num { text-align: right; }
+.strip { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; text-align: center; }
+.strip div { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.strip i { width: 100%; height: 36px; border-radius: 8px; background: var(--fill); display: grid; place-items: center; font-style: normal; color: var(--on-accent); }
+.strip i.on { background: var(--accent); }
+.strip i.cardio { background: var(--accent-soft); color: var(--accent); }
+.strip i.today { box-shadow: 0 0 0 2px var(--text) inset; background: transparent; }
+.strip .ic { width: 16px; height: 16px; vertical-align: 0; stroke-width: 2.2; }
+.plain-list > * { display: flex; align-items: baseline; gap: 12px; padding: 10px 0; border-top: 1px solid var(--line); width: 100%; }
+.plain-list > *:first-child { border-top: 0; }
+.plain-list .k { width: 56px; flex: none; color: var(--text-2); font-size: var(--fs-sub); }
+.plain-list .grow { flex: 1; min-width: 0; }
+.ttl-btn { display: inline-flex; align-items: center; gap: 6px; }
+.ttl-btn .ic { font-size: 18px; color: var(--text-2); vertical-align: 0; }
+.lnk { color: var(--text); font-weight: 600; text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; min-height: 32px; }
+.wc-head { display: flex; flex-direction: column; gap: 6px; }
+.wc-meta { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.wc-ex { display: flex; flex-direction: column; }
+.wc-ex h2 { padding: 0 0 6px; }
+.wc-set { display: grid; grid-template-columns: 28px minmax(0, 1fr) auto 36px; align-items: center; gap: 10px; min-height: 44px; padding: 4px 0; border-top: 1px solid var(--line); width: 100%; font-size: var(--fs-body); }
+.wc-set.open { color: var(--text-3); }
+.wc-set.cur { border-radius: 10px; background: var(--surface); border-color: transparent; padding: 10px 12px; margin: 4px -12px; width: calc(100% + 24px); grid-template-columns: 28px minmax(0, 1fr) auto; font-size: var(--fs-head); font-weight: 600; color: var(--text); box-shadow: var(--card-shadow); }
+.wc-set.cur + .wc-set { border-top-color: transparent; }
+.wc-set .r { text-align: right; color: var(--text-2); font-size: var(--fs-sub); }
+.wc-dock { display: flex; flex-direction: column; gap: 8px; }
+.wc-dock .inputs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 52px; gap: 6px; align-items: center; }
+.wc-dock .stepper { grid-template-columns: 40px minmax(0, 1fr) 40px; }
+.wc-go { width: 52px; height: 52px; border-radius: 50%; background: var(--accent); color: var(--on-accent); display: grid; place-items: center; font-size: 24px; }
+.wc-go .ic { vertical-align: 0; stroke-width: 2.4; }
+.wc-rest { display: flex; align-items: center; gap: 10px; }
+.wc-rest .pt { flex: 1; }
+
+/* Bausteine */
+.parts-sec { display: flex; flex-direction: column; gap: 12px; }
+.ts-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid var(--line); }
+.ts-row:first-child { border-top: 0; }
+.ts-row .m { color: var(--text-3); font-size: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sp-row { display: grid; grid-template-columns: 40px 1fr; align-items: center; gap: 8px; font-size: 12px; color: var(--text-2); }
+.sp-row i { display: block; height: 10px; background: var(--accent-soft); border-left: 2px solid var(--accent); }
+.sw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.sw { border-radius: 10px; border: 1px solid var(--line); overflow: hidden; font-size: 12px; line-height: 16px; background: var(--surface); }
+.sw i { display: block; height: 40px; }
+.sw span { display: block; padding: 6px 8px; color: var(--text-2); }
+.demo-row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.bullets { display: flex; flex-direction: column; gap: 6px; padding-left: 18px; list-style: disc; }
+.rad-row { display: flex; gap: 12px; flex-wrap: wrap; }
+.rad-row div { width: 64px; height: 48px; background: var(--fill); display: grid; place-items: end center; font-size: 11px; color: var(--text-2); padding-bottom: 4px; }
+</style>
+
+<div class="proto-band"></div>
+<div class="proto" role="toolbar" aria-label="Prototyp umschalten">
+  <span class="ptag">Prototyp</span>
+  <button data-p="prev" aria-label="Vorherige Variante"><svg class="ic" viewBox="0 0 24 24"><path d="m14.5 6-6 6 6 6"/></svg></button>
+  <button data-p="next" class="pv" id="pv" aria-label="Nächste Variante">A · Listen</button>
+  <button data-p="next" aria-label="Nächste Variante"><svg class="ic" viewBox="0 0 24 24"><path d="m9.5 6 6 6-6 6"/></svg></button>
+  <span class="psep"></span>
+  <button data-p="theme" id="pt" aria-label="Hell, Dunkel oder automatisch">Auto</button>
+  <button data-p="parts" id="pp">Bausteine</button>
+</div>
+<div class="app" id="app"></div>
+<div id="layer"></div>
+
+<script>
+'use strict';
+/* ---------- Hilfen ---------- */
+const $ = s => document.querySelector(s);
+const nf = (v, d = 0) => Number(v).toLocaleString('de-DE', { minimumFractionDigits: d, maximumFractionDigits: d });
+const w1 = v => nf(v, v % 1 ? 1 : 0);
+const mmss = s => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+const U = (n, u) => `${n}<span class="u">${u}</span>`;
+const ICON = {
+  home: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
+  dumbbell: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
+  book: '<path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12"/>',
+  chart: '<path d="M4 4v16h16"/><path d="m7.5 15 3.5-4.5 3 2.5 5-6.5"/>',
+  grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  info: '<circle cx="12" cy="12" r="9"/><path d="M12 11v5.5"/><circle cx="12" cy="7.8" r=".7" fill="currentColor"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>', minus: '<path d="M5 12h14"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  chevR: '<path d="m9.5 6 6 6-6 6"/>', chevL: '<path d="m14.5 6-6 6 6 6"/>', chevD: '<path d="m6 9.5 6 6 6-6"/>',
+  timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2M9.5 3h5"/>',
+  more: '<circle cx="5.5" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/><circle cx="18.5" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  flame: '<path d="M12 21c-3.6 0-6.5-2.7-6.5-6.3 0-3.2 2.3-5.2 3.6-8.2.5 1.7 1.6 2.9 2.9 3.5.3-2.6 1.4-4.6 3.2-6 .2 3 3.3 5.4 3.3 9.6 0 4.2-2.9 7.4-6.5 7.4z"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5.5a2.5 2.5 0 0 0 2.6 3.9M16 6h2.5a2.5 2.5 0 0 1-2.6 3.9M12 13v4M9 20h6M10 17h4"/>',
+  calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>',
+  bolt: '<path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12z"/>',
+  target: '<circle cx="12" cy="12" r="8.5"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none"/>',
+  up: '<path d="M12 19V5M6.5 10.5 12 5l5.5 5.5"/>', down: '<path d="M12 5v14M6.5 13.5 12 19l5.5-5.5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
+  moon: '<path d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10z"/>',
+  auto: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/>',
+  layers: '<path d="m12 3.5 8.5 4.5-8.5 4.5L3.5 8z"/><path d="m3.5 12 8.5 4.5 8.5-4.5M3.5 16l8.5 4.5 8.5-4.5"/>',
+  heart: '<path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/>',
+  bike: '<circle cx="6" cy="16" r="3.5"/><circle cx="18" cy="16" r="3.5"/><path d="M6 16l4-7h5l3 7M10 9 8.5 6H7M14 6h2l-1 3"/>'
+};
+const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
+
+/* ---------- Beispieldaten (erfunden, wie in der Bestandsaufnahme: 11 Wochen Push/Pull/Beine, Bulk) ---------- */
+const D = {
+  date: 'Donnerstag, 12. November',
+  score: 78, scoreDelta: 5, trend: [66, 68, 70, 71, 73, 75, 76, 78],
+  main: 'Kraft steigt', hint: 'Beine hängen hinterher',
+  parts: [['Kraft', 82, 'steigt', ''], ['Trainingsreiz', 71, 'wirksam, Beine wenig', 'warn'], ['Gewichtstrend', 80, 'Zunahme im Plan', '']],
+  areas: [['Brust', 84], ['Rücken', 81], ['Schultern', 77], ['Arme', 80], ['Beine vorne', 58], ['Gesäß & Beine hinten', 62], ['Rumpf', 71]],
+  phase: 'Bulk Herbst',
+  streak: 11, weekDone: 1, weekGoal: 3,
+  perWeek: [3, 4, 3, 3, 4, 3, 3, 4, 3, 4, 1], weekLbl: ['KW 36', '', 'KW 38', '', 'KW 40', '', 'KW 42', '', 'KW 44', '', 'KW 46'],
+  volWeeks: [18.2, 21.0, 19.5, 20.1, 22.4, 21.8, 23.0, 24.9, 22.6, 25.1],
+  wscore: [90, 86, 92, 88, 75, 84, 91, 87, 62, 85, 89, 93, 88, 70, 86, 90, 87, 91, 84, 88],
+  weekCmp: [['Workouts', '1', '1', null], ['Sätze', '15', '15', null], ['Volumen', '4.960 kg', '4.319 kg', ['up', '15 %', 'good']], ['Rekorde', '2', '0', ['up', '2', 'good']]],
+  balance: [['Push', 118], ['Pull', 112], ['Beine', 96]],
+  recent: [['Mo', '9. Nov', 'Push', '45 min · 15 Sätze · 4.960 kg'], ['Sa', '7. Nov', 'Radfahren draußen', '1 h 07 min · 27,5 km'], ['Fr', '6. Nov', 'Beine', '46 min · 15 Sätze · 15,6 t']],
+  last7: [['Fr', 'on', ''], ['Sa', 'cardio', ''], ['So', '', ''], ['Mo', 'on', ''], ['Di', '', ''], ['Mi', '', ''], ['Do', 'today', '']],
+  prList: ['Beinpresse', 'Beincurl sitzend', 'Wadenheben stehend', 'Bankdrücken', 'Military Press'],
+  more: [['Lieblingsübung', 'Kreuzheben · 10×'], ['Ø Dauer', '48 min'], ['Ø Sätze pro Workout', '15'], ['Rekorde im November', '6'], ['Bestes Workout', 'Beine · 15,6 t'], ['Gesamt bewegt', '101,4 t']]
+};
+const AREAS = ['Übersicht', 'Kraft', 'Volumen', 'Muskeln', 'Herz & Cardio', 'Körper'];
+const PERIODS = [['4W', '4 Wochen'], ['3M', '3 Monate'], ['6M', '6 Monate'], ['1J', '1 Jahr'], ['Alles', 'Alles']];
+const PHRASE = { '4W': 'in den letzten 4 Wochen', '3M': 'in den letzten 3 Monaten', '6M': 'in den letzten 6 Monaten', '1J': 'im letzten Jahr', Alles: 'seit dem ersten Workout' };
+const INFO = {
+  score: 'Schätzung aus Training und Gewicht: Wirst du stärker, baust du Muskeln auf? 85 heißt: im erwarteten Tempo.',
+  week: 'Diese Woche im Vergleich zur Vorwoche, jeweils bis heute.',
+  wpw: 'Workouts pro Woche im gewählten Zeitraum.',
+  wscore: 'Jedes Workout bekommt 0 bis 100 Punkte. Die Linie ist der Schnitt der letzten drei.',
+  balance: 'Sätze für Drücken, Ziehen und Beine. Etwa gleich viel ist ausgewogen.',
+  attack: 'Die Übung, bei der ein neuer Rekord am nächsten liegt.',
+  prs: 'Übungen mit neuem Rekord in den letzten 4 Wochen.',
+  last7: 'Was du an den letzten 7 Tagen trainiert hast.',
+  cons: 'Jedes Kästchen ist ein Tag. Je kräftiger, desto mehr Volumen.',
+  streak: 'Wochen in Folge mit mindestens einem Workout.',
+  goal: 'Dein Kraftziel und wie nah dein bester Satz dran ist.',
+  demo: 'So sieht eine Erklärung aus: höchstens zwei kurze Sätze.'
+};
+/* Regelmäßigkeit: 52 Wochen × 7 Tage, aktiv seit Anfang September (Mo/Mi/Fr, manchmal Sa Cardio) */
+const HEAT = Array.from({ length: 52 }, (_, w) => Array.from({ length: 7 }, (_, d) => {
+  if (w === 51) return d > 3 ? -1 : d === 0 ? 2 : 0;
+  if (w < 41) return 0;
+  if (d === 0 || d === 2 || d === 4) return 1 + ((w * 7 + d * 3) % 3);
+  if (d === 5 && w % 2) return 1;
+  return 0;
+}));
+
+/* ---------- Laufendes Workout ---------- */
+const e1 = (kg, r) => kg * (1 + r / 30);
+function newWorkout(done) {
+  const mk = (name, meta, rest, step, best, rows) => ({ name, meta, rest, step, best, sets: rows.map(([kg, r, pkg, pr]) => ({ kg, r, rpe: null, pkg, pr, done: false })) });
+  const w = { name: 'Pull', t0: Date.now() - (done ? 861000 : 0), running: true, rest: null, prs: [], ex: [
+    mk('Kreuzheben', 'Langhantel · Unterer Rücken, Gesäß', 180, 2.5, 160.5, [[137.5, 5, 137.5, 5], [137.5, 5, 137.5, 5], [137.5, 5, 137.5, 4]]),
+    mk('Klimmzüge', 'Zusatzgewicht · Rücken, Bizeps', 120, 2.5, 12.7, [[10, 8, 10, 8], [10, 8, 10, 8], [10, 7, 10, 7]]),
+    mk('Rudern vorgebeugt', 'Langhantel · Rücken', 120, 2.5, 93.4, [[70, 10, 70, 10], [70, 10, 70, 10], [70, 10, 70, 9]]),
+    mk('Latzug eng', 'Kabelzug · Rücken', 90, 2.5, 80.5, [[60, 12, 57.5, 12], [60, 12, 57.5, 12], [60, 12, 57.5, 11]]),
+    mk('Bizepscurls', 'Kurzhanteln · Bizeps', 60, 1, 18.7, [[14, 12, 14, 10], [14, 12, 14, 10], [14, 12, 14, 10]])
+  ] };
+  let k = done;
+  for (const e of w.ex) for (const s of e.sets) if (k > 0) { s.done = true; s.rpe = s === e.sets[0] ? 8 : 8.5; k--; }
+  w.cur = nextOpen(w);
+  return w;
+}
+function nextOpen(w, from) {
+  const all = [];
+  w.ex.forEach((e, ei) => e.sets.forEach((s, si) => all.push([ei, si, s])));
+  const start = from ? all.findIndex(([ei, si]) => ei === from.e && si === from.s) : 0;
+  const hit = all.slice(Math.max(0, start)).find(x => !x[2].done) || all.find(x => !x[2].done);
+  return hit ? { e: hit[0], s: hit[1] } : null;
+}
+const doneSets = () => W.ex.reduce((a, e) => a + e.sets.filter(s => s.done).length, 0);
+const allSets = () => W.ex.reduce((a, e) => a + e.sets.length, 0);
+const volume = () => W.ex.reduce((a, e) => a + e.sets.filter(s => s.done).reduce((b, s) => b + s.kg * s.r, 0), 0);
+const curSet = () => W.cur ? W.ex[W.cur.e].sets[W.cur.s] : null;
+const elapsed = () => (Date.now() - W.t0) / 1000;
+const prevTxt = s => `${w1(s.pkg)} × ${s.pr}`;
+
+/* ---------- Zustand ---------- */
+const VARS = { a: 'Listen', b: 'Kacheln', c: 'Klartext' };
+const S = { v: 'a', screen: 'start', theme: 'auto', layer: null, toast: null, period: '3M', unit: 'kg', area: 'Übersicht' };
+let W = newWorkout(2);
+let toastTimer = null;
+
+/* ---------- Diagramme ---------- */
+function niceStep(range, n = 2) { const raw = range / n || 1, p = 10 ** Math.floor(Math.log10(raw)), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; }
+function barChart({ vals, labels = [], w = 326, h = 140, running = -1, fmt = v => nf(v), avg = null }) {
+  const n = vals.length, axW = 28, top = 8, bot = labels.length ? 20 : 4, cw = w - axW, ch = h - top - bot;
+  const mx = Math.max(...vals, avg || 0, 1), st = niceStep(mx), ymax = Math.ceil(mx / st) * st;
+  const y = v => top + ch * (1 - v / ymax);
+  let s = '';
+  for (let v = 0; v <= ymax + 1e-9; v += st) s += `<line class="gl" x1="0" x2="${cw}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${w}" y="${y(v) + 4}" text-anchor="end">${fmt(v)}</text>`;
+  const slot = cw / n, bw = Math.min(26, slot * .62), last = running === n - 1 ? n - 2 : n - 1;
+  vals.forEach((v, i) => {
+    const x = i * slot + (slot - bw) / 2, hh = v ? Math.max(2, ch * v / ymax) : 0;
+    s += `<rect class="${i === running ? 'b-run' : i === last ? 'b-cur' : 'b'}" x="${x.toFixed(1)}" y="${(top + ch - hh).toFixed(1)}" width="${bw.toFixed(1)}" height="${hh.toFixed(1)}" rx="2"/>`;
+    if (labels[i]) s += `<text class="ax" x="${(x + bw / 2).toFixed(1)}" y="${h - 4}" text-anchor="middle">${labels[i]}</text>`;
+  });
+  if (avg != null) s += `<line class="ref" x1="0" x2="${cw}" y1="${y(avg)}" y2="${y(avg)}"/>`;   // Ø steht im Titel der Karte
+  return `<svg class="ch" viewBox="0 0 ${w} ${h}" role="img" aria-label="Balkendiagramm">${s}</svg>`;
+}
+function lineChart({ vals, w = 326, h = 130, yMin = 0, yMax = 100, step = 50, dots = null, ref = null, labels = null }) {
+  const axW = 28, top = 8, bot = labels ? 20 : 4, cw = w - axW - 6, ch = h - top - bot, n = vals.length;
+  const x = i => 3 + (n === 1 ? cw / 2 : i * cw / (n - 1)), y = v => top + ch * (1 - (v - yMin) / (yMax - yMin));
+  let s = '';
+  for (let v = yMin; v <= yMax + 1e-9; v += step) s += `<line class="gl" x1="0" x2="${cw + 6}" y1="${y(v)}" y2="${y(v)}"/><text class="ax" x="${w}" y="${y(v) + 4}" text-anchor="end">${nf(v)}</text>`;
+  if (ref) s += `<line class="ref" x1="0" x2="${cw + 6}" y1="${y(ref[0])}" y2="${y(ref[0])}"/><text class="refl" x="2" y="${y(ref[0]) - 5}">${ref[1]}</text>`;
+  if (dots) dots.forEach((v, i) => { s += `<circle class="dot" cx="${x(i).toFixed(1)}" cy="${y(v).toFixed(1)}" r="2.5"/>`; });
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  s += `<polygon class="ar" points="${x(0).toFixed(1)},${y(yMin)} ${pts} ${x(n - 1).toFixed(1)},${y(yMin)}"/><polyline class="ln" points="${pts}"/><circle class="end" cx="${x(n - 1).toFixed(1)}" cy="${y(vals[n - 1]).toFixed(1)}" r="4"/>`;
+  if (labels) s += `<text class="ax" x="${x(0)}" y="${h - 4}">${labels[0]}</text><text class="ax" x="${x(n - 1)}" y="${h - 4}" text-anchor="end">${labels[1]}</text>`;
+  return `<svg class="ch" viewBox="0 0 ${w} ${h}" role="img" aria-label="Liniendiagramm">${s}</svg>`;
+}
+function spark(vals, w = 120, h = 40, yMin = null, yMax = null) {
+  const lo = yMin ?? Math.min(...vals), hi = yMax ?? Math.max(...vals), n = vals.length;
+  const x = i => 4 + i * (w - 8) / (n - 1), y = v => 4 + (h - 8) * (1 - (v - lo) / ((hi - lo) || 1));
+  const pts = vals.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  return `<svg class="ch" viewBox="0 0 ${w} ${h}" aria-hidden="true"><polyline class="ln" points="${pts}"/><circle class="end" cx="${x(n - 1).toFixed(1)}" cy="${y(vals[n - 1]).toFixed(1)}" r="3.5"/></svg>`;
+}
+function heatmap(w = 326) {
+  const gap = 1.2, cell = (w - 51 * gap) / 52, h = 7 * cell + 6 * gap;
+  let s = '';
+  HEAT.forEach((col, wi) => col.forEach((lv, d) => { if (lv >= 0) s += `<rect class="h${lv}" x="${(wi * (cell + gap)).toFixed(2)}" y="${(d * (cell + gap)).toFixed(2)}" width="${cell.toFixed(2)}" height="${cell.toFixed(2)}" rx="1.2"/>`; }));
+  return `<svg class="ch hm" viewBox="0 0 ${w} ${h.toFixed(1)}" role="img" aria-label="Trainingstage der letzten 52 Wochen">${s}</svg>`;
+}
+const balanceBar = () => {
+  const tot = D.balance.reduce((a, b) => a + b[1], 0), col = ['var(--accent)', 'var(--text-2)', 'var(--chart-muted)'];
+  return `<div style="display:flex;height:12px;border-radius:6px;overflow:hidden;gap:2px">${D.balance.map(([, v], i) => `<i style="flex:${v};background:${col[i]}"></i>`).join('')}</div>
+    <div class="legend t-cap c2">${D.balance.map(([l, v], i) => `<span><i style="background:${col[i]}"></i>${l} <b class="num" style="color:var(--text)">${Math.round(v / tot * 100)} %</b></span>`).join('')}</div>`;
+};
+const info = k => `<button class="ic-btn info" data-act="info" data-k="${k}" aria-label="Erklärung">${ic('info')}</button>`;
+const trend = (dir, txt, cls = 'good') => `<span class="trend ${cls}">${ic(dir)}${txt}</span>`;
+const ring = (v, size = 120) => { const r = 46, c = 2 * Math.PI * r; return `<svg viewBox="0 0 120 120" width="${size}" height="${size}" role="img" aria-label="Workout-Score ${v}"><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--fill)" stroke-width="10"/><circle cx="60" cy="60" r="${r}" fill="none" stroke="var(--accent)" stroke-width="10" stroke-linecap="round" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 60 60)"/><text x="60" y="68" text-anchor="middle" style="font:700 32px var(--font-num);fill:var(--text);font-variant-numeric:tabular-nums">${v}</text></svg>`; };
+const restRing = () => { const r = 16, c = 2 * Math.PI * r, f = W.rest ? Math.max(0, (W.rest.end - Date.now()) / 1000 / W.rest.total) : 0; return `<svg class="ring-s" viewBox="0 0 40 40"><circle class="tr" cx="20" cy="20" r="${r}"/><circle class="pr" data-restring cx="20" cy="20" r="${r}" stroke-dasharray="${(c * f).toFixed(1)} ${c.toFixed(1)}"/></svg>`; };
+const restLeft = () => W.rest ? Math.max(0, Math.ceil((W.rest.end - Date.now()) / 1000)) : 0;
+const workoutMeta = () => `<span data-clock>${mmss(elapsed())}</span> · ${doneSets()} von ${allSets()} Sätzen · ${nf(volume())} kg`;
+const periodLbl = () => PERIODS.find(p => p[0] === S.period)[1];
+
+/* ====================================================================
+   Variante A „Listen“: Apple-nah, gruppierte Listen, Karten nur für Score und Diagramme
+   ==================================================================== */
+const A = {};
+A.score = detail => `<section class="card" ${detail ? '' : 'role="button" tabindex="0" data-act="nav" data-to="fortschritt"'}>
+    <div class="card-h"><span class="lbl">Trainio-Score</span>${info('score')}</div>
+    <div class="sc-a">
+      <div><div class="hero-num">${D.score}</div><div class="t-body fw6" style="margin-top:8px">${D.main}</div><div class="t-sub warn fw6">${D.hint}</div></div>
+      <div class="sc-a-r">${spark(D.trend, 128, 56, 50, 90)}<span class="t-cap c2">${trend('up', `${D.scoreDelta} in 4 Wochen`)}</span></div>
+    </div>
+    ${detail ? `<div class="parts-a">${D.parts.map(([l, v, t, c]) => `<div class="prow"><span class="t-sub">${l} <span class="${c || 'c2'}">· ${t}</span></span><b class="t-sub num">${v}</b></div>`).join('')}</div>
+      ${lineChart({ vals: D.trend, h: 120, ref: [85, 'erwartet'], labels: ['vor 8 Wochen', 'heute'] })}` : ''}
+    <div class="areas-a">${D.areas.map(([n, v]) => `<span class="t-sub">${n}</span><span class="ar-bar"><i class="${v < 65 ? 'lo' : ''}" style="width:${v}%"></i></span><b class="t-sub num">${v}</b>`).join('')}</div>
+  </section>`;
+const rowA = (icn, label, value, sub) => `<div class="row"><span class="row-ic">${ic(icn)}</span><div class="row-main"><div class="t-body">${label}</div>${sub ? `<div class="t-cap c2">${sub}</div>` : ''}</div><div class="row-val t-body fw6 num">${value}</div></div>`;
+const startBtnA = () => W.running
+  ? `<button class="btn btn-primary btn-lg btn-block btn-col" data-act="nav" data-to="training"><span>Weiter: ${W.name}</span><small>${Math.floor(elapsed() / 60)} min · ${doneSets()} von ${allSets()} Sätzen</small></button>`
+  : `<button class="btn btn-primary btn-lg btn-block btn-col" data-act="sheet" data-k="start"><span>Workout starten</span><small>Heute dran: Pull</small></button>`;
+A.start = () => `<main class="screen">
+  <header class="ph"><p class="t-sub c2 fw6">${D.date}</p><h1 class="t-title">Start</h1></header>
+  ${A.score(false)}
+  ${startBtnA()}
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Diese Woche</h2></div>
+    <div class="list">
+      ${rowA('flame', 'Serie', `${D.streak} Wochen`, `${D.weekDone} von ${D.weekGoal} Workouts diese Woche`)}
+      ${rowA('bolt', 'Volumen', '4.960 kg', `${trend('up', '15 %')} zur Vorwoche`)}
+      ${rowA('trophy', 'Workouts', '36', 'seit September 2026')}
+      ${rowA('calendar', 'Heute', 'Pull', 'Push / Pull / Beine')}
+    </div></section>
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Ziele</h2><button class="btn btn-text btn-sm" data-act="toast" data-k="Ziel hinzufügen">Hinzufügen</button></div>
+    <div class="list"><div class="row"><div class="row-main"><div class="goal-top"><span class="t-body fw6">Bankdrücken</span><span class="t-sub c2 num">82,5 / 90 kg × 5</span></div><div class="pt"><i style="width:92%"></i></div><div class="t-cap c2" style="margin-top:6px">Noch 7,5 kg · bester Satz 82,5 kg × 8</div></div></div></div></section>
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Letzte Workouts</h2><button class="btn btn-text btn-sm" data-act="toast" data-k="Verlauf: nicht Teil des Prototyps">Alle</button></div>
+    <div class="list">${D.recent.map(([d, dt, n, m]) => `<button class="row" data-act="sheet" data-k="detail"><div class="row-main"><div class="t-body fw6">${n}</div><div class="t-cap c2">${d}, ${dt} · ${m}</div></div><span class="chev">${ic('chevR')}</span></button>`).join('')}</div></section>
+</main>`;
+A.training = () => {
+  if (!W.running) return idleTraining();
+  const cs = W.cur;
+  return `<main class="screen" style="--pad-bottom:${W.rest ? 168 : 96}px;gap:24px">
+  <div class="wa-top">
+    <div class="wa-top-row"><div><h1 class="t-head">${W.name}</h1><div class="t-cap c2 num">${workoutMeta()}</div></div><button class="btn btn-secondary btn-sm" data-act="finish">Beenden</button></div>
+    <div class="pt" style="height:4px"><i style="width:${doneSets() / allSets() * 100}%"></i></div>
+  </div>
+  ${W.ex.map((ex, ei) => `<section class="sec">
+    <div class="wa-exh"><div><h2 class="t-head">${ex.name}</h2><div class="t-cap c2">${ex.meta} · Pause ${mmss(ex.rest)}</div></div><button class="ic-btn" data-act="sheet" data-k="detail" aria-label="Optionen">${ic('more')}</button></div>
+    <div class="list">
+      <div class="wa-grid wa-hd"><span>Satz</span><span>Letztes Mal</span><span class="r">kg</span><span class="r">Wdh.</span><span class="r">RPE</span><span></span></div>
+      ${ex.sets.map((s, si) => {
+        const cur = cs && cs.e === ei && cs.s === si;
+        const row = `<div class="wa-grid wa-row ${s.done ? 'done' : cur ? 'cur' : 'open'}" role="button" tabindex="0" data-act="sel" data-e="${ei}" data-s="${si}">
+          <span class="num">${si + 1}</span><span class="t-sub c2 num">${prevTxt(s)}</span><span class="r num">${w1(s.kg)}</span><span class="r num">${s.r}</span><span class="r num">${s.rpe ? nf(s.rpe, s.rpe % 1 ? 1 : 0) : '–'}</span>
+          <button class="chk ${s.done ? 'on' : ''}" data-act="tick" data-e="${ei}" data-s="${si}" aria-label="${s.done ? 'Satz wieder öffnen' : 'Satz erledigt'}">${ic('check')}</button></div>`;
+        return cur ? row + editA(ex, s) : row;
+      }).join('')}
+    </div></section>`).join('')}
+  ${W.rest ? `<div class="dock"><div class="rest-a">${restRing()}<div class="rest-t"><div class="n-num" style="font-size:24px" data-rest>${mmss(restLeft())}</div><div class="t-cap c2">Pause · ${W.rest.ex}</div></div>
+    <button class="btn btn-secondary btn-sm" data-act="restAdj" data-d="-15">−15</button><button class="btn btn-secondary btn-sm" data-act="restAdj" data-d="15">+15</button><button class="ic-btn" data-act="restSkip" aria-label="Pause beenden">${ic('x')}</button></div></div>` : ''}
+</main>`;
+};
+const rpeRow = s => `<div class="rpe"><span class="t-cap c2 fw6">RPE</span>${[null, 7, 8, 9, 10].map(v => `<button class="${s.rpe === v || (v === null && !s.rpe) ? 'on' : ''}" data-act="rpe" data-val="${v ?? ''}">${v ?? '–'}</button>`).join('')}</div>`;
+const editA = (ex, s) => `<div class="wa-edit">
+    <div class="two">
+      <div class="stepper"><button data-act="kg" data-d="-1" aria-label="Weniger Gewicht">${ic('minus')}</button><div class="val num">${w1(s.kg)}<small>kg</small></div><button data-act="kg" data-d="1" aria-label="Mehr Gewicht">${ic('plus')}</button></div>
+      <div class="stepper"><button data-act="reps" data-d="-1" aria-label="Weniger Wiederholungen">${ic('minus')}</button><div class="val num">${s.r}<small>Wdh.</small></div><button data-act="reps" data-d="1" aria-label="Mehr Wiederholungen">${ic('plus')}</button></div>
+    </div>
+    ${rpeRow(s)}
+    <button class="btn btn-primary btn-block" data-act="done">${ic('check')} Satz erledigt</button>
+  </div>`;
+A.fortschritt = () => `<main class="screen">
+  <header class="ph"><div class="ph-row"><h1 class="t-title">Fortschritt</h1><button class="btn btn-secondary btn-sm" data-act="sheet" data-k="period">${periodLbl()} · ${S.unit} ${ic('chevD')}</button></div>
+    <div class="utabs">${AREAS.map(a => `<button class="${S.area === a ? 'on' : ''}" data-act="area" data-val="${a}">${a}</button>`).join('')}</div></header>
+  ${A.score(true)}
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Diese Woche</h2>${info('week')}</div>
+    <div class="list">${D.weekCmp.map(([l, a, b, d]) => `<div class="row"><div class="row-main t-body">${l}</div><div class="row-val"><div class="t-body fw6 num">${a}</div><div class="t-cap c2 num">Vorwoche ${b}${d ? ` · ${trend(d[0], d[1], d[2])}` : ''}</div></div></div>`).join('')}</div></section>
+  <section class="card"><div class="card-h"><span class="lbl">Workouts pro Woche</span>${info('wpw')}</div><div class="n-num">${U('3,2', 'Ø pro Woche')}</div>
+    ${barChart({ vals: D.perWeek, labels: D.weekLbl, running: 10, avg: 3.2 })}</section>
+  <section class="card"><div class="card-h"><span class="lbl">Workout-Score</span>${info('wscore')}</div><div class="n-num">${U('88', 'Ø im Zeitraum')}</div>
+    ${lineChart({ vals: D.wscore.map((v, i, a) => Math.round((a[i] + (a[i - 1] ?? v) + (a[i - 2] ?? v)) / 3)), dots: D.wscore, labels: ['2. Sep.', 'heute'] })}</section>
+  <section class="card"><div class="card-h"><span class="lbl">Push, Pull, Beine</span>${info('balance')}</div><div class="t-body fw6">Ziehen und Drücken ausgewogen, Beine etwas weniger</div>${balanceBar()}</section>
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Rekorde</h2>${info('prs')}</div>
+    <div class="list">
+      <button class="row" data-act="sheet" data-k="detail"><span class="row-ic">${ic('target')}</span><div class="row-main"><div class="t-body">Nächster Rekord-Versuch</div><div class="t-cap c2">Kreuzheben · bisher 160,4 kg geschätztes 1RM</div></div><span class="row-val t-body fw6 num">150 kg × 3</span><span class="chev">${ic('chevR')}</span></button>
+      <button class="row" data-act="sheet" data-k="detail"><span class="row-ic">${ic('trophy')}</span><div class="row-main"><div class="t-body">Neue Rekorde in 4 Wochen</div><div class="t-cap c2">${D.prList.slice(0, 3).join(', ')} …</div></div><span class="row-val t-body fw6 num">13</span><span class="chev">${ic('chevR')}</span></button>
+    </div></section>
+  <section class="card"><div class="card-h"><span class="lbl">Regelmäßigkeit</span>${info('cons')}</div><div class="n-num">${U('11', 'Wochen in Folge')}</div>${heatmap()}</section>
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Mehr Statistiken</h2></div>
+    <div class="list">${D.more.map(([l, v]) => `<div class="row"><div class="row-main t-body">${l}</div><div class="row-val t-body c2 num">${v}</div></div>`).join('')}</div>
+    <p class="proto-note">Prototyp: Alle übrigen Karten von heute bleiben und folgen demselben Muster.</p></section>
+</main>`;
+
+/* ====================================================================
+   Variante B „Kacheln“: Zahlen zuerst, Kacheln mit gleichem Aufbau, eine Übung auf einmal
+   ==================================================================== */
+const B = {};
+const tile = (icn, label, value, foot, cls = '') => `<div class="tile ${cls}"><div class="tile-h">${ic(icn)}${label}</div><div class="n-num">${value}</div><div class="tile-f">${foot}</div></div>`;
+const weekDots = () => `<div class="weekdots" aria-label="Diese Woche: 1 von 3 Workouts">${['on', '', '', 'today', '', '', ''].map(c => `<i class="${c}"></i>`).join('')}</div>`;
+const miniBars = (vals, on = -1) => { const mx = Math.max(...vals); return `<div class="mini-bars">${vals.map((v, i) => `<i class="${i === on ? 'on' : ''}" style="height:${Math.max(8, v / mx * 100)}%"></i>`).join('')}</div>`; };
+B.score = detail => `<section class="card" ${detail ? '' : 'role="button" tabindex="0" data-act="nav" data-to="fortschritt"'}>
+    <div class="card-h"><span class="t-cap c2 fw6">Trainio-Score</span>${info('score')}</div>
+    <div class="sc-b-top"><div class="hero-num">${D.score}</div>
+      <div class="sc-b-side"><span class="pill-s good">${ic('up')} ${D.scoreDelta} in 4 Wochen</span><span class="t-body fw6">${D.main}</span><span class="t-sub warn fw6">${D.hint}</span></div></div>
+    ${detail ? `<div class="tiles" style="grid-template-columns:repeat(3,1fr);gap:8px">${D.parts.map(([l, v, , c]) => `<div style="background:var(--surface-2);border-radius:14px;padding:10px 12px"><div class="t-cap c2">${l}</div><div class="t-head num ${c}">${v}</div></div>`).join('')}</div>
+      ${lineChart({ vals: D.trend, h: 110, ref: [85, 'erwartet'] })}` : ''}
+    <div class="ar-grid">${D.areas.map(([n, v]) => `<div class="ar-cell"><span class="t-cap c2">${n}</span><span class="ar-cell-v"><b class="num">${v}</b><span class="ar-bar"><i class="${v < 65 ? 'lo' : ''}" style="width:${v}%"></i></span></span></div>`).join('')}
+      <div class="ar-cell"><span class="t-cap c2">Phase</span><span class="t-sub fw6">${D.phase}</span></div></div>
+  </section>`;
+B.start = () => `<main class="screen" style="--pad-bottom:${56 + 80 + 16}px">
+  <header class="ph"><p class="t-sub c2 fw6">${D.date}</p></header>
+  ${B.score(false)}
+  <div class="tiles">
+    ${tile('flame', 'Serie', U('11', 'Wochen'), weekDots())}
+    ${tile('bolt', 'Volumen', U('4.960', 'kg'), `<span class="t-cap">${trend('up', '15 % zur Vorwoche')}</span>`)}
+    ${tile('trophy', 'Workouts', '36', '<span class="t-cap c2">seit Sept. 2026</span>')}
+    ${tile('calendar', 'Heute', 'Pull', '<span class="t-cap c2">Push / Pull / Beine</span>')}
+  </div>
+  <section class="card"><div class="card-h"><span class="t-cap c2 fw6">${ic('target')} Ziel · Bankdrücken 90 kg × 5</span>${info('goal')}</div>
+    <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px"><span class="n-num">${U('92', '%')}</span><span class="t-sub c2">noch 7,5 kg</span></div><div class="pt" style="height:8px;border-radius:4px"><i style="width:92%"></i></div></section>
+  <section class="sec"><div class="sec-h"><h2 class="t-head">Zuletzt</h2><button class="btn btn-text btn-sm" data-act="toast" data-k="Verlauf: nicht Teil des Prototyps">Alle</button></div>
+    <div class="hscroll">${D.recent.map(([d, dt, n, m]) => `<button class="hcard" data-act="sheet" data-k="detail"><span class="t-cap c2 fw6">${d}, ${dt}</span><span class="t-body fw6">${n}</span><span class="t-cap c2">${m}</span></button>`).join('')}</div></section>
+  <div class="dock">${W.running
+    ? `<button class="btn btn-primary btn-lg btn-block" data-act="nav" data-to="training">${ic('play')} Weiter: ${W.name} · ${Math.floor(elapsed() / 60)} min</button>`
+    : `<button class="btn btn-primary btn-lg btn-block" data-act="sheet" data-k="start">${ic('play')} Workout starten</button>`}</div>
+</main>`;
+B.training = () => {
+  if (!W.running) return idleTraining();
+  const ei = W.view ?? (W.cur ? W.cur.e : W.ex.length - 1), ex = W.ex[ei];
+  const si = W.cur && W.cur.e === ei ? W.cur.s : ex.sets.findIndex(s => !s.done), s = si >= 0 ? ex.sets[si] : null;
+  const next = W.ex[ei + 1];
+  return `<main class="screen" style="--pad-bottom:${56 + 92 + 16}px">
+  <div class="wb-top"><div><div class="t-cap c2 fw6 num">${W.name} · <span data-clock>${mmss(elapsed())}</span></div><div class="t-sub fw6 num">${doneSets()} von ${allSets()} Sätzen · ${nf(volume())} kg</div></div><button class="btn btn-secondary btn-sm" data-act="finish">Beenden</button></div>
+  <div class="wb-pager">
+    <button class="ic-btn" data-act="exGo" data-d="-1" ${ei === 0 ? 'disabled' : ''} aria-label="Vorherige Übung">${ic('chevL')}</button>
+    <div><div class="t-cap c2">Übung ${ei + 1} von ${W.ex.length}</div><h1 class="t-title">${ex.name}</h1><div class="t-cap c2">${ex.meta}</div></div>
+    <button class="ic-btn" data-act="exGo" data-d="1" ${ei === W.ex.length - 1 ? 'disabled' : ''} aria-label="Nächste Übung">${ic('chevR')}</button>
+  </div>
+  <div class="sdots">${ex.sets.map((x, i) => `<button class="sdot ${x.done ? 'done' : i === si ? 'cur' : ''}" data-act="sel" data-e="${ei}" data-s="${i}">${x.done ? ic('check') : ''}${x.done ? `${w1(x.kg)} × ${x.r}` : `Satz ${i + 1}`}</button>`).join('')}</div>
+  ${s ? `<section class="card wb-card">
+    <div class="t-sub c2" style="text-align:center">Letztes Mal <b style="color:var(--text)" class="num">${prevTxt(s)}</b></div>
+    <div class="wb-field"><span class="t-cap c2 fw6">Gewicht</span><div class="wb-step"><button data-act="kg" data-d="-1" aria-label="Weniger Gewicht">${ic('minus')}</button><div class="wb-val"><span class="hero-num">${w1(s.kg)}</span><span class="u">kg</span></div><button data-act="kg" data-d="1" aria-label="Mehr Gewicht">${ic('plus')}</button></div></div>
+    <div class="wb-field"><span class="t-cap c2 fw6">Wiederholungen</span><div class="wb-step"><button data-act="reps" data-d="-1" aria-label="Weniger Wiederholungen">${ic('minus')}</button><div class="wb-val"><span class="hero-num">${s.r}</span></div><button data-act="reps" data-d="1" aria-label="Mehr Wiederholungen">${ic('plus')}</button></div></div>
+    ${rpeRow(s)}
+  </section>` : `<section class="card" style="text-align:center"><span class="t-body fw6">${ic('check')} Alle Sätze dieser Übung erledigt</span></section>`}
+  ${next ? `<button class="row list" data-act="exGo" data-d="1"><div class="row-main"><div class="t-cap c2">Als Nächstes</div><div class="t-body fw6">${next.name} · ${next.sets.length} × ${next.sets[0].r}</div></div><span class="chev">${ic('chevR')}</span></button>` : ''}
+  <div class="dock">${W.rest
+    ? `<div class="wb-rest"><div class="grow"><div class="t-cap" style="opacity:.75">Pause · ${W.rest.ex}</div><div class="n-num" data-rest>${mmss(restLeft())}</div></div><button class="btn" data-act="restAdj" data-d="-15">−15</button><button class="btn" data-act="restAdj" data-d="15">+15</button><button class="btn" data-act="restSkip">Weiter</button></div>`
+    : s ? `<button class="btn btn-primary btn-lg btn-block" data-act="done">${ic('check')} Satz ${si + 1} erledigt</button>`
+      : W.cur ? `<button class="btn btn-primary btn-lg btn-block" data-act="sel" data-e="${W.cur.e}" data-s="${W.cur.s}">Weiter mit ${W.ex[W.cur.e].name}</button>`
+      : `<button class="btn btn-primary btn-lg btn-block" data-act="finish">Workout beenden</button>`}</div>
+</main>`;
+};
+B.fortschritt = () => `<main class="screen">
+  <header class="ph-row"><h1 class="t-title">Fortschritt</h1><div class="seg" style="width:104px">${['kg', 'lb'].map(u => `<button class="${S.unit === u ? 'on' : ''}" data-act="unit" data-val="${u}">${u}</button>`).join('')}</div></header>
+  <div class="seg">${PERIODS.map(([k]) => `<button class="${S.period === k ? 'on' : ''}" data-act="period" data-val="${k}">${k}</button>`).join('')}</div>
+  <div class="chips">${AREAS.map(a => `<button class="chip ${S.area === a ? 'on' : ''}" data-act="area" data-val="${a}">${a}</button>`).join('')}</div>
+  ${B.score(true)}
+  <div class="bento">
+    <section class="card span2"><div class="card-h"><span class="t-cap c2 fw6">Workouts pro Woche</span>${info('wpw')}</div><div class="n-num">${U('3,2', 'Ø')}</div>${barChart({ vals: D.perWeek, labels: D.weekLbl, running: 10, avg: 3.2, h: 120 })}</section>
+    ${tile('flame', 'Serie', U('11', 'Wochen'), weekDots())}
+    ${tile('bolt', 'Volumen', U('25,1', 't'), spark(D.volWeeks, 120, 22))}
+    ${tile('check', 'Workout-Score', U('88', 'Ø'), spark(D.wscore.slice(-10), 120, 22, 50, 100))}
+    ${tile('dumbbell', 'Pull : Push', '0,95', '<span class="t-cap good fw6">ausgewogen</span>')}
+    <section class="card span2"><div class="card-h"><span class="t-cap c2 fw6">${ic('target')} Nächster Rekord-Versuch</span>${info('attack')}</div>
+      <div style="display:flex;align-items:baseline;justify-content:space-between;gap:8px;flex-wrap:wrap"><span class="t-head">Kreuzheben</span><span class="n-num">${U('150', 'kg')} × 3</span></div>
+      <div class="t-cap c2">Bisher 160,4 kg geschätztes 1RM</div></section>
+    ${tile('trophy', 'Neue Rekorde', '13', '<span class="t-cap c2">in 4 Wochen</span>')}
+    ${tile('calendar', 'Letzte 7 Tage', U('3', 'Tage'), miniBars([15.6, 2, 0, 4.96, 0, 0, 0.1], 3))}
+    <section class="card span2"><div class="card-h"><span class="t-cap c2 fw6">Regelmäßigkeit</span>${info('cons')}</div>${heatmap()}</section>
+    <button class="card span2 linkcard" data-act="toast" data-k="Mehr Statistiken: nicht Teil des Prototyps"><span class="t-body fw6">Mehr Statistiken</span><span class="chev">${ic('chevR')}</span></button>
+  </div>
+  <p class="proto-note">Prototyp: Alle übrigen Karten von heute bleiben und folgen demselben Muster.</p>
+</main>`;
+
+/* ====================================================================
+   Variante C „Klartext“: ein Satz sagt die Lage, Zahl und Grafik stützen ihn, keine Kartenrahmen
+   ==================================================================== */
+const C = {};
+const gauge = v => `<div class="gauge" role="img" aria-label="Trainio-Score ${v} von 100, erwartet sind 85">
+    <div class="g-track"><i style="width:${v}%"></i><span class="g-tick" style="left:50%"></span><span class="g-tick" style="left:85%"></span></div>
+    <div class="g-lbl t-cap c2"><span style="left:0">0</span><span style="left:50%">50</span><span style="left:85%">85 erwartet</span></div></div>`;
+C.score = detail => `<div class="c-kicker"><span class="t-sub c2 fw6">Trainio-Score</span>${info('score')}</div>
+  <div style="display:flex;align-items:baseline;gap:12px"><span class="hero-num">${D.score}</span><span class="t-sub c2">von 100 · ${trend('up', `${D.scoreDelta} in 4 Wochen`)}</span></div>
+  ${gauge(D.score)}
+  ${detail ? `<p class="t-body">Die Kraft steigt etwa im erwarteten Tempo, das Gewicht passt zum Bulk. Die Beine bekommen zu wenig Sätze.</p>` : ''}
+  <div class="dotplot">${D.areas.map(([n, v]) => `<span class="t-sub">${n}</span><span class="dp-line"><span class="exp"></span><b class="${v < 65 ? 'lo' : ''}" style="left:${v}%"></b></span><b class="t-sub num">${v}</b>`).join('')}</div>`;
+C.start = () => `<main class="screen">
+  <section class="c-sec first">
+    <p class="t-sub c2 fw6">${D.date}</p>
+    <h1 class="t-title">${D.main}. ${D.hint}.</h1>
+    <div role="button" tabindex="0" data-act="nav" data-to="fortschritt" style="display:flex;flex-direction:column;gap:12px;cursor:pointer">${C.score(false)}</div>
+  </section>
+  <section class="c-sec">${W.running
+    ? `<h2 class="t-head">${W.name} läuft seit ${Math.floor(elapsed() / 60)} Minuten.</h2><p class="t-sub c2">${doneSets()} von ${allSets()} Sätzen erledigt.</p><button class="btn btn-primary btn-block" data-act="nav" data-to="training">${ic('play')} Weiter trainieren</button>`
+    : `<h2 class="t-head">Heute ist Pull dran.</h2>
+      <ol class="plain-list t-sub">${W.ex.map(e => `<li><span class="grow">${e.name}</span><span class="c2 num">${e.sets.length} × ${e.sets[0].r} · ${w1(e.sets[0].kg)} kg</span></li>`).join('')}</ol>
+      <button class="btn btn-primary btn-block" data-act="sheet" data-k="start">${ic('play')} Workout starten</button>`}</section>
+  <section class="c-sec"><h2 class="t-head">Diese Woche: ${D.weekDone} von ${D.weekGoal} Workouts.</h2>
+    <div class="strip">${D.last7.map(([d, c]) => `<div><i class="${c}">${c === 'on' ? ic('check') : c === 'cardio' ? ic('heart') : ''}</i><span class="t-cap c2">${d}</span></div>`).join('')}</div>
+    <p class="t-sub c2">Seit ${D.streak} Wochen jede Woche trainiert.</p></section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Noch 7,5 kg bis zu deinem Ziel.</h2>${info('goal')}</div>
+    <p class="t-sub c2">Bankdrücken 90 kg × 5 · bester Satz 82,5 kg × 8</p><div class="pt"><i style="width:92%"></i></div></section>
+  <section class="c-sec"><h2 class="t-head">Zuletzt</h2>
+    <div class="plain-list">${D.recent.map(([d, dt, n, m]) => `<button data-act="sheet" data-k="detail"><span class="k num">${d} ${dt.replace(' Nov', '')}</span><span class="grow"><span class="t-body fw6">${n}</span><br><span class="t-cap c2">${m}</span></span><span class="chev">${ic('chevR')}</span></button>`).join('')}</div></section>
+</main>`;
+C.training = () => {
+  if (!W.running) return idleTraining();
+  const cs = W.cur, ex = cs ? W.ex[cs.e] : null, s = curSet();
+  const goal = s ? (s.r > s.pr ? `Letztes Mal ${prevTxt(s)}. Heute eine Wiederholung mehr.` : `Letztes Mal ${prevTxt(s)}.`) : '';
+  return `<main class="screen" style="--pad-bottom:${56 + (W.rest ? 150 : 104) + 16}px">
+  <div class="wc-head">
+    <div class="wc-meta"><span class="t-cap c2 fw6 num">${W.name} · ${workoutMeta()}</span><button class="btn btn-text btn-sm" data-act="finish">Beenden</button></div>
+    <h1 class="t-title">${s ? `${ex.name}, Satz ${cs.s + 1} von ${ex.sets.length}` : 'Alle Sätze erledigt.'}</h1>
+    ${s ? `<p class="t-sub c2">${goal}</p>` : ''}
+  </div>
+  ${W.ex.map((e, ei) => `<section class="c-sec wc-ex"><h2 class="t-sub fw6 c2" style="display:flex;justify-content:space-between"><span>${e.name}</span><span class="t-cap">Pause ${mmss(e.rest)}</span></h2>
+    ${e.sets.map((x, si) => { const cur = cs && cs.e === ei && cs.s === si; return `<div class="wc-set ${x.done ? 'done' : cur ? 'cur' : 'open'}" role="button" tabindex="0" data-act="sel" data-e="${ei}" data-s="${si}">
+      <span class="num c2">${si + 1}</span><span class="num">${w1(x.kg)} kg × ${x.r}</span>${cur ? `<span class="t-cap c2">jetzt</span>` : `<span class="r num">${x.done ? (x.rpe ? 'RPE ' + nf(x.rpe, x.rpe % 1 ? 1 : 0) : '') : prevTxt(x)}</span><button class="chk ${x.done ? 'on' : ''}" data-act="tick" data-e="${ei}" data-s="${si}" aria-label="${x.done ? 'Satz wieder öffnen' : 'Satz erledigt'}">${ic('check')}</button>`}</div>`; }).join('')}</section>`).join('')}
+  <div class="dock dock-solid"><div class="wc-dock">
+    ${W.rest ? `<div class="wc-rest"><span class="t-sub fw6">Pause <span class="num" data-rest>${mmss(restLeft())}</span></span><div class="pt"><i data-restbar style="width:${restLeft() / W.rest.total * 100}%"></i></div><button class="btn btn-secondary btn-sm" data-act="restAdj" data-d="15">+15</button><button class="btn btn-text btn-sm" data-act="restSkip">Weiter</button></div>` : ''}
+    ${s ? `<div class="inputs">
+      <div class="stepper"><button data-act="kg" data-d="-1" aria-label="Weniger Gewicht">${ic('minus')}</button><div class="val num">${w1(s.kg)}<small>kg</small></div><button data-act="kg" data-d="1" aria-label="Mehr Gewicht">${ic('plus')}</button></div>
+      <div class="stepper"><button data-act="reps" data-d="-1" aria-label="Weniger Wiederholungen">${ic('minus')}</button><div class="val num">${s.r}<small>Wdh.</small></div><button data-act="reps" data-d="1" aria-label="Mehr Wiederholungen">${ic('plus')}</button></div>
+      <button class="wc-go" data-act="done" aria-label="Satz erledigt">${ic('check')}</button></div>` : `<button class="btn btn-primary btn-block" data-act="finish">Workout beenden</button>`}
+  </div></div>
+</main>`;
+};
+C.fortschritt = () => `<main class="screen">
+  <header class="c-sec first" style="gap:4px">
+    <button class="ttl-btn" data-act="sheet" data-k="areas"><span class="t-title">${S.area}</span>${ic('chevD')}</button>
+    <p class="t-body c2"><button class="lnk" data-act="sheet" data-k="period">${PHRASE[S.period]}</button>, Gewichte in <button class="lnk" data-act="sheet" data-k="period">${S.unit}</button></p>
+  </header>
+  <section class="c-sec">${C.score(true)}</section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Du trainierst 3,2-mal pro Woche.</h2>${info('wpw')}</div>${barChart({ vals: D.perWeek, labels: D.weekLbl, running: 10, avg: 3.2, h: 120 })}</section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Diese Woche 15 % mehr Volumen als in der Vorwoche.</h2>${info('week')}</div>
+    <div class="plain-list t-sub">${D.weekCmp.map(([l, a, b, d]) => `<div><span class="grow">${l}</span><span class="num fw6">${a}</span><span class="num c2" style="width:96px;text-align:right">${d ? trend(d[0], d[1], d[2]) : 'wie Vorwoche'}</span></div>`).join('')}</div></section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Workout-Score im Schnitt 88.</h2>${info('wscore')}</div>
+    ${lineChart({ vals: D.wscore.map((v, i, a) => Math.round((a[i] + (a[i - 1] ?? v) + (a[i - 2] ?? v)) / 3)), dots: D.wscore, h: 120, labels: ['2. Sep.', 'heute'] })}</section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Ziehen und Drücken sind ausgewogen, Beine etwas weniger.</h2>${info('balance')}</div>${balanceBar()}</section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">Ein neuer Rekord ist nah: Kreuzheben 150 kg × 3.</h2>${info('attack')}</div><p class="t-sub c2">Bisher 160,4 kg geschätztes 1RM.</p></section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">13 Übungen mit neuem Rekord in 4 Wochen.</h2>${info('prs')}</div><p class="t-sub c2">${D.prList.join(', ')} und 8 weitere.</p></section>
+  <section class="c-sec"><div class="c-kicker"><h2 class="t-head">${D.streak} Wochen in Folge trainiert.</h2>${info('cons')}</div>${heatmap()}</section>
+  <section class="c-sec"><h2 class="t-head">Mehr Statistiken</h2><div class="plain-list t-sub">${D.more.map(([l, v]) => `<div><span class="grow">${l}</span><span class="c2 num">${v}</span></div>`).join('')}</div>
+    <p class="proto-note">Prototyp: Alle übrigen Karten von heute bleiben und folgen demselben Muster.</p></section>
+</main>`;
+
+/* ---------- Gemeinsam: leeres Training, Platzhalter, Bausteine ---------- */
+const idleTraining = () => `<main class="screen"><header class="ph"><h1 class="t-title">Training</h1></header>
+  <p class="proto-note">Prototyp: Pläne und Verlauf gehören nicht zu diesem Prototyp. Starte ein Workout, um das laufende Workout zu sehen.</p>
+  <button class="btn btn-primary btn-lg btn-block" data-act="sheet" data-k="start">${ic('play')} Workout starten</button></main>`;
+const placeholder = () => `<main class="screen"><header class="ph"><h1 class="t-title">${S.screen === 'mehr' ? 'Mehr' : 'Übungen'}</h1></header>
+  <p class="proto-note">Prototyp: Dieser Tab gehört nicht zu diesem Prototyp. Entschieden wird die Basis an Start, Workout und Fortschritt.</p>
+  <button class="btn btn-secondary btn-block" data-act="nav" data-to="bausteine">${ic('layers')} Bausteine ansehen</button></main>`;
+const IDEA = {
+  a: ['Apple-nah: große Seitentitel, gruppierte Listen für alles Gleichartige, Karten nur für Score und Diagramme.',
+    'Workout als Tabelle: alle Sätze auf einen Blick, Eingabe nur in der aktuellen Zeile.',
+    'Zeitraum und Einheit wandern in ein Menü: eine Steuerreihe statt drei.'],
+  b: ['Zahlen zuerst: Kacheln mit immer gleichem Aufbau (Titel, Zahl, kleine Grafik), Werte auf einer Linie.',
+    'Workout zeigt eine Übung auf einmal mit großen Eingaben, der Hauptknopf liegt im Daumenbereich.',
+    'Die Hauptaktion schwebt über der Tab-Leiste, die Pause ersetzt sie, statt etwas zu verdecken.'],
+  c: ['Jede Ansicht beginnt mit einem Satz, der die Lage sagt, Zahl und Grafik stützen ihn.',
+    'Keine Kartenrahmen: Abschnitte mit Linien und viel Luft.',
+    'Workout als Verlauf aller Sätze, die Eingabe steht fest unten im Daumenbereich.']
+};
+const parts = () => `<main class="screen" style="gap:28px">
+  <header class="ph"><p class="t-sub c2 fw6">Prototyp · Variante ${S.v.toUpperCase()} „${VARS[S.v]}“</p><h1 class="t-title">Bausteine</h1></header>
+  <section class="parts-sec"><h2 class="t-head">Idee</h2><ul class="bullets t-sub">${IDEA[S.v].map(t => `<li>${t}</li>`).join('')}</ul>
+    <p class="t-sub c2">Gleich in allen Varianten: 4/8-Raster, Seitenrand 16 px, Tap-Flächen ab 44 px, ein Symbolsatz, Zahlen mit fester Ziffernbreite, Diagramme nur als Balken und Linie.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Schrift</h2><div class="card" style="gap:0">
+    ${[['t-title', 'Seitentitel'], ['t-head', 'Abschnitt'], ['t-body', 'Text und Zeilen'], ['t-sub', 'Nebenzeile'], ['t-cap', 'Beschriftung'], ['n-num', '4.960 kg'], ['hero-num', '78']].map(([c, t]) => `<div class="ts-row"><span class="${c}">${t}</span><span class="m" data-m="${c}"></span></div>`).join('')}
+  </div><p class="t-sub c2">Systemschrift (auf dem iPhone SF Pro). Gewichte nur 400, 600, 700. Rangfolge über Gewicht und Farbe, nicht über Zwischengrößen.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Raster und Ecken</h2><div class="card" style="gap:6px">${[4, 8, 12, 16, 24, 32, 48].map(v => `<div class="sp-row"><span class="num">${v} px</span><i style="width:${v * 4}px"></i></div>`).join('')}</div>
+    <div class="rad-row">${[['Karte', 'var(--r-card)'], ['Eingabe', 'var(--r-ctl)'], ['Knopf', 'var(--r-btn)'], ['Fenster', 'var(--r-sheet) var(--r-sheet) 0 0']].map(([l, r]) => `<div style="border-radius:${r}">${l}</div>`).join('')}</div></section>
+  <section class="parts-sec"><h2 class="t-head">Farben</h2><div class="sw-grid">
+    ${[['--bg', 'Hintergrund'], ['--surface', 'Fläche'], ['--fill', 'Füllung'], ['--text', 'Text'], ['--text-2', 'Text 2'], ['--text-3', 'Text 3'], ['--accent', 'Akzent (Platzhalter)'], ['--good', 'Gut'], ['--warn', 'Achtung'], ['--bad', 'Schlecht']].map(([v, l]) => `<div class="sw"><i style="background:var(${v})"></i><span>${l}</span></div>`).join('')}
+  </div><p class="t-sub c2">Der Akzent nur für Hauptaktion, aktuellen Wert und Auswahl. Gut, Achtung und Schlecht bedeuten in jedem Design dasselbe.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Knöpfe</h2><div class="demo-row">
+    <button class="btn btn-primary" data-act="toast" data-k="Hauptaktion">Hauptaktion</button><button class="btn btn-secondary" data-act="toast" data-k="Zweitaktion">Zweitaktion</button><button class="btn btn-text" data-act="toast" data-k="Textknopf">Textknopf</button><button class="btn btn-danger" data-act="toast" data-k="Löschen">Löschen</button></div>
+    <p class="t-sub c2">Höchstens ein Hauptknopf je Ansicht. Eine Aktion hat überall dasselbe Wort, z. B. immer „Beenden“.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Eingaben</h2>
+    <div class="seg">${PERIODS.map(([k]) => `<button class="${S.period === k ? 'on' : ''}" data-act="period" data-val="${k}">${k}</button>`).join('')}</div>
+    <div class="stepper" style="max-width:200px"><button data-act="toast" data-k="−2,5 kg" aria-label="Weniger">${ic('minus')}</button><div class="val num">82,5<small>kg</small></div><button data-act="toast" data-k="+2,5 kg" aria-label="Mehr">${ic('plus')}</button></div>
+    <div class="chips">${AREAS.slice(0, 4).map((a, i) => `<button class="chip ${i === 0 ? 'on' : ''}">${a}</button>`).join('')}</div></section>
+  <section class="parts-sec"><h2 class="t-head">Liste, Karte, Kachel</h2>
+    <div class="list"><div class="row"><span class="row-ic">${ic('flame')}</span><div class="row-main t-body">Listenzeile</div><span class="row-val t-body fw6 num">11 Wochen</span></div><button class="row" data-act="toast" data-k="Zeile angetippt"><div class="row-main t-body">Zeile mit Pfeil</div><span class="chev">${ic('chevR')}</span></button></div>
+    <div class="tiles">${tile('bolt', 'Kachel', U('4.960', 'kg'), `<span class="t-cap">${trend('up', '15 %')}</span>`)}<div class="card"><span class="lbl">Karte</span><span class="t-sub c2">In sich geschlossen, eine Aussage.</span></div></div>
+    <p class="t-sub c2">Listen für Gleichartiges, Karten für eine abgeschlossene Aussage. Nie eine Karte in einer Karte.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Diagramme</h2><div class="card">
+    <span class="lbl">Workouts pro Woche</span>${barChart({ vals: D.perWeek, labels: D.weekLbl, running: 10, avg: 3.2, h: 110 })}
+    <span class="lbl">Trainio-Score</span>${lineChart({ vals: D.trend, h: 100, ref: [85, 'erwartet'] })}</div>
+    <p class="t-sub c2">Aktueller Wert im Akzent, der Rest grau, die laufende Woche blass. Gerade Linien, keine Glättung. Achsen ehrlich, beim Score immer 0 bis 100.</p></section>
+  <section class="parts-sec"><h2 class="t-head">Fenster und Meldungen</h2><div class="demo-row">
+    <button class="btn btn-secondary btn-sm" data-act="sheet" data-k="start">Menü von unten</button><button class="btn btn-secondary btn-sm" data-act="finish">Rückfrage</button><button class="btn btn-secondary btn-sm" data-act="toast" data-k="Neuer Rekord · Latzug eng 60 kg × 12" data-i="trophy">Meldung</button><button class="btn btn-secondary btn-sm" data-act="sheet" data-k="detail">Fenster</button><button class="btn btn-secondary btn-sm" data-act="info" data-k="demo">Erklärung (i)</button></div></section>
+</main>`;
+
+/* ---------- Ebenen: Menü von unten, Fenster, Rückfrage, Meldung, Erklärung ---------- */
+function layerHtml() {
+  const L = S.layer;
+  if (!L) return '';
+  if (L.type === 'pop') return `<div class="pop-scrim" data-act="close"></div><div class="pop" role="tooltip" style="left:${L.x}px;top:${L.y}px">${INFO[L.k]}</div>`;
+  if (L.type === 'dialog') return `<div class="scrim" data-act="close"></div><div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dlg-t">
+    <h2 class="t-head" id="dlg-t">Workout beenden?</h2><p class="t-sub c2">${W.running ? `Noch ${allSets() - doneSets()} Sätze offen. Gespeichert werden nur erledigte Sätze.` : 'So sieht eine Rückfrage aus.'}</p>
+    <div class="btns"><button class="btn btn-primary btn-block" data-act="${W.running ? 'finishOk' : 'close'}">Beenden und speichern</button><button class="btn btn-secondary btn-block" data-act="close">Weiter trainieren</button></div></div>`;
+  const sheet = (inner, label) => `<div class="scrim" data-act="close"></div><div class="sheet" role="dialog" aria-modal="true" aria-label="${label}"><div class="grab"></div>${inner}</div>`;
+  if (L.k === 'start') return sheet(`<div class="sheet-h"><h2 class="t-head">Workout starten</h2><button class="ic-btn" data-act="close" aria-label="Schließen">${ic('x')}</button></div>
+    <button class="btn btn-primary btn-lg btn-block btn-col" data-act="startW"><span>Pull</span><small>Heute dran · 5 Übungen · etwa 55 min</small></button>
+    <div class="list">${[['Push', 'Zuletzt Mo, 9. Nov'], ['Beine', 'Zuletzt Fr, 6. Nov'], ['Leeres Workout', 'Übungen selbst wählen'], ['Cardio', 'Laufen, Rad, Rudern …']].map(([n, m]) => `<button class="row" data-act="startW"><div class="row-main"><div class="t-body">${n}</div><div class="t-cap c2">${m}</div></div><span class="chev">${ic('chevR')}</span></button>`).join('')}</div>`, 'Workout starten');
+  if (L.k === 'period') return sheet(`<div class="sheet-h"><h2 class="t-head">Zeitraum</h2><button class="ic-btn" data-act="close" aria-label="Schließen">${ic('x')}</button></div>
+    <div class="list">${PERIODS.map(([k, l]) => `<button class="row" data-act="setPeriod" data-val="${k}"><div class="row-main t-body">${l}</div>${S.period === k ? `<span style="color:var(--accent)">${ic('check')}</span>` : ''}</button>`).join('')}<button class="row" data-act="toast" data-k="Eigener Zeitraum: nicht Teil des Prototyps"><div class="row-main t-body">Eigener Zeitraum …</div><span class="chev">${ic('chevR')}</span></button></div>
+    <div class="sheet-h"><span class="t-body fw6">Einheit</span><div class="seg" style="width:120px">${['kg', 'lb'].map(u => `<button class="${S.unit === u ? 'on' : ''}" data-act="unit" data-val="${u}">${u}</button>`).join('')}</div></div>`, 'Zeitraum');
+  if (L.k === 'areas') return sheet(`<div class="sheet-h"><h2 class="t-head">Bereich</h2><button class="ic-btn" data-act="close" aria-label="Schließen">${ic('x')}</button></div>
+    <div class="list">${AREAS.map(a => `<button class="row" data-act="setArea" data-val="${a}"><div class="row-main t-body">${a}</div>${S.area === a ? `<span style="color:var(--accent)">${ic('check')}</span>` : ''}</button>`).join('')}</div>`, 'Bereich');
+  if (L.k === 'detail') return sheet(`<div class="sheet-h"><h2 class="t-head">Kreuzheben</h2><button class="ic-btn" data-act="close" aria-label="Schließen">${ic('x')}</button></div>
+    <div class="n-num">${U('160,4', 'kg')}</div><p class="t-sub c2" style="margin-top:-10px">Geschätztes 1RM, bester Wert</p>
+    ${lineChart({ vals: [148, 150, 151, 151, 153, 155, 156, 158, 160.4], yMin: 140, yMax: 170, step: 10, h: 110, labels: ['Sep.', 'heute'] })}
+    <div class="list">${[['Bester Satz', '137,5 kg × 5'], ['Zuletzt', 'Mi, 4. Nov'], ['Sessions', '10']].map(([l, v]) => `<div class="row"><div class="row-main t-body">${l}</div><span class="row-val t-body c2 num">${v}</span></div>`).join('')}</div>
+    <button class="btn btn-secondary btn-block" data-act="close">Schließen</button>`, 'Übung');
+  if (L.k === 'summary') { const sm = L.sum; return sheet(`<div style="display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center">
+      <p class="t-sub c2 fw6">Workout gespeichert</p><h2 class="t-title">${W.name}</h2>${ring(sm.score)}<p class="t-cap c2 fw6">Workout-Score</p>
+      <p class="t-body">${sm.prs.length ? 'Neue Rekorde und mehr Wiederholungen als letztes Mal.' : 'Fast genau wie letztes Mal.'}</p></div>
+    <div class="list">${[['Dauer', `${Math.max(1, Math.round(sm.secs / 60))} min`], ['Sätze', `${sm.sets} von ${allSets()}`], ['Volumen', `${nf(sm.vol)} kg`]].map(([l, v]) => `<div class="row"><div class="row-main t-body">${l}</div><span class="row-val t-body fw6 num">${v}</span></div>`).join('')}</div>
+    ${sm.prs.length ? `<div class="list">${sm.prs.map(p => `<div class="row"><span class="row-ic">${ic('trophy')}</span><div class="row-main t-body">${p}</div></div>`).join('')}</div>` : ''}
+    <button class="btn btn-primary btn-block" data-act="summaryDone">Schließen</button>`, 'Workout gespeichert'); }
+  return '';
+}
+function renderLayer() {
+  $('#layer').innerHTML = layerHtml() + (S.toast ? `<div class="toast" role="status">${S.toast.i ? ic(S.toast.i) : ''}${S.toast.t}</div>` : '');
+}
+function toast(t, i) {
+  S.toast = { t, i }; renderLayer();
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => { S.toast = null; renderLayer(); }, 2600);
+}
+
+/* ---------- Darstellung ---------- */
+const TABS = [['start', 'home', 'Start'], ['training', 'dumbbell', 'Training'], ['uebungen', 'book', 'Übungen'], ['fortschritt', 'chart', 'Fortschritt'], ['mehr', 'grid', 'Mehr']];
+const tabbar = () => `<nav class="tabbar" aria-label="Tabs">${TABS.map(([k, i, l]) => `<button class="tab ${S.screen === k ? 'on' : ''}" data-act="nav" data-to="${k}" ${S.screen === k ? 'aria-current="page"' : ''}>${S.v === 'c' ? '' : ic(i)}<span>${l}</span>${k === 'training' && W.running && S.screen !== 'training' ? '<i class="tdot"></i>' : ''}</button>`).join('')}</nav>`;
+const V = { a: A, b: B, c: C };
+function render() {
+  document.body.dataset.v = S.v;
+  const fn = S.screen === 'bausteine' ? parts : V[S.v][S.screen] || placeholder;
+  $('#app').innerHTML = fn() + tabbar();
+  $('#pv').textContent = `${S.v.toUpperCase()} · ${VARS[S.v]}`;
+  $('#pp').style.opacity = S.screen === 'bausteine' ? '1' : '.75';
+  document.querySelectorAll('[data-m]').forEach(el => { const t = el.parentElement.querySelector('.' + el.dataset.m), cs = getComputedStyle(t); el.textContent = `${parseFloat(cs.fontSize)} px · ${cs.fontWeight}`; });
+  renderLayer();
+}
+function go(screen) {
+  S.screen = screen; S.layer = null;
+  const h = `#${S.v}-${S.screen}`;
+  try { history.replaceState(null, '', h); } catch (e) { /* Rahmen erlaubt es nicht – egal */ }
+  render(); window.scrollTo(0, 0);
+}
+function applyTheme() {
+  const r = document.documentElement;
+  if (S.theme === 'auto') r.removeAttribute('data-theme'); else r.setAttribute('data-theme', S.theme);
+  $('#pt').innerHTML = `${ic(S.theme === 'dark' ? 'moon' : S.theme === 'light' ? 'sun' : 'auto')}${{ auto: 'Auto', light: 'Hell', dark: 'Dunkel' }[S.theme]}`;
+  try { localStorage.setItem('trainio-proto-theme', S.theme); } catch (e) { /* ohne Speicher */ }
+}
+
+/* ---------- Aktionen ---------- */
+function adjustSet(field, d) {
+  const s = curSet(); if (!s) return;
+  const ex = W.ex[W.cur.e];
+  if (field === 'kg') {
+    const old = s.kg; s.kg = Math.max(0, Math.round((s.kg + d * ex.step) * 100) / 100);
+    ex.sets.forEach((x, i) => { if (i > W.cur.s && !x.done && x.kg === old) x.kg = s.kg; });   // folgende Sätze übernehmen
+  } else s.r = Math.max(0, s.r + d);
+  render();
+}
+function complete(e, s) {
+  const ex = W.ex[e], st = ex.sets[s];
+  if (st.done) return;
+  st.done = true;
+  const v = e1(st.kg, st.r);
+  if (v > ex.best + .05) { ex.best = v; W.prs.push(`${ex.name} ${w1(st.kg)} kg × ${st.r}`); toast(`Neuer Rekord · ${ex.name} ${w1(st.kg)} kg × ${st.r}`, 'trophy'); }
+  W.rest = { end: Date.now() + ex.rest * 1000, total: ex.rest, ex: ex.name };
+  W.cur = nextOpen(W, { e, s });
+  W.view = undefined;
+  render();
+}
+const ACT = {
+  nav: d => go(d.to),
+  close: () => { S.layer = null; renderLayer(); },
+  info: (d, el) => {
+    const r = el.getBoundingClientRect(), vw = document.documentElement.clientWidth, x = Math.min(Math.max(12, r.right - 264), vw - 276);
+    const below = r.bottom + 120 < window.innerHeight;
+    S.layer = { type: 'pop', k: d.k, x, y: below ? r.bottom + 6 : Math.max(60, r.top - 96) }; renderLayer();
+  },
+  sheet: d => { S.layer = { type: 'sheet', k: d.k }; renderLayer(); },
+  toast: (d, el) => toast(d.k, el.dataset.i),
+  startW: () => { W = newWorkout(0); S.layer = null; go('training'); },
+  sel: d => {
+    const e = +d.e, s = +d.s, st = W.ex[e].sets[s];
+    if (st.done) { st.done = false; }
+    W.cur = { e, s }; W.view = undefined; render();
+  },
+  tick: d => { const e = +d.e, s = +d.s, st = W.ex[e].sets[s]; if (st.done) { st.done = false; W.cur = { e, s }; render(); } else { W.cur = { e, s }; complete(e, s); } },
+  kg: d => adjustSet('kg', +d.d),
+  reps: d => adjustSet('reps', +d.d),
+  rpe: d => { const s = curSet(); if (s) { s.rpe = d.val ? +d.val : null; render(); } },
+  done: () => { if (W.cur) complete(W.cur.e, W.cur.s); },
+  restAdj: d => { if (W.rest) { W.rest.end = Math.max(Date.now() + 1000, W.rest.end + d.d * 1000); W.rest.total = Math.max(W.rest.total, restLeft()); tick(); } },
+  restSkip: () => { W.rest = null; render(); },
+  exGo: d => {
+    const cur = W.view ?? (W.cur ? W.cur.e : 0), ne = Math.min(W.ex.length - 1, Math.max(0, cur + +d.d)), si = W.ex[ne].sets.findIndex(s => !s.done);
+    if (si >= 0) { W.cur = { e: ne, s: si }; W.view = undefined; } else W.view = ne;
+    render(); window.scrollTo(0, 0);
+  },
+  finish: () => { S.layer = { type: 'dialog' }; renderLayer(); },
+  finishOk: () => {
+    const sets = doneSets(), sum = { score: Math.min(100, Math.round(62 + 22 * sets / allSets() + 4 * W.prs.length)), prs: W.prs.slice(), secs: elapsed(), sets, vol: volume() };
+    W.rest = null; S.layer = { type: 'sheet', k: 'summary', sum }; render();
+  },
+  summaryDone: () => { W.running = false; S.layer = null; go('start'); toast('Workout gespeichert', 'check'); },
+  period: d => { S.period = d.val; render(); },
+  setPeriod: d => { S.period = d.val; S.layer = null; render(); },
+  unit: d => { S.unit = d.val; render(); },
+  area: d => { S.area = d.val; render(); if (d.val !== 'Übersicht') toast(`${d.val}: nicht Teil des Prototyps`); },
+  setArea: d => { S.area = d.val; S.layer = null; render(); if (d.val !== 'Übersicht') toast(`${d.val}: nicht Teil des Prototyps`); }
+};
+document.addEventListener('click', e => {
+  const p = e.target.closest('[data-p]');
+  if (p) {
+    const ks = Object.keys(VARS), i = ks.indexOf(S.v);
+    if (p.dataset.p === 'prev' || p.dataset.p === 'next') { S.v = ks[(i + (p.dataset.p === 'next' ? 1 : ks.length - 1)) % ks.length]; go(S.screen); }
+    if (p.dataset.p === 'theme') { S.theme = { auto: 'light', light: 'dark', dark: 'auto' }[S.theme]; applyTheme(); }
+    if (p.dataset.p === 'parts') go(S.screen === 'bausteine' ? 'start' : 'bausteine');
+    return;
+  }
+  const a = e.target.closest('[data-act]');
+  if (!a || a.disabled) return;
+  e.stopPropagation();
+  (ACT[a.dataset.act] || (() => {}))(a.dataset, a, e);
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && S.layer) { S.layer = null; renderLayer(); return; }
+  if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"][data-act]')) { e.preventDefault(); e.target.click(); return; }
+  if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+  if (e.target.closest('input, textarea, [contenteditable]')) return;
+  const ks = Object.keys(VARS), i = ks.indexOf(S.v);
+  S.v = ks[(i + (e.key === 'ArrowRight' ? 1 : ks.length - 1)) % ks.length]; go(S.screen);
+});
+function readHash() {
+  const m = /^#([abc])-(start|training|fortschritt|uebungen|mehr|bausteine)$/.exec(location.hash);
+  if (m) { S.v = m[1]; S.screen = m[2]; return true; }
+  return false;
+}
+window.addEventListener('hashchange', () => { if (readHash()) { S.layer = null; render(); } });
+/* Uhr und Pause aktualisieren, ohne alles neu zu zeichnen */
+function tick() {
+  document.querySelectorAll('[data-clock]').forEach(el => { el.textContent = mmss(elapsed()); });
+  if (!W.rest) return;
+  const left = restLeft();
+  if (left <= 0) { W.rest = null; render(); return; }
+  document.querySelectorAll('[data-rest]').forEach(el => { el.textContent = mmss(left); });
+  const r = document.querySelector('[data-restring]');
+  if (r) { const c = 2 * Math.PI * 16; r.setAttribute('stroke-dasharray', `${(c * left / W.rest.total).toFixed(1)} ${c.toFixed(1)}`); }
+  const b = document.querySelector('[data-restbar]');
+  if (b) b.style.width = `${left / W.rest.total * 100}%`;
+}
+setInterval(tick, 1000);
+try { S.theme = localStorage.getItem('trainio-proto-theme') || 'auto'; } catch (e) { S.theme = 'auto'; }
+readHash();
+applyTheme();
+render();
+</script>
