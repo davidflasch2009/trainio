@@ -47,3 +47,7 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
 - **Klarblau 2** (gleicher Link, Fassung 1 in Commit ccb9720): radikal schlicht – Systemschrift, Weiß mit hellgrauen
   Flächen, ein Blau, Ecken 8 px, Kacheln nur Titel und Zahl, Score nur Kreis mit Zahl, Diagramme nur in Details.
   Wartet auf Davids Rückmeldung.
+- **Prototyp 4** (gleicher Link wie Prototyp 2, Fassung mit 24 Designs in Commit fc9d766): zehn klare, ruhige
+  Designs mit dem schlichten Aufbau von Klarblau 2 – Salbei, Marine, Koralle, Nacht, Petrol, Oliv, Kirsche, Arktis,
+  Schiefer, Orange. Unterschiede nur über Schrift, Farbe, Ecken, Flächen und Form des Score-Kreises; keine Deko.
+  Erstellt mit dem Design-Skill. Wartet auf Davids Auswahl.

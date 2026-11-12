@@ -1,14 +1,12 @@
 <title>Trainio Design-Auswahl</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;600&family=Sora:wght@600&family=Instrument+Serif:ital@0;1&family=Saira+Semi+Condensed:wght@500;600&family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Unbounded:wght@600;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Outfit:wght@200;300;400&family=Caveat:wght@600;700&family=Audiowide&family=Jost:wght@500;700&family=Archivo+Black&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Press+Start+2P&family=Syne:wght@700;800&family=Alfa+Slab+One&family=Bangers&family=Courier+Prime:wght@400;700&display=swap">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Graduate&family=Bodoni+Moda:opsz,wght@6..96,400..600&family=Fredoka:wght@500;600&family=Shippori+Mincho:wght@500;700&family=Bitter:wght@600;700&family=Marcellus&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&family=Manrope:wght@400;500;600;700&family=DM+Sans:opsz,wght@9..40,400..700&family=Sora:wght@400;500;600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600&family=Inter+Tight:wght@400;500;600;700&family=Nunito+Sans:opsz,wght@6..12,400..700&family=IBM+Plex+Sans:wght@400;500;600&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
-/* WEGWERF-PROTOTYP zu Ticket 04 (docs/redesign/tickets/04-designs-auswahl.md): 24 neue Richtungen für Trainio.
-   Davids Vorgabe: ganz neue Designs, eins davon „Premium, dunkel“. Jedes Design zeigt dieselben Bildschirme (Start,
-   laufendes Workout, Fortschritt) mit eigener Schrift, Form, Material, Farbe, Score-Form und Tab-Leiste.
-   Seite: neutraler Rahmen, Telefone als feste 390 × 844-Rahmen, skaliert. Fassungen davor: Git-Historie. */
+/* WEGWERF-PROTOTYP zu Ticket 04: 10 klare, ruhige Designs für Trainio (Davids Vorgabe: „klar, passend für die App,
+   nicht zu viel los“). Alle mit demselben schlichten Aufbau wie Klarblau 2: Kacheln nur Titel und Zahl, Score als Kreis,
+   keine Zierlinien oder Mini-Grafiken. Unterschiede nur über Schrift, Farbe, Ecken, Flächen und die Form des Kreises.
+   Seite: neutraler Rahmen, Telefone als feste 390 × 844-Rahmen, skaliert. Frühere Fassungen: Git-Historie. */
 :root {
   --bg: #EFEFF1; --surface: #FFFFFF; --fill: #E2E2E7; --line: rgba(17, 18, 28, .12);
   --text: #121318; --text-2: #50535D; --accent: #121318; --on-accent: #FFFFFF;
@@ -26,7 +24,7 @@ button { font: inherit; color: inherit; background: none; border: 0; padding: 0;
 button:focus-visible, [role="button"]:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 h1, h2, h3, p { margin: 0; }
 .wrap { max-width: 1320px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 0 56px; }
-.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); padding: 12px 0; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--line); margin-bottom: 16px; }
+.top { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 20; background: var(--bg); padding: 12px 0; display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
 .top h1 { font-size: 22px; line-height: 28px; font-weight: 700; flex: 1; letter-spacing: -.01em; }
 .seg { display: flex; background: var(--fill); border-radius: 10px; padding: 2px; gap: 2px; }
 .seg button { min-height: 32px; padding: 0 12px; border-radius: 8px; font-weight: 600; color: var(--text-2); position: relative; }
@@ -34,375 +32,88 @@ h1, h2, h3, p { margin: 0; }
 .seg button.on { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
 .pbtn { min-height: 36px; padding: 0 12px; border-radius: 10px; background: var(--fill); font-weight: 600; display: inline-flex; align-items: center; gap: 6px; }
 .pbtn .ic { width: 16px; height: 16px; }
-.lead { color: var(--text-2); max-width: 62ch; margin-bottom: 8px; }
-.grp { margin-top: 28px; }
-.grp h2 { font-size: 13px; line-height: 18px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); margin-bottom: 12px; }
-.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px 12px; }
-@media (min-width: 700px) { .grid { grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 28px 20px; } }
-.card { display: flex; flex-direction: column; gap: 8px; cursor: pointer; border-radius: 22px; }
+.top h1 { white-space: nowrap; }
+@media (max-width: 420px) { #theme .tl { display: none; } #theme { padding: 0 10px; } }
+.lead { color: var(--text-2); margin-bottom: 20px; }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 24px 12px; }
+@media (min-width: 700px) { .grid { grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 32px 20px; } }
+.card { display: flex; flex-direction: column; gap: 10px; cursor: pointer; border-radius: 22px; }
 .mini, .phone { position: relative; overflow: hidden; aspect-ratio: 390 / 844; max-width: 100%; }
 .mini { width: 100%; border-radius: 22px; box-shadow: 0 0 0 1px var(--line), 0 10px 28px rgba(0, 0, 0, .1); }
 .mini > .frame, .phone > .frame { position: absolute; left: 0; top: 0; transform: scale(var(--k, .4)); transform-origin: 0 0; }
-.cap { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
-.cap b { font-size: 15px; }
-.cap span { font-size: 12px; color: var(--text-2); }
+.cap { display: flex; flex-direction: column; gap: 2px; }
+.cap b { font-size: 16px; }
+.cap span { font-size: 13px; color: var(--text-2); }
 .chips { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px 16px; padding: 2px 16px; }
 .chips::-webkit-scrollbar { display: none; }
 .chip { flex: none; min-height: 34px; padding: 0 14px; border-radius: 999px; background: var(--fill); font-weight: 600; color: var(--text-2); white-space: nowrap; position: relative; }
 .chip::after { content: ""; position: absolute; inset: -5px 0; }
 .chip.on { background: var(--text); color: var(--bg); }
 .dhead { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 12px 24px; margin-bottom: 16px; }
-.dh-main { display: flex; flex-direction: column; gap: 6px; min-width: 0; max-width: 60ch; }
-.dh-row { display: flex; align-items: center; gap: 10px; }
-.dh-row h2 { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; }
-.tag { font-size: 11px; line-height: 16px; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; padding: 2px 8px; border-radius: 6px; background: var(--fill); color: var(--text-2); white-space: nowrap; }
-.type { font-size: 17px; line-height: 23px; }
-.mk { color: var(--text-2); }
-.mk b { color: var(--text); }
-.sw-row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-.sw-row .lbl { font-weight: 600; color: var(--text-2); margin-right: 2px; }
-.sw { width: 34px; height: 34px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); position: relative; }
-.sw::after { content: ""; position: absolute; inset: -5px; }
+.dhead h2 { font-size: 30px; line-height: 36px; font-weight: 700; letter-spacing: -.02em; }
+.dhead p { font-size: 17px; line-height: 23px; color: var(--text-2); margin-top: 4px; }
+.sw-row { display: flex; gap: 10px; align-items: center; }
+.sw { width: 32px; height: 32px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .15); position: relative; }
+.sw::after { content: ""; position: absolute; inset: -6px; }
 .sw.on { box-shadow: 0 0 0 2px var(--bg), 0 0 0 4px var(--text); }
-.screens { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 4px 16px 12px; scrollbar-width: thin; }
+.screens { display: flex; gap: 20px; overflow-x: auto; scroll-snap-type: x mandatory; margin: 0 -16px; padding: 4px 16px 12px; }
 .shot { flex: none; display: flex; flex-direction: column; gap: 8px; scroll-snap-align: center; }
 .shot p { font-weight: 600; color: var(--text-2); }
 .phone { width: min(390px, calc(100vw - 64px)); border-radius: 34px; box-shadow: 0 0 0 1px var(--line), 0 24px 60px rgba(0, 0, 0, .16); }
 .pager { display: flex; justify-content: space-between; gap: 8px; margin-top: 12px; }
+.ic { width: 1.2em; height: 1.2em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
 
-/* ==================== Telefon-Rahmen: Grundgerüst, gesteuert über --f-Variablen ==================== */
-.frame { --f-r: 18px; --f-rb: 16px; position: relative; width: 390px; height: 844px; overflow: hidden; isolation: isolate; background: var(--f-bg); color: var(--f-text); font-family: var(--f-body); text-align: left; -webkit-font-smoothing: antialiased; }
-.frame .ic { width: 1.2em; height: 1.2em; flex: none; fill: none; stroke: currentColor; stroke-width: var(--f-sw, 1.8); stroke-linecap: round; stroke-linejoin: round; }
-.f-bg { position: absolute; inset: 0; z-index: -1; background: var(--f-bgimg); }
-.f-scr { padding: 22px 16px 120px; display: flex; flex-direction: column; gap: 16px; }
-.f-date { font-size: 15px; line-height: 20px; font-weight: 600; color: var(--f-text2); }
-.f-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; }
-.f-title { font-family: var(--f-title); font-size: 28px; line-height: 1.15; font-weight: 700; letter-spacing: -.01em; }
-.f-chip { min-height: 32px; padding: 0 12px; border-radius: 999px; background: var(--f-surface); border: 1px solid var(--f-border); color: var(--f-tt); font-size: 14px; font-weight: 600; display: inline-flex; align-items: center; flex: none; position: relative; }
-.f-score { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-.f-score svg { display: block; overflow: visible; }
-.f-score-l { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--f-text2); }
+/* ==================== Telefon: ein schlichter Aufbau für alle Designs, gesteuert über --f-Variablen ==================== */
+.frame { position: relative; width: 390px; height: 844px; overflow: hidden; background: var(--f-bg); color: var(--f-text); font-family: var(--f-font); text-align: left; -webkit-font-smoothing: antialiased; }
+.f-scr { padding: 24px 20px 120px; display: flex; flex-direction: column; gap: 26px; }
+.f-small { font-size: 15px; line-height: 20px; color: var(--f-text2); }
+.f-title { font-size: 30px; line-height: 36px; font-weight: var(--f-tw); letter-spacing: var(--f-track); }
+.f-head { font-size: 20px; line-height: 26px; font-weight: 600; letter-spacing: -.01em; }
+.f-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.f-score { align-self: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.f-score svg { display: block; }
 .f-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-.f-tile { position: relative; background: var(--f-surface); border-radius: var(--f-r); padding: 14px 16px; min-height: 100px; display: flex; flex-direction: column; justify-content: space-between; gap: 10px; color: var(--f-tt); overflow: hidden; }
-.f-tl { font-size: 13px; line-height: 18px; font-weight: 600; color: var(--f-tl); display: flex; gap: 6px; align-items: center; }
-.f-num { white-space: nowrap; }
-.f-num b { font-family: var(--f-num); font-size: 30px; line-height: 1.1; font-weight: 700; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
-.f-num small { font-size: 13px; font-weight: 600; color: var(--f-tl); margin-left: 3px; }
-.f-btn { position: relative; min-height: 54px; border-radius: var(--f-rb); background: var(--f-accent); color: var(--f-onacc); font-weight: 700; font-size: 17px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
-.f-sec { display: flex; flex-direction: column; gap: 8px; }
-.f-sec h3 { font-family: var(--f-title); font-size: 20px; line-height: 1.25; font-weight: 600; }
-.f-blk { position: relative; background: var(--f-surface); border-radius: var(--f-r); color: var(--f-tt); overflow: hidden; }
-.f-goal { padding: 14px 16px; display: flex; flex-direction: column; gap: 10px; }
-.f-row { display: flex; justify-content: space-between; font-size: 17px; font-weight: 600; }
-.f-bar { display: block; height: 6px; border-radius: 3px; background: var(--f-fill); overflow: hidden; }
-.f-bar i { display: block; height: 100%; width: var(--w); background: var(--f-accent); border-radius: inherit; }
-.f-li { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 13px 16px; font-size: 17px; }
-.f-li + .f-li, .f-set + .f-set { border-top: 1px solid var(--f-border); }
-.f-li b { font-weight: 600; }
-.f-li span { color: var(--f-tl); font-size: 15px; }
-.f-set { display: grid; grid-template-columns: 40px 1fr 1fr 36px; align-items: center; gap: 8px; padding: 8px 16px; font-size: 17px; font-variant-numeric: tabular-nums; }
-.f-set.hd { font-size: 12px; font-weight: 700; color: var(--f-tl); padding-block: 10px 4px; }
-.f-set.cur { background: color-mix(in srgb, var(--f-accent) 14%, transparent); font-weight: 700; }
-.f-ck { width: 32px; height: 32px; border-radius: 10px; border: 1.5px solid var(--f-border); display: grid; place-items: center; justify-self: end; }
-.f-ck.on { background: var(--f-accent); border-color: var(--f-accent); color: var(--f-onacc); }
-.f-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-.f-step { display: grid; grid-template-columns: 34px minmax(0, 1fr) 34px; align-items: center; min-height: 60px; text-align: center; padding: 0 4px; }
-.f-step > span:first-child, .f-step > span:last-child { font-size: 22px; font-weight: 600; }
-.frame .f-step .f-num b { font-size: var(--f-stepsize, 22px); }
-.f-chart { padding: 14px 16px 12px; display: flex; flex-direction: column; gap: 10px; }
-.f-chart svg { display: block; width: 100%; height: auto; }
-.f-chart .cb { fill: var(--f-tl); opacity: .32; }
-.f-chart .cb.on { fill: var(--f-accent); opacity: 1; }
-.f-tb { position: absolute; left: 0; right: 0; bottom: 0; z-index: 2; display: flex; background: var(--f-tb); border-top: 1px solid var(--f-border); padding: 6px 4px 24px; color: var(--f-tbtext); }
-.f-tb span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; line-height: 13px; font-weight: 500; padding: 4px 0; }
+.f-tile { background: var(--f-card); border-radius: var(--f-r); box-shadow: var(--f-shadow); padding: 16px; min-height: 104px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px; }
+.f-tile .f-small { font-weight: 500; }
+.f-num { font-size: 32px; line-height: 1.1; font-weight: var(--f-nw); letter-spacing: -.02em; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.f-u { font-size: 15px; font-weight: 500; color: var(--f-text2); margin-left: 4px; letter-spacing: 0; }
+.f-btn { min-height: 54px; border-radius: var(--f-rb); background: var(--f-accent); color: var(--f-onacc); font-weight: 600; font-size: 17px; display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.f-btn2 { min-height: 36px; padding: 0 14px; border-radius: var(--f-rb); background: var(--f-card); box-shadow: var(--f-shadow); font-size: 15px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; flex: none; }
+.f-sec { display: flex; flex-direction: column; gap: 12px; }
+.f-link { color: var(--f-accent); font-size: 15px; font-weight: 600; }
+.f-list { background: var(--f-card); border-radius: var(--f-r); box-shadow: var(--f-shadow); overflow: hidden; }
+.f-li { display: flex; align-items: center; gap: 12px; min-height: 54px; padding: 14px 16px; position: relative; }
+.f-li + .f-li::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--f-sep); }
+.f-li .grow { flex: 1; min-width: 0; }
+.f-chev { color: var(--f-text2); opacity: .6; }
+.f-goal { display: flex; flex-direction: column; gap: 12px; padding: 16px; }
+.f-bar { height: 6px; border-radius: 3px; background: var(--f-sep); overflow: hidden; }
+.f-bar i { display: block; height: 100%; width: var(--w); border-radius: 3px; background: var(--f-accent); }
+.f-tabs { display: flex; gap: 24px; font-size: 16px; font-weight: 600; color: var(--f-text2); white-space: nowrap; overflow: hidden; }
+.f-tabs .on { color: var(--f-text); }
+.f-wtab { background: var(--f-card); border-radius: var(--f-r); box-shadow: var(--f-shadow); overflow: hidden; }
+.f-set { display: grid; grid-template-columns: 44px 1fr 1fr 44px; align-items: center; gap: 8px; min-height: 52px; padding: 0 12px 0 16px; font-size: 17px; font-variant-numeric: tabular-nums; position: relative; }
+.f-set + .f-set::before { content: ""; position: absolute; top: 0; left: 16px; right: 0; height: 1px; background: var(--f-sep); }
+.f-set.hd { min-height: 36px; font-size: 13px; font-weight: 500; color: var(--f-text2); }
+.f-set .n { color: var(--f-text2); }
+.f-set.cur { background: var(--f-soft); font-weight: 600; }
+.f-ck { width: 30px; height: 30px; border-radius: calc(var(--f-r) / 2.5); display: grid; place-items: center; background: var(--f-bg); box-shadow: inset 0 0 0 1.5px var(--f-sep); justify-self: end; }
+.f-ck.on { background: var(--f-accent); color: var(--f-onacc); box-shadow: none; }
+.f-ck .ic { width: 16px; height: 16px; stroke-width: 2.4; }
+.f-edit { background: var(--f-soft); padding: 4px 12px 14px 16px; display: flex; flex-direction: column; gap: 10px; }
+.f-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.f-step { display: grid; grid-template-columns: 40px 1fr 40px; align-items: center; min-height: 52px; background: var(--f-bg); border-radius: var(--f-r); text-align: center; font-size: 20px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.f-step .f-u { font-size: 13px; margin-left: 3px; }
+.f-tb { position: absolute; left: 0; right: 0; bottom: 0; display: flex; background: var(--f-tb); border-top: 1px solid var(--f-sep); padding: 6px 4px 26px; }
+.f-tb span { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; line-height: 13px; font-weight: 500; color: var(--f-text2); }
 .f-tb span.on { color: var(--f-accent); }
 .f-tb .ic { width: 21px; height: 21px; }
-.f-float { left: 12px; right: 12px; bottom: 14px; padding: 6px 4px; border-radius: 999px; }
-
-/* ---------- Premium dunkel ---------- */
-/* Onyx: Schwarz, Champagner, Haarlinien, gesperrte Versalien */
-.d-onyx { --f-r: 3px; --f-rb: 2px; --f-sw: 1.3; }
-.d-onyx .f-date, .d-onyx .f-tl, .d-onyx .f-score-l, .d-onyx .f-tb span, .d-onyx .f-set.hd, .d-onyx .f-chip { text-transform: uppercase; letter-spacing: .16em; font-size: 11px; font-weight: 600; }
-.d-onyx .f-tile, .d-onyx .f-blk { border: 1px solid var(--f-border); }
-.d-onyx .f-num b { font-weight: 300; font-size: 36px; }
-.d-onyx .f-num small { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; }
-.d-onyx .f-title, .d-onyx .f-sec h3 { font-weight: 300; }
-.d-onyx .f-sec h3 { font-size: 24px; }
-.d-onyx .f-btn { background: transparent; color: var(--f-accent); border: 1px solid var(--f-accent); text-transform: uppercase; letter-spacing: .22em; font-size: 13px; font-weight: 600; }
-.d-onyx .f-bar { height: 2px; border-radius: 0; }
-.d-onyx .f-ck, .d-onyx .f-chip { border-radius: 2px; background: transparent; }
-.d-onyx .f-ck.on { background: transparent; color: var(--f-accent); }
-/* Glut: warmer Lichtschein hinter dem Score */
-.d-glut { --f-r: 20px; --f-accent2: color-mix(in srgb, var(--f-accent) 55%, #C4123F); }
-.d-glut .f-bg { background: radial-gradient(80% 30% at 50% 15%, color-mix(in srgb, var(--f-accent) var(--f-glow), transparent) 0%, transparent 72%); }
-.d-glut .f-tile, .d-glut .f-blk { border: 1px solid var(--f-border); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .05); }
-.d-glut .f-num b { font-weight: 600; font-size: 32px; letter-spacing: -.03em; }
-.d-glut .f-title { font-weight: 600; }
-.d-glut .f-btn { background: linear-gradient(135deg, var(--f-accent), var(--f-accent2)); color: #FFFFFF; box-shadow: 0 12px 30px color-mix(in srgb, var(--f-accent) 45%, transparent); }
-.d-glut .f-bar i, .d-glut .f-ck.on { background: linear-gradient(90deg, var(--f-accent2), var(--f-accent)); border-color: transparent; color: #FFFFFF; }
-/* Jade: Grün-Schwarz, elegante Serifen-Ziffern */
-.d-jade { --f-r: 16px; --f-rb: 999px; }
-.d-jade .f-tile, .d-jade .f-blk { border: 1px solid var(--f-border); }
-.d-jade .f-num b { font-weight: 400; font-size: 44px; letter-spacing: -.01em; }
-.d-jade .f-date, .d-jade .f-score-l { font-family: var(--f-num); font-style: italic; font-weight: 400; font-size: 19px; }
-.d-jade .f-title, .d-jade .f-sec h3 { font-weight: 400; }
-.d-jade .f-title { font-size: 36px; } .d-jade .f-sec h3 { font-size: 26px; }
-/* Titan: gebürstetes Metall, Gravur-Versalien */
-.d-titan { --f-r: 10px; --f-rb: 10px; }
-.d-titan .f-tile, .d-titan .f-blk, .d-titan .f-chip { background: linear-gradient(140deg, rgba(255, 255, 255, .12), transparent 35%, rgba(255, 255, 255, .05) 60%, transparent 80%), var(--f-surface); border: 1px solid var(--f-border); }
-.d-titan .f-date, .d-titan .f-tl, .d-titan .f-score-l, .d-titan .f-tb span, .d-titan .f-set.hd, .d-titan .f-btn, .d-titan .f-chip { text-transform: uppercase; letter-spacing: .12em; }
-.d-titan .f-tl, .d-titan .f-date { font-size: 12px; }
-.d-titan .f-num b { font-weight: 600; font-size: 38px; letter-spacing: 0; }
-.d-titan .f-title, .d-titan .f-sec h3 { text-transform: uppercase; letter-spacing: .06em; font-weight: 600; }
-.d-titan .f-btn { background: var(--f-metal); color: var(--f-metaltext); font-size: 15px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 2px 8px rgba(0, 0, 0, .25); }
-.d-titan .f-bar { height: 4px; border-radius: 0; }
-/* Velours: Samt, Roségold, klassische Serifen */
-.d-velours { --f-r: 24px; --f-rb: 999px; }
-.d-velours .f-tile, .d-velours .f-blk { background: radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, .07), transparent 60%), var(--f-surface); }
-.d-velours .f-num b { font-weight: 600; font-size: 42px; letter-spacing: -.01em; }
-.d-velours .f-title, .d-velours .f-sec h3 { font-weight: 600; }
-.d-velours .f-title { font-size: 36px; } .d-velours .f-sec h3 { font-size: 27px; }
-.d-velours .f-date, .d-velours .f-score-l { font-family: var(--f-num); font-style: italic; font-size: 19px; font-weight: 500; }
-.d-velours .f-btn { background: linear-gradient(135deg, var(--f-accent), color-mix(in srgb, var(--f-accent) 55%, #FFFFFF)); }
-
-/* ---------- Edel ---------- */
-/* Chronograph: Zifferblatt, Skalen, Kapitälchen */
-.d-chrono { --f-r: 22px; --f-rb: 999px; }
-.d-chrono .f-tile, .d-chrono .f-blk { border: 1px solid var(--f-border); }
-.d-chrono .f-tile::before { content: ""; position: absolute; left: 14px; right: 14px; top: 0; height: 6px; background: repeating-linear-gradient(90deg, var(--f-tl) 0 1px, transparent 1px 7px); opacity: .45; }
-.d-chrono .f-tl, .d-chrono .f-date, .d-chrono .f-score-l, .d-chrono .f-tb span { font-family: var(--f-num); font-variant: small-caps; text-transform: lowercase; letter-spacing: .1em; font-size: 15px; font-weight: 500; }
-.d-chrono .f-num b { font-weight: 500; font-size: 38px; letter-spacing: -.01em; }
-.d-chrono .f-title, .d-chrono .f-sec h3 { font-weight: 500; }
-.d-chrono .f-sec h3 { font-size: 24px; }
-.d-chrono .f-btn { background: var(--f-text); color: var(--f-bg); letter-spacing: .12em; text-transform: uppercase; font-size: 14px; }
-.d-chrono .f-bar { height: 4px; }
-/* Marmor: Stein, Gold, Doppellinien */
-.d-marmor { --f-r: 2px; --f-rb: 2px; }
-.d-marmor .f-bg { background: var(--f-marble) 0 0 / cover; }
-.d-marmor .f-tile, .d-marmor .f-blk, .d-marmor .f-chip { background: var(--f-surface); border: 1px solid var(--f-accent); border-radius: 2px; -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
-.d-marmor .f-tile::after, .d-marmor .f-blk::after { content: ""; position: absolute; inset: 4px; border: 1px solid color-mix(in srgb, var(--f-accent) 40%, transparent); pointer-events: none; }
-.d-marmor .f-num b { font-weight: 400; font-size: 38px; letter-spacing: .01em; }
-.d-marmor .f-title, .d-marmor .f-sec h3 { font-weight: 400; letter-spacing: .04em; }
-.d-marmor .f-tl, .d-marmor .f-date, .d-marmor .f-score-l, .d-marmor .f-tb span, .d-marmor .f-btn, .d-marmor .f-set.hd, .d-marmor .f-chip { text-transform: uppercase; letter-spacing: .18em; font-size: 11px; }
-.d-marmor .f-btn { background: var(--f-text); color: var(--f-bg); font-size: 13px; }
-.d-marmor .f-bar { height: 2px; }
-
-/* ---------- Ruhig ---------- */
-/* Kontur: nur Linien */
-.d-kontur { --f-r: 14px; --f-rb: 999px; --f-sw: 1.4; }
-.d-kontur .f-tile, .d-kontur .f-blk, .d-kontur .f-chip { background: transparent; border: 1.5px solid var(--f-text); }
-.d-kontur .f-num b { font-weight: 300; font-size: 36px; }
-.d-kontur .f-title, .d-kontur .f-sec h3 { font-weight: 400; }
-.d-kontur .f-sec h3 { font-size: 22px; }
-.d-kontur .f-bar { height: 10px; border: 1.5px solid var(--f-text); background: transparent; border-radius: 5px; }
-.d-kontur .f-li + .f-li, .d-kontur .f-set + .f-set { border-top-color: var(--f-text); }
-.d-kontur .f-tb { border-top: 1.5px solid var(--f-text); }
-.d-kontur .f-ck { border-color: var(--f-text); }
-/* Zen: Weißraum, Pinselkreis, roter Stempel */
-.d-zen { --f-r: 0; --f-rb: 2px; }
-.d-zen .f-scr { gap: 22px; padding-left: 24px; padding-right: 24px; }
-.d-zen .f-tiles { gap: 0; }
-.d-zen .f-tile { background: transparent; border-left: 1px solid var(--f-border); padding: 4px 16px 12px; min-height: 92px; }
-.d-zen .f-tile:nth-child(odd) { border-left: 0; padding-left: 0; }
-.d-zen .f-tile:nth-child(n+3) { border-top: 1px solid var(--f-border); padding-top: 14px; }
-.d-zen .f-num b { font-weight: 500; font-size: 36px; letter-spacing: 0; }
-.d-zen .f-title, .d-zen .f-sec h3 { font-weight: 500; letter-spacing: .02em; }
-.d-zen .f-sec h3 { font-size: 20px; display: flex; align-items: center; gap: 10px; }
-.d-zen .f-sec h3::before { content: ""; width: 8px; height: 8px; background: var(--f-accent); }
-.d-zen .f-blk { background: transparent; border-top: 1px solid var(--f-border); border-bottom: 1px solid var(--f-border); }
-.d-zen .f-goal, .d-zen .f-li, .d-zen .f-set, .d-zen .f-chart { padding-left: 0; padding-right: 0; }
-.d-zen .f-btn { background: var(--f-text); color: var(--f-bg); letter-spacing: .24em; font-weight: 500; font-family: var(--f-title); }
-.d-zen .f-chip { background: transparent; border-radius: 2px; }
-.d-zen .f-bar { height: 2px; }
-/* Topografie: Höhenlinien und Erdtöne */
-.d-topo { --f-r: 14px; --f-rb: 12px; }
-.d-topo .f-bg { background: var(--f-contours) 0 0 / 100% 100% no-repeat; }
-.d-topo .f-tile, .d-topo .f-blk, .d-topo .f-chip { background: var(--f-surface); border: 1px solid var(--f-border); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); }
-.d-topo .f-num b { font-weight: 600; font-size: 32px; letter-spacing: -.01em; }
-.d-topo .f-title, .d-topo .f-sec h3 { font-weight: 700; }
-.d-topo .f-tl, .d-topo .f-date, .d-topo .f-tb span, .d-topo .f-set.hd, .d-topo .f-score-l { text-transform: uppercase; letter-spacing: .08em; font-size: 11px; font-weight: 700; }
-.d-topo .f-bar { height: 8px; border-radius: 4px; }
-
-/* ---------- Grafisch ---------- */
-/* Vollfarbe: ganze Fläche in einer Farbe */
-.d-voll { --f-r: 22px; --f-rb: 999px; }
-.d-voll .f-num b { font-weight: 600; font-size: 27px; letter-spacing: -.03em; }
-.d-voll .f-title, .d-voll .f-sec h3 { font-weight: 600; }
-.d-voll .f-title { font-size: 25px; } .d-voll .f-sec h3 { font-size: 18px; }
-.d-voll .f-btn { background: #FFFFFF; color: var(--f-bg); }
-.d-voll .f-bar i { background: #FFFFFF; }
-.d-voll .f-ck.on { background: #FFFFFF; color: var(--f-bg); border-color: #FFFFFF; }
-.d-voll .f-chart .cb { fill: #FFFFFF; opacity: .35; } .d-voll .f-chart .cb.on { fill: #FFFFFF; opacity: 1; }
-.d-voll .f-tb span.on { color: #FFFFFF; }
-.d-voll .f-set.cur { background: rgba(255, 255, 255, .18); }
-/* Bauhaus: Grundfarben, Grundformen */
-.d-bauhaus { --f-r: 0; --f-rb: 0; }
-.d-bauhaus .f-tile { color: #FFFFFF; }
-.d-bauhaus .f-tile .f-tl, .d-bauhaus .f-tile small { color: inherit; opacity: .9; }
-.d-bauhaus .t0 { background: var(--f-t0); border-radius: 0 0 56px 0; }
-.d-bauhaus .t1 { background: var(--f-t1); color: #111111; border-radius: 56px 56px 0 0; }
-.d-bauhaus .t2 { background: var(--f-t2); }
-.d-bauhaus .t3 { background: var(--f-t3); color: var(--f-bg); border-radius: 0 56px 0 0; }
-.d-bauhaus .f-tl, .d-bauhaus .f-date, .d-bauhaus .f-score-l, .d-bauhaus .f-tb span, .d-bauhaus .f-sec h3, .d-bauhaus .f-btn, .d-bauhaus .f-title, .d-bauhaus .f-chip { text-transform: uppercase; letter-spacing: .06em; }
-.d-bauhaus .f-num b { font-weight: 700; font-size: 38px; }
-.d-bauhaus .f-btn { background: var(--f-text); color: var(--f-bg); }
-.d-bauhaus .f-blk, .d-bauhaus .f-chip { border: 3px solid var(--f-text); background: transparent; border-radius: 0; }
-.d-bauhaus .f-bar { height: 12px; border-radius: 0; }
-.d-bauhaus .f-tb { border-top: 3px solid var(--f-text); }
-/* Riso: zwei Druckfarben, Korn, versetzt */
-.d-riso { --f-r: 3px; --f-rb: 3px; }
-.d-riso .f-bg { background: var(--f-noise); }
-.d-riso .f-tile, .d-riso .f-blk, .d-riso .f-chip { background: color-mix(in srgb, var(--f-accent) 30%, transparent); box-shadow: 4px 3px 0 color-mix(in srgb, var(--f-ink2) 55%, transparent); border: 0; }
-.d-riso .f-num b { font-weight: 400; font-size: 34px; color: var(--f-ink2); }
-.d-riso .f-title, .d-riso .f-sec h3 { font-weight: 400; text-transform: uppercase; color: var(--f-ink2); }
-.d-riso .f-btn { background: var(--f-ink2); color: var(--f-bg); box-shadow: 4px 3px 0 var(--f-accent); text-transform: uppercase; font-family: var(--f-num); font-weight: 400; letter-spacing: .04em; }
-.d-riso .f-bar { border-radius: 0; background: color-mix(in srgb, var(--f-ink2) 18%, transparent); }
-/* Varsity: Vereinssport, Blockschrift, Streifen */
-.d-varsity { --f-r: 14px; --f-rb: 10px; }
-.d-varsity .f-tile { background: var(--f-navy); color: var(--f-accent); box-shadow: inset 0 -6px 0 var(--f-accent), inset 0 -10px 0 var(--f-navy), inset 0 -13px 0 var(--f-cream); padding-bottom: 22px; }
-.d-varsity .f-tile .f-tl, .d-varsity .f-tile small { color: var(--f-cream); }
-.d-varsity .f-num b { font-weight: 400; font-size: 34px; letter-spacing: .01em; }
-.d-varsity .f-title, .d-varsity .f-sec h3, .d-varsity .f-btn, .d-varsity .f-tl, .d-varsity .f-date, .d-varsity .f-score-l, .d-varsity .f-tb span, .d-varsity .f-chip { text-transform: uppercase; letter-spacing: .08em; }
-.d-varsity .f-title, .d-varsity .f-sec h3, .d-varsity .f-btn { font-family: var(--f-num); font-weight: 400; }
-.d-varsity .f-sec h3 { font-size: 22px; }
-.d-varsity .f-btn { color: var(--f-navy); box-shadow: 0 0 0 3px var(--f-bg), 0 0 0 5px var(--f-accent); width: calc(100% - 10px); margin: 5px auto; }
-.d-varsity .f-blk { border: 2px solid var(--f-border); }
-.d-varsity .f-bar { height: 10px; border-radius: 5px; }
-
-/* ---------- Material & Retro ---------- */
-/* Analog: Gerät mit Kunststoff, LCD-Fenstern und Tasten */
-.d-analog { --f-r: 10px; --f-rb: 12px; }
-.d-analog .f-date, .d-analog .f-tl, .d-analog .f-score-l, .d-analog .f-sec h3, .d-analog .f-tb span, .d-analog .f-set.hd, .d-analog .f-chip { text-transform: uppercase; letter-spacing: .12em; font-size: 11px; font-weight: 700; }
-.d-analog .f-sec h3 { color: var(--f-text2); font-family: var(--f-body); }
-.d-analog .f-title { font-size: 22px; text-transform: uppercase; letter-spacing: .08em; }
-.d-analog .f-tile, .d-analog .f-blk, .d-analog .f-tb, .d-analog .f-chip { box-shadow: inset 0 1px 0 var(--f-hi), inset 0 -2px 0 rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .18); }
-.d-analog .f-num { align-self: flex-start; background: var(--f-lcd); color: var(--f-lcdtext); border-radius: 6px; padding: 3px 9px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .3); }
-.d-analog .f-num b { font-weight: 400; font-size: 28px; letter-spacing: 0; }
-.d-analog .f-num small { color: var(--f-lcdtext); opacity: .7; }
-.d-analog .f-step .f-num { align-self: center; justify-self: center; padding: 3px 6px; }
-.d-analog .f-btn { box-shadow: 0 5px 0 var(--f-accentdk), 0 9px 16px rgba(0, 0, 0, .25); text-transform: uppercase; letter-spacing: .14em; font-size: 14px; margin-bottom: 5px; }
-.d-analog .f-bar { height: 12px; border-radius: 3px; background: var(--f-lcd); box-shadow: inset 0 1px 3px rgba(0, 0, 0, .35); padding: 2px; }
-.d-analog .f-bar i { background: repeating-linear-gradient(90deg, var(--f-lcdtext) 0 6px, transparent 6px 8px); border-radius: 1px; }
-.d-analog .f-chart svg { background: var(--f-lcd); border-radius: 6px; padding: 6px; box-shadow: inset 0 2px 4px rgba(0, 0, 0, .3); }
-.d-analog .f-chart .cb { fill: var(--f-lcdtext); opacity: .3; } .d-analog .f-chart .cb.on { fill: var(--f-lcdtext); opacity: 1; }
-/* Studio: alter Kraftraum, Holz, Leder, Messing */
-.d-studio { --f-r: 12px; --f-rb: 10px; }
-.d-studio .f-bg { background: var(--f-wood); }
-.d-studio .f-tile, .d-studio .f-blk, .d-studio .f-chip { background: var(--f-leather); box-shadow: 0 3px 8px rgba(0, 0, 0, .35), inset 0 1px 0 rgba(255, 255, 255, .08); border: 0; }
-.d-studio .f-tile::after, .d-studio .f-blk::after { content: ""; position: absolute; inset: 5px; border: 1.5px dashed color-mix(in srgb, var(--f-tt) 35%, transparent); border-radius: 8px; pointer-events: none; }
-.d-studio .f-num b { font-weight: 400; font-size: 32px; letter-spacing: 0; }
-.d-studio .f-title, .d-studio .f-sec h3 { font-weight: 400; text-shadow: 0 1px 0 var(--f-emboss); }
-.d-studio .f-tl, .d-studio .f-date, .d-studio .f-tb span, .d-studio .f-score-l, .d-studio .f-set.hd { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-weight: 700; }
-.d-studio .f-btn { background: linear-gradient(180deg, #F0D488, #B8902F); color: #3A2A10; text-transform: uppercase; letter-spacing: .14em; font-size: 15px; box-shadow: inset 0 1px 0 rgba(255, 255, 255, .6), 0 3px 8px rgba(0, 0, 0, .35); }
-.d-studio .f-tb { border-top: 0; box-shadow: 0 -4px 12px rgba(0, 0, 0, .25); }
-/* Chrom: Y2K, Spiegelglanz, schillernd */
-.d-chrom { --f-r: 26px; --f-rb: 999px; --f-iri: linear-gradient(100deg, #7FD1FF, #C69CFF 50%, #FF9AD5); }
-.d-chrom .f-tile, .d-chrom .f-blk, .d-chrom .f-chip { background: var(--f-chrome); box-shadow: inset 0 2px 0 var(--f-hi), inset 0 -2px 6px rgba(0, 0, 0, .08), 0 8px 20px rgba(0, 0, 0, .12); border: 1px solid var(--f-border); }
-.d-chrom .f-num b { font-weight: 800; font-size: 32px; letter-spacing: -.03em; }
-.d-chrom .f-title, .d-chrom .f-sec h3 { font-weight: 800; letter-spacing: -.02em; }
-.d-chrom .f-btn { background: var(--f-iri); color: #1E2533; box-shadow: inset 0 2px 0 rgba(255, 255, 255, .7), 0 10px 24px rgba(150, 120, 255, .35); font-weight: 800; }
-.d-chrom .f-bar i { background: var(--f-iri); }
-.d-chrom .f-tb { box-shadow: inset 0 1px 0 var(--f-hi), 0 8px 24px rgba(0, 0, 0, .14); border: 1px solid var(--f-border); }
-/* Knete: aufgeblasene, weiche Formen */
-.d-knete { --f-r: 30px; --f-rb: 999px; }
-.d-knete .f-tile, .d-knete .f-blk, .d-knete .f-chip { box-shadow: inset 6px 6px 12px var(--f-hi), inset -8px -8px 16px var(--f-lo), 0 14px 24px var(--f-drop); border: 0; }
-.d-knete .t0 { background: var(--f-t0); } .d-knete .t1 { background: var(--f-t1); } .d-knete .t2 { background: var(--f-t2); } .d-knete .t3 { background: var(--f-t3); }
-.d-knete .f-btn { box-shadow: inset 4px 4px 10px rgba(255, 255, 255, .45), inset -6px -6px 12px rgba(0, 0, 0, .18), 0 12px 24px color-mix(in srgb, var(--f-accent) 40%, transparent); }
-.d-knete .f-num b { font-weight: 600; font-size: 34px; }
-.d-knete .f-title, .d-knete .f-sec h3, .d-knete .f-tl { font-weight: 600; }
-.d-knete .f-bar { height: 14px; border-radius: 7px; box-shadow: inset 2px 2px 4px var(--f-lo); }
-.d-knete .f-tb { border: 0; box-shadow: inset 4px 4px 10px var(--f-hi), inset -6px -6px 12px var(--f-lo), 0 12px 24px var(--f-drop); }
-
-/* ---------- Verspielt ---------- */
-/* Kreide: Tafel, Handschrift */
-.d-kreide { --f-r: 14px 6px 12px 8px / 8px 12px 6px 14px; --f-rb: 12px 20px 14px 18px / 18px 12px 20px 12px; --f-stepsize: 30px; }
-.d-kreide .f-bg { background: var(--f-noise), var(--f-bgimg); }
-.d-kreide .f-tile, .d-kreide .f-blk, .d-kreide .f-chip { background: transparent; border: 2px solid var(--f-chalk); }
-.d-kreide .f-num b, .d-kreide .f-title, .d-kreide .f-sec h3 { font-weight: 700; }
-.d-kreide .f-num b { font-size: 46px; letter-spacing: 0; line-height: .95; }
-.d-kreide .f-sec h3 { font-size: 32px; line-height: 1; } .d-kreide .f-title { font-size: 40px; }
-.d-kreide .f-date, .d-kreide .f-score-l, .d-kreide .f-tl { font-family: var(--f-num); font-size: 21px; font-weight: 600; }
-.d-kreide .f-btn { font-family: var(--f-num); font-size: 28px; font-weight: 700; }
-.d-kreide .f-bar { height: 12px; border: 2px solid var(--f-chalk); background: transparent; border-radius: 8px 3px 6px 4px; }
-.d-kreide .f-tb { border-top: 2px solid var(--f-chalk); }
-.d-kreide .f-tb span { font-family: var(--f-num); font-size: 17px; font-weight: 600; }
-.d-kreide .f-li + .f-li, .d-kreide .f-set + .f-set { border-top: 1.5px dashed var(--f-border); }
-.d-kreide .f-ck { border: 2px solid var(--f-chalk); border-radius: 6px 10px 7px 9px; }
-/* Synthwave: Neon, Raster, Sonnenuntergang */
-.d-synth { --f-r: 6px; --f-rb: 6px; }
-.d-synth .f-bg::after { content: ""; position: absolute; left: -50%; right: -50%; bottom: 0; height: 44%; background-image: linear-gradient(var(--f-grid) 1.5px, transparent 1.5px), linear-gradient(90deg, var(--f-grid) 1.5px, transparent 1.5px); background-size: 44px 30px; transform: perspective(260px) rotateX(58deg); transform-origin: 50% 100%; opacity: .5; }
-.d-synth .f-tile, .d-synth .f-blk, .d-synth .f-chip { border: 1px solid var(--f-neon); box-shadow: 0 0 14px color-mix(in srgb, var(--f-neon) 45%, transparent), inset 0 0 12px color-mix(in srgb, var(--f-neon) 18%, transparent); }
-.d-synth .f-tl, .d-synth .f-date, .d-synth .f-score-l, .d-synth .f-tb span, .d-synth .f-set.hd, .d-synth .f-chip { text-transform: uppercase; letter-spacing: .14em; font-size: 11px; }
-.d-synth .f-num b { font-weight: 400; font-size: 29px; letter-spacing: .02em; text-shadow: 0 0 10px color-mix(in srgb, var(--f-accent) 70%, transparent); }
-.d-synth .f-title, .d-synth .f-sec h3 { font-weight: 400; letter-spacing: .04em; text-transform: uppercase; }
-.d-synth .f-sec h3 { font-size: 18px; } .d-synth .f-title { font-size: 24px; }
-.d-synth .f-btn { background: linear-gradient(90deg, var(--f-neon), #FF9A3C); color: #1A0030; text-transform: uppercase; letter-spacing: .14em; font-family: var(--f-num); font-weight: 400; }
-.d-synth .f-bar i { background: linear-gradient(90deg, var(--f-neon), var(--f-accent)); }
-/* Pixel: Spielhalle */
-.d-pixel { --f-r: 0; --f-rb: 0; --f-stepsize: 14px; }
-.d-pixel .f-tile, .d-pixel .f-blk, .d-pixel .f-btn, .d-pixel .f-chip { box-shadow: 0 -4px 0 0 var(--f-ink), 0 4px 0 0 var(--f-ink), -4px 0 0 0 var(--f-ink), 4px 0 0 0 var(--f-ink), inset -4px -4px 0 0 rgba(0, 0, 0, .18); border: 0; margin: 4px; }
-.d-pixel .f-btn { width: calc(100% - 8px); }
-.d-pixel .f-tile { color: #111111; }
-.d-pixel .f-tile .f-tl, .d-pixel .f-tile small { color: #111111; }
-.d-pixel .t0 { background: var(--f-t0); } .d-pixel .t1 { background: var(--f-t1); } .d-pixel .t2 { background: var(--f-t2); } .d-pixel .t3 { background: var(--f-t3); }
-.d-pixel .f-num b { font-weight: 400; font-size: 20px; letter-spacing: 0; line-height: 1.5; }
-.d-pixel .f-num small { font-size: 12px; }
-.d-pixel .f-title, .d-pixel .f-sec h3, .d-pixel .f-btn { font-family: var(--f-num); font-weight: 400; }
-.d-pixel .f-sec h3 { font-size: 13px; } .d-pixel .f-title { font-size: 16px; line-height: 1.5; } .d-pixel .f-btn { font-size: 12px; }
-.d-pixel .f-bar { height: 12px; border-radius: 0; }
-.d-pixel .f-bar i { background: repeating-linear-gradient(90deg, var(--f-accent) 0 8px, transparent 8px 10px); }
-.d-pixel .f-ck { border-radius: 0; }
-/* Comic: Rasterpunkte, dicke Striche */
-.d-comic { --f-r: 10px; --f-rb: 10px; --f-stepsize: 30px; }
-.d-comic .f-bg { background: radial-gradient(var(--f-dot) 1.2px, transparent 1.5px) 0 0 / 9px 9px, var(--f-bgimg); }
-.d-comic .f-tile, .d-comic .f-blk, .d-comic .f-btn, .d-comic .f-chip { border: 3px solid var(--f-ink); box-shadow: 3px 4px 0 var(--f-ink); }
-.d-comic .f-tile { color: #111111; }
-.d-comic .f-tile .f-tl, .d-comic .f-tile small { color: #111111; }
-.d-comic .t0 { background: var(--f-t0); rotate: -.8deg; } .d-comic .t1 { background: var(--f-t1); rotate: .9deg; } .d-comic .t2 { background: var(--f-t2); rotate: .6deg; } .d-comic .t3 { background: var(--f-t3); rotate: -.7deg; }
-.d-comic .f-num b { font-weight: 400; font-size: 46px; letter-spacing: .02em; line-height: .95; }
-.d-comic .f-title, .d-comic .f-sec h3, .d-comic .f-btn, .d-comic .f-tl { font-family: var(--f-num); font-weight: 400; letter-spacing: .04em; }
-.d-comic .f-sec h3 { font-size: 30px; } .d-comic .f-title { font-size: 34px; } .d-comic .f-tl { font-size: 17px; } .d-comic .f-btn { font-size: 26px; }
-.d-comic .f-bar { height: 14px; border: 2.5px solid var(--f-ink); border-radius: 7px; }
-
-/* ---------- Technisch ---------- */
-/* Terminal: Monospace, Leuchtschrift, Klartext-Zeichen */
-.d-term { --f-r: 0; --f-rb: 0; --f-sw: 1.6; }
-.d-term .f-bg::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0, 0, 0, .2) 0 1px, transparent 1px 3px); opacity: var(--f-scan); pointer-events: none; }
-.d-term .f-tile, .d-term .f-blk, .d-term .f-chip { background: transparent; border: 1px dashed var(--f-border); }
-.d-term .f-tl::before { content: "> "; }
-.d-term .f-num b { font-weight: 600; font-size: 28px; letter-spacing: 0; text-shadow: var(--f-glow); }
-.d-term .f-btn { background: transparent; color: var(--f-accent); border: 1px solid var(--f-accent); text-transform: uppercase; font-size: 15px; letter-spacing: .06em; text-shadow: var(--f-glow); }
-.d-term .f-btn::before { content: "[ "; } .d-term .f-btn::after { content: " ]"; }
-.d-term .f-sec h3 { font-size: 16px; font-weight: 600; text-transform: uppercase; } .d-term .f-sec h3::before { content: "## "; }
-.d-term .f-title { font-size: 22px; font-weight: 600; }
-.d-term .f-bar { height: 14px; background: transparent; border-radius: 0; }
-.d-term .f-bar i { background: repeating-linear-gradient(90deg, var(--f-accent) 0 7px, transparent 7px 9px); }
-.d-term .f-ck.on { background: transparent; color: var(--f-accent); }
-.d-term .f-ck, .d-term .f-chip { border-radius: 0; }
-/* Blaupause: Konstruktionszeichnung */
-.d-blau { --f-r: 0; --f-rb: 0; --f-sw: 1.5; }
-.d-blau .f-bg { background: linear-gradient(var(--f-gridc) 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(90deg, var(--f-gridc) 1px, transparent 1px) 0 0 / 20px 20px, linear-gradient(var(--f-gridc2) 1px, transparent 1px) 0 0 / 100px 100px, linear-gradient(90deg, var(--f-gridc2) 1px, transparent 1px) 0 0 / 100px 100px; }
-.d-blau .f-tile, .d-blau .f-blk, .d-blau .f-chip { background: transparent; border: 1.5px solid var(--f-text); overflow: visible; }
-.d-blau .f-tile::after { content: ""; position: absolute; right: -4px; bottom: -4px; width: 12px; height: 12px; border-right: 3px solid var(--f-text); border-bottom: 3px solid var(--f-text); }
-.d-blau .f-tl, .d-blau .f-date, .d-blau .f-score-l, .d-blau .f-tb span, .d-blau .f-set.hd, .d-blau .f-chip { text-transform: uppercase; letter-spacing: .1em; font-size: 11px; font-family: var(--f-num); }
-.d-blau .f-num b { font-weight: 700; font-size: 30px; letter-spacing: 0; }
-.d-blau .f-title, .d-blau .f-sec h3 { font-weight: 700; text-transform: uppercase; letter-spacing: .04em; }
-.d-blau .f-sec h3 { font-size: 16px; } .d-blau .f-title { font-size: 22px; }
-.d-blau .f-btn { background: var(--f-text); color: var(--f-bg); text-transform: uppercase; letter-spacing: .1em; font-family: var(--f-num); }
-.d-blau .f-bar { height: 10px; border: 1.5px solid var(--f-text); background: transparent; border-radius: 0; }
-.d-blau .f-bar i { background: repeating-linear-gradient(-45deg, var(--f-text) 0 2px, transparent 2px 5px); }
-.d-blau .f-li + .f-li, .d-blau .f-set + .f-set { border-top: 1px dashed var(--f-text); }
-.d-blau .f-tb { border-top: 1.5px solid var(--f-text); }
-.d-blau .f-tb span.on { color: var(--f-text); text-decoration: underline; text-underline-offset: 3px; }
-.d-blau .f-ck.on { color: #111111; }
-.d-blau .f-chart .cb.on { stroke: var(--f-text); stroke-width: 1; }
-.d-blau .f-set.cur { background: color-mix(in srgb, var(--f-accent) 30%, transparent); }
 </style>
 
 <div class="wrap">
   <div class="top">
-    <h1>24 Designs</h1>
+    <h1>10 Designs</h1>
     <div class="seg" aria-label="Ansicht"><button id="v-alle" data-view="alle">Alle</button><button id="v-einzeln" data-view="einzeln">Einzeln</button></div>
     <button class="pbtn" id="theme" aria-label="Hell, Dunkel oder automatisch">Auto</button>
   </div>
@@ -413,267 +124,137 @@ h1, h2, h3, p { margin: 0; }
 'use strict';
 const $ = s => document.querySelector(s);
 const ICON = {
-  flame: '<path d="M12 21c-3.6 0-6.5-2.7-6.5-6.3 0-3.2 2.3-5.2 3.6-8.2.5 1.7 1.6 2.9 2.9 3.5.3-2.6 1.4-4.6 3.2-6 .2 3 3.3 5.4 3.3 9.6 0 4.2-2.9 7.4-6.5 7.4z"/>',
-  bolt: '<path d="M13 3 5.5 13.5H12L11 21l7.5-10.5H12z"/>',
-  scale: '<rect x="4" y="4" width="16" height="16" rx="4"/><path d="M9 9.5a4 4 0 0 1 6 0l-2 2.5"/>',
-  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5.5a2.5 2.5 0 0 0 2.6 3.9M16 6h2.5a2.5 2.5 0 0 1-2.6 3.9M12 13v4M9 20h6M10 17h4"/>',
-  calendar: '<rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M8.5 3v4M15.5 3v4"/>',
-  gauge: '<path d="M4.5 16a7.5 7.5 0 1 1 15 0"/><path d="m12 16 3.5-4.5"/>',
-  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>',
-  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  play: '<path d="M8 5.5v13l10.5-6.5z" fill="currentColor"/>', check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
   home: '<path d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-4.5v-6h-5v6H5a1 1 0 0 1-1-1z"/>',
   dumbbell: '<path d="M6.5 7v10M17.5 7v10M3.5 9.5v5M20.5 9.5v5M6.5 12h11"/>',
   book: '<path d="M5 19.5V5a2 2 0 0 1 2-2h12v15H7a2 2 0 0 0-2 2 2 2 0 0 0 2 2h12"/>',
   chart: '<path d="M4 4v16h16"/><path d="m7.5 15 3.5-4.5 3 2.5 5-6.5"/>',
   grid: '<rect x="4" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.5"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.5"/>',
+  chevR: '<path d="m9.5 6 6 6-6 6"/>', chevL: '<path d="m14.5 6-6 6 6 6"/>', chevD: '<path d="m6 9.5 6 6 6-6"/>',
+  more: '<path d="M5 12h.01M12 12h.01M19 12h.01" style="stroke-width:2.8"/>',
   sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/>',
   moon: '<path d="M19.5 14.5A7.5 7.5 0 0 1 9.5 4.5a7.5 7.5 0 1 0 10 10z"/>',
-  auto: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/>',
-  chevL: '<path d="m14.5 6-6 6 6 6"/>', chevR: '<path d="m9.5 6 6 6-6 6"/>'
+  auto: '<circle cx="12" cy="12" r="8.5"/><path d="M12 3.5a8.5 8.5 0 0 1 0 17z" fill="currentColor"/>'
 };
 const ic = n => `<svg class="ic" viewBox="0 0 24 24" aria-hidden="true">${ICON[n]}</svg>`;
-
-/* ---------- Farb-Hilfen ---------- */
 const hex = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, (n >> 8) & 255, n & 255]; };
-const toHex = c => '#' + c.map(x => Math.round(Math.max(0, Math.min(255, x))).toString(16).padStart(2, '0')).join('');
-const mix = (a, b, t) => { const x = hex(a), y = hex(b); return toHex(x.map((v, i) => v + (y[i] - v) * t)); };
-const rgba = (h, a) => `rgba(${hex(h).join(',')},${a})`;
 const lum = h => { const c = hex(h).map(x => { x /= 255; return x <= .03928 ? x / 12.92 : ((x + .055) / 1.055) ** 2.4; }); return .2126 * c[0] + .7152 * c[1] + .0722 * c[2]; };
-const contrast = (a, b) => { const x = lum(a), y = lum(b); return (Math.max(x, y) + .05) / (Math.min(x, y) + .05); };
-/* Akzent so lange abdunkeln bzw. aufhellen, bis er sich vom Hintergrund abhebt */
-const ensure = (c, bg, min) => { let x = c; for (let i = 0; i < 14 && contrast(x, bg) < min; i++) x = mix(x, lum(bg) > .35 ? '#000000' : '#FFFFFF', .12); return x; };
-const svgUrl = s => `url('data:image/svg+xml,${encodeURIComponent(s).replace(/'/g, '%27')}')`;
-const NOISE = op => svgUrl(`<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix type='saturate' values='0'/></filter><rect width='180' height='180' filter='url(#n)' opacity='${op}'/></svg>`);
-const MARBLE = (base, vein) => svgUrl(`<svg xmlns='http://www.w3.org/2000/svg' width='390' height='844'><filter id='m' x='0' y='0' width='100%' height='100%'><feTurbulence type='fractalNoise' baseFrequency='.005 .012' numOctaves='5' seed='11' result='t'/><feColorMatrix in='t' type='luminanceToAlpha' result='l'/><feComponentTransfer in='l' result='b'><feFuncA type='table' tableValues='0 0 .7 0 0 0 .5 0 0 .35 0 0'/></feComponentTransfer><feFlood flood-color='${vein}'/><feComposite in2='b' operator='in'/></filter><rect width='100%' height='100%' fill='${base}'/><rect width='100%' height='100%' filter='url(#m)'/></svg>`);
-function CONTOURS(stroke) {
-  let p = '';
-  [[70, 170, 9, 0], [330, 560, 11, 1], [60, 780, 6, 2]].forEach(([cx, cy, n, ci]) => {
-    for (let k = 1; k <= n; k++) {
-      const r0 = k * 21; let d = '';
-      for (let a = 0; a <= 360; a += 10) { const t = a * Math.PI / 180, r = r0 * (1 + .12 * Math.sin(3 * t + k * .7 + ci) + .06 * Math.sin(5 * t + k)); d += `${a ? 'L' : 'M'}${(cx + r * Math.cos(t)).toFixed(1)} ${(cy + r * .8 * Math.sin(t)).toFixed(1)}`; }
-      p += `<path d='${d}Z'/>`;
-    }
-  });
-  return svgUrl(`<svg xmlns='http://www.w3.org/2000/svg' width='390' height='844' fill='none' stroke='${stroke}' stroke-width='1'>${p}</svg>`);
-}
 
-/* ---------- Score-Bausteine (viewBox 100 × 100) ---------- */
-const arc = (v, r, w, color, cap = 'round') => { const c = 2 * Math.PI * r; return `<circle cx="50" cy="50" r="${r}" style="fill:none;stroke:${color};stroke-width:${w};stroke-linecap:${cap}" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>`; };
-const num = (v, font, color, size, extra = '') => `<text x="50" y="51" text-anchor="middle" dominant-baseline="central" style="font:${font};font-size:${size}px;fill:${color};font-variant-numeric:tabular-nums;${extra}">${v}</text>`;
-const ticks = (n, r1, r2, color, w, every = 0, rLong = r1) => Array.from({ length: n }, (_, k) => {
-  const a = k / n * 2 * Math.PI - Math.PI / 2, big = every && k % every === 0, r = big ? rLong : r1;
-  return `<line x1="${(50 + r * Math.cos(a)).toFixed(2)}" y1="${(50 + r * Math.sin(a)).toFixed(2)}" x2="${(50 + r2 * Math.cos(a)).toFixed(2)}" y2="${(50 + r2 * Math.sin(a)).toFixed(2)}" style="stroke:${color};stroke-width:${big ? w * 2 : w}"/>`;
-}).join('');
-const burst = (n, ro, ri, cx = 50, cy = 50) => Array.from({ length: n * 2 }, (_, k) => { const a = k * Math.PI / n - Math.PI / 2, r = k % 2 ? ri : ro; return `${(cx + r * Math.cos(a)).toFixed(1)},${(cy + r * Math.sin(a)).toFixed(1)}`; }).join(' ');
-function pixelRing(v) {
-  const N = 13, cs = 100 / N, cells = [];
-  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) { const x = j - 6, y = i - 6, d = Math.hypot(x, y); if (d >= 4.6 && d <= 6.4) cells.push({ i, j, a: (Math.atan2(x, -y) + 2 * Math.PI) % (2 * Math.PI) }); }
-  cells.sort((p, q) => p.a - q.a);
-  const lit = Math.round(cells.length * v / 100);
-  return cells.map((c, k) => `<rect x="${(c.j * cs).toFixed(2)}" y="${(c.i * cs).toFixed(2)}" width="${(cs - .8).toFixed(2)}" height="${(cs - .8).toFixed(2)}" style="fill:${k < lit ? 'var(--f-accent)' : 'var(--f-fill)'}"/>`).join('');
-}
-const segs = v => Array.from({ length: 20 }, (_, k) => `<rect x="48.6" y="12" width="2.8" height="6" rx=".6" transform="rotate(${k * 18} 50 50)" style="fill:var(--f-lcdtext);opacity:${k < Math.round(v / 5) ? 1 : .15}"/>`).join('');
-
-/* ---------- Die 24 Designs ---------- */
-const SYS = 'var(--font)';
+/* ---------- Die 10 Designs: nur Schrift, Farbe, Ecken, Flächen und Kreisform unterscheiden sich ----------
+   r = Ecken der Flächen, rb = Ecken der Knöpfe, ring = Strichstärke des Score-Kreises, kind: ring / disc / solid */
 const DES = [
-  /* Premium dunkel */
-  { id: 'onyx', name: 'Onyx', grp: 'Premium dunkel', idea: 'Schwarz, Champagner und feine Linien.', mark: 'Rekorde glänzen kurz golden.',
-    font: { body: `Manrope, ${SYS}` }, acc: ['#D6B478', '#C9CED6', '#E2A68F', '#9FC3B0'],
-    pal: { light: { bg: '#F6F4EF', surface: '#FFFFFF', border: 'rgba(120,95,50,.22)', text: '#141210', text2: '#6F675B', fill: '#E8E2D6', accent: '#8E6E32', tb: '#F6F4EF' },
-           dark: { bg: '#050505', surface: '#0E0E0F', border: 'rgba(214,180,120,.2)', text: '#F3EFE7', text2: '#8E877B', fill: '#24211B', accent: '#D6B478', tb: '#050505' } },
-    score: v => `<circle cx="50" cy="50" r="47" style="fill:none;stroke:var(--f-border);stroke-width:1"/>${ticks(12, 43, 46, 'var(--f-text2)', .7)}${arc(v, 47, 1.6, 'var(--f-accent)')}${num(v, "200 40px Manrope, sans-serif", 'var(--f-text)', 42, 'letter-spacing:-1px')}` },
-  { id: 'glut', name: 'Glut', grp: 'Premium dunkel', idea: 'Dunkel mit warmer Glut hinter dem Score.', mark: 'Die Glut flammt bei Fortschritt auf.',
-    font: { body: `Sora, ${SYS}` }, acc: ['#FF6A3D', '#FF3D6E', '#FFB23D', '#B05CFF'],
-    pal: { light: { bg: '#F7F3F0', surface: '#FFFFFF', border: 'rgba(60,20,10,.08)', text: '#1A1210', text2: '#76665F', fill: '#EEE4DF', accent: '#F0582B', tb: '#FFFFFF', glow: '22%' },
-           dark: { bg: '#0A0706', surface: '#151010', border: 'rgba(255,255,255,.06)', text: '#FBEFEA', text2: '#A8918A', fill: '#2A1E1B', accent: '#FF6A3D', tb: '#0A0706', glow: '42%' } },
-    score: v => `<defs><filter id="gl" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9"/></filter><linearGradient id="gg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--f-accent)"/><stop offset="1" style="stop-color:#C4123F"/></linearGradient></defs><circle cx="50" cy="50" r="40" style="fill:var(--f-accent);opacity:.55" filter="url(#gl)"/><circle cx="50" cy="50" r="43" style="fill:var(--f-surface)"/>${arc(v, 46, 4, 'url(#gg)')}${num(v, "600 34px Sora, sans-serif", 'var(--f-text)', 36)}` },
-  { id: 'jade', name: 'Jade', grp: 'Premium dunkel', idea: 'Grün-Schwarz, Jade und elegante Serifen-Ziffern.', mark: 'Bestwerte erscheinen in kursiver Schrift.',
-    font: { num: "'Instrument Serif', Georgia, serif" }, acc: ['#4FD1A1', '#7FB8E0', '#D9B26A', '#E08A9E'],
-    pal: { light: { bg: '#EEF3EF', surface: '#FFFFFF', border: 'rgba(20,60,45,.12)', text: '#0E1F18', text2: '#566B61', fill: '#D9E4DD', accent: '#1F7A5C', tb: '#FFFFFF' },
-           dark: { bg: '#06100C', surface: '#0C1813', border: 'rgba(120,220,180,.12)', text: '#E8F2EC', text2: '#86A096', fill: '#1A2C24', accent: '#4FD1A1', tb: '#06100C' } },
-    score: v => `<circle cx="50" cy="50" r="45" style="fill:var(--f-surface);stroke:var(--f-border);stroke-width:1"/>${arc(v, 48.5, 1.6, 'var(--f-accent)')}${num(v, "italic 400 48px 'Instrument Serif', serif", 'var(--f-text)', 54)}` },
-  { id: 'titan', name: 'Titan', grp: 'Premium dunkel', idea: 'Gebürstetes Metall, gravierte Schrift, kühles Blau.', mark: 'Metall glänzt mit, wenn du das Handy neigst.',
-    font: { body: `'Saira Semi Condensed', 'Arial Narrow', ${SYS}` }, acc: ['#7FB2E5', '#E5B97F', '#9BE5C4', '#E58F7F'],
-    pal: { light: { bg: '#E7EAEE', surface: '#F7F8FA', border: 'rgba(20,30,45,.12)', text: '#15181C', text2: '#59616B', fill: '#D4D9E0', accent: '#2F6FB0', tb: '#F7F8FA', metal: 'linear-gradient(180deg,#FFFFFF,#C3CAD3)', metaltext: '#15181C' },
-           dark: { bg: '#0E1013', surface: '#1A1D21', border: 'rgba(255,255,255,.09)', text: '#E9ECF0', text2: '#8A919B', fill: '#2A2F35', accent: '#7FB2E5', tb: '#0E1013', metal: 'linear-gradient(180deg,#5D6570,#2A2F36)', metaltext: '#F1F3F6' } },
-    score: v => `<defs><linearGradient id="tm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#F4F6F9"/><stop offset=".5" style="stop-color:#8E97A3"/><stop offset="1" style="stop-color:#E1E5EA"/></linearGradient></defs><circle cx="50" cy="50" r="46" style="fill:var(--f-surface);stroke:url(#tm);stroke-width:4"/>${ticks(60, 40, 42.5, 'var(--f-text2)', .45, 5, 39)}${arc(v, 36, 2, 'var(--f-accent)', 'butt')}${num(v, "600 36px 'Saira Semi Condensed', sans-serif", 'var(--f-text)', 34)}` },
-  { id: 'velours', name: 'Velours', grp: 'Premium dunkel', idea: 'Samtiges Bordeaux, Roségold und klassische Serifen.', mark: 'Eine weiche Lichtkante wandert über die Karten.',
-    font: { num: "'Cormorant Garamond', Georgia, serif" }, acc: ['#E7A08B', '#D4AF6A', '#C98BB9', '#9DB6D8'],
-    pal: { light: { bg: '#F7EFF0', surface: '#FFFFFF', border: 'rgba(90,20,40,.1)', text: '#2A0F17', text2: '#7A5560', fill: '#EEDCE0', accent: '#9E2B4B', tb: '#FFFFFF' },
-           dark: { bg: '#12070B', surface: '#1F0D14', border: 'rgba(255,190,200,.1)', text: '#F7E9EC', text2: '#B48A94', fill: '#35161F', accent: '#E7A08B', tb: '#12070B' } },
-    score: v => `<defs><radialGradient id="vv" cx="35%" cy="30%" r="75%"><stop offset="0" style="stop-color:color-mix(in srgb, var(--f-accent) 35%, var(--f-surface))"/><stop offset="1" style="stop-color:var(--f-surface)"/></radialGradient></defs><circle cx="50" cy="50" r="45" style="fill:url(#vv)"/>${arc(v, 48, 2.2, 'var(--f-accent)')}${num(v, "600 44px 'Cormorant Garamond', serif", 'var(--f-text)', 48)}` },
-  /* Edel */
-  { id: 'chrono', name: 'Chronograph', grp: 'Edel', idea: 'Zifferblatt, Skalen und ein feiner Zeiger.', mark: 'Der Zeiger läuft zum neuen Wert.',
-    font: { num: "'Bodoni Moda', Didot, serif" }, acc: ['#C8321E', '#1F5FBF', '#C9A24A', '#2E7D5B'],
-    pal: { light: { bg: '#F4F4F1', surface: '#FFFFFF', border: 'rgba(0,0,0,.1)', text: '#151515', text2: '#5F5F5A', fill: '#E3E3DE', accent: '#C8321E', tb: '#FFFFFF' },
-           dark: { bg: '#0B0C0E', surface: '#15171A', border: 'rgba(255,255,255,.1)', text: '#ECEBE6', text2: '#8E8D88', fill: '#26282C', accent: '#E8C47A', tb: '#0B0C0E' } },
-    score: v => { const a = v / 100 * 2 * Math.PI - Math.PI / 2, p = (r) => `${(50 + r * Math.cos(a)).toFixed(1)}`, q = (r) => `${(50 + r * Math.sin(a)).toFixed(1)}`;
-      return `<circle cx="50" cy="50" r="48" style="fill:var(--f-surface);stroke:var(--f-border);stroke-width:1"/>${ticks(60, 42, 45.5, 'var(--f-text)', .45, 5, 38.5)}<rect x="35" y="61" width="30" height="16" rx="1.5" style="fill:var(--f-bg);stroke:var(--f-border);stroke-width:.6"/><text x="50" y="69.5" text-anchor="middle" dominant-baseline="central" style="font:600 13px 'Bodoni Moda', Didot, serif;fill:var(--f-text)">${v}</text><line x1="${p(-8)}" y1="${q(-8)}" x2="${p(37)}" y2="${q(37)}" style="stroke:var(--f-accent);stroke-width:1.6;stroke-linecap:round"/><circle cx="50" cy="50" r="2.6" style="fill:var(--f-accent)"/>`; } },
-  { id: 'marmor', name: 'Marmor', grp: 'Edel', idea: 'Marmor und Gold wie in einer Hotellobby.', mark: 'Goldene Linien umrahmen neue Rekorde.',
-    font: { num: "Marcellus, 'Trajan Pro', serif" }, acc: ['#A88433', '#9AA3AD', '#B5747B', '#4F7A6B'],
-    pal: { light: { bg: '#F3F2EF', surface: 'rgba(255,255,255,.66)', border: 'rgba(0,0,0,.1)', text: '#1E1E1E', text2: '#5E5C58', fill: '#DEDBD5', accent: '#A88433', tb: 'rgba(255,255,255,.88)', marble: MARBLE('#F3F2EF', '#8D8F94') },
-           dark: { bg: '#0E0E0F', surface: 'rgba(12,12,13,.66)', border: 'rgba(255,255,255,.1)', text: '#F1EFEA', text2: '#A19E97', fill: '#2A2A2C', accent: '#D2B06A', tb: 'rgba(14,14,15,.9)', marble: MARBLE('#111112', '#A3A3A8') } },
-    score: v => `<circle cx="50" cy="50" r="47" style="fill:none;stroke:var(--f-accent);stroke-width:.8"/><circle cx="50" cy="50" r="43.5" style="fill:var(--f-surface);stroke:var(--f-accent);stroke-width:.5"/>${arc(v, 47, 1.8, 'var(--f-accent)', 'butt')}${num(v, "400 38px Marcellus, serif", 'var(--f-text)', 40, 'letter-spacing:1px')}` },
-  /* Ruhig */
-  { id: 'kontur', name: 'Kontur', grp: 'Ruhig', idea: 'Nur Linien, keine Flächen.', mark: 'Linien ziehen sich beim Öffnen selbst.',
-    font: { body: `Outfit, ${SYS}` }, acc: ['#3355FF', '#E8453C', '#12A150', '#111111'],
-    pal: { light: { bg: '#FAFAF7', surface: 'transparent', border: 'rgba(0,0,0,.16)', text: '#111111', text2: '#5A5A5A', fill: 'transparent', accent: '#3355FF', tb: '#FAFAF7' },
-           dark: { bg: '#0C0C0C', surface: 'transparent', border: 'rgba(255,255,255,.18)', text: '#F2F2F2', text2: '#9A9A9A', fill: 'transparent', accent: '#8EA2FF', tb: '#0C0C0C' } },
-    score: v => `<circle cx="50" cy="50" r="46" style="fill:none;stroke:var(--f-text);stroke-width:1.5"/>${arc(v, 40, 3, 'var(--f-accent)')}${num(v, "200 38px Outfit, sans-serif", 'var(--f-text)', 40)}` },
-  { id: 'zen', name: 'Zen', grp: 'Ruhig', idea: 'Viel Ruhe, ein Pinselkreis, ein roter Stempel.', mark: 'Fertige Workouts bekommen einen Stempel.',
-    font: { num: "'Shippori Mincho', 'Hiragino Mincho ProN', serif" }, acc: ['#C8372D', '#2F4F7F', '#3F6B4A', '#8A6A2F'],
-    pal: { light: { bg: '#F8F7F3', surface: 'transparent', border: 'rgba(0,0,0,.12)', text: '#1C1C1C', text2: '#6B6964', fill: '#E6E3DC', accent: '#C8372D', tb: '#F8F7F3' },
-           dark: { bg: '#121212', surface: 'transparent', border: 'rgba(255,255,255,.12)', text: '#EDEBE6', text2: '#9A978F', fill: '#2A2A2A', accent: '#E2574A', tb: '#121212' } },
-    score: v => `<defs><filter id="ens" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency=".5" numOctaves="2" seed="9"/><feDisplacementMap in="SourceGraphic" scale="4"/></filter></defs><path d="M 71 14 A 42 42 0 1 0 86.4 29" style="fill:none;stroke:var(--f-text);stroke-width:6.5;stroke-linecap:round" filter="url(#ens)"/><rect x="76" y="76" width="14" height="14" rx="1.5" style="fill:var(--f-accent)"/>${num(v, "500 34px 'Shippori Mincho', serif", 'var(--f-text)', 36)}` },
-  { id: 'topo', name: 'Topografie', grp: 'Ruhig', idea: 'Höhenlinien, Erdtöne und Wegmarken.', mark: 'Fortschritt zählt als Höhenmeter.',
-    font: { num: 'Bitter, Georgia, serif' }, acc: ['#D9622B', '#2F80ED', '#C2185B', '#2E7D32'],
-    pal: { light: { bg: '#EDEFE6', surface: 'rgba(255,255,255,.84)', border: 'rgba(40,60,30,.14)', text: '#1F2A1E', text2: '#5B6A57', fill: '#D6DCCB', accent: '#D9622B', tb: '#F6F7F1', contours: CONTOURS('rgba(60,90,50,.24)') },
-           dark: { bg: '#111611', surface: 'rgba(24,32,24,.86)', border: 'rgba(200,230,190,.12)', text: '#E7EEE4', text2: '#93A38F', fill: '#2A3428', accent: '#F08A4B', tb: '#151B15', contours: CONTOURS('rgba(170,210,150,.17)') } },
-    score: v => `${[44, 36, 28].map((r, i) => `<ellipse cx="50" cy="52" rx="${r}" ry="${(r * .86).toFixed(1)}" style="fill:none;stroke:var(--f-text2);stroke-width:.8;opacity:${.3 + i * .15}" transform="rotate(${i * 8} 50 52)"/>`).join('')}<polygon points="50,12 55,21 45,21" style="fill:var(--f-accent)"/>${arc(v, 48, 2.5, 'var(--f-accent)')}${num(v, "600 32px Bitter, serif", 'var(--f-text)', 32)}` },
-  /* Grafisch */
-  { id: 'voll', name: 'Vollfarbe', grp: 'Grafisch', idea: 'Die ganze Fläche in einer kräftigen Farbe.', mark: 'Jeder Bereich hat seine eigene Farbe.',
-    font: { num: 'Unbounded, sans-serif' }, acc: ['#2B45FF', '#D93D32', '#0A7F58', '#6B33D6', '#161616'], fixedAcc: true,
-    pal: { light: { bg: '#2B45FF', surface: 'rgba(255,255,255,.14)', border: 'rgba(255,255,255,.2)', text: '#FFFFFF', text2: 'rgba(255,255,255,.8)', fill: 'rgba(255,255,255,.25)', accent: '#2B45FF', tb: 'rgba(0,0,0,.14)', tbtext: 'rgba(255,255,255,.72)' },
-           dark: { bg: '#2B45FF', surface: 'rgba(255,255,255,.12)', border: 'rgba(255,255,255,.16)', text: '#FFFFFF', text2: 'rgba(255,255,255,.76)', fill: 'rgba(255,255,255,.22)', accent: '#2B45FF', tb: 'rgba(0,0,0,.28)', tbtext: 'rgba(255,255,255,.68)' } },
-    score: v => `<circle cx="50" cy="50" r="48" style="fill:none;stroke:rgba(255,255,255,.25);stroke-width:3"/>${arc(v, 48, 3, '#FFFFFF')}<circle cx="50" cy="50" r="41" style="fill:#FFFFFF"/>${num(v, "700 30px Unbounded, sans-serif", 'var(--f-bg)', 30)}` },
-  { id: 'bauhaus', name: 'Bauhaus', grp: 'Grafisch', idea: 'Grundfarben und Grundformen.', mark: 'Kreis, Quadrat und Dreieck setzen sich zusammen.',
-    font: { body: `Jost, ${SYS}` }, acc: ['#E1341E', '#F25C05', '#C2185B'], fixedAcc: true,
-    pal: { light: { bg: '#F3F1EC', surface: '#FFFFFF', border: '#111111', text: '#111111', text2: '#4A4A4A', fill: '#E2DED6', accent: '#E1341E', tb: '#F3F1EC', t1: '#F2C12E', t2: '#1F4E9E', t3: '#111111' },
-           dark: { bg: '#121212', surface: '#1C1C1C', border: '#F3F1EC', text: '#F3F1EC', text2: '#BDBAB2', fill: '#2C2C2C', accent: '#F0442B', tb: '#121212', t1: '#F2C12E', t2: '#2D63C8', t3: '#F3F1EC' } },
-    score: v => `<rect x="4" y="4" width="54" height="54" style="fill:var(--f-t2)"/><circle cx="56" cy="56" r="38" style="fill:var(--f-t0)"/><polygon points="66,98 98,98 98,66" style="fill:var(--f-t1)"/><text x="56" y="57" text-anchor="middle" dominant-baseline="central" style="font:700 30px Jost, sans-serif;fill:#FFFFFF">${v}</text>` },
-  { id: 'riso', name: 'Riso', grp: 'Grafisch', idea: 'Risodruck: zwei Farben, Korn, leicht versetzt.', mark: 'Neue Werte färben sich wie frisch gedruckt ein.',
-    font: { num: "'Archivo Black', Impact, sans-serif" }, acc: ['#FF48B0', '#FFE800', '#00A95C', '#FF6C2F'], fixedAcc: true,
-    pal: { light: { bg: '#F7F5F0', surface: 'transparent', border: 'rgba(0,120,191,.3)', text: '#1B2A6B', text2: '#4C5A93', fill: 'rgba(0,120,191,.18)', accent: '#FF48B0', ink2: '#0078BF', tb: '#F7F5F0', noise: NOISE(.09) },
-           dark: { bg: '#17151C', surface: 'transparent', border: 'rgba(90,190,255,.3)', text: '#EAF2FF', text2: '#A9B8D9', fill: 'rgba(90,190,255,.18)', accent: '#FF48B0', ink2: '#4FB8FF', tb: '#17151C', noise: NOISE(.07) } },
-    score: v => `<circle cx="53" cy="52" r="42" style="fill:none;stroke:var(--f-ink2);stroke-width:3;opacity:.85"/><circle cx="50" cy="50" r="42" style="fill:var(--f-accent);opacity:.72"/>${arc(v, 47, 3, 'var(--f-ink2)', 'butt')}${num(v, "400 34px 'Archivo Black', sans-serif", 'var(--f-ink2)', 34)}` },
-  { id: 'varsity', name: 'Varsity', grp: 'Grafisch', idea: 'Vereinssport: Blockschrift, Streifen, Marine und Gold.', mark: 'Serien werden zu Aufnähern.',
-    font: { num: 'Graduate, Rockwell, serif' }, acc: ['#F2A900', '#FF4D5E', '#4CC27A', '#FF8A1F'], fixedAcc: true,
-    pal: { light: { bg: '#E9ECF1', surface: '#FFFFFF', border: 'rgba(20,33,61,.15)', text: '#14213D', text2: '#4A5677', fill: '#D5DAE4', accent: '#F2A900', navy: '#14213D', cream: '#F5EBDD', tb: '#FFFFFF' },
-           dark: { bg: '#0A1222', surface: '#14213D', border: 'rgba(245,235,221,.14)', text: '#F5EBDD', text2: '#AFB6C8', fill: '#24345C', accent: '#FCA311', navy: '#1C2D52', cream: '#F5EBDD', tb: '#14213D' } },
-    score: v => `<circle cx="50" cy="50" r="48" style="fill:var(--f-accent)"/><circle cx="50" cy="50" r="42" style="fill:var(--f-navy)"/><circle cx="50" cy="50" r="37.5" style="fill:none;stroke:var(--f-cream);stroke-width:1;stroke-dasharray:2 2"/>${num(v, "400 36px Graduate, serif", 'var(--f-accent)', 38)}` },
-  /* Material & Retro */
-  { id: 'analog', name: 'Analog', grp: 'Material & Retro', idea: 'Wie ein Gerät: Kunststoff, Anzeigen, echte Tasten.', mark: 'Tasten klicken spürbar ein.',
-    font: { num: "'Share Tech Mono', ui-monospace, monospace" }, acc: ['#E8590C', '#2F6FD6', '#D6336C', '#2B8A3E'],
-    pal: { light: { bg: '#D7D4CC', surface: '#E9E7E1', border: 'rgba(0,0,0,.08)', text: '#2A2A28', text2: '#5F5D57', fill: '#C6C2B9', accent: '#E8590C', tb: '#E9E7E1', lcd: '#B6C09C', lcdtext: '#1F2719', hi: 'rgba(255,255,255,.8)', hi2: '#F4F2ED', lo2: '#A9A59C' },
-           dark: { bg: '#1C1C1E', surface: '#2A2A2D', border: 'rgba(255,255,255,.06)', text: '#E6E4DE', text2: '#9A978F', fill: '#3A3A3E', accent: '#FF7A1A', tb: '#2A2A2D', lcd: '#140F05', lcdtext: '#FFB000', hi: 'rgba(255,255,255,.07)', hi2: '#46464B', lo2: '#121214' } },
-    score: v => `<defs><linearGradient id="bz" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--f-hi2)"/><stop offset="1" style="stop-color:var(--f-lo2)"/></linearGradient></defs><circle cx="50" cy="50" r="48" style="fill:url(#bz)"/><circle cx="50" cy="50" r="41" style="fill:var(--f-lcd)"/>${segs(v)}${num(v, "400 30px 'Share Tech Mono', monospace", 'var(--f-lcdtext)', 30)}` },
-  { id: 'studio', name: 'Studio', grp: 'Material & Retro', idea: 'Alter Kraftraum: Holz, Leder und Messing.', mark: 'Rekorde bekommen eine Messingplakette.',
-    font: { num: "'Alfa Slab One', Rockwell, serif" }, acc: ['#C9A24A', '#C26A3D', '#B8C2CC', '#6F9A5A'], fixedAcc: true,
-    pal: { light: { bg: '#C9965F', wood: 'repeating-linear-gradient(92deg, rgba(90,50,20,.10) 0 2px, transparent 2px 9px), repeating-linear-gradient(88deg, rgba(255,230,190,.10) 0 1px, transparent 1px 13px), linear-gradient(180deg,#D3A46B,#B8834D)', leather: '#4A2E22', surface: '#4A2E22', tt: '#F5E6CF', tl: 'rgba(245,230,207,.72)', text: '#2A1A0E', text2: '#4E3420', border: 'rgba(245,230,207,.15)', fill: 'rgba(245,230,207,.18)', accent: '#C9A24A', tb: '#3A231A', tbtext: 'rgba(245,230,207,.7)', emboss: 'rgba(255,235,200,.4)' },
-           dark: { bg: '#2B1A10', wood: 'repeating-linear-gradient(92deg, rgba(0,0,0,.18) 0 2px, transparent 2px 9px), repeating-linear-gradient(88deg, rgba(255,200,150,.05) 0 1px, transparent 1px 13px), linear-gradient(180deg,#3A2416,#22140C)', leather: '#1A1310', surface: '#1A1310', tt: '#F2E2C8', tl: 'rgba(242,226,200,.65)', text: '#F2E2C8', text2: 'rgba(242,226,200,.7)', border: 'rgba(242,226,200,.12)', fill: 'rgba(242,226,200,.14)', accent: '#D8B25A', tb: '#120C09', tbtext: 'rgba(242,226,200,.6)', emboss: 'rgba(0,0,0,.6)' } },
-    score: v => `<defs><radialGradient id="br" cx="35%" cy="30%" r="80%"><stop offset="0" style="stop-color:#F6E3A0"/><stop offset=".6" style="stop-color:#C9A24A"/><stop offset="1" style="stop-color:#8A6A22"/></radialGradient></defs><circle cx="50" cy="51.5" r="46" style="fill:rgba(0,0,0,.3)"/><circle cx="50" cy="50" r="46" style="fill:url(#br);stroke:#6E5216;stroke-width:1.5"/><circle cx="50" cy="50" r="38" style="fill:none;stroke:rgba(255,255,255,.45);stroke-width:1"/>${arc(v, 42, 2.5, '#5A3E12', 'butt')}${num(v, "400 32px 'Alfa Slab One', serif", '#4A3410', 32)}` },
-  { id: 'chrom', name: 'Chrom', grp: 'Material & Retro', idea: 'Chrom, Schimmer und weiche Blasen.', mark: 'Oberflächen schillern beim Bewegen.',
-    font: { num: 'Syne, sans-serif' }, acc: ['#8A7CFF', '#29B6F6', '#FF6EC7', '#3DDC97'],
-    pal: { light: { bgimg: 'linear-gradient(160deg,#EEF2F7 0%,#CDD6E2 100%)', bg: '#DDE3EC', surface: '#F2F4F8', chrome: 'linear-gradient(180deg,#FFFFFF 0%,#E3E8EF 55%,#D3DAE4 100%)', border: 'rgba(255,255,255,.9)', hi: 'rgba(255,255,255,.9)', text: '#1E2533', text2: '#5A6478', fill: 'rgba(30,37,51,.1)', accent: '#8A7CFF', tb: 'rgba(255,255,255,.72)' },
-           dark: { bgimg: 'linear-gradient(160deg,#1B1F28 0%,#0A0C10 100%)', bg: '#12151B', surface: '#2A303A', chrome: 'linear-gradient(180deg,#434A57 0%,#2A303A 55%,#20252E 100%)', border: 'rgba(255,255,255,.14)', hi: 'rgba(255,255,255,.18)', text: '#EEF2F8', text2: '#9AA3B5', fill: 'rgba(255,255,255,.12)', accent: '#B4A8FF', tb: 'rgba(30,34,42,.82)' } },
-    score: v => `<defs><linearGradient id="cr" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:#FFFFFF"/><stop offset=".45" style="stop-color:#C9D2DE"/><stop offset=".55" style="stop-color:#9AA6B6"/><stop offset="1" style="stop-color:#EEF2F7"/></linearGradient><linearGradient id="ir" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:#7FD1FF"/><stop offset=".5" style="stop-color:#C69CFF"/><stop offset="1" style="stop-color:#FF9AD5"/></linearGradient></defs><circle cx="50" cy="50" r="45" style="fill:url(#cr)"/>${arc(v, 48.5, 3.5, 'url(#ir)')}${num(v, "800 34px Syne, sans-serif", '#1E2533', 36)}` },
-  { id: 'knete', name: 'Knete', grp: 'Material & Retro', idea: 'Weiche, aufgeblasene Formen zum Anfassen.', mark: 'Alles federt beim Antippen nach.',
-    font: { body: `Fredoka, ${SYS}` }, acc: ['#7B61FF', '#FF6B9A', '#2EC4B6', '#FF9F43'],
-    pal: { light: { bg: '#EFEAFF', surface: '#F6F2FF', border: 'transparent', text: '#2B2350', text2: '#6A6290', fill: '#DDD5F7', accent: '#7B61FF', tb: '#F6F2FF', t0: '#FFD6E3', t1: '#D3F0FF', t2: '#DFF8D3', t3: '#FFF0C2', hi: 'rgba(255,255,255,.85)', lo: 'rgba(90,70,160,.16)', drop: 'rgba(90,70,160,.18)' },
-           dark: { bg: '#18142B', surface: '#241E3D', border: 'transparent', text: '#F1EDFF', text2: '#A99FD0', fill: '#332B55', accent: '#9D8CFF', tb: '#241E3D', t0: '#4A2A3A', t1: '#1F3A4A', t2: '#2A4230', t3: '#4A3F22', hi: 'rgba(255,255,255,.08)', lo: 'rgba(0,0,0,.45)', drop: 'rgba(0,0,0,.45)' } },
-    score: v => `<defs><radialGradient id="kn" cx="35%" cy="30%" r="75%"><stop offset="0" style="stop-color:color-mix(in srgb, var(--f-accent) 35%, #FFFFFF)"/><stop offset="1" style="stop-color:var(--f-accent)"/></radialGradient><filter id="kd" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="4"/></filter></defs><ellipse cx="50" cy="94" rx="30" ry="5" style="fill:rgba(0,0,0,.2)" filter="url(#kd)"/><circle cx="50" cy="48" r="44" style="fill:url(#kn)"/><ellipse cx="35" cy="28" rx="12" ry="7" style="fill:rgba(255,255,255,.45)" transform="rotate(-30 35 28)"/>${num(v, "600 36px Fredoka, sans-serif", '#FFFFFF', 38)}` },
-  /* Verspielt */
-  { id: 'kreide', name: 'Kreide', grp: 'Verspielt', idea: 'Tafel im Kraftraum: Kreide und Handschrift.', mark: 'Der Score wird an die Tafel gemalt.',
-    font: { num: "Caveat, 'Bradley Hand', cursive" }, acc: ['#F6E27A', '#F4A6C0', '#8FC7FF', '#A8E6A1'],
-    pal: { light: { bgimg: 'linear-gradient(180deg,#FCFDFC,#EDF1EF)', bg: '#F4F6F5', surface: 'transparent', border: 'rgba(31,42,68,.25)', text: '#1F2A44', text2: '#4B5774', chalk: '#1F2A44', fill: 'transparent', accent: '#D7263D', tb: 'transparent', noise: NOISE(.04) },
-           dark: { bgimg: 'radial-gradient(120% 70% at 50% 0%, #3A4743 0%, #222A27 75%)', bg: '#252D2A', surface: 'transparent', border: 'rgba(241,243,238,.3)', text: '#F1F3EE', text2: 'rgba(241,243,238,.72)', chalk: 'rgba(241,243,238,.85)', fill: 'transparent', accent: '#F6E27A', tb: 'transparent', noise: NOISE(.08) } },
-    score: v => `<defs><filter id="ch" x="-10%" y="-10%" width="120%" height="120%"><feTurbulence type="fractalNoise" baseFrequency="1.2" numOctaves="2" seed="5"/><feDisplacementMap in="SourceGraphic" scale="3"/></filter></defs><g filter="url(#ch)"><circle cx="50" cy="50" r="45" style="fill:none;stroke:var(--f-chalk);stroke-width:2.2"/>${arc(v, 45, 4.5, 'var(--f-accent)')}</g>${num(v, "700 46px Caveat, cursive", 'var(--f-text)', 50)}` },
-  { id: 'synth', name: 'Synthwave', grp: 'Verspielt', idea: '80er-Neon: Sonnenuntergang, Gitter, Leuchtschrift.', mark: 'Neon flackert beim Start kurz auf.',
-    font: { num: 'Audiowide, sans-serif' }, acc: ['#00F0FF', '#FFE66B', '#7CFF6B', '#FF9A3C'],
-    pal: { light: { bgimg: 'linear-gradient(180deg,#FFE3F6 0%,#E8E4FF 55%,#D6F4FF 100%)', bg: '#EDE6FF', surface: 'rgba(255,255,255,.7)', border: 'rgba(255,46,136,.35)', text: '#2A0845', text2: '#7A4C93', fill: 'rgba(42,8,69,.1)', accent: '#7B2FF7', tb: 'rgba(255,255,255,.76)', neon: '#FF2E88', grid: '#C77DFF' },
-           dark: { bgimg: 'linear-gradient(180deg,#0D0021 0%,#2A0845 52%,#5C0F5E 78%,#FF2E88 120%)', bg: '#2A0845', surface: 'rgba(20,0,40,.55)', border: 'rgba(255,46,136,.35)', text: '#FDF0FF', text2: '#CDA8EA', fill: 'rgba(255,255,255,.12)', accent: '#00F0FF', tb: 'rgba(13,0,33,.82)', neon: '#FF2E88', grid: '#FF2E88' } },
-    score: v => `<defs><linearGradient id="ss" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:#FFE66B"/><stop offset="1" style="stop-color:var(--f-neon)"/></linearGradient><clipPath id="sc"><rect x="0" y="0" width="100" height="57"/><rect x="0" y="60" width="100" height="5"/><rect x="0" y="68" width="100" height="4"/><rect x="0" y="75" width="100" height="3"/><rect x="0" y="81" width="100" height="2.4"/><rect x="0" y="86" width="100" height="14"/></clipPath><filter id="sgw" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter></defs><circle cx="50" cy="50" r="44" style="fill:var(--f-neon);opacity:.45" filter="url(#sgw)"/><circle cx="50" cy="50" r="44" style="fill:url(#ss)" clip-path="url(#sc)"/>${arc(v, 48.5, 1.6, 'var(--f-accent)')}${num(v, "400 30px Audiowide, sans-serif", '#FFFFFF', 30, 'paint-order:stroke;stroke:#2A0845;stroke-width:3px')}` },
-  { id: 'pixel', name: 'Pixel', grp: 'Verspielt', idea: 'Spielhalle: Pixel, Punkte und Level.', mark: 'Jeder Satz gibt Punkte, Rekorde sind Level-ups.',
-    font: { num: "'Press Start 2P', monospace" }, acc: ['#FFD93D', '#FF6B9D', '#4ECDC4', '#C7F464'],
-    pal: { light: { bg: '#DDF1FF', surface: '#FFFFFF', border: 'rgba(0,0,0,.1)', text: '#1B1B3A', text2: '#4A4A7A', fill: '#BFD9F2', accent: '#FF6B9D', ink: '#1B1B3A', t0: '#FFD93D', t1: '#FF9EC0', t2: '#7FE0D8', t3: '#D7F58A', tb: '#FFFFFF' },
-           dark: { bg: '#1B1B3A', surface: '#2A2A55', border: 'rgba(255,255,255,.12)', text: '#FFFFFF', text2: '#B9B9E6', fill: '#3A3A6E', accent: '#FFD93D', ink: '#0B0B1E', t0: '#FFD93D', t1: '#FF6B9D', t2: '#4ECDC4', t3: '#C7F464', tb: '#2A2A55' } },
-    score: v => `${pixelRing(v)}${num(v, "400 14px 'Press Start 2P', monospace", 'var(--f-text)', 15)}` },
-  { id: 'comic', name: 'Comic', grp: 'Verspielt', idea: 'Comic: Rasterpunkte, dicke Striche und Knall.', mark: 'Rekorde knallen als Comic-Effekt auf.',
-    font: { num: 'Bangers, Impact, sans-serif' }, acc: ['#FF3B30', '#2F80ED', '#00B26B', '#FF9F1C'],
-    pal: { light: { bgimg: 'linear-gradient(180deg,#FFF6CF,#FFE89A)', bg: '#FFF1BF', dot: 'rgba(230,80,40,.2)', surface: '#FFFFFF', border: '#111111', ink: '#111111', text: '#111111', text2: '#333333', fill: '#FFFFFF', accent: '#FF3B30', t0: '#5CE1FF', t1: '#FF7AC8', t2: '#FFE14D', t3: '#FFFFFF', tb: '#FFFFFF' },
-           dark: { bgimg: 'linear-gradient(180deg,#1E1E3A,#121225)', bg: '#16162B', dot: 'rgba(120,140,255,.2)', surface: '#24244A', border: '#F5F5FF', ink: '#F5F5FF', text: '#F5F5FF', text2: '#C9C9F0', fill: '#33335F', accent: '#FF4D6D', t0: '#5CE1FF', t1: '#FF7AC8', t2: '#FFE14D', t3: '#FFFFFF', tb: '#24244A' } },
-    score: v => `<polygon points="${burst(14, 48, 37, 53, 54)}" style="fill:var(--f-ink)"/><polygon points="${burst(14, 48, 37)}" style="fill:var(--f-t2);stroke:var(--f-ink);stroke-width:2.5;stroke-linejoin:round"/>${num(v, "400 40px Bangers, Impact, sans-serif", '#111111', 42, 'letter-spacing:1px')}` },
-  /* Technisch */
-  { id: 'term', name: 'Terminal', grp: 'Technisch', idea: 'Kommandozeile: Monospace und leuchtende Schrift.', mark: 'Neue Werte tippen sich Zeichen für Zeichen ein.',
-    font: { body: "'IBM Plex Mono', ui-monospace, monospace" }, acc: ['#33FF66', '#FFB000', '#5CC8FF', '#FF5C8A'],
-    pal: { light: { bg: '#F6F7F2', surface: 'transparent', text: '#0E3B16', accent: '#0E7A2F', tb: '#F6F7F2', glow: 'none', scan: '0' },
-           dark: { bg: '#040804', surface: 'transparent', text: '#33FF66', accent: '#33FF66', tb: '#040804', glow: '0 0 8px rgba(51,255,102,.55)', scan: '1' } },
-    score: v => `<circle cx="50" cy="50" r="44" style="fill:none;stroke:var(--f-border);stroke-width:1.2;stroke-dasharray:2 3"/>${arc(v, 44, 3, 'var(--f-accent)', 'butt')}${num(v + '%', "600 26px 'IBM Plex Mono', monospace", 'var(--f-accent)', 26)}` },
-  { id: 'blau', name: 'Blaupause', grp: 'Technisch', idea: 'Konstruktionszeichnung: Raster, Maßlinien, Schreibmaschine.', mark: 'Maßlinien vermessen deine Werte.',
-    font: { num: "'Courier Prime', 'Courier New', monospace" }, acc: ['#FFD43B', '#FF8787', '#8CE99A', '#FFFFFF'], fixedAcc: true,
-    pal: { light: { bg: '#F5F8FC', gridc: 'rgba(40,90,180,.10)', gridc2: 'rgba(40,90,180,.2)', surface: 'transparent', border: 'rgba(29,63,143,.45)', text: '#1D3F8F', text2: 'rgba(29,63,143,.72)', fill: 'transparent', accent: '#FFD43B', tb: '#F5F8FC' },
-           dark: { bg: '#1B4AA8', gridc: 'rgba(255,255,255,.10)', gridc2: 'rgba(255,255,255,.18)', surface: 'transparent', border: 'rgba(255,255,255,.5)', text: '#FFFFFF', text2: 'rgba(255,255,255,.76)', fill: 'transparent', accent: '#FFD43B', tb: '#1B4AA8' } },
-    score: v => `<circle cx="50" cy="50" r="42" style="fill:none;stroke:var(--f-text);stroke-width:1.2"/>${arc(v, 47, 2.5, 'var(--f-accent)', 'butt')}<line x1="0" y1="50" x2="100" y2="50" style="stroke:var(--f-text);stroke-width:.5;stroke-dasharray:6 2 1 2"/><line x1="50" y1="0" x2="50" y2="100" style="stroke:var(--f-text);stroke-width:.5;stroke-dasharray:6 2 1 2"/><rect x="30" y="40" width="40" height="20" style="fill:var(--f-bg)"/>${num(v, "700 26px 'Courier Prime', monospace", 'var(--f-text)', 26)}<text x="97" y="9" text-anchor="end" style="font:400 7px 'Courier Prime', monospace;fill:var(--f-text2)">Ø 100</text>` }
+  { id: 'salbei', name: 'Salbei', idea: 'Ruhiges Grün, weiche Ecken.', font: "'Figtree', sans-serif", r: 16, rb: 14, ring: 6, kind: 'ring', tw: 700, nw: 600, track: '-.02em',
+    acc: ['#3F7A62', '#3B6EA8', '#8A6A3B'],
+    pal: { light: { bg: '#F4F6F3', card: '#FFFFFF', text: '#1B2420', text2: '#5E6B64', accent: '#3F7A62', tb: '#FFFFFF' },
+           dark: { bg: '#0F1311', card: '#18201C', text: '#E8EEEA', text2: '#93A39A', accent: '#7CC3A4', tb: '#121815' } } },
+  { id: 'marine', name: 'Marine', idea: 'Dunkles Blau, sachlich und klar.', font: "'Manrope', sans-serif", r: 10, rb: 10, ring: 4, kind: 'ring', tw: 700, nw: 700, track: '-.02em',
+    acc: ['#1F3B66', '#2D5BA8', '#245E57'],
+    pal: { light: { bg: '#FFFFFF', card: '#F2F4F8', text: '#0F1B2D', text2: '#5A6576', accent: '#1F3B66', tb: '#FFFFFF' },
+           dark: { bg: '#0A0F18', card: '#131B28', text: '#E7ECF4', text2: '#8F9AAD', accent: '#8FB0E6', tb: '#0D131E' } } },
+  { id: 'koralle', name: 'Koralle', idea: 'Warmes Korallenrot, freundlich, runde Knöpfe.', font: "'DM Sans', sans-serif", r: 18, rb: 999, ring: 0, kind: 'disc', tw: 700, nw: 600, track: '-.025em',
+    acc: ['#D9503A', '#C2457A', '#D98A1E'],
+    pal: { light: { bg: '#FFFFFF', card: '#FBF3F1', text: '#241816', text2: '#6E5A56', accent: '#D9503A', tb: '#FFFFFF' },
+           dark: { bg: '#120D0C', card: '#1F1715', text: '#F4ECEA', text2: '#A8938F', accent: '#F07A64', tb: '#160F0E' } } },
+  { id: 'nacht', name: 'Nacht', idea: 'Dunkel und edel, Champagner als Akzent.', font: "'Sora', sans-serif", r: 12, rb: 12, ring: 3, kind: 'ring', tw: 600, nw: 500, track: '-.03em', darkFirst: true,
+    acc: ['#CBB07A', '#B9C3CF', '#D59A86'],
+    pal: { light: { bg: '#F7F6F3', card: '#FFFFFF', text: '#17171A', text2: '#6B6862', accent: '#8E6F35', tb: '#FFFFFF' },
+           dark: { bg: '#0D0E10', card: '#17181B', text: '#F2F0EC', text2: '#8F8C86', accent: '#CBB07A', tb: '#0D0E10' } } },
+  { id: 'petrol', name: 'Petrol', idea: 'Kühles Petrol, kräftiger Kreis.', font: "'Plus Jakarta Sans', sans-serif", r: 14, rb: 14, ring: 8, kind: 'ring', tw: 700, nw: 700, track: '-.02em',
+    acc: ['#0E6E78', '#2F6FB0', '#5C5BB5'],
+    pal: { light: { bg: '#F3F7F7', card: '#FFFFFF', text: '#0F2224', text2: '#577073', accent: '#0E6E78', tb: '#FFFFFF' },
+           dark: { bg: '#0A1416', card: '#132124', text: '#E4EFF0', text2: '#8BA5A8', accent: '#4FB8C2', tb: '#0D1A1C' } } },
+  { id: 'oliv', name: 'Oliv', idea: 'Gedecktes Oliv, natürlich und ruhig.', font: "'Outfit', sans-serif", r: 12, rb: 12, ring: 0, kind: 'disc', tw: 600, nw: 500, track: '-.02em',
+    acc: ['#5E6F2E', '#7A5A2E', '#2E6F5E'],
+    pal: { light: { bg: '#F5F5F0', card: '#FFFFFF', text: '#22231C', text2: '#6B6C5E', accent: '#5E6F2E', tb: '#FFFFFF' },
+           dark: { bg: '#12130F', card: '#1C1D17', text: '#EEEEE6', text2: '#9A9B8C', accent: '#A9BD6B', tb: '#15160F' } } },
+  { id: 'kirsche', name: 'Kirsche', idea: 'Kräftiges Kirschrot, eckig und sportlich.', font: "'Inter Tight', sans-serif", r: 6, rb: 6, ring: 5, kind: 'ring', tw: 700, nw: 700, track: '-.03em',
+    acc: ['#B3243B', '#1F4FA8', '#1D1D1F'],
+    pal: { light: { bg: '#FFFFFF', card: '#F4F4F5', text: '#151517', text2: '#626268', accent: '#B3243B', tb: '#FFFFFF' },
+           dark: { bg: '#0E0E10', card: '#1A1A1D', text: '#F1F1F3', text2: '#96969C', accent: '#E8576E', tb: '#111113' } } },
+  { id: 'arktis', name: 'Arktis', idea: 'Helles Eisblau, sanfte Schatten, sehr rund.', font: "'Nunito Sans', sans-serif", r: 22, rb: 999, ring: 6, kind: 'ring', tw: 700, nw: 700, track: '-.015em', shadow: true,
+    acc: ['#3A86C8', '#3AA39A', '#7A6FD0'],
+    pal: { light: { bg: '#EEF3F7', card: '#FFFFFF', text: '#142233', text2: '#5C6B7C', accent: '#3A86C8', tb: '#FFFFFF' },
+           dark: { bg: '#0C141C', card: '#152230', text: '#E6EEF5', text2: '#8EA0B2', accent: '#78B4E6', tb: '#101A24' } } },
+  { id: 'schiefer', name: 'Schiefer', idea: 'Zurückhaltendes Schiefergrau, fast ohne Farbe.', font: "'IBM Plex Sans', sans-serif", r: 4, rb: 4, ring: 4, kind: 'ring', tw: 600, nw: 500, track: '-.01em',
+    acc: ['#46566B', '#5A4F6B', '#3F5F55'],
+    pal: { light: { bg: '#FFFFFF', card: '#F2F3F5', text: '#1C2128', text2: '#5F6670', accent: '#46566B', tb: '#FFFFFF' },
+           dark: { bg: '#101317', card: '#1A1E24', text: '#E9ECF0', text2: '#959CA6', accent: '#A9B7CA', tb: '#13161B' } } },
+  { id: 'orange', name: 'Orange', idea: 'Sportliches Orange, klare Zahlen.', font: "'Barlow', sans-serif", r: 10, rb: 10, ring: 0, kind: 'solid', tw: 700, nw: 600, track: '-.01em',
+    acc: ['#E8601A', '#D9363E', '#1F7A6B'],
+    pal: { light: { bg: '#FFFFFF', card: '#F6F4F2', text: '#1A1714', text2: '#6A635D', accent: '#E8601A', tb: '#FFFFFF' },
+           dark: { bg: '#110F0D', card: '#1D1A17', text: '#F3EFEB', text2: '#A0978F', accent: '#FF8A3D', tb: '#14120F' } } }
 ];
-const GROUPS = [...new Set(DES.map(d => d.grp))];
 
 /* ---------- Zustand ---------- */
-const S = { view: 'alle', cur: 'onyx', theme: 'auto', acc: {} };
+const S = { view: 'alle', cur: 'salbei', theme: 'auto', acc: {} };
 const mode = () => S.theme === 'auto' ? (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : S.theme;
 
 /* ---------- Telefon ---------- */
 function frameVars(d) {
-  const m = mode(), p = { ...d.pal[m] };
-  let acc = S.acc[d.id] || p.accent;
-  if (d.id === 'voll') p.bg = m === 'dark' ? mix(acc, '#000000', .55) : acc;
-  else if (!d.fixedAcc) acc = ensure(acc, p.bg, 3);
-  if (d.id === 'term') { p.text = ensure(acc, p.bg, 4.5); p.text2 = rgba(p.text, .66); p.border = rgba(p.text, .38); p.fill = rgba(p.text, .15); }
-  if (d.id === 'bauhaus') p.t0 = acc;
-  if (d.id === 'analog') p.accentdk = mix(acc, '#000000', .35);
-  p.accent = acc;
-  p.onacc = lum(acc) > .4 ? '#111111' : '#FFFFFF';
-  const v = { bgimg: 'none', tbtext: p.text2, tl: p.text2, tt: p.text, ...p,
-    body: d.font.body || 'var(--font)', num: d.font.num || d.font.body || 'var(--font)', title: d.font.title || d.font.num || d.font.body || 'var(--font)' };
+  const m = mode(), p = d.pal[m], chosen = S.acc[d.id], acc = chosen ? (m === 'dark' ? mixW(chosen, .25) : chosen) : p.accent;
+  const v = {
+    bg: p.bg, card: p.card, text: p.text, text2: p.text2, accent: acc, onacc: lum(acc) > .4 ? '#111111' : '#FFFFFF', tb: p.tb,
+    sep: m === 'dark' ? 'rgba(255,255,255,.08)' : 'rgba(15,23,38,.08)', soft: `color-mix(in srgb, ${acc} 12%, ${p.card})`,
+    shadow: d.shadow && m === 'light' ? '0 4px 16px rgba(20,34,51,.07)' : 'none',
+    font: d.font, r: d.r + 'px', rb: d.rb + 'px', tw: d.tw, nw: d.nw, track: d.track
+  };
   return Object.entries(v).map(([k, x]) => `--f-${k}:${x}`).join(';');
 }
-const FLOAT = new Set(['chrom', 'knete', 'synth']);
-const TB = (d, on) => `<nav class="f-tb ${FLOAT.has(d.id) ? 'f-float' : ''}">${[['home', 'Start'], ['dumbbell', 'Training'], ['book', 'Übungen'], ['chart', 'Fortschritt'], ['grid', 'Mehr']].map(([i, l], k) => `<span class="${k === on ? 'on' : ''}">${ic(i)}${l}</span>`).join('')}</nav>`;
-const scoreSvg = (d, size) => `<svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="Trainio-Score 78">${d.score(78)}</svg>`;
-const tile = ([i, l, v, u], k) => `<div class="f-tile t${k}"><span class="f-tl">${ic(i)}${l}</span><span class="f-num"><b>${v}</b>${u ? `<small>${u}</small>` : ''}</span></div>`;
-const bars = () => { const v = [3, 4, 3, 3, 4, 3, 3, 4, 3, 4, 1], w = 300, h = 76, bw = 16, gap = (w - v.length * bw) / (v.length - 1);
-  return `<svg viewBox="0 0 ${w} ${h}" aria-hidden="true">${v.map((x, i) => { const hh = x / 4 * (h - 4); return `<rect class="cb ${i === 9 ? 'on' : ''}" x="${(i * (bw + gap)).toFixed(1)}" y="${(h - hh).toFixed(1)}" width="${bw}" height="${hh.toFixed(1)}" rx="2"${i === 10 ? ' style="opacity:.14"' : ''}/>`; }).join('')}</svg>`; };
+const mixW = (h, t) => { const c = hex(h).map(x => Math.round(x + (255 - x) * t)); return '#' + c.map(x => x.toString(16).padStart(2, '0')).join(''); };
+/* Score: Ring (Spur + Bogen), Scheibe (zarte Fläche + dünner Bogen) oder volle Fläche – immer nur Kreis und Zahl */
+function score(d, size) {
+  const r = 45, c = 2 * Math.PI * r, v = 78, arc = w => `<circle cx="50" cy="50" r="${r}" style="fill:none;stroke:var(--f-accent);stroke-width:${w};stroke-linecap:round" stroke-dasharray="${(c * v / 100).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 50 50)"/>`;
+  const txt = col => `<text x="50" y="51" text-anchor="middle" dominant-baseline="central" style="font-family:var(--f-font);font-size:32px;font-weight:var(--f-nw);letter-spacing:-1px;fill:${col};font-variant-numeric:tabular-nums">${v}</text>`;
+  const body = d.kind === 'disc' ? `<circle cx="50" cy="50" r="45" style="fill:var(--f-soft)"/>${arc(3)}${txt('var(--f-text)')}`
+    : d.kind === 'solid' ? `<circle cx="50" cy="50" r="45" style="fill:var(--f-accent)"/>${txt('var(--f-onacc)')}`
+    : `<circle cx="50" cy="50" r="${r}" style="fill:none;stroke:var(--f-card);stroke-width:${d.ring}"/>${arc(d.ring)}${txt('var(--f-text)')}`;
+  return `<div class="f-score"><svg viewBox="0 0 100 100" width="${size}" height="${size}" role="img" aria-label="Trainio-Score 78">${body}</svg><span class="f-small">Trainio-Score</span></div>`;
+}
+const U = (n, u) => `${n}${u ? `<span class="f-u">${u}</span>` : ''}`;
+const tile = ([l, v]) => `<div class="f-tile"><span class="f-small">${l}</span><span class="f-num">${v}</span></div>`;
+const TB = on => `<nav class="f-tb">${[['home', 'Start'], ['dumbbell', 'Training'], ['book', 'Übungen'], ['chart', 'Fortschritt'], ['grid', 'Mehr']].map(([i, l], k) => `<span class="${k === on ? 'on' : ''}">${ic(i)}${l}</span>`).join('')}</nav>`;
 const SCREENS = {
   start: ['Start', d => `<div class="f-scr">
-    <p class="f-date">Donnerstag, 12. November</p>
-    <div class="f-score">${scoreSvg(d, 156)}<span class="f-score-l">Trainio-Score</span></div>
-    <div class="f-tiles">${[['flame', 'Serie', '11', 'Wochen'], ['bolt', 'Volumen', '4.960', 'kg'], ['scale', 'Körpergewicht', '80,5', 'kg'], ['trophy', 'Neue Rekorde', '13', '']].map(tile).join('')}</div>
+    <p class="f-small">Donnerstag, 12. November</p>
+    ${score(d, 168)}
+    <div class="f-tiles">${[['Serie', U('11', 'Wochen')], ['Volumen', U('4.960', 'kg')], ['Körpergewicht', U('80,5', 'kg')], ['Neue Rekorde', '13']].map(tile).join('')}</div>
     <div class="f-btn">${ic('play')}<span>Workout starten</span></div>
-    <div class="f-sec"><h3>Ziele</h3><div class="f-blk f-goal"><span class="f-row"><span>Bankdrücken</span><span>92 %</span></span><span class="f-bar"><i style="--w:92%"></i></span></div></div>
-    <div class="f-sec"><h3>Letzte Workouts</h3><div class="f-blk"><div class="f-li"><b>Push</b><span>Mo, 9. Nov</span></div><div class="f-li"><b>Radfahren draußen</b><span>Sa, 7. Nov</span></div></div></div>
-  </div>${TB(d, 0)}`],
+    <div class="f-sec"><div class="f-row"><h3 class="f-head">Ziele</h3><span class="f-link">Hinzufügen</span></div>
+      <div class="f-list f-goal"><div class="f-row"><span>Bankdrücken</span><span>92 %</span></div><div class="f-bar"><i style="--w:92%"></i></div></div></div>
+    <div class="f-sec"><h3 class="f-head">Letzte Workouts</h3>
+      <div class="f-list">${[['Push', 'Mo, 9. Nov'], ['Radfahren draußen', 'Sa, 7. Nov']].map(([n, t]) => `<div class="f-li"><span class="grow">${n}</span><span class="f-small">${t}</span><span class="f-chev">${ic('chevR')}</span></div>`).join('')}</div></div>
+  </div>${TB(0)}`],
   workout: ['Laufendes Workout', d => `<div class="f-scr">
-    <div class="f-head"><div><p class="f-date">Pull · 14:21</p><h2 class="f-title">Kreuzheben</h2></div><span class="f-chip">Beenden</span></div>
-    <span class="f-bar"><i style="--w:13%"></i></span>
-    <div class="f-blk"><div class="f-set hd"><span>Satz</span><span>kg</span><span>Wdh.</span><span></span></div>
-      ${[[1, 'done'], [2, 'done'], [3, 'cur']].map(([n, s]) => `<div class="f-set ${s}"><span>${n}</span><span>137,5</span><span>5</span><span class="f-ck ${s === 'done' ? 'on' : ''}">${s === 'done' ? ic('check') : ''}</span></div>`).join('')}</div>
-    <div class="f-steps"><div class="f-blk f-step"><span>−</span><span class="f-num"><b>137,5</b><small>kg</small></span><span>+</span></div><div class="f-blk f-step"><span>−</span><span class="f-num"><b>5</b><small>Wdh.</small></span><span>+</span></div></div>
-    <div class="f-btn">${ic('check')}<span>Satz erledigt</span></div>
-    <div class="f-sec"><h3>Als Nächstes</h3><div class="f-blk"><div class="f-li"><b>Klimmzüge</b><span>3 × 8</span></div><div class="f-li"><b>Rudern vorgebeugt</b><span>3 × 10</span></div></div></div>
-  </div>${TB(d, 1)}`],
+    <div class="f-row" style="align-items:flex-start"><div><h2 class="f-title">Pull</h2><p class="f-small">14:21</p></div><span class="f-btn2">Beenden</span></div>
+    <div class="f-bar"><i style="--w:13%"></i></div>
+    <div class="f-sec"><div class="f-row"><h3 class="f-head">Kreuzheben</h3><span class="f-chev">${ic('more')}</span></div>
+      <div class="f-wtab"><div class="f-set hd"><span>Satz</span><span>kg</span><span>Wdh.</span><span></span></div>
+        ${[1, 2].map(n => `<div class="f-set"><span class="n">${n}</span><span>137,5</span><span>5</span><span class="f-ck on">${ic('check')}</span></div>`).join('')}
+        <div class="f-set cur"><span class="n">3</span><span>137,5</span><span>5</span><span class="f-ck"></span></div>
+        <div class="f-edit"><div class="f-steps"><div class="f-step"><span>−</span><span>137,5<span class="f-u">kg</span></span><span>+</span></div><div class="f-step"><span>−</span><span>5<span class="f-u">Wdh.</span></span><span>+</span></div></div>
+          <p class="f-small">Letztes Mal 137,5 × 4</p><div class="f-btn" style="min-height:48px">${ic('check')}<span>Satz erledigt</span></div></div>
+      </div></div>
+    <div class="f-sec"><h3 class="f-head">Klimmzüge</h3></div>
+  </div>${TB(1)}`],
   progress: ['Fortschritt', d => `<div class="f-scr">
-    <div class="f-head"><h2 class="f-title">Fortschritt</h2><span class="f-chip">3 Monate</span></div>
-    <div class="f-score">${scoreSvg(d, 124)}<span class="f-score-l">Trainio-Score</span></div>
-    <div class="f-tiles">${[['calendar', 'Pro Woche', '3,2', ''], ['gauge', 'Workout-Score', '88', ''], ['trophy', 'Neue Rekorde', '13', ''], ['grid', 'Trainingstage', '36', '']].map(tile).join('')}</div>
-    <div class="f-blk f-chart"><span class="f-tl">Workouts pro Woche</span>${bars()}</div>
-    <div class="f-blk"><div class="f-li"><b>Mehr Statistiken</b><span>›</span></div></div>
-  </div>${TB(d, 3)}`]
+    <div class="f-row"><h2 class="f-title">Fortschritt</h2><span class="f-btn2">3 Monate ${ic('chevD')}</span></div>
+    <div class="f-tabs"><span class="on">Übersicht</span><span>Kraft</span><span>Volumen</span><span>Muskeln</span></div>
+    ${score(d, 136)}
+    <div class="f-tiles">${[['Pro Woche', U('3,2', 'Workouts')], ['Workout-Score', '88'], ['Neue Rekorde', '13'], ['Trainingstage', '36']].map(tile).join('')}</div>
+    <div class="f-list"><div class="f-li"><span class="grow">Mehr Statistiken</span><span class="f-chev">${ic('chevR')}</span></div></div>
+  </div>${TB(3)}`]
 };
-const frameHtml = (d, scr) => `<div class="frame d-${d.id}" style="${frameVars(d)}"><div class="f-bg"></div>${SCREENS[scr][1](d)}</div>`;
+const frameHtml = (d, scr) => `<div class="frame" style="${frameVars(d)}">${SCREENS[scr][1](d)}</div>`;
 
 /* ---------- Ansichten ---------- */
-function viewAlle() {
-  return `<p class="lead">Dieselbe Startseite in 24 neuen Richtungen. Fokus und Liquid Glass bleiben gesetzt. Antippen zeigt Start, Workout und Fortschritt.</p>
-  ${GROUPS.map(g => `<section class="grp"><h2>${g}</h2><div class="grid">${DES.filter(d => d.grp === g).map(d => `<div class="card" role="button" tabindex="0" data-open="${d.id}" aria-label="${d.name} ansehen"><div class="mini" aria-hidden="true" inert>${frameHtml(d, 'start')}</div><div class="cap"><b>${d.name}</b></div></div>`).join('')}</div></section>`).join('')}`;
-}
+const viewAlle = () => `<p class="lead">Zehn ruhige Designs mit demselben schlichten Aufbau. Antippen zeigt Start, Workout und Fortschritt.</p>
+  <div class="grid">${DES.map(d => `<div class="card" role="button" tabindex="0" data-open="${d.id}" aria-label="${d.name} ansehen"><div class="mini" aria-hidden="true" inert>${frameHtml(d, 'start')}</div><div class="cap"><b>${d.name}</b><span>${d.idea}</span></div></div>`).join('')}</div>`;
 function viewEinzeln() {
   const i = DES.findIndex(x => x.id === S.cur), d = DES[i], prev = DES[(i + DES.length - 1) % DES.length], next = DES[(i + 1) % DES.length];
-  const cur = S.acc[d.id] || d.pal[mode()].accent;
+  const cur = S.acc[d.id] || d.acc[0];
   return `<div class="chips">${DES.map(x => `<button class="chip ${x.id === d.id ? 'on' : ''}" data-open="${x.id}">${x.name}</button>`).join('')}</div>
-  <div class="dhead">
-    <div class="dh-main"><div class="dh-row"><h2>${d.name}</h2><span class="tag">${d.grp}</span></div><p class="type">${d.idea}</p><p class="mk"><b>Markenzeichen:</b> ${d.mark}</p></div>
-    <div class="sw-row"><span class="lbl">Akzent</span>${d.acc.map((c, k) => `<button class="sw ${cur.toLowerCase() === c.toLowerCase() || (!S.acc[d.id] && k === 0 && !d.acc.some(x => x.toLowerCase() === cur.toLowerCase())) ? 'on' : ''}" style="background:${c}" data-acc="${c}" aria-label="Akzentfarbe ${k + 1}"></button>`).join('')}</div>
-  </div>
+  <div class="dhead"><div><h2>${d.name}</h2><p>${d.idea}</p></div>
+    <div class="sw-row">${d.acc.map((c, k) => `<button class="sw ${c === cur ? 'on' : ''}" style="background:${c}" data-acc="${c}" aria-label="Akzentfarbe ${k + 1}"></button>`).join('')}</div></div>
   <div class="screens">${Object.entries(SCREENS).map(([k, [label]]) => `<div class="shot"><div class="phone" role="img" aria-label="${d.name}: ${label}">${frameHtml(d, k)}</div><p>${label}</p></div>`).join('')}</div>
   <div class="pager"><button class="pbtn" data-open="${prev.id}">${ic('chevL')}${prev.name}</button><button class="pbtn" data-open="${next.id}">${next.name}${ic('chevR')}</button></div>`;
 }
@@ -682,14 +263,14 @@ function render() {
   $('#main').innerHTML = S.view === 'alle' ? viewAlle() : viewEinzeln();
   $('#v-alle').classList.toggle('on', S.view === 'alle');
   $('#v-einzeln').classList.toggle('on', S.view === 'einzeln');
-  $('#theme').innerHTML = `${ic(S.theme === 'dark' ? 'moon' : S.theme === 'light' ? 'sun' : 'auto')}${{ auto: 'Auto', light: 'Hell', dark: 'Dunkel' }[S.theme]}`;
+  $('#theme').innerHTML = `${ic(S.theme === 'dark' ? 'moon' : S.theme === 'light' ? 'sun' : 'auto')}<span class="tl">${{ auto: 'Auto', light: 'Hell', dark: 'Dunkel' }[S.theme]}</span>`;
   fit();
 }
 function setHash() { const h = S.view === 'alle' ? '#alle' : `#d-${S.cur}`; try { history.replaceState(null, '', h); } catch (e) { /* Rahmen erlaubt es nicht */ } }
 function readHash() { const m = /^#d-([a-z]+)$/.exec(location.hash); if (m && DES.some(d => d.id === m[1])) { S.view = 'einzeln'; S.cur = m[1]; } else if (location.hash === '#alle') S.view = 'alle'; }
 function applyTheme() {
   if (S.theme === 'auto') document.documentElement.removeAttribute('data-theme'); else document.documentElement.setAttribute('data-theme', S.theme);
-  try { localStorage.setItem('trainio-24-theme', S.theme); } catch (e) { /* ohne Speicher */ }
+  try { localStorage.setItem('trainio-10-theme', S.theme); } catch (e) { /* ohne Speicher */ }
 }
 document.addEventListener('click', e => {
   const t = e.target.closest('[data-open], [data-view], [data-acc], #theme');
@@ -703,7 +284,7 @@ document.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === 
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => { if (S.theme === 'auto') render(); });
 window.addEventListener('resize', fit);
 window.addEventListener('hashchange', () => { readHash(); render(); });
-try { S.theme = localStorage.getItem('trainio-24-theme') || 'auto'; } catch (e) { S.theme = 'auto'; }
+try { S.theme = localStorage.getItem('trainio-10-theme') || 'auto'; } catch (e) { S.theme = 'auto'; }
 readHash();
 applyTheme();
 render();
