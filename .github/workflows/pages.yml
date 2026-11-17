@@ -15,7 +15,20 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
+  # Push auf redesign: Veröffentlichen darf nur main (Schutzregel der Umgebung github-pages) → Lauf auf main anstoßen,
+  # der main und redesign zusammen baut
+  relay:
+    if: github.ref == 'refs/heads/redesign'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+    steps:
+      - name: Veröffentlichung auf main anstoßen
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run pages.yml --ref main --repo "${{ github.repository }}"
   build:
+    if: github.ref != 'refs/heads/redesign'
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.mode.outputs.enabled }}
