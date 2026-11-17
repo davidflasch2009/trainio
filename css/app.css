@@ -47,7 +47,7 @@
   --font-num: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", system-ui, sans-serif;
 }
 [data-design="glass"][data-theme="light"] {
-  --bg: #eef1f8; --surface: rgba(255, 255, 255, .56); --surface-2: rgba(118, 118, 138, .12); --surface-3: rgba(118, 118, 138, .2);
+  --bg: #eef1f8; --surface: #ffffff; --card-shadow: 0 6px 22px rgba(34, 42, 90, .08), 0 1px 2px rgba(34, 42, 90, .05); --surface-2: rgba(118, 118, 138, .12); --surface-3: rgba(118, 118, 138, .2);
   --border: rgba(60, 60, 90, .12); --border-strong: rgba(60, 60, 90, .22);
   --text: #0a0a14; --text-dim: #45465a; --text-faint: #75768a;
   --accent: #0071e3; --accent-dim: rgba(0, 113, 227, .5); --accent-text: #0062cc; --accent-ink: #ffffff; --accent-soft: rgba(0, 122, 255, .14);
@@ -59,11 +59,11 @@
   --glass-edge: rgba(255, 255, 255, .45);
   --glass-rim: linear-gradient(150deg, rgba(255,255,255,.98), rgba(255,255,255,.4) 24%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.32) 76%, rgba(255,255,255,.85));
   --glass-shadow: 0 10px 34px rgba(34, 42, 90, .1), 0 1px 3px rgba(34, 42, 90, .06);
-  --glass-btn: rgba(255, 255, 255, .62); --glass-btn-hover: rgba(255, 255, 255, .88); --glass-lens: rgba(255, 255, 255, .8);
+  --glass-btn: rgba(255, 255, 255, .94); --glass-btn-hover: rgba(255, 255, 255, .88); --glass-lens: rgba(255, 255, 255, .8);
   --glass-knob: #ffffff; --glass-off: rgba(120, 120, 138, .22);
 }
 [data-design="glass"][data-theme="dark"] {
-  --bg: #06070f; --surface: rgba(40, 42, 64, .46); --surface-2: rgba(255, 255, 255, .08); --surface-3: rgba(255, 255, 255, .14);
+  --bg: #06070f; --surface: #1c1e2a; --card-shadow: 0 8px 26px rgba(0, 0, 0, .35); --surface-2: rgba(255, 255, 255, .08); --surface-3: rgba(255, 255, 255, .14);
   --border: rgba(255, 255, 255, .09); --border-strong: rgba(255, 255, 255, .17);
   --text: #f5f6fb; --text-dim: #b6b8ca; --text-faint: #858899;
   --accent: #0a6ee6; --accent-dim: rgba(10, 110, 230, .6); --accent-text: #5eb0ff; --accent-ink: #ffffff; --accent-soft: rgba(10, 132, 255, .24);
@@ -75,7 +75,7 @@
   --glass-edge: rgba(255, 255, 255, .08);
   --glass-rim: linear-gradient(150deg, rgba(255,255,255,.42), rgba(255,255,255,.12) 24%, rgba(255,255,255,.03) 50%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.3));
   --glass-shadow: 0 12px 38px rgba(0, 0, 0, .42), 0 1px 3px rgba(0, 0, 0, .3);
-  --glass-btn: rgba(255, 255, 255, .1); --glass-btn-hover: rgba(255, 255, 255, .17); --glass-lens: rgba(255, 255, 255, .16);
+  --glass-btn: #262938; --glass-btn-hover: rgba(255, 255, 255, .17); --glass-lens: rgba(255, 255, 255, .16);
   --glass-knob: rgba(255, 255, 255, .28); --glass-off: rgba(120, 120, 138, .36);
 }
 /* Wallpaper für Liquid Glass – je Motiv hell & dunkel */
@@ -1441,21 +1441,17 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 /* ---------- Liquid Glass ---------- */
 [data-design="glass"] body { background: transparent; letter-spacing: -.003em; }
 [data-design="glass"] body::before { content: ''; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; height: 100lvh; z-index: -1; pointer-events: none; background: var(--wall); }
+/* Glas wie beim iPhone: nur Tab-Leiste, Kopfzeile, Fenster, Menüs und Meldungen. Inhalte bleiben deckend und gut lesbar. */
 [data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item) {
-  background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), var(--glass);
-  border-color: transparent;
-  box-shadow: var(--glass-shadow), inset 0 1px 0 var(--glass-hi), inset 0 -1px 0 var(--glass-lo);
+  background: var(--surface); border-color: transparent; box-shadow: var(--card-shadow);
 }
 [data-design="glass"] :is(.card, .chart-card, .list, .ex-card, .ex-item) { position: relative; }
 /* Lichtkante: Verlaufs-Rahmen per Maske */
-[data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item, .modal, .toast, .rest-dock, .sidebar)::after,
+[data-design="glass"] :is(.modal, .toast, .rest-dock, .sidebar)::after,
 [data-nav="floating"][data-design="glass"] .bottom-nav::after {
   content: ''; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 2;
   background: var(--glass-rim);
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude;
-}
-[data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card) {
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(185%); backdrop-filter: blur(var(--glass-blur)) saturate(185%);
 }
 [data-design="glass"] .ex-item.pressed, [data-design="glass"] button.list-item.pressed { background: var(--glass-btn-hover); }
 [data-design="glass"] .ex-item.picked { background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), var(--accent-soft); box-shadow: 0 0 0 2px var(--accent), var(--glass-shadow); }
@@ -1509,10 +1505,6 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="glass"] .wo-progress i, [data-design="glass"] .progress-track i { background: linear-gradient(90deg, color-mix(in srgb, var(--accent) 62%, #fff), var(--accent)); }
 
 @media (hover: none), (pointer: coarse) {
-  [data-design="glass"] :is(.card, .stat, .chart-card, .list, .ex-card, .focus) {
-    -webkit-backdrop-filter: none; backdrop-filter: none;
-    background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), color-mix(in srgb, var(--glass) 62%, var(--bg));
-  }
   [data-design="glass"] :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 92%, transparent); }
   :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 96%, transparent); }
 }
@@ -1710,6 +1702,26 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .rest-dock .btn-secondary { background: color-mix(in srgb, var(--bg) 22%, transparent); border: 0; color: inherit; min-height: 40px; }
 .rest-dock .btn-icon { color: inherit; }
 .rest-dock.ending .rest-time, .rest-dock.done .rest-time { color: inherit; }
+
+/* Die Übungs-Tabelle im Workout ist selbst keine Karte – nur ihre Tabelle hat eine Fläche */
+:root .ex-card.exb { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+:root .ex-card.exb::after { display: none; }
+/* Liquid Glass – Markenzeichen: die Tab-Leiste schrumpft beim Scrollen nach unten und wird beim Hochscrollen wieder groß */
+[data-design="glass"] .bottom-nav { transition: transform .38s var(--ease-out, cubic-bezier(.2, .8, .2, 1)); transform-origin: 50% 100%; }
+[data-design="glass"] .nav-btn span { transition: opacity .25s; }
+[data-design="glass"] body.nav-mini .bottom-nav { transform: scale(.8) translateY(6px); }
+[data-design="glass"] body.nav-mini .nav-btn span { opacity: 0; }
+/* Hoher Kontrast: Glas ohne Unschärfe, deckend */
+:root[data-contrast="high"][data-design="glass"] :is(.bottom-nav, .topbar, .wo-head, .modal, .toast, .rest-dock, .popover) { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; background: var(--surface) !important; }
+/* Tag & Nacht: Himmel statt Glas – deckende Flächen und Tab-Leiste, weiche Serifen-Zahlen */
+[data-design="sky"] { --font-num: "Fraunces", "Iowan Old Style", Georgia, serif; }
+[data-design="sky"][data-phase="dawn"] { --surface: #fbf6f8; }
+[data-design="sky"][data-phase="day"] { --surface: #f7fbff; }
+[data-design="sky"][data-phase="dusk"] { --surface: #2a1d30; }
+[data-design="sky"][data-phase="night"] { --surface: #141c31; }
+[data-design="sky"] :is(.card, .stat, .chart-card, .list, .ex-card, .ex-item, .tile, .exb-tab) { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-design="sky"] .bottom-nav { background: var(--surface); -webkit-backdrop-filter: none; backdrop-filter: none; }
+[data-design="sky"] .tile-n, [data-design="sky"] .det-num, [data-design="sky"] .tscore-c b { font-weight: 560; font-variation-settings: "SOFT" 100; }
 
 /* ==========================================================================
    7. Nutzer-Overrides (gewinnen gegen das Design)

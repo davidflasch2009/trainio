@@ -981,6 +981,18 @@ function renderFab() {
   root.innerHTML = App.tab === 'exercises' ? `<button class="fab" data-act="exNew" aria-label="Neue Übung">${icon('plus')}</button>` : '';
 }
 Scroll.el.addEventListener('scroll', () => { const s = Scroll.y > 4; $('#topbar').classList.toggle('scrolled', s); document.body.classList.toggle('is-scrolled', s); }, { passive: true });
+/* Liquid Glass – Markenzeichen: Tab-Leiste schrumpft beim Scrollen nach unten, wächst beim Hochscrollen wieder */
+(() => {
+  let last = 0;
+  Scroll.el.addEventListener('scroll', () => {
+    const y = Scroll.y, b = document.body;
+    if (document.documentElement.dataset.design !== 'glass' || y < 60) { b.classList.remove('nav-mini'); last = y; return; }
+    if (y > last + 6) b.classList.add('nav-mini');
+    else if (y < last - 6) b.classList.remove('nav-mini');
+    else return;
+    last = y;
+  }, { passive: true });
+})();
 
 /* Gemeinsame Bausteine */
 function emptyState(ic, title, text, btn = '') {
