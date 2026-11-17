@@ -50,13 +50,14 @@ Diagramm-Stil und Symbole.
 | --- | --- | --- |
 | **Fokus** | Bleibt. Schwarz-weiß und ruhig, Farbe nur für Signale. Markenzeichen: **Spotlight** im Workout. | ⏳ [Fokus auf der neuen Basis](tickets/05-fokus.md) |
 | **Liquid Glass** | Bleibt. Glas, Unschärfe & Licht. | ⏳ [Liquid Glass auf der neuen Basis](tickets/06-liquid-glass.md), inkl. Markenzeichen |
-| Design 3 | – | ⏳ [Welche zwei Designs kommen dazu?](tickets/04-designs-auswahl.md) |
-| Design 4 | – | ⏳ [Welche zwei Designs kommen dazu?](tickets/04-designs-auswahl.md) |
+| **Pure** | Bleibt und wird **Standard**. Reines Schwarz und Weiß, klare Flächen, Akzent nur wo nötig. | ⏳ [Pure auf der neuen Basis](tickets/11-pure.md), inkl. Markenzeichen und Abgrenzung zu Fokus |
+| **Tag & Nacht** | Bleibt. Der Himmel als Hintergrund, er wechselt mit der Tageszeit (Markenzeichen). | ⏳ [Tag & Nacht auf der neuen Basis](tickets/12-tag-und-nacht.md) |
 
-- **Standard-Design:** eines der vier. Das bisherige „Trainio“ (Graphit & gedecktes Grün) entfällt.
-  ⏳ Welches – [Welche zwei Designs kommen dazu?](tickets/04-designs-auswahl.md)
-- **Entfallen:** Trainio, Iron, Pure, Carbon, Paper, Plakat und Tag & Nacht, außer eines davon wird Design 3 oder 4.
-- Wer ein entferntes Design nutzt, landet automatisch beim neuen Standard.
+- **Standard-Design: Pure** (David, 12.11.2026). Das bisherige „Trainio“ (Graphit & gedecktes Grün) entfällt.
+- **Entfallen:** Trainio, Iron, Carbon, Paper und Plakat. Sie werden mit dem Redesign entfernt, nicht vorher.
+- Wer ein entferntes Design nutzt, landet automatisch bei Pure.
+- Grundlage: [Welche Designs bleiben?](tickets/04-designs-auswahl.md) – nach vier Prototypen mit neuen Richtungen hat
+  David entschieden, bei den vorhandenen Designs zu bleiben.
 
 ## 5. Darstellung, Feinanpassung & Startseite
 

@@ -1,7 +1,7 @@
 # Welche zwei Designs kommen dazu – und welches wird Standard?
 
 - **Typ:** prototype (HITL)
-- **Status:** offen
+- **Status:** erledigt
 - **Übernommen von:** Claude mit David
 - **Blockiert durch:** – (David hat am 12.11.2026 entschieden, die Auswahl vor der Basis zu treffen; Grundlage ist
   Prototyp 2 aus [Die neue Basis](03-basis.md))
@@ -51,3 +51,17 @@ Das bisherige „Trainio“ (Graphit & gedecktes Grün) fällt weg.
   Designs mit dem schlichten Aufbau von Klarblau 2 – Salbei, Marine, Koralle, Nacht, Petrol, Oliv, Kirsche, Arktis,
   Schiefer, Orange. Unterschiede nur über Schrift, Farbe, Ecken, Flächen und Form des Score-Kreises; keine Deko.
   Erstellt mit dem Design-Skill. Wartet auf Davids Auswahl.
+
+## Antwort
+
+Entschieden mit David am 12.11.2026. Nach vier Prototypen mit neuen Richtungen (acht Kandidaten, 24 Re-Designs,
+das eigene Design „Klarblau“, zehn klare Designs) bleibt es bei den vorhandenen Designs:
+
+1. **Die vier Designs:** Fokus, Liquid Glass, Pure und Tag & Nacht.
+2. **Entfallen:** Trainio, Iron, Carbon, Paper und Plakat – entfernt wird mit dem Redesign, nicht vorher.
+3. **Standard:** Pure. Wer ein entferntes Design nutzt, landet bei Pure. Der Name bleibt vorerst „Pure“.
+4. **Markenzeichen, Akzentfarben und Abgrenzung** für Pure und Tag & Nacht klären die neuen Tickets
+   [Pure auf der neuen Basis](11-pure.md) und [Tag & Nacht auf der neuen Basis](12-tag-und-nacht.md).
+
+Nebenbei festgelegt: die Regel „Schlicht und schön“ (ANFORDERUNGEN.md, Abschnitt 2). Die Prototypen bleiben als
+Quelle unter `docs/redesign/prototypen/04-designs/` und `04-klarblau/`, frühere Fassungen in der Git-Historie.

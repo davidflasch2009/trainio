@@ -50,12 +50,10 @@ markiert ist. Gebaut wird erst danach.
 - [Recherche: Kraft- und Muskelentwicklung aus Workouts und Körpergewicht schätzen](tickets/08-recherche-score.md): Erwartbarer e1RM-Zuwachs nach Erfahrung, Sätze pro Muskel als stärkster Wachstums-Treiber, Gewichtsraten je Phase, 8-Wochen-Rückblick; Vorschlag Kraft 50 / Reiz 30 / Gewicht 20.
 - [Trainio-Score: die Formel](tickets/09-score-formel.md): Kraft 50 / Reiz 30 / Gewicht 20, Maßstab nach Trainingserfahrung, erwartetes Tempo ≈ 85, 7 Körperbereiche, 8-Wochen-Rückblick; Hauptplatz oben auf der Startseite, grafisch statt nur Text.
 - [Darstellung neu ordnen: oben, Feinanpassung und alte Einstellungen](tickets/07-darstellung.md): Feinanpassung als Unterseite ganz unten und je Design, Akzentfarben je Design kuratiert, Startseite als eigene Mehr-Gruppe, beim Umstieg werden Übersteuerungen zurückgesetzt.
+- [Welche Designs bleiben – und welches wird Standard?](tickets/04-designs-auswahl.md): Keine neuen Designs. Es bleiben Fokus, Liquid Glass, Pure und Tag & Nacht, Pure wird Standard; Trainio, Iron, Carbon, Paper und Plakat fallen mit dem Redesign weg.
 
 ## Noch nicht festgelegt
 
-- **Steckbriefe der zwei neuen Designs:** Look, Markenzeichen, Akzentfarben-Auswahl, Teilen-Bild, Ring, Konfetti und
-  Diagramme je Design.
-  Lässt sich erst fassen, wenn feststeht, welche zwei es werden.
 - **Die einzelnen Bildschirme auf der neuen Basis:** Reicht die Festlegung der Basis, oder brauchen Workout,
   Fortschritt, Training, Mehr sowie Fenster & Menüs eigene Entscheidungen? Das zeigt sich erst am Basis-Prototyp.
 - **Reihenfolge der Umsetzung:** Basis zuerst? Alte Designs auf einmal oder schrittweise entfernen? In welchen
