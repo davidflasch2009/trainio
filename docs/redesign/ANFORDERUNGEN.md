@@ -3,6 +3,7 @@
 Der Bauplan für das neue Trainio. Er wächst mit jeder Entscheidung auf der [Karte](KARTE.md).
 Offene Punkte sind mit ⏳ markiert und verlinken das Ticket, das sie klärt.
 **Sind keine ⏳ mehr übrig, ist der Bauplan fertig und die Umsetzung kann starten.**
+**Stand 17.11.2026: Der Bauplan ist fertig.** Die Umsetzung startet in der Testversion (Abschnitt 8).
 Begriffe wie Design, Modus, Basis, Feinanpassung und Markenzeichen sind in [CONTEXT.md](../../CONTEXT.md) festgelegt.
 
 ## 1. Ziel
@@ -35,23 +36,81 @@ Die neue gemeinsame Gestaltung, auf der alle vier Designs aufsetzen: Raster & Ab
 Zahlen-Darstellung, Komponenten (Karte, Liste, Knopf, Eingabe, Segment, Kachel, Fenster, Menü),
 Diagramm-Stil und Symbole.
 
-- Ausgangslage – [Bestandsaufnahme](bestandsaufnahme.md) erledigt (Grundlage für die Festlegung, keine Anforderung)
-- Vorbilder – [Recherche](recherche/vorbilder.md) erledigt (Grundlage für die Festlegung, keine Anforderung)
-- ⏳ Festlegung – [Die neue Basis](tickets/03-basis.md)
+Entschieden in [Die neue Basis](tickets/03-basis.md). Vorlage ist der schlichte Aufbau von „Klarblau 2“
+([Prototyp](prototypen/04-klarblau/index.html)). Grundlagen: [Bestandsaufnahme](bestandsaufnahme.md),
+[Vorbilder](recherche/vorbilder.md).
+
+**Aufbau der Bildschirme** (die einzelnen Bildschirme folgen diesen Mustern, eigene Festlegungen brauchen sie nicht)
+
+- **Übersichten** (Start, Fortschritt, Herz, Körper …): Kacheln in zwei Spalten mit Titel und Zahl, Listen für
+  Gleichartiges, höchstens ein Hauptknopf je Ansicht.
+- **Startseite:** Datum, Trainio-Score-Kreis, Statistik-Kacheln (Auswahl wie heute), Hauptknopf „Workout starten“
+  bzw. „Weiter: Pull“, Ziele, Letzte Workouts.
+- **Details öffnen sich als Fenster von unten** (David): Titel, (i), Schließen; darunter eine große Zahl, höchstens
+  ein Diagramm und wenige Werte als Liste. Nach unten wischen schließt.
+- **Fortschritt:** Titel, Zeitraum als Knopf („3 Monate ▾“, öffnet ein Menü von unten mit Zeitraum und Einheit),
+  darunter die Bereiche als Textreiter.
+- **Laufendes Workout:** Kopf mit Name, Zeit und „Beenden“, ein schmaler Fortschrittsbalken, je Übung eine Tabelle
+  (Satz, kg, Wdh., Haken). Die aktuelle Zeile klappt die Eingabe auf: Stepper für kg und Wdh., „Letztes Mal …“,
+  RPE auf Antippen, Hauptknopf „Satz erledigt“. Die Pause steht als Leiste über der Tab-Leiste und verdeckt nichts.
+  Die Einstellung „ausführlich“ bleibt und zeigt zusätzlich die Vorwerte als Spalte und RPE direkt.
+- **Workout-Score und Trainio-Score** sind unterscheidbar: Der Trainio-Score ist ein großer Kreis mit der Zahl und
+  der Beschriftung „Trainio-Score“. Der Workout-Score steht nur im Abschluss eines Workouts und in dessen Details,
+  als kleiner, dicker Ring.
+
+**Raster und Maße**
+
+- 4/8-Raster: Abstände 4, 8, 12, 16, 20, 24 und 28 px. Seitenrand 20 px, zwischen Abschnitten 28 px, in Kacheln
+  und Listen 16 px.
+- Tap-Flächen mindestens 44 × 44 px, auch bei kleinen Symbolen.
+
+**Schrift**
+
+- Systemschrift (auf dem iPhone SF Pro). Stufen: Seitentitel 30, Abschnitt 20, Text 17, Nebenzeile 15,
+  Beschriftung 13, Tab-Leiste 11 px. Zahlen 32 px in Kacheln, 56 px groß in Details. Gewichte 400, 500, 600, 700.
+- Ziffern haben feste Breite. Zahl groß, Einheit klein und grau daneben.
+- Ein Design darf Titel- und Zahlenschrift sowie Gewichte tauschen, Fließtext bleibt Systemschrift.
+
+**Farben**
+
+- Neutral: Hintergrund, Fläche (Kacheln, Listen), Trennlinie, Text, Text 2.
+- **Eine Akzentfarbe** je Design für Hauptknopf, aktuellen Wert, Auswahl und Fortschritt.
+- **Signalfarben mit fester Bedeutung** in allen Designs: Gut (Grün), Achtung (Ocker), Schlecht (Rot).
+- Kontrast für Text mindestens 4,5 : 1, in Hell und Dunkel.
+
+**Komponenten**
+
+- Kachel (Fläche, Titel und Zahl), Liste (Fläche, Zeilen mit feiner Trennlinie), Knöpfe (Haupt-, Zweit-,
+  Textknopf), Stepper, Segment, Textreiter, Fortschrittsbalken (6 px), Fenster von unten, Rückfrage (Mitte),
+  Meldung (oben), Erklärung (i) nur in Fenstern.
+- Keine Karte in einer Karte. Eine Aktion hat überall dasselbe Wort, z. B. immer „Beenden“.
+
+**Diagramme**
+
+- Nur in Fenstern, höchstens eins je Fenster: Balken oder Linie.
+- Aktueller Wert im Akzent, der Rest grau, die laufende Woche blass. Keine Glättung, ehrliche Achsen (der Score immer
+  0–100), wenige Gitterlinien, Zahlen an der rechten Achse.
+
+**Symbole:** ein SVG-Satz mit einer Strichstärke, passend zur Schrift. Keine Emojis in Bedienelementen.
+
+**Was ein Design übersteuern darf:** Farben (Hintergrund, Flächen, Akzent), Ecken, Titel- und Zahlenschrift,
+Material (flach oder Glas in der Navigationsebene), Bewegung, Form der Tab-Leiste und sein Markenzeichen.
+**Immer gleich:** Aufbau, Schriftstufen, Abstände, Tap-Größen, Bedeutung der Signalfarben, Diagramm-Regeln.
 
 ## 4. Designs
 
 - **Genau vier Designs**, jedes in Hell und Dunkel.
 - **Markant:** Man erkennt jedes auf einem Screenshot ohne Namen sofort. Die Designs unterscheiden sich in Form,
   Schrift, Material und Bewegung, nicht nur in der Farbe.
-- **Jedes Design hat ein Markenzeichen**, ein eigenes Verhalten, nicht nur einen eigenen Look.
+- **Jedes Design hat ein Markenzeichen**, ein eigenes Verhalten, nicht nur einen eigenen Look. Bei Pure ist es die
+  bewusste Schlichtheit (David: „Pure ist der Inbegriff von Fokus und schlicht“).
 
-| Design | Festgelegt | Offen |
+| Design | Festlegung | Akzentfarben |
 | --- | --- | --- |
-| **Fokus** | Bleibt. Schwarz-weiß und ruhig, Farbe nur für Signale. Markenzeichen: **Spotlight** im Workout. | ⏳ [Fokus auf der neuen Basis](tickets/05-fokus.md) |
-| **Liquid Glass** | Bleibt. Glas, Unschärfe & Licht. | ⏳ [Liquid Glass auf der neuen Basis](tickets/06-liquid-glass.md), inkl. Markenzeichen |
-| **Pure** | Bleibt und wird **Standard**. Reines Schwarz und Weiß, klare Flächen, Akzent nur wo nötig. | ⏳ [Pure auf der neuen Basis](tickets/11-pure.md), inkl. Markenzeichen und Abgrenzung zu Fokus |
-| **Tag & Nacht** | Bleibt. Der Himmel als Hintergrund, er wechselt mit der Tageszeit (Markenzeichen). | ⏳ [Tag & Nacht auf der neuen Basis](tickets/12-tag-und-nacht.md) |
+| **Pure** (Standard) | Schlicht und ruhig, nichts lenkt ab: helle Flächen auf Weiß bzw. dunkle auf Schwarz, Ecken 8 px, Systemschrift. Vorlage ist Klarblau 2. **Abgrenzung zu Fokus:** Pure hat einen Farbakzent, Fokus nicht. Kein zusätzliches Verhalten als Markenzeichen. [Ticket](tickets/11-pure.md) | Blau (Standard), Rot, Grün, Orange, Violett |
+| **Fokus** | Schwarz-weiß und ruhig, Farbe nur für Signale. **Markenzeichen: Spotlight** im Workout, nur die aktuelle Übung ist voll da. Konfetti in Graustufen. [Ticket](tickets/05-fokus.md) | keine (David) |
+| **Liquid Glass** | **Glas wie beim iPhone** (David): nur in der Navigationsebene, also Tab-Leiste, Kopfzeile beim Scrollen, Fenster und Menüs. Kacheln und Listen bleiben deckend und gut lesbar, kein Glas auf Glas. Farbiger Hintergrund, die Auswahl bleibt in der Feinanpassung. **Markenzeichen: Die Tab-Leiste schrumpft beim Scrollen** und wird beim Hochscrollen wieder groß (David). Bei „Hoher Kontrast“ ohne Unschärfe. [Ticket](tickets/06-liquid-glass.md) | Blau (Standard), Türkis, Violett, Rosa, Grün, Orange |
+| **Tag & Nacht** | **Markenzeichen: Der Himmel als Hintergrund wechselt mit der Tageszeit**, kein Hell/Dunkel zum Wählen. Kacheln und Listen deckend, kein Glas, weiche Serifen-Zahlen. **Abgrenzung zu Liquid Glass:** Himmel statt Glas, deckende Tab-Leiste. [Ticket](tickets/12-tag-und-nacht.md) | folgt dem Himmel, keine Auswahl (David) |
 
 - **Standard-Design: Pure** (David, 12.11.2026). Das bisherige „Trainio“ (Graphit & gedecktes Grün) entfällt.
 - **Entfallen:** Trainio, Iron, Carbon, Paper und Plakat. Sie werden mit dem Redesign entfernt, nicht vorher.
@@ -76,8 +135,8 @@ Entschieden in [Darstellung neu ordnen](tickets/07-darstellung.md).
 
 **Feinanpassung**
 
-- Enthält Ecken, Schrift, Dichte, Tab-Leiste (Stil und Beschriftung) und die eigene Akzentfarbe.
-  ⏳ Ob der Glas-Hintergrund dazukommt: [Liquid Glass auf der neuen Basis](tickets/06-liquid-glass.md)
+- Enthält Ecken, Schrift, Dichte, Tab-Leiste (Stil und Beschriftung) und die eigene Akzentfarbe. Bei Liquid Glass
+  zusätzlich die Auswahl des Hintergrunds.
 - Gilt **je Design**: Jedes Design merkt sich seine eigenen Anpassungen. Nach einem Wechsel sieht man das neue
   Design so, wie es gedacht ist.
 - Die Zeile zeigt den Zustand: „Wie im Design“ oder z. B. „2 Änderungen“.
@@ -86,9 +145,8 @@ Entschieden in [Darstellung neu ordnen](tickets/07-darstellung.md).
 
 **Akzentfarbe**
 
-- Jedes Design bietet eine kleine, passende Auswahl (4–6 Farben, die erste ist die Standardfarbe des Designs).
-  Fokus hat womöglich gar keine, weil Farbe dort nur Signal ist.
-  ⏳ Die Auswahl je Design entscheiden die Design-Tickets.
+- Jedes Design bietet eine kleine, passende Auswahl (die erste ist die Standardfarbe), siehe Tabelle in Abschnitt 4.
+  Fokus hat keine, Tag & Nacht folgt dem Himmel. Bei diesen beiden fehlt die Zeile „Akzentfarbe“.
 - Eine eigene Farbe gibt es nur noch in der Feinanpassung. Der Kontrast wird wie heute automatisch angepasst.
 
 **Startseite**: eine eigene Gruppe im Mehr-Tab direkt unter Darstellung. Sie enthält Statistik-Kacheln
@@ -130,9 +188,21 @@ Entschieden in [Trainio-Score: die Formel](tickets/09-score-formel.md). Grundlag
 - **Hauptplatz oben auf der Startseite.** Er ist die wichtigste Information der App (David): ein **großer Kreis mit
   der Zahl**, sonst nichts ([Skizze von David](bilder/skizze-david-start-score.png)). Antippen öffnet die Details mit
   Aufschlüsselung nach Körperbereichen, Verlauf und Klartext.
-- **Fortschritt → Übersicht:** ausführliche Karte ganz oben mit Aufschlüsselung, Verlauf und Erklärung.
+- **Fortschritt → Übersicht:** derselbe Kreis, etwas kleiner, ganz oben. Antippen öffnet dieselben Details.
 - Eine eigene Startseiten-Kachel gibt es nicht, der Hauptplatz ersetzt sie.
-- ⏳ Aussehen – [Trainio-Score: Hauptplatz, Karte und Klartext](tickets/10-score-darstellung.md)
+
+**Aussehen** (entschieden in [Trainio-Score: Hauptplatz, Karte und Klartext](tickets/10-score-darstellung.md))
+
+- **Kreis:** eine Spur in der Flächenfarbe, darüber ein Bogen in der Akzentfarbe bis zum Wert, in der Mitte die Zahl,
+  darunter „Trainio-Score“. Die Form folgt dem Design.
+- **Fenster beim Antippen**, von oben nach unten: der Kreis; der Klartext als Hauptzeile und bis zu zwei kurze
+  Hinweise (Hinweise in Achtung-Farbe); die sieben Körperbereiche als Liste mit Zahl, schwache Bereiche (unter 65) in
+  Achtung-Farbe; der Verlauf der letzten 8 Wochen als eine Linie (0–100); die Bestandteile Kraft, Trainingsreiz und
+  Gewichtstrend als Liste. Im (i): „Schätzung aus Training und Gewicht. 85 heißt: im erwarteten Tempo.“
+- **Noch zu wenig Daten:** nur die Spur, statt der Zahl ein „–“, darunter „Noch N Workouts“.
+- **Noch unsicher:** Zahl wie gewohnt, im Fenster der Hinweis „noch unsicher – wenige Daten“.
+- **Pause:** Der letzte Wert bleibt, im Fenster steht „Pause – Score ruht“.
+- **Abgeschaltet:** Die Startseite beginnt mit den Kacheln.
 
 **Bestandteile** (in jeder Phase gleich gewichtet, nur die Ziele ändern sich)
 
@@ -229,8 +299,28 @@ ersetzt sie nicht.
 - Navigation oder Tab-Struktur umbauen, Funktionen streichen.
 - Absolutes Kraft-Niveau oder Vergleich mit Kraft-Standards im Score.
 - Körperfett, Umfänge oder Fotos als Eingaben des Scores.
+- Der Trainio-Score an weiteren Orten (Teilen-Bild, Meilensteine, Hinweis bei starker Veränderung): später.
 
 ## 8. Umsetzung
 
-⏳ Reihenfolge und Schritte der Umsetzung – noch nicht als Ticket gefasst (siehe [Karte](KARTE.md),
-„Noch nicht festgelegt“).
+**Vorgehen (David, 17.11.2026):** Der Umbau wird gebaut und in einer **Testversion** ausprobiert. Live geht er erst,
+wenn David ihn abnimmt.
+
+1. **Testversion einrichten.** Der Umbau entsteht auf dem Zweig `redesign`. GitHub Pages veröffentlicht `main` weiter
+   unter der gewohnten Adresse und den Zweig `redesign` zusätzlich unter `…/trainio/test/`. Eine GitHub-Action baut
+   beides zusammen. Dafür stellt David einmalig in den Repo-Einstellungen die Pages-Quelle auf „GitHub Actions“.
+   Der Service Worker der echten App lässt `/test/` aus. Die echte App ändert sich dadurch nicht.
+2. **Testversion mit Beispieldaten** (David): eigener Speicher, keine Verbindung zu Davids Daten oder zu Firebase.
+   Beim ersten Öffnen legt sie Beispiel-Workouts an (10 Wochen Push/Pull/Beine, Körpergewicht, Phase Bulk). Ein Knopf
+   setzt die Beispieldaten zurück.
+3. **Reihenfolge in der Testversion**, jeder Schritt sofort ausprobierbar:
+   1. Basis: Schrift, Raster, Farben, Komponenten; Start, laufendes Workout und Fortschritt nach den Mustern;
+      Details als Fenster von unten.
+   2. Pure als Standard auf der Basis.
+   3. Trainio-Score: Berechnung, Darstellung, Einstellung „Trainiere seit“.
+   4. Fokus, Liquid Glass und Tag & Nacht auf der Basis.
+   5. Alle übrigen Bildschirme (Training, Übungen, Mehr, Herz, Körper …) und Fenster nach den Mustern; Darstellung
+      und Feinanpassung neu; Umstieg (entfernte Designs → Pure, Hinweis).
+   6. Tests in `tests/smoke.js` für Score, Umstieg und die Trennung der Testversion.
+4. **Live:** Nach Davids Abnahme kommt alles in **einem** Release auf `main` (neue Minor-Version). Bis dahin bleibt
+   die echte App, wie sie ist. Fehlerbehebungen gehen weiter normal auf `main` und werden in `redesign` übernommen.

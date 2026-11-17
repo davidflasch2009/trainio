@@ -1,8 +1,8 @@
 # Liquid Glass auf der neuen Basis – und sein Markenzeichen
 
 - **Typ:** prototype (HITL)
-- **Status:** offen
-- **Übernommen von:** –
+- **Status:** erledigt
+- **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Die neue Basis: Raster, Schrift, Komponenten, Diagramme](03-basis.md)
 
 ## Frage
@@ -21,3 +21,13 @@ Zu klären:
 - Apple empfiehlt Glas nur für die Navigationsebene, nicht auf Inhaltskarten und kein Glas auf Glas – heute liegt
   Glas auch auf den Karten. Siehe [Vorbilder](../recherche/vorbilder.md), Abschnitt 1.7.
 - Hell und Dunkel
+
+## Antwort
+
+Entschieden mit David am 17.11.2026. Siehe [ANFORDERUNGEN.md, Abschnitt 4](../ANFORDERUNGEN.md#4-designs).
+
+- **Glas wie beim iPhone** (David): nur in der Navigationsebene, also Tab-Leiste, Kopfzeile beim Scrollen, Fenster und
+  Menüs. Kacheln und Listen bleiben deckend, kein Glas auf Glas.
+- **Markenzeichen:** Die Tab-Leiste schrumpft beim Scrollen nach unten und wird beim Hochscrollen wieder groß (David).
+- Der Glas-Hintergrund bleibt wählbar, in der Feinanpassung.
+- Akzentfarben: Blau (Standard), Türkis, Violett, Rosa, Grün, Orange. Bei „Hoher Kontrast“ ohne Unschärfe.

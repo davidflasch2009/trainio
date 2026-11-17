@@ -51,16 +51,17 @@ markiert ist. Gebaut wird erst danach.
 - [Trainio-Score: die Formel](tickets/09-score-formel.md): Kraft 50 / Reiz 30 / Gewicht 20, Maßstab nach Trainingserfahrung, erwartetes Tempo ≈ 85, 7 Körperbereiche, 8-Wochen-Rückblick; Hauptplatz oben auf der Startseite, grafisch statt nur Text.
 - [Darstellung neu ordnen: oben, Feinanpassung und alte Einstellungen](tickets/07-darstellung.md): Feinanpassung als Unterseite ganz unten und je Design, Akzentfarben je Design kuratiert, Startseite als eigene Mehr-Gruppe, beim Umstieg werden Übersteuerungen zurückgesetzt.
 - [Welche Designs bleiben – und welches wird Standard?](tickets/04-designs-auswahl.md): Keine neuen Designs. Es bleiben Fokus, Liquid Glass, Pure und Tag & Nacht, Pure wird Standard; Trainio, Iron, Carbon, Paper und Plakat fallen mit dem Redesign weg.
+- [Die neue Basis](tickets/03-basis.md): Schlichter Aufbau von Klarblau 2 – Kacheln nur Titel und Zahl, Score als Kreis, Details als Fenster von unten, keine Deko.
+- [Fokus auf der neuen Basis](tickets/05-fokus.md): Bleibt farblos mit Spotlight, keine Akzentfarben.
+- [Liquid Glass auf der neuen Basis](tickets/06-liquid-glass.md): Glas wie beim iPhone nur in der Navigationsebene; Markenzeichen: Tab-Leiste schrumpft beim Scrollen.
+- [Pure auf der neuen Basis](tickets/11-pure.md): Inbegriff von schlicht, Akzent Blau, kein Extra-Verhalten.
+- [Tag & Nacht auf der neuen Basis](tickets/12-tag-und-nacht.md): Himmel nach Tageszeit, Farbe folgt dem Himmel, deckende Flächen.
+- [Trainio-Score: Hauptplatz, Karte und Klartext](tickets/10-score-darstellung.md): Kreis mit Zahl, Details im Fenster von unten, Zustände festgelegt.
+- **Umsetzung** (ANFORDERUNGEN.md, Abschnitt 8): Bauen auf dem Zweig `redesign`, Testversion mit Beispieldaten unter `…/trainio/test/`, live in einem Release nach Davids Abnahme.
 
 ## Noch nicht festgelegt
 
-- **Die einzelnen Bildschirme auf der neuen Basis:** Reicht die Festlegung der Basis, oder brauchen Workout,
-  Fortschritt, Training, Mehr sowie Fenster & Menüs eigene Entscheidungen? Das zeigt sich erst am Basis-Prototyp.
-- **Reihenfolge der Umsetzung:** Basis zuerst? Alte Designs auf einmal oder schrittweise entfernen? In welchen
-  Releases? Fest: Auch andere nutzen Trainio – jeder Release muss in sich fertig sein, nichts darf halb umgebaut
-  live gehen.
-- **Der Trainio-Score an weiteren Orten:** Teilen-Bild, Meilensteine, Hinweis bei starker Veränderung – vage,
-  hängt an Formel und Darstellung.
+Nichts mehr – der Bauplan ist fertig (17.11.2026). Die Umsetzung startet in der Testversion.
 
 ## Außerhalb
 
@@ -69,3 +70,4 @@ markiert ist. Gebaut wird erst danach.
   Bildschirms wird neu.
 - **Absolutes Kraft-Niveau im Score** (Vergleich mit Kraft-Standards): Der Trainio-Score misst nur die Entwicklung.
 - **Körperfett, Umfänge, Fotos im Score:** David trägt nur Workouts und Körpergewicht ein.
+- **Der Trainio-Score an weiteren Orten** (Teilen-Bild, Meilensteine, Hinweis bei starker Veränderung): später.

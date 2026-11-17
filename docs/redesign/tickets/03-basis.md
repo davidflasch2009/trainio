@@ -1,7 +1,7 @@
 # Die neue Basis: Raster, Schrift, Komponenten, Diagramme
 
 - **Typ:** prototype (HITL)
-- **Status:** offen
+- **Status:** erledigt
 - **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Bestandsaufnahme: Was wirkt heute unprofessionell?](01-bestandsaufnahme.md), [Vorbilder: Was macht Fitness-Apps professionell?](02-vorbilder.md)
 
@@ -37,3 +37,15 @@ alles neu angeordnet werden.
 - **Prototyp 2** (gleicher Link, Fassung 1 in Commit bb5af6d): Kacheln nur mit Titel und Zahl, Details nach
   Antippen, Score-Kreis oben. Zwei Varianten: A „Nur Zahlen“ (Details als Fenster von unten) und B „Mit Grafik“
   (kleine Grafik ohne Achsen in der Kachel, Details als eigene Seite). Wartet auf Davids Rückmeldung.
+
+## Antwort
+
+Entschieden mit David am 17.11.2026, ohne weiteren Prototyp. Ausformuliert in
+[ANFORDERUNGEN.md, Abschnitt 3](../ANFORDERUNGEN.md#3-basis).
+
+1. **Vorlage ist der schlichte Aufbau von Klarblau 2:** Kacheln nur mit Titel und Zahl, Score als Kreis, keine
+   Deko. Das folgt aus Davids Rückmeldungen zu den Prototypen („viel zu viel Text“, „zu viele Diagramme und
+   Striche“).
+2. **Details öffnen sich als Fenster von unten** (David).
+3. Raster, Schriftstufen, Farben, Komponenten, Diagramm-Regeln und was ein Design übersteuern darf, hat Claude im
+   Rahmen festgelegt. Die einzelnen Bildschirme folgen diesen Mustern und brauchen keine eigenen Festlegungen.

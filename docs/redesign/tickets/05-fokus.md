@@ -1,8 +1,8 @@
 # Fokus auf der neuen Basis
 
 - **Typ:** prototype (HITL)
-- **Status:** offen
-- **Übernommen von:** –
+- **Status:** erledigt
+- **Übernommen von:** Claude mit David
 - **Blockiert durch:** [Die neue Basis: Raster, Schrift, Komponenten, Diagramme](03-basis.md)
 
 ## Frage
@@ -19,3 +19,11 @@ Zu klären:
 - Akzentfarbe: Bekommt Fokus eine kleine Auswahl (4–6 Farben) oder gar keine, weil Farbe dort nur Signal ist?
   Siehe [Darstellung neu ordnen](07-darstellung.md).
 - Hell und Dunkel
+
+## Antwort
+
+Entschieden mit David am 17.11.2026. Siehe [ANFORDERUNGEN.md, Abschnitt 4](../ANFORDERUNGEN.md#4-designs).
+
+- Fokus bleibt schwarz-weiß und ruhig, Farbe nur für Signale. **Keine Akzentfarben** (David).
+- Markenzeichen bleibt das **Spotlight** im Workout.
+- Konfetti in Graustufen, Ring und Diagramme in Schwarz-Weiß mit Signalfarben, Hell und Dunkel.
