@@ -79,8 +79,11 @@ async function boot() {
   applyDefaultPeriod();
   // Icon über „Auf dem Home-Bildschirm übernehmen" gewählt (?icon=N) → als Einstellung merken
   if (window.__iconFromUrl && window.__iconFromUrl !== S().appIcon) Store.saveSettings({ appIcon: window.__iconFromUrl });
-  // Entfernte Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) → Trainio
-  if (!DESIGNS.some(d => d.id === S().design)) { Store.saveSettings({ design: 'gymlog' }); applyTheme(); }
+  // Umstieg auf die vier neuen Designs; entfernte Designs → Pure
+  const lookReset = migrateLook();
+  if (!DESIGNS.some(d => d.id === S().design)) Store.saveSettings({ design: DEFAULT_DESIGN });
+  applyTheme();
+  if (lookReset && Store.hasUserData()) toast('Neue Designs – deine Anpassungen wurden zurückgesetzt', 'info', { duration: 6000 });
   App.renderCurrent();
   fx($('#tab-' + App.tab), 'fx-fade');   // ruhig einblenden, ohne Verrutschen
   countUp($$(`#tab-${App.tab} :is(${COUNT_SEL})`));

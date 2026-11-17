@@ -69,6 +69,7 @@ function moreGroups() {
         ['Profil', [
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
           mi('Geschlecht', 'Für Richtwerte (z. B. Taille/Hüfte, VO2max)', segCtl('sex', [['m', 'Mann'], ['f', 'Frau']]), 'mann frau profil'),
+          mi('Trainiere seit', 'Für das erwartete Kraft-Tempo im Trainio-Score. Leer = seit deinem ersten Workout.', `<input class="input" type="month" data-ch="setSince" value="${esc(s.trainingSince || '')}" max="${isoDate().slice(0, 7)}" style="max-width:170px">`, 'trainiere seit erfahrung trainingserfahrung anfänger score profil'),
           mi('Geburtsjahr', 'Für Pulszonen & VO2max', `<input class="input" data-in="setBirth" inputmode="numeric" autocomplete="off" value="${esc(s.birthYear || '')}" placeholder="z. B. 2005" style="max-width:110px">`, 'alter herz puls zonen vo2max profil'),
           mi('Maximalpuls', 'Leer = aus dem Alter geschätzt (208 − 0,7 × Alter)', `<input class="input" data-in="setHrMax" inputmode="numeric" autocomplete="off" value="${esc(s.hrMax || '')}" placeholder="${Heart.maxHr() && Heart.maxHr().est ? 'ca. ' + Heart.maxHr().v : 'z. B. 195'}" style="max-width:110px">`, 'herzfrequenz max puls zonen herz')]]
       ] },
@@ -126,6 +127,8 @@ function moreGroups() {
           mi('Vor einem Drop-Satz', 'Zwischen Satz und Drop-Satz – meist direkt weiter', selectCtl('restDropSec', [['normal', 'Wie normal'], [0, 'Keine Pause'], [10, '0:10 min'], [15, '0:15 min'], [30, '0:30 min']]), 'drop dropsatz pause')]]
       ] },
     lookGroup(s),
+    tuneGroup(s),
+    homeGroup(s),
     { id: 'toasts', title: 'Meldungen', ic: 'info',
       intro: 'Kurze Meldungen oben im Bildschirm. Fehler und Meldungen mit Knopf (z. B. „Rückgängig“) kommen immer.',
       sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, sub, toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
@@ -161,67 +164,85 @@ function moreGroups() {
         mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
   ];
 }
-/* Darstellung (früher ein eigenes Fenster): Vorschau oben, darunter Design, Modus, Farben, Feinschliff … */
+/* Darstellung (ANFORDERUNGEN.md Abschnitt 5): Vorschau, Design, App-Icon, Modus & Akzent, Lesbarkeit, Bewegung –
+   ganz unten „Feinanpassung ›“ als eigene Unterseite (gilt je Design) */
+const lookCtl = s => ({
+  seg: (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-act="lookSet" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`,
+  sw: (k, label) => `<label class="switch"><input type="checkbox" switch data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`,
+  st: (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(sub ? t + infoBtn(plainText(sub)) : t, '', ctl) })
+});
 function lookGroup(s) {
   const D = designOf(s.design);
-  const seg = (k, opts) => `<div class="seg sm">${opts.map(([v, l]) => `<button class="${String(s[k]) === String(v) ? 'active' : ''}" data-act="lookSet" data-k="${k}" data-v="${v}">${l}</button>`).join('')}</div>`;
-  const sw = (k, label) => `<label class="switch"><input type="checkbox" switch data-ch="lookToggle" data-k="${k}" ${s[k] !== false ? 'checked' : ''} aria-label="${esc(label)}"><span></span></label>`;
-  const st = (t, sub, ctl, kw = '') => ({ t, s: sub, kw, html: stackLine(sub ? t + infoBtn(plainText(sub)) : t, '', ctl) });
+  const { seg, sw, st } = lookCtl(s);
   const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
-  const accent = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
-  const isPreset = ACCENTS.some(([h]) => h === accent);
+  const accent = accentOf(s, D);
+  const n = tuneChanges(s);
   return { id: 'look', title: 'Darstellung', ic: 'sun',
-    head: `<div class="card look-preview">
-      <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-        <div class="stat"><div class="stat-label">${icon('flame')} Streak</div><div class="stat-value">12<small>Wochen</small></div><div class="week-dots"><i class="on"></i><i class="on"></i><i></i><i class="on today"></i><i></i><i></i><i></i></div></div>
-        <div class="stat"><div class="stat-label">${icon('bolt')} Volumen</div><div class="stat-value">8,4 t</div><div class="stat-sub"><span class="delta up">${icon('arrowUp')}+12 %</span></div></div>
-      </div>
-      <div class="row mt-12"><span class="btn btn-primary grow">${icon('play')} Workout starten</span><span class="btn btn-secondary">${icon('layers')}</span></div>
-      <div class="chips mt-12"><span class="chip active">Push</span><span class="chip">Pull</span><span class="chip">Legs</span><span class="badge accent">${icon('trophy')} PR</span></div>
+    head: `<div class="look-preview">
+      <div class="tiles"><div class="tile"><span class="tile-t">Workouts</span><span class="tile-n">12</span></div><div class="tile"><span class="tile-t">Volumen</span><span class="tile-n">8,4<small>t</small></span></div></div>
+      <span class="btn btn-primary btn-block mt-12">Workout starten</span>
     </div>`,
     sections: [
-      ['Design', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon">${icon('sun')}</span><span class="li-main"><span class="li-title">Design</span><div class="li-sub">${esc(D.name)}</div></span>${icon('chevR', 'li-chev')}</button>`,
-          'Design', D.name, 'theme ' + DESIGNS.map(d => d.name + ' ' + d.desc).join(' '), 'search')],
+      ['Design', [mRow('', 'Design', D.name, 'theme ' + DESIGNS.map(d => d.name + ' ' + d.desc).join(' '), 'search')],
         `<div class="design-grid hscroll" data-row="design">${DESIGNS.map(d => `
           <button class="design-tile ${d.id === D.id ? 'active' : ''}" data-act="lookSet" data-k="design" data-v="${d.id}" aria-pressed="${d.id === D.id}">
             ${designPair(d.id)}
             <span class="dt-name">${esc(d.name)}${d.id === D.id ? icon('checkCircle') : ''}</span>
           </button>`).join('')}</div>`],
-      ['App-Icon', [mRow(`<button class="list-item" data-act="moreSub" data-v="look"><span class="li-icon"><img class="li-img" src="${iconSrc()}" alt=""></span><span class="li-main"><span class="li-title">App-Icon</span></span>${icon('chevR', 'li-chev')}</button>`,
-          'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
-        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt="" decoding="async"></button>`).join('')}</div>${iconHomeBtn()}`, iconHint()],
-      ['Farben & Modus', [
+      ['App-Icon', [mRow('', 'App-Icon', 'Symbol auf dem Home-Bildschirm', 'icon logo symbol home bildschirm', 'search')],
+        `<div class="icon-grid hscroll" data-row="icon">${APP_ICONS.map(id => `<button class="icon-tile ${id === iconId() ? 'active' : ''}" data-act="iconSet" data-v="${id}" aria-pressed="${id === iconId()}" aria-label="App-Icon ${id}"><img src="${iconSrc('icon-192.png', id)}" alt=""></button>`).join('')}</div>${iconHomeBtn()}`, iconHint()],
+      ['Modus & Farbe', [
         D.phased ? st('Tageszeit', Sky.settingsSub(), Sky.settingsHtml(), 'hell dunkel dark light nachtmodus tag nacht sonne mond dämmerung sonnenuntergang zeitraffer')
-          : st('Modus', '„Uhrzeit": hell von 7 bis 19 Uhr, danach dunkel. Jedes Design gibt es hell und dunkel – „Tag & Nacht" folgt von selbst dem Himmel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
-        st('Akzentfarbe', 'Buttons, Diagramme & Markierungen übernehmen die Farbe. Text-Varianten werden automatisch kontrastreich angepasst.', `<div class="swatches">
-          <button class="swatch def ${accent ? '' : 'active'}" data-act="lookSet" data-k="accent" data-v="" aria-label="Design-Standard" title="Design-Standard">${accent ? '' : icon('check')}</button>
-          ${ACCENTS.map(([h, n]) => `<button class="swatch ${accent === h ? 'active' : ''}" style="background:${h};color:${Color.contrast('#fff', h) > 2.2 ? '#fff' : '#111'}" data-act="lookSet" data-k="accent" data-v="${h}" aria-label="${n}" title="${n}">${accent === h ? icon('check') : ''}</button>`).join('')}
-          <label class="swatch custom ${accent && !isPreset ? 'active' : ''}" title="Eigene Farbe" ${accent && !isPreset ? `style="background:${accent};color:#fff"` : ''}>${icon('plus')}<input type="color" data-in="lookColor" data-ch="lookColor" value="${accent || '#39ff88'}" aria-label="Eigene Farbe"></label>
-        </div>`, 'farbe eigene farbe'),
-        ...(D.id === 'glass' ? [
-          st('Glas-Hintergrund', '', `<div class="wall-row">${WALLS.map(([k, n]) => `<button class="wall-tile ${s.wall === k ? 'active' : ''}" data-theme="${resolvedTheme()}" data-wall="${k}" data-act="lookSet" data-k="wall" data-v="${k}" aria-label="${n}"><span>${n}</span></button>`).join('')}</div>`, 'wallpaper liquid glass'),
-          st('Glas-Unschärfe', 'Stärker = mehr Glas, aber mehr Akku', seg('glassBlur', [['off', 'Aus'], ['light', 'Leicht'], ['normal', 'Normal'], ['strong', 'Stark']]), 'blur liquid glass')] : [])]],
-      ['Feinschliff', [
-        st('Ecken', '', seg('radius', [['auto', 'Design'], ['sharp', 'Eckig'], ['medium', 'Mittel'], ['round', 'Rund']]), 'rund eckig radius'),
-        mi('Schrift', '', `<select class="select" data-ch="lookSelect" data-k="font">${[['auto', 'Design-Schrift'], ['system', 'System'], ['rounded', 'Abgerundet'], ['serif', 'Serif'], ['mono', 'Monospace'], ['condensed', 'Schmal (Condensed)']].map(([v, l]) => `<option value="${v}" ${s.font === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`, 'schriftart font'),
+          : st('Modus', '„Uhrzeit“: hell von 7 bis 19 Uhr, danach dunkel.', seg('theme', [['light', 'Hell'], ['dark', 'Dunkel'], ['system', 'System'], ['time', 'Uhrzeit']]), 'hell dunkel dark light nachtmodus'),
+        ...(D.accents ? [st('Akzentfarbe', '', `<div class="swatches">${D.accents.map(([h, nm], i) => {
+          const on = i ? accent === h : !accent, col = i ? h : cssVar('--accent');
+          return `<button class="swatch ${on ? 'active' : ''}" style="background:${col};color:${Color.valid(col) && Color.contrast('#fff', col) < 2.2 ? '#111' : '#fff'}" data-act="lookSet" data-k="accent" data-v="${h}" aria-label="${nm}" title="${nm}">${on ? icon('check') : ''}</button>`;
+        }).join('')}</div>`, 'farbe akzent ' + D.accents.map(a => a[1]).join(' '))] : [])]],
+      ['Lesbarkeit', [
         st('Textgröße', '', seg('textSize', [['s', 'S'], ['m', 'M'], ['l', 'L'], ['xl', 'XL']]), 'schriftgröße'),
-        st('Dichte', 'Abstände & Höhe von Zeilen', seg('density', [['compact', 'Kompakt'], ['normal', 'Normal'], ['comfy', 'Luftig']]), 'kompakt luftig abstand'),
-        tg('contrast', 'Hoher Kontrast', 'Kräftigere Nebentexte & Rahmen')]],
-      ['Navigation', [
-        st('Tab-Leiste', 'Nur auf dem Handy', seg('navStyle', [['auto', 'Design'], ['classic', 'Klassisch'], ['floating', 'Schwebend']]), 'leiste unten schwebend'),
-        tg('navLabels', 'Beschriftung unter Icons', '', 'tab leiste text'),
-        st('Beim Öffnen', 'Welcher Tab zuerst erscheint', seg('startTab', [['start', 'Start'], ['training', 'Training'], ['last', 'Zuletzt']]), 'start tab')]],
+        tg('contrast', 'Hoher Kontrast', 'Kräftigere Nebentexte und Rahmen', 'kontrast')]],
       ['Bewegung & Feedback', [
         st('Animationen', '', seg('motion', [['full', 'Voll'], ['reduced', 'Reduziert'], ['off', 'Aus']]), 'bewegung'),
-        tg('haptics', 'Vibration', 'Kurzes Feedback bei Satz, Pause & Schaltern (iPhone ab iOS 18)', 'haptik vibrieren'),
+        tg('haptics', 'Vibration', 'Kurzes Feedback bei Satz, Pause und Schaltern', 'haptik vibrieren'),
         tg('confetti', 'Konfetti bei neuen PRs', '', 'rekord feiern')]],
-      ['Startseite', [
+      ['', [mRow(`<button class="list-item" data-act="moreSub" data-v="tune"><span class="li-main"><span class="li-title">Feinanpassung</span><div class="li-sub">${n ? `${n} ${n === 1 ? 'Änderung' : 'Änderungen'}` : 'Wie im Design'}</div></span>${icon('chevR', 'li-chev')}</button>`, 'Feinanpassung', 'Ecken, Schrift, Dichte, Tab-Leiste', 'feinanpassung ecken schrift dichte tab leiste eigene farbe')]]
+    ],
+    foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">Darstellung zurücksetzen</button>` };
+}
+/* Feinanpassung: gilt je Design (settings.tune[design]) – die Werte stehen für das aktuelle Design in den normalen
+   Einstellungen (radius, font …), beim Wechsel werden sie gesichert bzw. geladen (designPatch) */
+function tuneGroup(s) {
+  const D = designOf(s.design);
+  const { seg, sw, st } = lookCtl(s);
+  const custom = s.accentCustom && Color.valid(s.accent) ? s.accent : '';
+  return { id: 'tune', title: 'Feinanpassung', ic: 'sliders', parent: 'look',
+    sections: [
+      [D.name, [
+        st('Ecken', '', seg('radius', [['auto', 'Design'], ['sharp', 'Eckig'], ['medium', 'Mittel'], ['round', 'Rund']]), 'rund eckig radius'),
+        mi('Schrift', '', `<select class="select" data-ch="lookSelect" data-k="font">${[['auto', 'Design-Schrift'], ['system', 'System'], ['rounded', 'Abgerundet'], ['serif', 'Serif'], ['mono', 'Monospace'], ['condensed', 'Schmal']].map(([v, l]) => `<option value="${v}" ${s.font === v ? 'selected' : ''}>${l}</option>`).join('')}</select>`, 'schriftart font'),
+        st('Dichte', '', seg('density', [['compact', 'Kompakt'], ['normal', 'Normal'], ['comfy', 'Luftig']]), 'kompakt luftig abstand'),
+        st('Tab-Leiste', '', seg('navStyle', [['auto', 'Design'], ['classic', 'Klassisch'], ['floating', 'Schwebend']]), 'leiste unten schwebend'),
+        mi('Beschriftung unter Icons', '', sw('navLabels', 'Beschriftung unter Icons'), 'tab leiste text'),
+        ...(D.accents ? [mi('Eigene Akzentfarbe', '', `<label class="swatch custom ${custom ? 'active' : ''}" title="Eigene Farbe" ${custom ? `style="background:${custom};color:#fff"` : ''}>${icon(custom ? 'check' : 'plus')}<input type="color" data-in="lookColor" data-ch="lookColor" value="${custom || cssVar('--accent') || '#2f5bd3'}"></label>`, 'farbe eigene farbe')] : []),
+        ...(D.id === 'glass' ? [
+          st('Hintergrund', '', `<div class="wall-row">${WALLS.map(([k, nm]) => `<button class="wall-tile ${s.wall === k ? 'active' : ''}" data-theme="${resolvedTheme()}" data-wall="${k}" data-act="lookSet" data-k="wall" data-v="${k}" aria-label="${nm}"><span>${nm}</span></button>`).join('')}</div>`, 'wallpaper liquid glass hintergrund'),
+          st('Unschärfe', '', seg('glassBlur', [['off', 'Aus'], ['light', 'Leicht'], ['normal', 'Normal'], ['strong', 'Stark']]), 'blur liquid glass')] : [])]]
+    ],
+    foot: `<button class="btn btn-secondary btn-block mt-24" data-act="tuneReset" ${tuneChanges(s) ? '' : 'disabled'}>Auf Design zurücksetzen</button>` };
+}
+/* Startseite: eigene Gruppe direkt unter Darstellung */
+function homeGroup(s) {
+  const { seg, sw, st } = lookCtl(s);
+  const tg = (k, t, sub = '', kw = '') => mi(t, sub, sw(k, t), kw);
+  return { id: 'home', title: 'Startseite', ic: 'home',
+    sections: [
+      ['', [
         tg('homeStats', 'Statistik-Kacheln', '', 'start'),
         ...(s.homeStats !== false ? [st('Kacheln', 'Antippen schaltet ein oder aus, die Pfeile ändern die Reihenfolge – je zwei stehen nebeneinander', tileChooserHtml(), 'kacheln reihenfolge streak volumen score sätze trainingszeit monat letztes workout konsistenz prs kraft 1rm körpergewicht cardio ruhepuls vo2max herz startseite')] : []),
         ...(F('f_heart') ? [tg('homeHeart', 'Herz diese Woche', 'Karte mit deinem Herz-Plan (nur wenn er aktiv ist)', 'herz plan karte start')] : []),
-        st('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]), 'start')]]
-    ],
-    foot: `<button class="btn btn-secondary btn-block mt-24" data-act="lookReset">${icon('undo')} Darstellung zurücksetzen</button>` };
+        st('Letzte Workouts', 'Anzahl auf der Startseite', seg('homeRecent', [[0, 'Aus'], [3, '3'], [5, '5'], [8, '8']]), 'start')]],
+      ['', [st('Beim Öffnen', 'Welcher Tab zuerst erscheint', seg('startTab', [['start', 'Start'], ['training', 'Training'], ['last', 'Zuletzt']]), 'start tab öffnen')]]
+    ] };
 }
 /* ---------- Konto: Anmeldewege (Google, GitHub …) verknüpfen / trennen ---------- */
 const accountLine = u => u.email || `Angemeldet mit ${u.providers.map(k => Auth.provider(k).label).join(' & ') || 'Konto'}`;
@@ -303,22 +324,23 @@ Actions.iconHome = () => {
 Actions.lookSet = el => setLook(el.dataset.k, el.dataset.v);
 Changes.lookToggle = el => setLook(el.dataset.k, el.checked);
 Changes.lookSelect = el => setLook(el.dataset.k, el.value);
-Changes.lookColor = el => setLook('accent', el.value.toLowerCase());
+Changes.lookColor = el => switchLook(() => Store.saveSettings({ accent: el.value.toLowerCase(), accentCustom: true }));
+Actions.tuneReset = () => switchLook(() => Store.saveSettings(tuneDefaults(S())));
 // Farbwähler live (ohne Speichern/Re-Render, sonst schließt sich der Picker)
 Inputs.lookColor = el => {
   const D = designOf(S().design), mode = resolvedTheme();
   document.documentElement.style.cssText = accentCss(el.value, mode, lookSurf(D)) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
 };
 Actions.lookReset = async () => {
-  if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;
-  const patch = {};
+  if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben und alle Feinanpassungen gehen zurück auf Standard. Daten und Startseite bleiben.', okLabel: 'Zurücksetzen' })) return;
+  const patch = { tune: {}, accentCustom: false };
   LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; });
   switchLook(() => Store.saveSettings(patch));
   toast('Darstellung zurückgesetzt', 'success');
 };
 
 /* Reihenfolge der Gruppen auf der Übersicht (Blöcke mit Abstand) */
-const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'toasts', 'features'], ['data', 'tools', 'app']];
+const MORE_BLOCKS = [['training', 'workout', 'rest'], ['look', 'home', 'toasts', 'features'], ['data', 'tools', 'app']];
 const plainText = h => String(h || '').replace(/<[^>]*>/g, '');
 /* Alle Suchwörter müssen vorkommen; kurze (< 4 Zeichen) nur am Wortanfang, sonst findet „rpe" auch „Körper" */
 function settingMatches(fields, q) {
@@ -385,7 +407,7 @@ Views.more = {
     Motion.topTitle(g ? g.title : '');
   },
   // Zurück-Knopf oben, solange eine Gruppe offen ist
-  back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} Mehr</button>` : '',
+  back: () => moreSub ? `<button class="btn btn-ghost btn-sm topbar-back" data-act="moreBack">${icon('chevL')} ${moreSub === 'tune' ? 'Darstellung' : 'Mehr'}</button>` : '',
   // „Mehr" erneut antippen: zurück zur Übersicht bzw. Suche leeren
   reselect: () => { if (moreSub) { closeMoreSub(); return true; } moreQ = ''; return false; },
   // Zurück-Wischen (js/motion.js): Übersicht unter die Seiten-Kopie zeichnen, beim Abbrechen die Gruppe zurückholen
@@ -436,7 +458,16 @@ window.addEventListener('popstate', () => {
   if (tm && e.target.id !== 'moreQ' && tm.contains(e.target)) tm._html = null;
 }, true));
 Actions.moreSub = el => openMoreSub(el.dataset.v);
-Actions.moreBack = () => closeMoreSub();
+/* Zurück: Unterseiten mit parent (Feinanpassung) gehen zur Eltern-Seite, sonst zur Übersicht */
+Actions.moreBack = () => {
+  const g = moreSub && moreGroups().find(x => x.id === moreSub);
+  if (g && g.parent) {
+    if (history.state && history.state.moreSub) { history.back(); return; }
+    Motion.go('pop', () => { moreSub = g.parent; App.renderCurrent(); Scroll.to(0); });
+    return;
+  }
+  closeMoreSub();
+};
 Inputs.moreQ = debounce(el => {
   moreQ = el.value;
   const q = moreQ.trim(), res = $('#moreRes'), home = $('#moreHome');
@@ -479,6 +510,7 @@ Changes.defReps = el => {
   Store.saveSettings({ defReps: v });
 };
 Inputs.setName = debounce(el => Store.saveSettings({ displayName: el.value.trim() }), 500);
+Changes.setSince = el => Store.saveSettings({ trainingSince: /^\d{4}-\d{2}$/.test(el.value) ? el.value : '' });
 Inputs.setBirth = debounce(el => { const y = parseInt(el.value, 10); Store.saveSettings({ birthYear: y > 1920 && y <= new Date().getFullYear() - 8 ? y : null }); }, 600);
 Inputs.setHrMax = debounce(el => { const v = parseInt(el.value, 10); Store.saveSettings({ hrMax: v >= 120 && v <= 230 ? v : null }); }, 600);
 Changes.setBar = el => { const v = parseNum(el.value); if (v != null && v >= 0) Store.saveSettings({ barKg: round(fromU(v), 3) }); };

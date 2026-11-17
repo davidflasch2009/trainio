@@ -9,61 +9,134 @@
 Views.start = {
   render(el) {
     const ix = Analytics.cur();
-    const st = Analytics.streak();
-    const t = todayDN();
-    const cw = weekStartDN(t);
-    const volNow = Analytics.volumeBetween(cw, t);
-    // Vorwoche bis zum gleichen Tag – heute erst, wenn heute ein Workout gespeichert ist
-    const volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + (Analytics.cmpEnd() - cw));
-    const next = Analytics.nextPlanDay();
     const w = Workout.cur();
-    const goal = weeklyTarget();
-    const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
     el.innerHTML = `
-      <div class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</div>
+      <p class="start-date">${esc(new Date().toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long' }))}</p>
       ${S().design === 'sky' ? Sky.startLine() : ''}
-      ${w ? `<button class="card clickable mt-16" data-act="go" data-tab="training" style="width:100%;text-align:left;border-color:var(--accent-dim)">
-          <div class="row"><span class="badge accent"><span class="pulse" style="width:8px;height:8px;border-radius:50%;background:currentColor;animation:pulse 1.4s infinite"></span> Live</span><span class="grow"></span><span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span></div>
-          <h3 class="mt-8">${esc(w.name)}</h3>
-        </button>` : ''}
-      ${S().homeStats === false ? '' : `<div class="stat-grid mt-16">${homeTileKeys().map(k => ({
-        streak: `<div class="stat">
-          <div class="stat-label">${icon('flame')} Streak ${infoBtn('Aufeinanderfolgende Wochen mit mindestens einem Workout. Die Punkte zeigen deine Trainingstage dieser Woche.')}</div>
-          <div class="stat-value">${st.cur}<small>${st.cur === 1 ? 'Woche' : 'Wochen'}</small></div>
-          <div class="week-dots">${dots}</div>
-          <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
-        </div>`,
-        volume: `<div class="stat">
-          <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Wiederholungen × Gewicht aller Sätze dieser Woche. Vergleich: Vorwoche bis zum gleichen Tag.')}</div>
-          <div class="stat-value">${fmtTon(volNow)}</div>
-          <div class="stat-sub">diese Woche ${deltaHtml(volNow, volPrev)}</div>
-        </div>`,
-        workouts: `<div class="stat">
-          <div class="stat-label">${icon('trophy')} Workouts</div>
-          <div class="stat-value">${ix.rows.length}</div>
-          <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
-        </div>`,
-        score: scoreTile(ix, t),
-        next: k !== 'next' ? '' : `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
-          <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
-          <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
-          <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>
-        </button>`
-      })[k] || moreTile(k, ix, t, cw)).join('')}</div>`}
+      ${F('f_tscore') ? TScore.circle() : ''}
+      ${S().homeStats === false ? '' : `<div class="tiles mt-24">${homeTileKeys().map(homeTileHtml).join('')}</div>`}
       <div class="mt-16">
-        ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Workout fortsetzen</button>`
+        ${w ? `<button class="btn btn-hero" data-act="go" data-tab="training">${icon('play')} Weiter: ${esc(w.name)}</button>`
             : `<button class="btn btn-hero" data-act="startSheet">${icon('play')} Workout starten</button>`}
       </div>
       ${Heart.startCard()}
       ${goalsCard()}
-      ${nRecent ? `<div class="section-head"><h2>Letzte Workouts</h2>${ix.rows.length ? `<button class="link-btn" data-act="showHistory">Alle anzeigen</button>` : ''}</div>
-      ${recent.length ? `<div class="col">${recent.map(miniWorkoutCard).join('')}</div>`
-        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training – oder importiere deine Arrow-History unter Mehr → Daten.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`}` : ''}
+      ${nRecent ? `<div class="sec-h"><h2>Letzte Workouts</h2>${ix.rows.length > nRecent ? `<button class="link-btn" data-act="showHistory">Alle</button>` : ''}</div>
+      ${recent.length ? `<div class="list">${recent.map(recentRow).join('')}</div>`
+        : `<div class="card">${emptyState('dumbbell', 'Noch keine Workouts', 'Starte dein erstes Training.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow importieren</button>` : '')}</div>`}` : ''}
     `;
   }
 };
+/** Letzte Workouts: Name, rechts das Datum – alles Weitere im Workout */
+const recentRow = r => `<button class="list-item" data-act="openWorkout" data-id="${esc(r.id)}"><span class="li-main"><span class="li-title ellipsis">${esc(r.name)}</span></span><span class="li-val">${esc(relDays(r.dn))}</span>${icon('chevR', 'li-chev')}</button>`;
+
+/* ---------- Startseiten-Kacheln (Basis): nur Titel und Zahl, Antippen öffnet die Details von unten ----------
+   homeTile(k) → { t: Titel, n: Zahl (HTML), act?: direkte Aktion statt Details, det?: () => detailSheet-Spec } */
+const weekSeries = (cw, key, n = 8) => Array.from({ length: n }, (_, i) => {
+  const a = cw - 7 * (n - 1 - i);
+  return Analytics.cur().rows.filter(r => r.dn >= a && r.dn <= a + 6).reduce((x, r) => x + (typeof key === 'function' ? key(r) : r[key] || 0), 0);
+});
+const weekLabels = (cw, n = 8) => Array.from({ length: n }, (_, i) => i === n - 1 ? 'jetzt' : i % 2 ? '' : fmtDate(dnToISO(cw - 7 * (n - 1 - i)), { day: 'numeric', month: 'numeric' }));
+const pctTxt = (a, b) => b ? `${a >= b ? '+' : '−'}${nf(Math.abs((a / b - 1) * 100), 0)} %` : '–';
+const tonAxis = v => v >= 1000 ? nf(v / 1000, v >= 10000 ? 0 : 1) + ' t' : nf(v, 0);
+function homeTile(k) {
+  const ix = Analytics.cur(), rows = ix.rows, t = todayDN(), cw = weekStartDN(t);
+  const inR = (a, b) => rows.filter(r => r.dn >= a && r.dn <= b);
+  const prevEnd = cw - 7 + (Analytics.cmpEnd() - cw);   // Vorwoche bis zum gleichen Tag
+  const week = key => [sum(inR(cw, t).map(r => r[key] || 0)), sum(inR(cw - 7, prevEnd).map(r => r[key] || 0))];
+  const bars = (key, fmt) => svgChart({ type: 'bar', values: weekSeries(cw, key), labels: weekLabels(cw), pale: 7, fmt });
+  const weekly = (title, key, show, info, fmt) => {
+    const [a, b] = week(key);
+    return { t: title, n: show(a), det: () => ({ title, info, num: show(a), sub: 'diese Woche', chart: bars(key, fmt), rows: [['Vorwoche bis heute', show(b)], ['Veränderung', pctTxt(a, b)]] }) };
+  };
+  switch (k) {
+    case 'streak': {
+      const st = Analytics.streak(), goal = weeklyTarget();
+      return { t: 'Streak', n: `${st.cur}<small>${st.cur === 1 ? 'Woche' : 'Wochen'}</small>`, det: () => ({ title: 'Streak', info: 'Wochen am Stück mit mindestens einem Workout.',
+        num: st.cur, unit: st.cur === 1 ? 'Woche' : 'Wochen', chart: svgChart({ type: 'bar', values: weekSeries(cw, r => r.cardioOnly ? 0 : 1), labels: weekLabels(cw), pale: 7 }),
+        rows: [['Diese Woche', `${st.days.size} von ${goal} Tagen`], ['Längster Streak', `${st.best} ${st.best === 1 ? 'Woche' : 'Wochen'}`]] }) };
+    }
+    case 'volume': return weekly('Volumen', 'ton', v => fmtTon(v), 'Wiederholungen × Gewicht aller Sätze dieser Woche.', tonAxis);
+    case 'sets': return weekly('Sätze', 'sets', v => nf(v, 0), '', v => nf(v, 0));
+    case 'time': return weekly('Trainingszeit', 'dur', v => v ? fmtDur(v) : '0 min', '', v => nf(v / 3600, 0) + ' h');
+    case 'cardio': return weekly('Cardio', 'cSec', v => v ? fmtDur(v) : '0 min', '', v => nf(v / 60, 0) + ' min');
+    case 'workouts': {
+      const d = new Date(), m0 = dayNum(isoDate(new Date(d.getFullYear(), d.getMonth(), 1)));
+      return { t: 'Workouts', n: rows.length, det: () => ({ title: 'Workouts', num: rows.length, sub: rows.length ? 'seit ' + fmtDate(rows[0].date, { month: 'long', year: 'numeric' }) : '',
+        chart: svgChart({ type: 'bar', values: weekSeries(cw, () => 1), labels: weekLabels(cw), pale: 7 }),
+        rows: [['Diese Woche', inR(cw, t).length], ['Diesen Monat', inR(m0, t).length]] }) };
+    }
+    case 'month': {
+      const d = new Date(), m0 = dayNum(isoDate(new Date(d.getFullYear(), d.getMonth(), 1))), p0 = dayNum(isoDate(new Date(d.getFullYear(), d.getMonth() - 1, 1)));
+      const a = inR(m0, t).length, b = inR(p0, m0 - 1).length;
+      return { t: 'Workouts im Monat', n: a, det: () => ({ title: 'Workouts im Monat', num: a, rows: [['Vormonat', b]] }) };
+    }
+    case 'next': {
+      const next = Analytics.nextPlanDay();
+      return { t: next ? whenLabel(next) : 'Nächstes Training', n: next ? esc(next.day.name) : '–', txt: true, act: 'startNext' };
+    }
+    case 'score': {
+      const list = rows.filter(r => r.dn > t - 56).map(r => [r, Analytics.score(r.id)]).filter(x => x[1]);
+      const sc = list.filter(([r]) => r.dn > t - 28).map(x => x[1].score);
+      const v = sc.length ? nf(avg(sc), 0) : '–';
+      return { t: 'Ø Workout-Score', n: v, det: () => ({ title: 'Ø Workout-Score', info: 'Durchschnitt der letzten 4 Wochen.', num: v,
+        chart: list.length > 1 ? svgChart({ type: 'bar', values: list.slice(-8).map(x => x[1].score), labels: list.slice(-8).map(([r]) => fmtDate(r.date, { day: 'numeric', month: 'numeric' })), min: 0, max: 100, ticks: [0, 50, 100] }) : '',
+        rows: list.length ? [['Letztes Workout', list[list.length - 1][1].score]] : [] }) };
+    }
+    case 'last': {
+      const r = rows[rows.length - 1];
+      return { t: 'Letztes Workout', n: r ? esc(r.name) : '–', txt: true, act: r ? 'openWorkout' : null, id: r && r.id };
+    }
+    case 'consistency': {
+      const goal = weeklyTarget();
+      let hit = 0;
+      for (let i = 1; i <= 8; i++) { const w = cw - 7 * i; if (new Set(inR(w, w + 6).filter(r => !r.cardioOnly).map(r => r.dn)).size >= goal) hit++; }
+      return { t: 'Konsistenz', n: `${hit}<small>/ 8</small>`, det: () => ({ title: 'Konsistenz', info: `Wochen der letzten 8, in denen du dein Wochenziel (${goal}×) erreicht hast.`, num: hit, unit: 'von 8 Wochen' }) };
+    }
+    case 'prs': {
+      const ev = ix.prEvents.filter(p => p.dn > t - 30);
+      return { t: 'PRs', n: ev.length, det: () => ({ title: 'PRs', info: 'Neue Bestwerte (geschätztes 1RM) der letzten 30 Tage.', num: ev.length, sub: 'in 30 Tagen',
+        rows: ev.slice(-6).reverse().map(p => [esc(Ex.name(p.exId)), `${wNum(p.e1rm)} ${unit()}`]) }) };
+    }
+    case 'lift': {
+      const ex = Ex.get(S().homeLiftEx);
+      if (!ex) return { t: 'Kraft', n: '–', act: 'tileLiftEx' };
+      const ss = Analytics.sessionsOf(ex.id).filter(x => x.best > 0), l = ss[ss.length - 1];
+      return { t: esc(ex.name), n: l ? `${wNum(l.best)}<small>${unit()}</small>` : '–', act: 'openExercise', id: ex.id };
+    }
+    case 'bw': {
+      const s = Analytics.bwSeries(), l = s[s.length - 1];
+      const old = l ? [...s].reverse().find(x => x.dn <= l.dn - 28) : null;
+      const pts = s.filter(x => x.dn > t - 56);
+      return { t: 'Körpergewicht', n: l ? `${wNum(l.kg)}<small>${unit()}</small>` : '–', det: () => ({ title: 'Körpergewicht', num: l ? wNum(l.kg) : '–', unit: l ? unit() : '', sub: l ? relDays(l.dn) : '',
+        chart: pts.length > 1 ? svgChart({ type: 'line', values: pts.map(x => toU(x.kg)), labels: pts.map((x, i) => i === 0 || i === pts.length - 1 ? fmtDate(dnToISO(x.dn), { day: 'numeric', month: 'numeric' }) : ''), min: Math.floor(Math.min(...pts.map(x => toU(x.kg))) - 1), max: Math.ceil(Math.max(...pts.map(x => toU(x.kg))) + 1), fmt: v => nf(v, 0) }) : '',
+        rows: old ? [['In 4 Wochen', `${l.kg >= old.kg ? '+' : '−'}${nf(Math.abs(toU(l.kg - old.kg)), 1)} ${unit()}`]] : [],
+        foot: `<button class="btn btn-secondary" data-act="homeProg" data-sub="body">Körper öffnen</button>` }) };
+    }
+    case 'rhr': case 'vo2': case 'heart': return tileFromStat(k === 'rhr' ? Heart.rhrTile() : k === 'vo2' ? Heart.vo2Tile() : Heart.weekTile());
+  }
+  return null;
+}
+/** Ältere Kachel-HTML (Herz) in Titel + Zahl + Aktion umwandeln */
+function tileFromStat(html) {
+  const d = document.createElement('div'); d.innerHTML = html;
+  const el = d.firstElementChild; if (!el) return null;
+  const lab = el.querySelector('.stat-label'); if (lab) lab.querySelectorAll('svg, .info-i').forEach(x => x.remove());
+  const val = el.querySelector('.stat-value');
+  const attrs = [...el.attributes].filter(a => a.name.startsWith('data-')).map(a => `${a.name}="${esc(a.value)}"`).join(' ');
+  return { t: lab ? esc(lab.textContent.trim()) : '', n: val ? val.innerHTML : '–', raw: attrs };
+}
+function homeTileHtml(k) {
+  const x = homeTile(k);
+  if (!x) return '';
+  const inner = `<span class="tile-t">${x.t}</span><span class="tile-n ${x.txt ? 'txt' : ''}">${x.n}</span>`;
+  if (x.raw) return `<button class="tile" ${x.raw}>${inner}</button>`;
+  if (x.act) return `<button class="tile" data-act="${x.act}" ${x.id ? `data-id="${esc(x.id)}"` : ''}>${inner}</button>`;
+  return x.det ? `<button class="tile" data-act="homeTile" data-k="${k}">${inner}</button>` : `<div class="tile">${inner}</div>`;
+}
+Actions.homeTile = el => { const x = homeTile(el.dataset.k); if (x && x.det) detailSheet(x.det()); };
 /* Startseiten-Kacheln: Auswahl und Reihenfolge unter Mehr → Darstellung → Startseite
    [Schlüssel, Name, Beschreibung, nur wenn …] – die ersten vier sind der Standard */
 const HOME_TILES = [
@@ -256,20 +329,14 @@ function goalState(g) {
 function goalsCard() {
   const gs = goalsList();
   const rows = gs.map(g => {
-    const { cur, b, p, ok } = goalState(g), wr = goalType(g) === 'wr';
-    const bestTxt = b ? `bester Satz ${fmtW(b.w)} × ${b.r}` : '';
-    const right = wr ? `${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} · ${g.reps} Wdh.` : `${cur ? fmtW(cur, 1) : '–'} / ${fmtW(g.kg, 1)} 1RM`;
-    const sub = ok ? `Erreicht${g.reachedAt ? ' am ' + fmtDate(isoDate(new Date(g.reachedAt))) : ''}${bestTxt ? ' · ' + bestTxt : ''}`
-      : cur ? `Noch ${fmtW(g.kg - cur, 1)}${wr ? ` bei ${g.reps}+ Wdh.` : ''} · ${bestTxt} · ${nf(p * 100, 0)} %`
-      : wr && Analytics.sessionsOf(g.exId).length ? `Noch kein Satz mit ${g.reps}+ Wdh.` : 'Noch keine Sätze für diese Übung';
-    return `<button class="goal-item ${ok ? 'reached' : ''}" data-act="kgoalMenu" data-id="${esc(g.id)}">
-      <div class="goal-top"><b>${ok ? icon('trophy').replace('<svg', '<svg width="14" height="14" style="vertical-align:-2px;color:var(--accent-text)"') + ' ' : ''}${esc(Ex.name(g.exId))}</b><span>${right}</span></div>
-      <div class="goal-bar" style="--p:${Math.round(p * 100)}%"><i></i></div>
-      <div class="goal-sub">${sub}</div>
+    const { p, ok } = goalState(g);
+    return `<button class="list-item goal-row" data-act="kgoalMenu" data-id="${esc(g.id)}">
+      <span class="li-main"><span class="goal-line"><span class="li-title ellipsis">${esc(Ex.name(g.exId))}</span><span class="li-val">${ok ? 'Erreicht' : nf(p * 100, 0) + ' %'}</span></span>
+      <span class="pbar"><i style="width:${Math.round(p * 100)}%"></i></span></span>
     </button>`;
   }).join('');
-  return `<div class="section-head"><h2>Ziele</h2><button class="link-btn" data-act="kgoalEdit">${icon('plus').replace('<svg', '<svg width="15" height="15" style="vertical-align:-2px"')} Ziel</button></div>
-    ${gs.length ? `<div class="card" style="padding-top:4px;padding-bottom:4px">${rows}</div>` : `<button class="card clickable" data-act="kgoalEdit" style="width:100%;text-align:left;color:inherit;font:inherit"><div class="bold">${icon('target').replace('<svg', '<svg width="18" height="18" style="vertical-align:-3px;margin-right:6px"')}Kraftziel setzen</div></button>`}`;
+  return `<div class="sec-h"><h2>Ziele</h2>${gs.length ? `<button class="link-btn" data-act="kgoalEdit">Hinzufügen</button>` : ''}</div>
+    <div class="list">${rows || `<button class="list-item" data-act="kgoalEdit"><span class="li-main"><span class="li-title">Kraftziel setzen</span></span>${icon('chevR', 'li-chev')}</button>`}</div>`;
 }
 Actions.kgoalEdit = async el => {
   const old = el && el.dataset && el.dataset.id ? goalsList().find(g => g.id === el.dataset.id) : null;
@@ -338,16 +405,25 @@ function goalDialog(exId, old) {
     });
   });
 }
-Actions.kgoalMenu = async el => {
+/* Ziel antippen: Details von unten – Stand, bester Satz, Ändern, Verlauf, Löschen */
+Actions.kgoalMenu = el => {
   const g = goalsList().find(x => x.id === el.dataset.id); if (!g) return;
-  const k = await actionMenu(`${Ex.name(g.exId)} · ${goalLabel(g)}`, [
-    { key: 'edit', label: 'Ziel ändern', icon: 'edit' },
-    { key: 'info', label: 'Übungs-Verlauf', icon: 'chart' },
-    { key: 'del', label: 'Ziel löschen', icon: 'trash', danger: true }
-  ]);
-  if (k === 'edit') Actions.kgoalEdit({ dataset: { id: g.id } });
-  else if (k === 'info') openExerciseDetail(g.exId);
-  else if (k === 'del') Store.saveSettings({ goals: goalsList().filter(x => x.id !== g.id) });
+  const { cur, b, p, ok } = goalState(g), wr = goalType(g) === 'wr';
+  const m = detailSheet({ title: Ex.name(g.exId), num: cur ? wNum(cur) : '–', unit: unit(), sub: `Ziel: ${goalLabel(g)}`,
+    chart: `<div class="pbar"><i style="width:${Math.round(p * 100)}%"></i></div>`,
+    rows: [
+      ['Stand', ok ? 'Erreicht' : nf(p * 100, 0) + ' %', ok ? 'good' : ''],
+      ...(b ? [['Bester Satz', `${fmtW(b.w)} × ${b.r}`]] : []),
+      ...(!ok && cur ? [['Noch', fmtW(g.kg - cur, 1) + (wr ? ` bei ${g.reps}+ Wdh.` : '')]] : []),
+      ...(ok && g.reachedAt ? [['Erreicht am', fmtDate(isoDate(new Date(g.reachedAt)))]] : [])],
+    foot: `<button class="btn btn-secondary" data-x="del">Löschen</button><button class="btn btn-secondary" data-x="info">Verlauf</button><button class="btn btn-primary" data-x="edit">Ändern</button>` });
+  m.el.addEventListener('click', e => {
+    const x = e.target.closest('[data-x]'); if (!x) return;
+    m.dismiss();
+    if (x.dataset.x === 'edit') Actions.kgoalEdit({ dataset: { id: g.id } });
+    else if (x.dataset.x === 'info') openExerciseDetail(g.exId);
+    else if (x.dataset.x === 'del') Store.saveSettings({ goals: goalsList().filter(y => y.id !== g.id) });
+  });
 };
 /** Nach dem Workout: neu erreichte Ziele markieren und zurückgeben (best = e1RM bzw. Gewicht des passenden Satzes) */
 function checkGoals(doc) {

@@ -245,6 +245,48 @@ const Modal = (() => {
   return { open, close, top: () => stack[stack.length - 1], count: () => stack.length, closeAll: () => [...stack].reverse().forEach(m => close(m)) };
 })();
 
+/* ---------- Basis: Details als Fenster von unten (docs/redesign/ANFORDERUNGEN.md, Abschnitt 3) ----------
+   Titel, (i), Schließen; darunter eine große Zahl, höchstens ein Diagramm und wenige Werte als Liste.
+   spec: { title, info, num, unit, sub, chart, rows: [[Name, Wert, Klasse?]], hints, body, foot } */
+function detailSheet({ title, info = '', num = null, unit: u = '', sub = '', chart = '', rows = [], hints = [], body = '', foot = '', after = '' } = {}) {
+  const html = body || `<div class="det">
+    ${num != null ? `<div><div class="det-num">${num}${u ? `<small>${u}</small>` : ''}</div>${sub ? `<div class="det-sub">${sub}</div>` : ''}</div>` : ''}
+    ${hints.length ? `<div>${hints.map(h => `<p class="det-hint">${esc(h)}</p>`).join('')}</div>` : ''}
+    ${chart ? `<div>${chart}</div>` : ''}
+    ${rows.length ? `<div class="list">${rows.map(([k, v, c]) => `<div class="kv"><span>${k}</span><b class="${c || ''}">${v}</b></div>`).join('')}</div>` : ''}
+    ${after}
+  </div>`;
+  const m = Modal.open({ title, info, body: html, foot, cls: 'det-sheet' });
+  // Knöpfe unten führen woandershin → Fenster schließen
+  m.el.addEventListener('click', e => { if (e.target.closest('.modal-foot [data-act]')) setTimeout(() => m.dismiss(), 0); });
+  return m;
+}
+/** Schlichtes Diagramm (nur in Fenstern): Balken oder Linie, aktueller Wert im Akzent, der Rest grau, laufende Woche
+    blass, keine Glättung, Zahlen an der rechten Achse. values: Zahlen oder null (Lücke) */
+function svgChart({ type = 'bar', values = [], labels = [], min = null, max = null, ticks = null, cur = values.length - 1, pale = -1, fmt = v => nf(v, 0) } = {}) {
+  const W = 340, H = 168, L = 4, Rt = 40, T = 10, B = 24, n = values.length;
+  const vals = values.filter(v => v != null);
+  if (!n || !vals.length) return '';
+  let lo = min != null ? min : Math.min(0, ...vals), hi = max != null ? max : Math.max(...vals);
+  if (hi === lo) hi = lo + 1;
+  if (!ticks) { const step = niceStep((hi - lo) / 3); if (max == null) hi = Math.ceil(hi / step) * step; ticks = []; for (let v = lo; v <= hi + step / 2; v += step) ticks.push(v); }
+  const pw = W - L - Rt, ph = H - T - B, y = v => T + ph - (v - lo) / (hi - lo) * ph, cw = pw / n;
+  const grid = ticks.map(t => `<line class="gl" x1="${L}" x2="${W - Rt + 6}" y1="${y(t).toFixed(1)}" y2="${y(t).toFixed(1)}"/><text class="ax" x="${W - Rt + 10}" y="${(y(t) + 4).toFixed(1)}">${fmt(t)}</text>`).join('');
+  const lab = labels.map((l, i) => l ? `<text class="ax" x="${(L + cw * i + cw / 2).toFixed(1)}" y="${H - 6}" text-anchor="middle">${esc(l)}</text>` : '').join('');
+  let marks = '';
+  if (type === 'bar') {
+    const bw = Math.min(28, cw * .62);
+    marks = values.map((v, i) => v == null ? '' : `<rect class="${i === cur ? 'b-cur' : 'b'}${i === pale ? ' pale' : ''}" x="${(L + cw * i + (cw - bw) / 2).toFixed(1)}" y="${y(Math.max(v, lo)).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(0, y(lo) - y(Math.max(v, lo))).toFixed(1)}" rx="2"/>`).join('');
+  } else {
+    let d = '', pen = false;
+    values.forEach((v, i) => { if (v == null) { pen = false; return; } d += `${pen ? 'L' : 'M'}${(L + cw * i + cw / 2).toFixed(1)} ${y(v).toFixed(1)}`; pen = true; });
+    const li = values.map((v, i) => v == null ? -1 : i).filter(i => i >= 0).pop();
+    marks = `<path class="ln" d="${d}"/>` + (li >= 0 ? `<circle class="pt" cx="${(L + cw * li + cw / 2).toFixed(1)}" cy="${y(values[li]).toFixed(1)}" r="3.5"/>` : '');
+  }
+  return `<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="Diagramm">${grid}${marks}${lab}</svg>`;
+}
+const niceStep = raw => { const p = 10 ** Math.floor(Math.log10(Math.max(raw, 1e-9))), f = raw / p; return (f <= 1 ? 1 : f <= 2 ? 2 : f <= 2.5 ? 2.5 : f <= 5 ? 5 : 10) * p; };
+
 /** Eigener Confirm-Dialog (kein window.confirm) */
 function confirmDialog({ title, text = '', html = '', okLabel = 'OK', cancelLabel = 'Abbrechen', danger = false, requireText = null }) {
   return new Promise(resolve => {
@@ -605,30 +647,33 @@ const WakeLock = (() => {
 /* ---------- Darstellung: Designs × Hell/Dunkel, Akzent, Feinschliff ---------- */
 const GF = 'https://fonts.googleapis.com/css2?display=swap&family=';
 const DESIGN_FONTS = {
-  iron: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700',
-  carbon: GF + 'Titillium+Web:wght@400;600;700',
-  paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
-  // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
-  plakat: GF + 'Archivo:wght@400;500;600;700',
   // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
   sky: GF + 'Fraunces:opsz,wght,SOFT@9..144,400..700,100'
 };
-const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
-/* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben).
+const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700' };
+/* Die vier Designs (docs/redesign/ANFORDERUNGEN.md, Abschnitt 4). Pure ist der Standard.
+   surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben).
+   accents = Auswahl unter Darstellung; der erste Eintrag ('') ist die Standardfarbe des Designs. Ohne accents gibt es
+   keine Auswahl (Fokus: farblos, Tag & Nacht: folgt dem Himmel).
    phased: kein Hell/Dunkel zum Auswählen – das Design folgt der Tageszeit (js/sky.js), surf dann je Phase */
 const DESIGNS = [
-  { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#141518', light: '#ffffff' } },
-  { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
-  { id: 'iron', name: 'Iron', desc: 'Industrial-Gym: Stahl, Orange, Condensed', surf: { dark: '#17191b', light: '#f9f8f5' } },
-  { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
-  { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
-  { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
-  { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },
-  { id: 'fokus', name: 'Fokus', desc: 'Schwarz-weiß und ruhig – im Workout tritt alles außer der aktuellen Übung zurück', nav: 'classic', surf: { dark: '#0e0e0e', light: '#ffffff' } },
-  { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel als Hintergrund: Dämmerung, Tag, Sonnenuntergang & Nacht – wechselt von selbst mit dem Sonnenstand', nav: 'floating', phased: true,
-    surf: { dawn: '#f6eff4', day: '#f2f8fe', dusk: '#2e1b31', night: '#121a30', light: '#f2f8fe', dark: '#121a30' } }
+  { id: 'pure', name: 'Pure', desc: 'Schlicht und ruhig, nichts lenkt ab', surf: { dark: '#171a20', light: '#f4f5f7' },
+    accents: [['', 'Blau'], ['#d93f45', 'Rot'], ['#2b9a5e', 'Grün'], ['#e8680f', 'Orange'], ['#8b4fd1', 'Violett']] },
+  { id: 'fokus', name: 'Fokus', desc: 'Schwarz-weiß – im Workout ist nur die aktuelle Übung voll da', nav: 'classic', surf: { dark: '#141414', light: '#f3f3f3' } },
+  { id: 'glass', name: 'Liquid Glass', desc: 'Glas in der Navigation, die Tab-Leiste schrumpft beim Scrollen', nav: 'floating', surf: { dark: '#1c1e2a', light: '#ffffff' },
+    accents: [['', 'Blau'], ['#14a39a', 'Türkis'], ['#8b4fd1', 'Violett'], ['#e5487f', 'Rosa'], ['#2b9a5e', 'Grün'], ['#e8680f', 'Orange']] },
+  { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel wechselt mit der Tageszeit', nav: 'classic', phased: true,
+    surf: { dawn: '#fbf6f8', day: '#f7fbff', dusk: '#2a1d30', night: '#141c31', light: '#f7fbff', dark: '#141c31' } }
 ];
+const DEFAULT_DESIGN = 'pure';
 const designOf = id => DESIGNS.find(d => d.id === id) || DESIGNS[0];
+/** Gilt die gespeicherte Akzentfarbe im Design? Fokus und Tag & Nacht haben keine, sonst nur eine aus der Auswahl
+    oder die eigene Farbe aus der Feinanpassung (accentCustom). */
+const accentOf = (s = S(), D = designOf(s.design)) => {
+  if (!D.accents) return '';
+  const a = Color.valid(s.accent) ? s.accent.toLowerCase() : '';
+  return a && (s.accentCustom || D.accents.some(([h]) => h === a)) ? a : '';
+};
 const ACCENTS = [['#39ff88', 'Neon'], ['#a3e635', 'Lime'], ['#10b981', 'Smaragd'], ['#14b8a6', 'Türkis'], ['#06b6d4', 'Cyan'], ['#0a84ff', 'Blau'],
   ['#6366f1', 'Indigo'], ['#8b5cf6', 'Violett'], ['#ec4899', 'Pink'], ['#ef4444', 'Rot'], ['#f97316', 'Orange'], ['#facc15', 'Gelb']];
 const WALLS = [['aurora', 'Aurora'], ['ocean', 'Ozean'], ['sunset', 'Abendrot'], ['forest', 'Wald'], ['graphite', 'Graphit'], ['accent', 'Akzent']];
@@ -696,7 +741,7 @@ function applyTheme() {
   const attrs = lookAttrs(s);
   root.dataset.theme = mode;
   for (const [k, v] of Object.entries(attrs)) { if (v == null) root.removeAttribute(k); else root.setAttribute(k, v); }
-  const accent = Color.valid(s.accent) ? s.accent : '';
+  const accent = accentOf(s, D);
   const blur = { off: '0px', light: '12px', normal: '22px', strong: '36px' }[s.glassBlur] || '22px';
   root.style.cssText = (accent ? accentCss(accent, mode, lookSurf(D)) : '') + (D.id === 'glass' ? `--glass-blur:${blur};` : '');
   Sky.sync(D.id === 'sky');
@@ -719,6 +764,21 @@ function applyTheme() {
   _lookSig = sig;
   if (changed && typeof Charts !== 'undefined') Charts.applyDefaults();
   applyIcon();
+  return changed;
+}
+/** Umstieg auf die vier neuen Designs (einmalig, ANFORDERUNGEN.md Abschnitt 5): Modus, Textgröße, Kontrast, Bewegung,
+    Startseite und App-Icon bleiben. Ecken, Schrift, Dichte und Tab-Leiste gehen zurück auf „vom Design“, eine Akzentfarbe
+    bleibt nur, wenn das Design sie anbietet. Entfernte Designs → Pure. → true, wenn wirklich etwas zurückgesetzt wurde */
+function migrateLook() {
+  const s = S();
+  if (s.lookV2) return false;
+  const patch = { lookV2: true };
+  if (!DESIGNS.some(d => d.id === s.design)) patch.design = DEFAULT_DESIGN;
+  const D = designOf(patch.design || s.design);
+  for (const [k, def] of [['radius', 'auto'], ['font', 'auto'], ['density', 'normal'], ['navStyle', 'auto']]) if (s[k] != null && s[k] !== def) patch[k] = def;
+  if (s.accent && !accentOf({ ...s, accentCustom: false }, D)) patch.accent = '';
+  const changed = Object.keys(patch).length > 1;
+  Store.saveSettings(patch);
   return changed;
 }
 /** Gewähltes App-Icon: Browser-Tab, Home-Bildschirm (iPhone beim Hinzufügen) und Android-Manifest */
@@ -766,10 +826,32 @@ const designPair = id => designOf(id).phased ? `<div class="dt-pair four">${Sky.
 const THEME_LABEL = { dark: 'Dunkel', light: 'Hell', system: 'System', time: 'Nach Uhrzeit' };
 
 const stackLine = (title, sub, control) => `<div class="set-line stack"><div class="sl-main"><div class="sl-title">${title}</div>${sub ? `<div class="sl-sub">${sub}</div>` : ''}</div>${control}</div>`;
-const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'startTab', 'motion', 'haptics', 'confetti', 'homeStats', 'homeRecent', 'homeHeart'];
+/* „Darstellung zurücksetzen“ – die Startseite bleibt unberührt */
+const LOOK_KEYS = ['design', 'theme', 'accent', 'wall', 'glassBlur', 'radius', 'font', 'textSize', 'density', 'contrast', 'navStyle', 'navLabels', 'motion', 'haptics', 'confetti'];
+/* Feinanpassung je Design: diese Werte merkt sich jedes Design selbst (settings.tune[design]) */
+const TUNE_KEYS = ['radius', 'font', 'density', 'navStyle', 'navLabels', 'wall', 'glassBlur', 'accent', 'accentCustom'];
+/** Patch, der die Feinanpassung des aktuellen Designs zurücksetzt (eine Farbe aus der Auswahl bleibt) */
+function tuneDefaults(s) {
+  const patch = Object.fromEntries(TUNE_KEYS.map(k => [k, DEFAULT_SETTINGS[k] !== undefined ? DEFAULT_SETTINGS[k] : false]));
+  if (!s.accentCustom) delete patch.accent;
+  return patch;
+}
+/** Zahl der Feinanpassungen im aktuellen Design („2 Änderungen“) */
+function tuneChanges(s = S()) {
+  const D = designOf(s.design);
+  const keys = ['radius', 'font', 'density', 'navStyle', 'navLabels', ...(D.id === 'glass' ? ['wall', 'glassBlur'] : [])];
+  return keys.filter(k => s[k] != null && s[k] !== DEFAULT_SETTINGS[k]).length + (s.accentCustom && D.accents ? 1 : 0);
+}
+/** Designwechsel: Feinanpassung des alten Designs sichern, die des neuen laden (sonst „wie im Design“) */
+function designPatch(s, next) {
+  const tune = { ...(s.tune || {}), [s.design]: Object.fromEntries(TUNE_KEYS.map(k => [k, s[k]])) };
+  const saved = tune[next] || tuneDefaults({ accentCustom: true });
+  return { ...saved, design: next, tune };
+}
 function setLook(k, v) {
   if (k === 'homeRecent') v = +v;
-  switchLook(() => Store.saveSettings({ [k]: v }));
+  if (k === 'design') { switchLook(() => Store.saveSettings(designPatch(S(), v))); return; }
+  switchLook(() => Store.saveSettings(k === 'accent' ? { accent: v, accentCustom: false } : { [k]: v }));
 }
 /* Die Darstellungs-Einstellungen selbst stehen im Mehr-Tab (Gruppe „Darstellung“, js/more.js) */
 Actions.openLook = () => openMoreSub('look');

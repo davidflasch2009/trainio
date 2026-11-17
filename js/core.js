@@ -81,6 +81,7 @@ const DEFAULT_SETTINGS = {
   weeklyGoal: 4,
   sex: 'm',
   // Herz: Geburtsjahr & Maximalpuls (leer = geschätzt), Herz-Plan (null = aus), letzte Intervall-Einstellung, Ruhepuls-Messart
+  trainingSince: '',   // „Trainiere seit“ (JJJJ-MM) für das erwartete Kraft-Tempo im Trainio-Score
   birthYear: null, hrMax: null, heartPlan: null, hiit: null, rhrMode: 'tap',
   sound: true,
   wakeLock: true,
@@ -109,8 +110,10 @@ const DEFAULT_SETTINGS = {
   platesKg: [25, 20, 15, 10, 5, 2.5, 1.25],
   platesLb: [45, 35, 25, 10, 5, 2.5],
   // Darstellung
-  design: 'gymlog',
+  design: 'pure',
   accent: '',
+  accentCustom: false,   // eigene Farbe aus der Feinanpassung
+  tune: {},              // Feinanpassung je Design (js/ui.js designPatch)
   wall: 'aurora',
   glassBlur: 'normal',
   radius: 'auto',
