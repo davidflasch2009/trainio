@@ -45,7 +45,7 @@ function moreGroups() {
   const hidden = FEATURES.flatMap(g => g[1]).filter(([k]) => !F(k)).length;
   return [
     { id: 'account', title: 'Konto & Profil', ic: 'user',
-      head: `<div class="card">
+      head: TESTVERSION ? Testversion.card() : `<div class="card">
         ${user ? `
           <div class="acc-card">
             <div class="avatar">${user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())}</div>
@@ -62,9 +62,9 @@ function moreGroups() {
           ${Auth.configured() ? '' : '<p class="tiny dim mt-8">Trage deine Firebase-Config in js/config.js ein (siehe README).</p>'}`}
       </div>`,
       sections: [
-        ['', [mRow(user ? setLine('Konto', esc(accountLine(user)), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
+        ...(TESTVERSION ? [] : [['', [mRow(user ? setLine('Konto', esc(accountLine(user)), `<button class="btn btn-secondary btn-sm" data-act="signOut">${icon('logout')} Abmelden</button>`)
           : setLine('Konto', 'Lokaler Modus', `<button class="btn btn-secondary btn-sm" data-act="signIn" ${Auth.configured() ? '' : 'disabled'}>Anmelden</button>`),
-          'Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google github synchronisieren sync', 'search')]],
+          'Konto', 'Anmelden, Abmelden, Sync', 'konto login anmelden abmelden google github synchronisieren sync', 'search')]]]),
         ...(user ? [['Anmeldewege', Auth.providers().map(k => providerRow(k, user)), '', 'Verknüpfte Anmeldewege führen zum selben Konto mit denselben Daten.']] : []),
         ['Profil', [
           mi('Name', 'Erscheint im PDF-Export', `<input class="input" data-in="setName" value="${esc(s.displayName)}" placeholder="${esc(user && user.name ? user.name.split(' ')[0] : 'Dein Name')}" style="max-width:150px">`, 'profil'),
@@ -338,12 +338,12 @@ function moreHomeHtml(groups) {
   const row = g => `<button class="list-item" data-act="moreSub" data-v="${g.id}"><span class="li-icon">${icon(g.ic)}</span><span class="li-main"><span class="li-title">${g.title}</span>${g.val ? `<div class="li-sub">${g.val}</div>` : ''}</span>${icon('chevR', 'li-chev')}</button>`;
   const st = Store.syncState();
   return `
-    <button class="card clickable acc-card more-acc mt-12" data-act="moreSub" data-v="account">
+    ${TESTVERSION ? Testversion.card('mt-12') : `<button class="card clickable acc-card more-acc mt-12" data-act="moreSub" data-v="account">
       <div class="avatar">${user ? (user.photo ? `<img src="${esc(user.photo)}" alt="" referrerpolicy="no-referrer">` : esc((user.name || user.email || '?')[0].toUpperCase())) : icon('user')}</div>
       <div class="grow" style="min-width:0"><div class="bold ellipsis">${user ? esc(user.name || 'Angemeldet') : 'Lokaler Modus'}</div>${user ? `<div class="small dim ellipsis">${esc(accountLine(user))}</div>` : ''}</div>
       ${user ? `<span class="sync-pill ${st}"><i></i>${SYNC_LABEL[st]}</span>` : ''}
       ${icon('chevR', 'li-chev')}
-    </button>
+    </button>`}
     ${MORE_BLOCKS.map((ids, i) => {
       const rows = ids.filter(id => by[id]).map(id => row(by[id]));
       if (i === 0 && !F('f_exercises')) rows.unshift(navRow('openLibrary', 'book', 'Übungs-Bibliothek'));

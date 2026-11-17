@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.33.7',
+  version: '1.33.8',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -21,14 +21,20 @@ const CDN = {
   jspdf: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
 };
 
+/* Testversion des Umbaus unter …/test/ (docs/redesign/ANFORDERUNGEN.md, Abschnitt 8): eigener Speicher, eigene
+   Fotos-Datenbank, kein Firebase, Beispieldaten (js/testversion.js). Unter der normalen Adresse bleibt alles wie immer.
+   Dieselbe Regel steht im Skript oben in index.html und in sw.js. */
+const TESTVERSION = /\/test\/(index\.html)?$/.test(location.pathname);
+const LS_PREFIX = TESTVERSION ? 'trainio-test.' : 'gymlog.';
 const LS = {
-  data: 'gymlog.v1',
-  settings: 'gymlog.settings',
-  theme: 'gymlog.theme',
-  active: 'gymlog.activeWorkout',
-  ui: 'gymlog.ui',
-  look: 'gymlog.look',
-  errors: 'gymlog.errors'
+  data: LS_PREFIX + 'v1',
+  settings: LS_PREFIX + 'settings',
+  theme: LS_PREFIX + 'theme',
+  active: LS_PREFIX + 'activeWorkout',
+  ui: LS_PREFIX + 'ui',
+  look: LS_PREFIX + 'look',
+  errors: LS_PREFIX + 'errors',
+  icon: LS_PREFIX + 'icon'
 };
 
 const KG_PER_LB = 0.45359237;

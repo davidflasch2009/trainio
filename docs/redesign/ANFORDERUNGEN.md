@@ -306,11 +306,11 @@ ersetzt sie nicht.
 **Vorgehen (David, 17.11.2026):** Der Umbau wird gebaut und in einer **Testversion** ausprobiert. Live geht er erst,
 wenn David ihn abnimmt.
 
-1. **Testversion einrichten.** Der Umbau entsteht auf dem Zweig `redesign`. GitHub Pages veröffentlicht `main` weiter
+1. **Testversion einrichten** (erledigt in v1.33.8). Der Umbau entsteht auf dem Zweig `redesign`. GitHub Pages veröffentlicht `main` weiter
    unter der gewohnten Adresse und den Zweig `redesign` zusätzlich unter `…/trainio/test/`. Eine GitHub-Action baut
    beides zusammen. Dafür stellt David einmalig in den Repo-Einstellungen die Pages-Quelle auf „GitHub Actions“.
    Der Service Worker der echten App lässt `/test/` aus. Die echte App ändert sich dadurch nicht.
-2. **Testversion mit Beispieldaten** (David): eigener Speicher, keine Verbindung zu Davids Daten oder zu Firebase.
+2. **Testversion mit Beispieldaten** (David; erledigt in v1.33.8): eigener Speicher, keine Verbindung zu Davids Daten oder zu Firebase.
    Beim ersten Öffnen legt sie Beispiel-Workouts an (10 Wochen Push/Pull/Beine, Körpergewicht, Phase Bulk). Ein Knopf
    setzt die Beispieldaten zurück.
 3. **Reihenfolge in der Testversion**, jeder Schritt sofort ausprobierbar:

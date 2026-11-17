@@ -1,0 +1,67 @@
+# Veröffentlicht Trainio auf GitHub Pages: main wie bisher unter …/trainio/ und den Umbau (Zweig redesign) als
+# Testversion unter …/trainio/test/ (docs/redesign/ANFORDERUNGEN.md, Abschnitt 8).
+# Wirkt erst, wenn in den Repo-Einstellungen unter Pages die Quelle auf „GitHub Actions“ steht – vorher läuft die
+# Action durch, ohne etwas zu veröffentlichen, und die Seite kommt wie bisher direkt aus main.
+name: Pages
+on:
+  push:
+    branches: [main, redesign]
+  workflow_dispatch:
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.mode.outputs.enabled }}
+    steps:
+      - name: Pages-Quelle prüfen
+        id: mode
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          t=$(gh api "repos/${{ github.repository }}/pages" --jq .build_type 2>/dev/null || echo unbekannt)
+          echo "Pages-Quelle: $t"
+          if [ "$t" = workflow ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else echo "enabled=false" >> "$GITHUB_OUTPUT"; echo "::notice::Pages-Quelle steht noch nicht auf „GitHub Actions“ – nichts veröffentlicht."; fi
+      - name: Echte App (main)
+        if: steps.mode.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: site
+      - name: Gibt es den Zweig redesign?
+        if: steps.mode.outputs.enabled == 'true'
+        id: redesign
+        working-directory: site
+        run: |
+          if git ls-remote --exit-code --heads origin redesign > /dev/null; then echo "exists=true" >> "$GITHUB_OUTPUT"
+          else echo "exists=false" >> "$GITHUB_OUTPUT"; echo "::notice::Zweig redesign gibt es noch nicht – nur die echte App."; fi
+      - name: Testversion (redesign) nach test/
+        if: steps.redesign.outputs.exists == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: redesign
+          path: site/test
+      - name: Ohne Entwicklungs-Dateien
+        if: steps.mode.outputs.enabled == 'true'
+        run: rm -rf site/tests site/tools site/node_modules site/test/tests site/test/tools site/test/node_modules site/test/test
+      - if: steps.mode.outputs.enabled == 'true'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+  deploy:
+    needs: build
+    if: needs.build.outputs.enabled == 'true'
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

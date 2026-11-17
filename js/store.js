@@ -19,7 +19,7 @@ const PhotoDB = (() => {
     if (dbp) return dbp;
     dbp = new Promise((res, rej) => {
       if (!('indexedDB' in window)) return rej(new Error('IndexedDB nicht verfügbar'));
-      const r = indexedDB.open('gymlog-photos', 1);
+      const r = indexedDB.open(TESTVERSION ? 'trainio-test-photos' : 'gymlog-photos', 1);
       r.onupgradeneeded = () => r.result.createObjectStore('photos');
       r.onsuccess = () => res(r.result);
       r.onerror = () => rej(r.error);
@@ -447,13 +447,14 @@ const Auth = (() => {
   let enabled = false;
   let status = 'init'; // init | unconfigured | ready | failed
   let pendingLink = null; // { cred, email } – nach der Anmeldung mit dem bisherigen Weg verknüpfen
-  const LINK_KEY = 'gymlog.pendingLink';
+  const LINK_KEY = LS_PREFIX + 'pendingLink';
   const CANCELLED = ['auth/popup-closed-by-user', 'auth/cancelled-popup-request', 'auth/user-cancelled'];
   const REDIRECT = ['auth/popup-blocked', 'auth/operation-not-supported-in-this-environment', 'auth/web-storage-unsupported', 'auth/internal-error'];
   // Fehler mit eigener Behandlung – auch auf dem iPhone kein Redirect-Versuch
   const HANDLED = ['auth/account-exists-with-different-credential', 'auth/credential-already-in-use', 'auth/email-already-in-use',
     'auth/provider-already-linked', 'auth/operation-not-allowed', 'auth/unauthorized-domain', 'auth/network-request-failed'];
   const configured = () => {
+    if (TESTVERSION) return false;   // Testversion: nie mit Firebase verbinden
     const k = String(FIREBASE_CONFIG.apiKey || '');
     return !!k && !k.startsWith('DEINE') && !String(FIREBASE_CONFIG.projectId || '').startsWith('DEIN');
   };

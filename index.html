@@ -22,9 +22,11 @@
 <script>
   // Darstellung vor dem ersten Paint setzen (verhindert Flackern) – Cache aus applyTheme()
   (function () {
+    // Testversion unter …/test/: eigener Speicher (wie TESTVERSION in js/core.js)
+    var P = /\/test\/(index\.html)?$/.test(location.pathname) ? 'trainio-test.' : 'gymlog.';
     try {
-      var d = document.documentElement, L = JSON.parse(localStorage.getItem('gymlog.look') || 'null') || {};
-      var t = L.theme || localStorage.getItem('gymlog.theme') || 'dark', h = new Date().getHours();
+      var d = document.documentElement, L = JSON.parse(localStorage.getItem(P + 'look') || 'null') || {};
+      var t = L.theme || localStorage.getItem(P + 'theme') || 'dark', h = new Date().getHours();
       if (t === 'system') t = matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
       else if (t === 'time') t = h >= 19 || h < 7 ? 'dark' : 'light';
       else if (t !== 'light') t = 'dark';
@@ -44,8 +46,8 @@
     // App-Icon: ?icon=N (aus „Auf dem Home-Bildschirm übernehmen") oder gespeicherte Wahl – vor „Zum Home-Bildschirm"
     try {
       var m = location.search.match(/[?&]icon=(\d+)/), ic = m && m[1];
-      if (ic) { localStorage.setItem('gymlog.icon', ic); window.__iconFromUrl = ic; history.replaceState(null, '', location.pathname + location.hash); }
-      ic = ic || localStorage.getItem('gymlog.icon');
+      if (ic) { localStorage.setItem(P + 'icon', ic); window.__iconFromUrl = ic; history.replaceState(null, '', location.pathname + location.hash); }
+      ic = ic || localStorage.getItem(P + 'icon');
       if (ic && /^[2-6]$/.test(ic)) {   // gültige Icons wie APP_ICONS in js/core.js
         var g = function (id) { return document.getElementById(id); }, p = 'icons/' + ic + '/';
         g('lnkTouch').href = p + 'apple-touch-icon.png';
@@ -56,7 +58,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/app.css?v=1.33.7">
+<link rel="stylesheet" href="css/app.css?v=1.33.8">
 </head>
 <body>
 <!-- Himmel für das Design „Tag & Nacht" (js/sky.js malt Farben, Sonne, Mond; sonst ausgeblendet). Berge wie Sky-HILLS -->
@@ -92,23 +94,24 @@
 <div id="popover" class="popover" hidden></div>
 <noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.33.7"></script>
-<script src="js/core.js?v=1.33.7"></script>
-<script src="js/seeds.js?v=1.33.7"></script>
-<script src="js/store.js?v=1.33.7"></script>
-<script src="js/ui.js?v=1.33.7"></script>
-<script src="js/sky.js?v=1.33.7"></script>
-<script src="js/motion.js?v=1.33.7"></script>
-<script src="js/analytics.js?v=1.33.7"></script>
-<script src="js/workout.js?v=1.33.7"></script>
-<script src="js/training.js?v=1.33.7"></script>
-<script src="js/workout-ui.js?v=1.33.7"></script>
-<script src="js/exercises.js?v=1.33.7"></script>
-<script src="js/charts.js?v=1.33.7"></script>
-<script src="js/progress.js?v=1.33.7"></script>
-<script src="js/heart.js?v=1.33.7"></script>
-<script src="js/more.js?v=1.33.7"></script>
-<script src="js/import.js?v=1.33.7"></script>
-<script src="js/boot.js?v=1.33.7"></script>
+<script src="js/config.js?v=1.33.8"></script>
+<script src="js/core.js?v=1.33.8"></script>
+<script src="js/seeds.js?v=1.33.8"></script>
+<script src="js/store.js?v=1.33.8"></script>
+<script src="js/ui.js?v=1.33.8"></script>
+<script src="js/sky.js?v=1.33.8"></script>
+<script src="js/motion.js?v=1.33.8"></script>
+<script src="js/analytics.js?v=1.33.8"></script>
+<script src="js/workout.js?v=1.33.8"></script>
+<script src="js/training.js?v=1.33.8"></script>
+<script src="js/workout-ui.js?v=1.33.8"></script>
+<script src="js/exercises.js?v=1.33.8"></script>
+<script src="js/charts.js?v=1.33.8"></script>
+<script src="js/progress.js?v=1.33.8"></script>
+<script src="js/heart.js?v=1.33.8"></script>
+<script src="js/more.js?v=1.33.8"></script>
+<script src="js/import.js?v=1.33.8"></script>
+<script src="js/testversion.js?v=1.33.8"></script>
+<script src="js/boot.js?v=1.33.8"></script>
 </body>
 </html>

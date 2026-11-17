@@ -72,6 +72,7 @@ async function boot() {
   const st = S().startTab;
   if (st && st !== 'last' && Views[st]) App.tab = st;
   if (Store.owner() === 'local') ensureSeeds();
+  await Testversion.boot();   // nur unter …/test/: Beispieldaten beim ersten Start
   Store.subscribe('*', cs => { if (cs.includes('meta')) applyTheme(); scheduleRender(); });
   Store.onSync(() => { renderNav(); if (App.tab === 'more') scheduleRender(); });
   // Fortschritt startet mit dem eingestellten Zeitraum (sonst zuletzt gewählter)

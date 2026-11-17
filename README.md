@@ -483,6 +483,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/heart.js` | Herz & Ausdauer: Ruhepuls, VO2max, Pulszonen, Intervall-Timer, Herz-Plan |
 | `js/more.js` | Mehr-Tab: Gruppen-Seiten, Einstellungs-Suche, Konto, Daten (Export CSV/PDF/JSON) |
 | `js/import.js` | Arrow-Import |
+| `js/testversion.js` | Testversion unter `…/test/`: Beispieldaten und „Neu laden“ (sonst ohne Wirkung) |
 | `js/boot.js` | Start der App |
 | `sw.js` | Service Worker (Offline-Cache) |
 | `tools/release.py` | Version für ein Deploy hochsetzen (siehe unten) |
@@ -538,8 +539,10 @@ nicht nachträglich verknüpfen (Daten würden sonst vermischt).
 
 ## 2. Deployment (GitHub Pages)
 
-1. Repo → **Settings → Pages** → *Deploy from a branch* → `main` / `(root)`.
+1. Repo → **Settings → Pages** → *Source* → **GitHub Actions**. Die Action `.github/workflows/pages.yml`
+   veröffentlicht bei jedem Push `main` und – falls vorhanden – den Zweig `redesign` als Testversion.
 2. Live-URL: `https://davidflasch2009.github.io/trainio/`
+   Testversion des Umbaus: `https://davidflasch2009.github.io/trainio/test/`
 3. Änderungen veröffentlichen:
 
    ```bash
@@ -553,6 +556,14 @@ nicht nachträglich verknüpfen (Daten würden sonst vermischt).
 > Neue Versionen spielen sich von selbst ein: beim Öffnen der App (auch aus dem Hintergrund), solange noch nichts
 > angetippt ist, sonst beim nächsten Verlassen der App (wenn kein Fenster offen ist). Bis dahin erscheint
 > „Neue Version verfügbar – Neu laden“. Daten und ein laufendes Workout sind vorher gesichert.
+
+### Testversion (`…/test/`)
+
+Der Umbau entsteht auf dem Zweig `redesign` und läuft unter `…/trainio/test/`, bevor er live geht
+(siehe `docs/redesign/ANFORDERUNGEN.md`, Abschnitt 8). Unter `/test/` ist die App vollständig getrennt:
+eigener Speicher (`trainio-test.*`), eigene Fotos-Datenbank und Caches, kein Firebase. Beim ersten Öffnen legt sie
+Beispieldaten an (10 Wochen Push/Pull/Beine, Körpergewicht, Bulk-Phase); *Mehr → Beispieldaten neu laden* setzt sie
+zurück. Der Service Worker der echten App lässt `/test/` aus.
 
 ### Installieren
 

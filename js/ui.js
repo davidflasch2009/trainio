@@ -724,7 +724,7 @@ function applyTheme() {
 /** Gewähltes App-Icon: Browser-Tab, Home-Bildschirm (iPhone beim Hinzufügen) und Android-Manifest */
 function applyIcon() {
   const id = iconId();
-  try { localStorage.setItem('gymlog.icon', id); } catch (e) {}
+  try { localStorage.setItem(LS.icon, id); } catch (e) {}
   const set = (lid, href, type) => { const l = document.getElementById(lid); if (!l) return; if (type && l.type !== type) l.type = type; if (l.getAttribute('href') !== href) l.setAttribute('href', href); };
   set('lnkTouch', iconSrc('apple-touch-icon.png'));
   set('lnkPng', iconSrc('icon-192.png'));

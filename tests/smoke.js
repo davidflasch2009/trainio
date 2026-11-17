@@ -38,6 +38,11 @@ function staticChecks() {
   const vs = [...index.matchAll(/(?:src|href)="(?:css|js)\/[^"?]+\?v=([^"]+)"/g)].map(m => m[1]);
   check(version && vs.length && vs.every(v => v === version), `?v= in index.html passt zur App-Version (${version})`, [...new Set(vs)].join(', '));
   check(/const CACHE = 'gymlog-v\d+';/.test(read('sw.js')), 'sw.js hat einen Cache-Namen');
+  const sw = read('sw.js');
+  check(sw.includes("if (!TESTVERSION && url.href.startsWith(TEST_PATH)) return;") && !/caches\.open\(CACHE\)/.test(sw) && sw.includes('k.startsWith(PREFIX) && k !== CACHE_NAME'),
+    'sw.js: Testversion hat eigene Caches, die echte App lässt /test/ aus');
+  check(!/'gymlog\.(?!')/.test(read('js/ui.js') + read('js/store.js') + read('js/more.js')) && /localStorage\.getItem\(P \+ 'look'\)/.test(index),
+    'Speicher-Schlüssel kommen aus LS bzw. P (Testversion getrennt)');
   const icons = (read('js/core.js').match(/const APP_ICONS = \[([^\]]*)\]/) || [])[1] || '';
   const n = (icons.match(/'\d+'/g) || []).length;
   const dirs = fs.readdirSync(path.join(ROOT, 'icons')).filter(d => /^\d+$/.test(d));
@@ -56,6 +61,7 @@ function serve() {
   return new Promise(resolve => {
     const srv = http.createServer((req, res) => {
       let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
+      if (p.startsWith('/test/')) p = p.slice(5);   // Testversion: dieselben Dateien unter /test/ (wie auf GitHub Pages)
       if (p.endsWith('/')) p += 'index.html';
       const f = path.join(ROOT, p);
       if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
@@ -723,6 +729,40 @@ async function anzeigeFlow(page) {
 }
 
 /* Sätze pro Muskel und Woche – Bereiche nach der Recherche (docs/redesign/recherche/saetze-pro-woche.md) */
+/* Testversion unter …/test/: eigener Speicher, kein Firebase, Beispieldaten – die echten Daten bleiben unberührt */
+async function testversionFlow(page) {
+  console.log('Testversion (…/test/)');
+  await page.evaluate(async () => {
+    await Store.batch([{ type: 'put', coll: 'workouts', id: 'echt1', doc: { date: isoDate(), startedAt: Date.now(), durationSec: 600, name: 'Echt', entries: [] } }]);
+    Store.flushLocal();
+  });
+  const t = await page.context().newPage();
+  t.errors = [];
+  t.on('pageerror', e => t.errors.push(e.message));
+  await t.goto(page.url() + 'test/', { waitUntil: 'domcontentloaded' });
+  await t.waitForFunction(() => typeof App !== 'undefined' && Store.all('workouts').length > 0 && document.querySelector('#tab-' + App.tab).innerHTML.length > 0, null, { timeout: 10000 });
+  const r = await t.evaluate(() => ({ test: TESTVERSION, key: LS.data, fb: Auth.configured(), wo: Store.all('workouts').length, echt: !!Store.raw('workouts', 'echt1'),
+    bw: Store.all('progress').length, phase: (S().phases || []).map(p => p.type).join(), plan: S().activePlanId, prs: Store.all('prs').length }));
+  check(r.test && r.key === 'trainio-test.v1' && !r.fb, 'Testversion: eigener Speicher, kein Firebase');
+  check(r.wo >= 20 && r.bw >= 20 && r.phase === 'bulk' && r.plan === 'plan_bsp' && r.prs > 10 && !r.echt,
+    `Testversion: Beispieldaten (${r.wo} Workouts, ${r.bw}× Gewicht, Bulk), das echte Workout ist nicht zu sehen`);
+  let bad = [];
+  for (const tab of ['start', 'training', 'progress', 'more']) {
+    await t.evaluate(x => App.go(x), tab); await pause(t, 300);
+    if (!await noViewError(t)) bad.push(tab);
+  }
+  const more = await t.evaluate(() => document.querySelector('#tab-more').innerText);
+  check(!bad.length && more.includes('Beispieldaten neu laden') && !more.includes('Lokaler Modus'), 'Testversion: alle Tabs laufen, „Mehr“ zeigt „Beispieldaten neu laden“', bad.join(', '));
+  const again = await t.evaluate(async () => { Store.del('workouts', Store.all('workouts')[0].id); Store.put('workouts', 'extra', { date: isoDate(), startedAt: Date.now(), name: 'X', entries: [] });
+    await Testversion.load(); return Store.all('workouts').length; });
+  check(again === r.wo, 'Testversion: „Neu laden“ stellt die Beispieldaten wieder her');
+  await t.evaluate(() => Store.flushLocal());
+  const real = await t.evaluate(() => Object.keys((JSON.parse(localStorage.getItem('gymlog.v1')) || { colls: {} }).colls.workouts || {}));
+  check(real.join() === 'echt1', 'Testversion: die echten Daten bleiben unberührt', real.join());
+  check(!t.errors.length, 'Testversion ohne JS-Fehler', t.errors.join(' | '));
+  await t.close();
+}
+
 async function muskelFlow(page) {
   console.log('Sätze pro Muskel');
   await page.evaluate(async () => {
@@ -787,7 +827,7 @@ async function muskelFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige', name === 'iphone' ? IPHONE : undefined);
