@@ -747,11 +747,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 }
 button.tile { cursor: pointer; transition: background .15s; }
 button.tile:active { background: var(--surface-2); }
-.tile-t { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
+.tile-t { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
 .tile-n { font-family: var(--font-num); font-size: calc(32px * var(--fs)); font-weight: 600; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile-n small, .det-num small, .u { font-family: var(--font); font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); margin-left: 4px; letter-spacing: 0; }
-.tile-n.txt { font-size: calc(20px * var(--fs)); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; overflow-wrap: anywhere; }
+.tile-n.txt { font-size: calc(20px * var(--fs)); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; overflow-wrap: break-word; -webkit-hyphens: auto; hyphens: auto; }
 .tile.warn .tile-n { color: var(--warning); }
 .sec-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; margin: 28px 0 12px; }
 .sec-h h2 { font-size: calc(20px * var(--fs)); font-weight: 600; letter-spacing: -.01em; }

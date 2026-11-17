@@ -488,7 +488,7 @@ async function heartFlow(page) {
   console.log('Herz & Ausdauer');
   await page.evaluate(() => { UI.progSub = 'cardio'; App.go('progress'); });
   await pause(page, 400);
-  check(await page.evaluate(() => !!document.querySelector('#progBody [data-act="rhrMeasure"]') && /Herz & Cardio/.test(document.querySelector('.prog-controls').innerText)) && await noViewError(page),
+  check(await page.evaluate(() => !!document.querySelector('#progBody [data-act="rhrMeasure"]') && /Herz & Cardio/.test(document.querySelector('.prog-head').innerText)) && await noViewError(page),
     'Fortschritt → Herz & Cardio auch ohne Workouts');
   // Ruhepuls im Takt tippen: 20 Schläge alle 600 ms ≈ 100/min
   await page.click('#progBody [data-act="rhrMeasure"]');
@@ -520,7 +520,9 @@ async function heartFlow(page) {
   check(await page.evaluate(() => S().heartPlan === null && !Heart.startCard()), 'Herz-Plan ist anfangs aus');
   await page.evaluate(() => { UI.progSub = 'cardio'; App.go('progress'); });
   await pause(page, 300);
-  await page.click('#progBody [data-act="heartPlan"]');
+  await page.click('#progBody [data-act="cardOpen"]:has-text("Herz-Plan")');   // Basis: die Karte steht hinter ihrer Zeile
+  await pause(page, 400);
+  await page.click('.modal [data-act="heartPlan"]');
   await pause(page, 400);
   await page.click('.modal [data-st="sessions"][data-d="1"]');
   await page.click('.modal [data-x="ok"]');
@@ -554,7 +556,7 @@ async function heartFlow(page) {
   await pause(page, 300);
   check(await page.evaluate(() => /Herz diese Woche/.test((document.querySelector('#tab-start .hp-card') || {}).innerText || '')), 'Startseite zeigt „Herz diese Woche"');
   // Startseite: Herz-Karte abschaltbar, alle Kacheln wählbar
-  await page.evaluate(() => { App.go('more'); openMoreSub('look'); });
+  await page.evaluate(() => { App.go('more'); openMoreSub('home'); });
   await pause(page, 300);
   await page.click('#tab-more [data-k="homeHeart"]');
   await pause(page, 300);
@@ -863,8 +865,8 @@ async function testversionFlow(page) {
   // Liquid Glass: Tab-Leiste schrumpft beim Scrollen und wächst beim Hochscrollen
   await t.evaluate(() => { setLook('design', 'glass'); UI.progSub = 'volume'; App.go('progress'); });
   await pause(t, 600);
-  const gl = await t.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const el = Scroll.el; el.scrollTop = 200; await wait(80); el.scrollTop = 420; await wait(120);
-    const mini = document.body.classList.contains('nav-mini'); el.scrollTop = 300; await wait(120); const big = !document.body.classList.contains('nav-mini');
+  const gl = await t.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const el = Scroll.el; el.scrollTop = 100; await wait(80); el.scrollTop = 200; await wait(120);
+    const mini = document.body.classList.contains('nav-mini'); el.scrollTop = 120; await wait(120); const big = !document.body.classList.contains('nav-mini');
     const op = getComputedStyle(document.querySelector('#tab-progress .tile')).backgroundColor; return { mini, big, op }; });
   check(gl.mini && gl.big && !/rgba\(.*, 0\.\d+\)$/.test(gl.op), 'Liquid Glass: Tab-Leiste schrumpft beim Scrollen, Kacheln deckend', JSON.stringify(gl));
   await t.evaluate(() => { setLook('design', 'pure'); });
@@ -938,7 +940,9 @@ async function muskelFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [redesignFlow, { width: 390, height: 844 }, 'redesign'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  // FLOWS=herz,redesign npm test → nur diese Abläufe (zum schnellen Prüfen); ohne FLOWS laufen alle
+  const only = process.env.FLOWS ? process.env.FLOWS.split(',') : null;
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [redesignFlow, { width: 390, height: 844 }, 'redesign'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']].filter(f => !only || only.includes(f[2]))) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige', name === 'iphone' ? IPHONE : undefined);

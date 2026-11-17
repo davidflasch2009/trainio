@@ -257,8 +257,8 @@ function detailSheet({ title, info = '', num = null, unit: u = '', sub = '', cha
     ${after}
   </div>`;
   const m = Modal.open({ title, info, body: html, foot, cls: 'det-sheet' });
-  // Knöpfe unten führen woandershin → Fenster schließen
-  m.el.addEventListener('click', e => { if (e.target.closest('.modal-foot [data-act]')) setTimeout(() => m.dismiss(), 0); });
+  // Knöpfe im Fenster führen woandershin (Workout öffnen, Plan einrichten …) → das Detail-Fenster schließt sich
+  m.el.addEventListener('click', e => { const a = e.target.closest('[data-act]'); if (a && !a.closest('.modal-head')) setTimeout(() => m.dismiss(), 0); });
   return m;
 }
 /** Schlichtes Diagramm (nur in Fenstern): Balken oder Linie, aktueller Wert im Akzent, der Rest grau, laufende Woche
