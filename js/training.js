@@ -514,8 +514,7 @@ function tplCard(t, p) {
     <div class="row top">
       <div class="grow" style="min-width:0">
         <h3 class="ellipsis">${esc(t.name)}</h3>
-        <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ${tplSets(t)} Sätze · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
-        <p class="tiny faint mt-8 tpl-ex">${(t.exercises || []).map(x => esc(Ex.name(x.exerciseId))).join(' · ')}</p>
+        <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent">${days.join(', ')}</span>` : ''}</p>
       </div>
       <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Optionen">${icon('dots')}</button>
     </div>

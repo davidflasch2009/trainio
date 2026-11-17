@@ -1490,7 +1490,7 @@ ProgressViews.body = body => {
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Verhältnisse</span>${infoBtn('Verhältnisse deiner Umfänge. Taille/Hüfte gilt als gesund unter 0,9 (Männer) bzw. 0,85 (Frauen).')}</div>
         <div class="ratio-row"><span class="grow">Schulter / Taille</span><b>${adonis ? nf(adonis, 2) : '–'}</b><span class="tiny dim"></span></div>
-        <div class="ratio-row"><span class="grow">Taille / Hüfte</span><b>${whr ? nf(whr, 2) : '–'}</b><span class="tiny dim">${whr ? (whr < (S().sex === 'f' ? .85 : .9) ? '✓ gesund' : '⚠ erhöht') : ''}</span></div>
+        <div class="ratio-row"><span class="grow">Taille / Hüfte</span><b>${whr ? nf(whr, 2) : '–'}</b><span class="tiny dim">${whr ? (whr < (S().sex === 'f' ? .85 : .9) ? 'gesund' : 'erhöht') : ''}</span></div>
         <div class="ratio-row"><span class="grow">Arm / Oberschenkel</span><b>${armThigh ? nf(armThigh, 2) : '–'}</b><span class="tiny dim"></span></div>
       </div>` : ''}
       ${F('f_photos') ? `<div class="chart-card">

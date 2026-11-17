@@ -30,6 +30,28 @@ Rand transparent), `icon-maskable-192.png`, `icon-maskable-512.png` (vollflächi
 - **Android:** Jedes Icon hat ein eigenes Manifest mit derselben App-Identität; Chrome übernimmt das neue Icon
   meist innerhalb eines Tages (evtl. mit Rückfrage), sofort bei Neuinstallation.
 
+## Trainio-Score
+
+Die wichtigste Zahl der App: **Werde ich stärker, baue ich Muskeln auf?** Eine Zahl von 0 bis 100 als großer Kreis
+oben auf der Startseite (kleiner auch in Fortschritt → Übersicht). Antippen zeigt Klartext („Kraft steigt, guter
+Aufbau-Reiz, Zunahme im Plan“), die sieben Körperbereiche, den Verlauf der letzten 8 Wochen und die Bestandteile.
+Abschaltbar unter Mehr → Tabs & Funktionen. Berechnet aus den gespeicherten Workouts und dem Körpergewicht
+(`js/score.js`, Regeln in `docs/redesign/ANFORDERUNGEN.md`, Abschnitt 6):
+
+- **Kraft (50):** je Übung das beste geschätzte 1RM pro Woche (nur Sätze bis 12 Wdh. inkl. Wdh. in Reserve aus dem
+  RPE, RPE ≤ 5 und Form-Fix-Sätze zählen nicht), Median der letzten 4 Wochen gegen die 4 davor, als % pro Monat.
+  Neue Übungen zählen ab der 5. Einheit, ein Form-Fix startet die Übung neu.
+- **Trainingsreiz (30):** Arbeitssätze je Muskelgruppe und Woche (Hauptmuskel 1, Hilfsmuskel 0,5, RPE ≤ 5 halb) auf
+  einer abflachenden Kurve (Bulk voll ab 18 Sätzen, Cut ab 8, Erhalt ab 10), je Körperbereich gemittelt.
+- **Gewichtstrend (20):** Veränderung des Körpergewichts in % pro Woche gegen die Spanne der Phase (eigene Spanne der
+  Phase gilt vor dem Standard; zu schnelle Zunahme bzw. Abnahme gibt einen Abzug und einen Hinweis).
+- **Maßstab:** erwartetes Kraft-Tempo nach Trainingserfahrung (unter 1 Jahr 3 %, 1–3 Jahre 1 %, darüber 0,5 % pro
+  Monat) – einstellbar über **Trainiere seit** (Mehr → Konto & Profil), sonst ab dem ersten Workout. Das erwartete
+  Tempo ergibt etwa **85**, 100 gibt es erst beim etwa 1,5-fachen. Fehlt ein Teil, zählen die übrigen.
+- **Zustände:** unter 6 Krafteinheiten in 8 Wochen (verteilt auf 4 Wochen) steht „Noch N Workouts“; bei wenigen
+  Daten wird zur Mitte gezogen („noch unsicher“); Pausen bis 3 Wochen verlängern das Fenster, längere Pausen lassen
+  den Score ruhen. Es zählen nur Daten seit Beginn der laufenden Phase.
+
 ## Workout-Score
 
 Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
@@ -105,22 +127,44 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 - **Workout-Abschluss:** Abzeichen springt, Haken zeichnet sich, die Werte-Kacheln erscheinen nacheinander, neue PRs
   mit Glanz.
 
+## Aufbau (Basis)
+
+Alle Bildschirme folgen einer gemeinsamen, schlichten Basis (Plan: `docs/redesign/ANFORDERUNGEN.md`):
+
+- **Übersichten zeigen nur Titel und Zahl.** Verlauf, Vergleiche, Aufschlüsselung und die Erklärung (i) erscheinen
+  erst nach dem Antippen – als **Fenster von unten** (nach unten wischen schließt): große Zahl, höchstens ein
+  Diagramm, wenige Werte als Liste.
+- **Schrift:** Systemschrift in festen Stufen (Seitentitel 30, Abschnitt 20, Text 17, Nebenzeile 15, Beschriftung 13,
+  Tab-Leiste 11 px), Zahlen 32 px in Kacheln und 56 px in Details, Ziffern mit fester Breite.
+- **Raster:** Seitenrand 20 px, zwischen Abschnitten 28 px, Tap-Flächen mindestens 44 px.
+- **Farben:** eine Akzentfarbe je Design; Signalfarben mit fester Bedeutung (Grün gut, Ocker Achtung, Rot schlecht).
+- **Diagramme** nur in Fenstern: Balken oder Linie, aktueller Wert im Akzent, der Rest grau, keine Glättung.
+
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
-(oder automatisch nach System / Uhrzeit) – nur „Tag & Nacht“ wechselt von selbst mit dem Sonnenstand:
+Unter **Mehr → Darstellung** gibt es vier Designs, jedes in **Hell und Dunkel** (oder nach System / Uhrzeit) – nur
+„Tag & Nacht“ wechselt von selbst mit dem Sonnenstand. Jedes hat ein Markenzeichen:
 
-| Design | Look |
-| --- | --- |
-| Trainio | Ruhiges Graphit mit gedecktem Grün – klar und professionell (Standard) |
-| Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
-| Iron | Industrial-Gym: Stahl, Orange, Condensed-Schrift |
-| Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
-| Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
-| Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
-| Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |
-| Fokus | Schwarz-weiß und ruhig: nur Schwarz, Weiß und Grau (auch Knöpfe, Diagramme und Konfetti), Systemschrift, keine Effekte – Farbe tragen nur Signale wie Rot/Grün für schlechter/besser und Fehler. Im Workout **Spotlight**: nur die aktuelle Übung ist voll da (die anderen treten zurück, antippen holt sie nach vorn), der nächste offene Satz hat eine feine Linie, erledigte Sätze sind gedimmt |
-| Tag & Nacht | Der Himmel als Hintergrund, in vier Phasen: **Dämmerung** (Lavendel & Pfirsich), **Tag** (Himmelblau, Sonnengelb), **Sonnenuntergang** (Violett & Orange, dunkel) und **Nacht** (Nachtblau, Mondsilber, Sterne). Siehe unten |
+| Design | Look | Akzentfarben |
+| --- | --- | --- |
+| **Pure** (Standard) | Schlicht und ruhig, nichts lenkt ab: helle Flächen auf Weiß bzw. dunkle auf Schwarz, Ecken 8 px, Systemschrift, Blau als Akzent | Blau, Rot, Grün, Orange, Violett |
+| **Fokus** | Schwarz-weiß, Farbe nur für Signale (auch Knöpfe, Diagramme und Konfetti). Im Workout **Spotlight**: nur die aktuelle Übung ist voll da | – |
+| **Liquid Glass** | Glas wie beim iPhone – nur in der Navigation (Tab-Leiste, Kopfzeile, Fenster, Menüs, Meldungen), Inhalte deckend vor einem farbigen Hintergrund. Die **Tab-Leiste schrumpft beim Scrollen** und wird beim Hochscrollen wieder groß | Blau, Türkis, Violett, Rosa, Grün, Orange |
+| **Tag & Nacht** | Der **Himmel als Hintergrund** wechselt mit der Tageszeit, deckende Flächen und Tab-Leiste, weiche Serifen-Zahlen (Fraunces). Die Akzentfarbe folgt dem Himmel | folgt dem Himmel |
+
+**Darstellung** (von oben nach unten): Vorschau, Design, App-Icon, Modus & Akzentfarbe, Lesbarkeit (Textgröße, hoher
+Kontrast), Bewegung & Feedback (Animationen, Vibration, Konfetti), **Feinanpassung ›** und „Darstellung zurücksetzen“
+(setzt auch die Feinanpassungen aller Designs zurück, die Startseite bleibt).
+
+**Feinanpassung** (eigene Unterseite): Ecken, Schrift, Dichte, Tab-Leiste (Stil, Beschriftung), eigene Akzentfarbe,
+bei Liquid Glass Hintergrund und Unschärfe. Sie gilt **je Design** – jedes Design merkt sich seine Anpassungen, nach
+einem Wechsel sieht man das neue Design so, wie es gedacht ist. Die Zeile zeigt „Wie im Design“ oder „2 Änderungen“,
+„Auf Design zurücksetzen“ gilt nur fürs aktuelle Design.
+
+**Umstieg** (einmalig): Wer eines der entfernten Designs (Trainio, Iron, Carbon, Paper, Plakat) genutzt hat, landet bei
+Pure. Ecken, Schrift, Dichte und Tab-Leiste gehen zurück auf „vom Design“; eine Akzentfarbe bleibt nur, wenn das Design
+sie anbietet. Modus, Textgröße, Kontrast, Bewegung, Startseite und App-Icon bleiben. Wurde etwas zurückgesetzt,
+erscheint einmal „Neue Designs – deine Anpassungen wurden zurückgesetzt“.
 
 **Tag & Nacht** im Detail:
 - **Wechselt von selbst** mit dem echten Sonnenstand: Sonnenauf- und -untergang werden aus Datum und Zeitzone
@@ -134,21 +178,13 @@ Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
   darauf immer lesbar bleibt (oben mindestens 7:1).
 - Phasenwechsel ohne Neustart (jede Minute und beim Zurückkehren in die App, sanft überblendet – nicht mitten in
   einer Eingabe). **Zeitraffer** unter Darstellung → Tageszeit: ein ganzer Tag in 12 Sekunden.
-- Weich & rund: Milchglas-Karten, schwebende Tab-Leiste, Titel und große Zahlen in der weichen Fraunces,
+- Weich & rund: deckende Karten und Tab-Leiste (Himmel statt Glas), Titel und große Zahlen in der weichen Fraunces,
   auf der Startseite der nächste Sonnenauf- oder -untergang. Auch das Teilen-Bild zeigt den Himmel von jetzt.
-- Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich wie überall frei einstellen.
 
-Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
-hat, landet automatisch bei Trainio.
-
-Dazu einstellbar: Akzentfarbe (12 Vorgaben oder eigene Farbe – Kontrast wird automatisch
-angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, hoher Kontrast,
-Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
-Konfetti und Inhalte der Startseite. Diese Einstellungen gelten in jedem Design – auch dort, wo das Design selbst
-etwas vorgibt (z. B. „Ecken: Rund“ im eckigen Plakat).
-
-**Startseite** (Mehr → Darstellung → Startseite): Statistik-Kacheln frei wählen und sortieren (je zwei nebeneinander,
-beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl der letzten Workouts. 17 Kacheln:
+**Startseite**: oben das Datum und der **Trainio-Score** als großer Kreis, darunter die Statistik-Kacheln (nur Titel und
+Zahl – Antippen öffnet die Details), der Hauptknopf „Workout starten“ bzw. „Weiter: …“, Ziele und Letzte Workouts.
+Einstellbar unter **Mehr → Startseite**: Kacheln wählen und sortieren, „Herz diese Woche“, Zahl der letzten Workouts
+und welcher Tab beim Öffnen erscheint. 17 Kacheln:
 - **Training:** Streak, Volumen, Sätze und Trainingszeit (diese Woche, Vergleich mit der Vorwoche bis zum gleichen Tag),
   Workouts gesamt, Workouts im Monat (mit Vormonat), Letztes Workout (antippen öffnet es), Nächstes Training
   (antippen startet), Konsistenz (Wochenziel erreicht in den letzten 8 Wochen), Ø Score.
@@ -156,7 +192,7 @@ beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl d
   Veränderung in 4 Wochen – Übung über „Übung“ in der Auswahl ändern), Körpergewicht (Veränderung in 4 Wochen).
 - **Cardio & Herz:** Cardio-Minuten der Woche, Ruhepuls (antippen = messen), VO2max mit Einordnung, Herz-Woche
   (Herz-Plan: Einheiten, Zone 2, hart).
-Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
+Kacheln mit Ziel (Nächstes Training, Letztes Workout, Kraft einer Übung, Ruhepuls) führen direkt dorthin.
 
 ## Workout-Ansicht (ausführlich)
 
@@ -192,13 +228,14 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
 
 ## Workout-Eingabe
 
-- **Schlicht** (Standard): pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben,
-  Notizen usw. hinter dem ⋯-Menü.
-- **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
-  Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
-  „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
-  ebenfalls automatisch. In der ausführlichen Ansicht: Wert in der Spalte „Letztes“ antippen.
-  Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
+- **Schlicht** (Standard): oben Name, Zeit und „Beenden“, darunter ein schmaler Fortschrittsbalken. Je Übung eine
+  Tabelle (Satz, kg, Wdh., Haken). Die **aktuelle Zeile klappt die Eingabe auf**: Stepper für kg und Wdh.,
+  „Letztes Mal …“, RPE auf Antippen (die Auswahl bleibt offen), Scheiben und der Hauptknopf **„Satz erledigt“**.
+  Eine andere Zeile antippen wählt sie aus; der Haken hakt direkt ab. Danach ist der nächste Satz ausgewählt.
+  Die Pause steht als dunkle Leiste über der Tab-Leiste (−15, +15, Schließen) und verdeckt nichts.
+- **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in der Zeile. Der Haken
+  bzw. „Satz erledigt“ übernimmt leere Werte automatisch. In der ausführlichen Ansicht: Wert in der Spalte „Letztes“
+  antippen. Wer lieber alles als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
 - **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
 - Umschalten unter **Mehr → Workout** oder im Workout über ⋯.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz

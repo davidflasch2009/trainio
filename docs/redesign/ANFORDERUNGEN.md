@@ -313,7 +313,7 @@ wenn David ihn abnimmt.
 2. **Testversion mit Beispieldaten** (David; erledigt in v1.33.8): eigener Speicher, keine Verbindung zu Davids Daten oder zu Firebase.
    Beim ersten Öffnen legt sie Beispiel-Workouts an (10 Wochen Push/Pull/Beine, Körpergewicht, Phase Bulk). Ein Knopf
    setzt die Beispieldaten zurück.
-3. **Reihenfolge in der Testversion**, jeder Schritt sofort ausprobierbar:
+3. **Reihenfolge in der Testversion**, jeder Schritt sofort ausprobierbar (Stand 17.11.2026: Schritte 1–6 gebaut, wartet auf Davids Abnahme):
    1. Basis: Schrift, Raster, Farben, Komponenten; Start, laufendes Workout und Fortschritt nach den Mustern;
       Details als Fenster von unten.
    2. Pure als Standard auf der Basis.

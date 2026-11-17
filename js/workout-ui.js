@@ -144,7 +144,7 @@ function openIndex(w) {
 /* Spotlight (Design „Fokus"): die aktuelle Übung heißt ex-cur, ihr nächster offener Satz set-next – das CSS dimmt den Rest */
 function markNextSet(html, en, ei) {
   const si = en.sets.findIndex(s => !s.done);
-  return si < 0 ? html : html.replace(new RegExp(`<div class="set-row([^"]*)" data-ei="${ei}" data-si="${si}"`), `<div class="set-row$1 set-next" data-ei="${ei}" data-si="${si}"`);
+  return si < 0 ? html : html.replace(new RegExp(`<div class="set-row([^"]*)"([^>]*?) data-ei="${ei}" data-si="${si}"`), `<div class="set-row$1 set-next"$2 data-ei="${ei}" data-si="${si}"`);
 }
 function woCard(en, ei, w, full) {
   const type = Ex.type(Ex.get(en.exerciseId));
@@ -1488,20 +1488,19 @@ Actions.woFinish = async () => {
 
 /* ---------- Session-Zusammenfassung ---------- */
 /* ---------- Workout-Score: Ring (füllt sich, Zahl zählt hoch) + Aufschlüsselung ---------- */
+/* Workout-Score: kleiner, dicker Ring (unterscheidet sich vom großen, dünnen Kreis des Trainio-Scores) */
 function scoreRingHtml(sc, small = false) {
-  const R = 52, L = 2 * Math.PI * R;
+  const R = 46, L = 2 * Math.PI * R;
   return `<div class="score-ring ${small ? 'sm' : ''}" data-score="${sc.score}" role="img" aria-label="Workout-Score ${sc.score} von 100">
-    <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10" stroke-dasharray="${L}" style="stroke-dashoffset:${L}" data-len="${L}"/></svg>
+    <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="${R}" fill="none" stroke-width="18"/><circle class="ring-fg" cx="60" cy="60" r="${R}" fill="none" stroke-width="18" stroke-dasharray="${L}" style="stroke-dashoffset:${L}" data-len="${L}"/></svg>
     <div class="score-mid"><b class="score-num">${sc.score}</b></div></div>`;
 }
+/** Aufschlüsselung als Liste: Teil, Punkte */
 function scoreBreakdownHtml(sc) {
   const W = Analytics.SCORE_W;
-  const item = (k, l, why) => sc.parts[k] == null
-    ? `<div class="sb-item na"><span>${l}</span><b>–</b><small>${why}</small></div>`
-    : `<div class="sb-item"><span>${l}</span><b>${Math.round(sc.parts[k] * W[k])}<small> / ${W[k]}</small></b><i style="--p:${Math.round(sc.parts[k] * 100)}%"></i></div>`;
-  return `<div class="score-bd">${item('prog', 'Fortschritt', 'keine Vergleichswerte')}${item('done', 'Erledigt', '')}${item('rpe', 'Anstrengung', 'kein RPE eingetragen')}
-    <div class="sb-item"><span>e1RM-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer e1RM-Rekord' : 'neue e1RM-Rekorde'}` : 'kein neuer e1RM-Rekord'}</small></div></div>
-    ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}`;
+  const item = (k, l) => `<div class="kv sb-item ${sc.parts[k] == null ? 'na' : ''}"><span>${l}</span><b>${sc.parts[k] == null ? '–' : `${Math.round(sc.parts[k] * W[k])} / ${W[k]}`}</b></div>`;
+  return `<div class="list score-bd">${item('prog', 'Fortschritt')}${item('done', 'Erledigt')}${item('rpe', 'Anstrengung')}
+    <div class="kv sb-item"><span>e1RM-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b></div></div>`;
 }
 /** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen.
  *  Je höher der Score, desto länger dauert es und desto stärker bremst es am Ende ab.

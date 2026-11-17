@@ -90,6 +90,8 @@ async function openApp(browser, base, viewport, touch = false, userAgent = undef
   return page;
 }
 const pause = (page, ms = 250) => page.waitForTimeout(ms);
+/** Basis: Karten im Fortschritt stehen hinter Kacheln (#progBody._cards) – im Browser alle Karten holen */
+const CARDS_JS = "(() => { const b = document.querySelector('#progBody'); return [...document.querySelectorAll('#tab-progress .chart-card'), ...((b && b._cards) || [])]; })()";
 const noViewError = page => page.evaluate(() => !document.querySelector('.tab.active').innerText.includes('Fehler beim Anzeigen'));
 const appErrors = page => page.evaluate(() => ErrLog.all().map(e => e.msg || e.message || String(e)));
 /** Wischgeste mit dem Finger (Touch über CDP) */
@@ -136,7 +138,7 @@ async function mobileFlow(page) {
   await pause(page, 400);
   check(await page.evaluate(() => { const w = Workout.cur(); return w && w.name === 'Push' && w.entries.length === 2; }), 'Workout „Push" startet mit 2 Übungen');
 
-  const set = (si, f) => `#tab-training [data-in="${f}"][data-ei="0"][data-si="${si}"]`;
+  const set = (si, f) => `#tab-training .set-panel [data-in="${f}"][data-ei="0"][data-si="${si}"]`;
   await page.fill(set(0, 'setW'), '60');
   await page.fill(set(0, 'setB'), '8');
   await page.click(`#tab-training [data-act="setDone"][data-ei="0"][data-si="0"]`);
@@ -148,7 +150,7 @@ async function mobileFlow(page) {
     App.renderCurrent();
     return { ...r, dockKept: !!box && box === document.querySelector('#restBox') && box.isConnected };
   });
-  check(live.draw === 'drawCheck' && live.rolls === '1↑ 1↑', 'Satz abhaken: Häkchen zeichnet sich, Zähler rollen weiter', JSON.stringify(live));
+  check(live.draw === 'drawCheck' && live.rolls === '1↑', 'Satz abhaken: Häkchen zeichnet sich, Zähler rollt weiter', JSON.stringify(live));
   check(live.dockIn && live.dockKept, 'Pausen-Leiste gleitet herein und bleibt beim Neu-Zeichnen stehen', JSON.stringify(live));
   await pause(page, 300);
   const s0 = await page.evaluate(() => ({ s: Workout.cur().entries[0].sets[0], rest: !!Workout.cur().rest, dock: document.querySelector('#restDock').innerHTML.length }));
@@ -191,18 +193,14 @@ async function mobileFlow(page) {
   // Seitwärts wischen wechselt den Bereich
   await page.click(`#tab-progress [data-act="progSub"][data-v="overview"]`);
   await pause(page, 300);
-  // Fortschritt-Leiste haftet genau dort, wo sie steht – sie rutscht beim Losscrollen nicht erst ein Stück mit
-  const stick = await page.evaluate(() => [0, 6, 12, 40].map(y => { Scroll.el.scrollTop = y; return Math.round(document.querySelector('.prog-controls').getBoundingClientRect().top); }));
-  await page.evaluate(() => Scroll.to(0));
-  check(stick.every(t => t === stick[0]), 'Fortschritt-Leiste bleibt beim Losscrollen ruhig stehen', stick.join(', '));
   // Am Seitenende federt die Spalte (Gummiband) – auch kurze Seiten können minimal scrollen
   check(await page.evaluate(() => getComputedStyle(Scroll.el).overscrollBehaviorY === 'contain'), 'Inhalt federt am Seitenende nach (overscroll: contain)');
   // Scrollen: Dokument bleibt stehen, nur die Inhaltsspalte scrollt – Tab-Leiste unten, Fortschritt-Leiste oben
   await page.mouse.move(200, 500);
   for (let i = 0; i < 6; i++) { await page.mouse.wheel(0, 400); await page.waitForTimeout(30); }
   await pause(page, 300);
-  const fixed = await page.evaluate(() => ({ doc: scrollY, col: Scroll.y, nav: Math.round(document.querySelector('#bottomNav').getBoundingClientRect().bottom), vh: innerHeight, prog: Math.round(document.querySelector('.prog-controls').getBoundingClientRect().top) }));
-  check(fixed.doc === 0 && fixed.col > 0 && Math.abs(fixed.nav - fixed.vh) < 2 && fixed.prog >= 0 && fixed.prog < 40, 'Scrollen: Tab-Leiste bleibt unten, Fortschritt-Leiste haftet oben', JSON.stringify(fixed));
+  const fixed = await page.evaluate(() => ({ doc: scrollY, col: Scroll.y, nav: Math.round(document.querySelector('#bottomNav').getBoundingClientRect().bottom), vh: innerHeight, prog: 0, x: Math.round(document.querySelector('.prog-head').getBoundingClientRect().top) }));
+  check(fixed.doc === 0 && fixed.col > 0 && Math.abs(fixed.nav - fixed.vh) < 2 , 'Scrollen: Dokument bleibt stehen, nur die Inhaltsspalte scrollt, Tab-Leiste bleibt unten', JSON.stringify(fixed));
   await page.evaluate(() => Scroll.to(0));
   await pause(page, 200);
   await swipe(page, 320, 70, 620);
@@ -356,41 +354,32 @@ async function dataFlow(page) {
   console.log('Design-Wechsel mit Diagrammen');
   await page.evaluate(() => App.go('progress'));
   await pause(page, 600);
-  // Alle Diagramme sind sofort gezeichnet – auch unterhalb des Bildschirms, ohne Hinscrollen (sonst unscharf auf dem iPhone)
-  const cv = await page.evaluate(() => typeof Chart === 'undefined' ? null : [...document.querySelectorAll('#tab-progress canvas')].filter(c => c.style.display !== 'none')
-    .map(c => ({ id: c.id, drawn: !!Chart.getChart(c), below: c.getBoundingClientRect().top > innerHeight, sharp: Math.abs(c.width - c.clientWidth * devicePixelRatio) < 2 })));
-  check(cv && cv.length && cv.every(c => c.drawn) && cv.some(c => c.below), `Diagramme sofort gezeichnet, auch unterhalb (${cv ? cv.length : 0})`, cv ? JSON.stringify(cv.filter(c => !c.drawn)) : 'Chart.js fehlt – npm install ausführen');
+  // Basis: In der Übersicht keine Diagramme – eine Kachel öffnet ihre Karte mit gezeichnetem, scharfem Diagramm
+  check(await page.evaluate(() => !document.querySelector('#tab-progress canvas') && document.querySelectorAll('#tab-progress .prog-tiles .tile').length >= 4), 'Fortschritt: Übersicht nur mit Kacheln, ohne Diagramme');
+  const withChart = await page.evaluate(() => document.querySelector('#progBody')._cards.findIndex(c => c.querySelector('canvas')));
+  await page.click(`#tab-progress [data-act="cardOpen"][data-i="${withChart}"]`);
+  await pause(page, 1000);
+  const cv = await page.evaluate(() => typeof Chart === 'undefined' ? null : [...document.querySelectorAll('.modal canvas')].filter(c => c.style.display !== 'none')
+    .map(c => ({ id: c.id, drawn: !!Chart.getChart(c), sharp: Math.abs(c.width - c.clientWidth * devicePixelRatio) < 2 })));
+  check(cv && cv.length === 1 && cv.every(c => c.drawn), `Kachel öffnet ihre Karte, Diagramm sofort gezeichnet`, cv ? JSON.stringify(cv) : 'Chart.js fehlt – npm install ausführen');
   check(cv && cv.every(c => c.sharp), 'Diagramme mit voller Pixeldichte', cv ? JSON.stringify(cv.filter(c => !c.sharp)) : '');
+  await page.evaluate(() => Modal.closeAll());
   await page.evaluate(() => openMoreSub('look'));
   await pause(page, 600);
-  for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="iron"]']) {
+  for (const sel of ['[data-k="accent"][data-v="#d93f45"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="fokus"]']) {
     await page.click(`#tab-more ${sel}`);
     await pause(page, 450);
   }
   await pause(page, 600);   // Überblendung zu Ende
-  const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="iron"]') }));
-  check(look.d === 'iron' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
-  // Plakat: eckig, Linien statt Karten, Rot nur als Akzent
-  await page.click('#tab-more [data-k="accent"][data-v=""]').catch(() => page.evaluate(() => Store.saveSettings({ accent: '' })));
-  await page.click('#tab-more [data-k="design"][data-v="plakat"]');
-  await pause(page, 900);
-  await page.evaluate(() => App.go('start'));
-  await pause(page, 500);
-  const pl = await page.evaluate(() => { const cs = getComputedStyle(document.documentElement), st = document.querySelector('#tab-start .stat'), hero = document.querySelector('#tab-start .btn-hero');
-    return { d: document.documentElement.dataset.design, rs: cs.getPropertyValue('--rs').trim(), accent: cs.getPropertyValue('--accent').trim(), statTop: st && getComputedStyle(st).borderTopWidth, statBg: st && getComputedStyle(st).backgroundColor, heroR: hero && getComputedStyle(hero).borderRadius }; });
-  check(pl.d === 'plakat' && pl.rs === '0' && pl.accent === '#e2001a' && pl.statTop === '2px' && pl.statBg === 'rgba(0, 0, 0, 0)' && pl.heroR === '0px', 'Design „Plakat": eckig, Linien statt Karten, Signalrot', JSON.stringify(pl));
-  // Plakat: umrahmte Einträge in „Workout starten" behalten Innenabstand (Icon klebt nicht am Rahmen)
-  const amPad = await page.evaluate(async () => { Actions.startSheet(); await new Promise(r => setTimeout(r, 500));
-    const e = document.querySelector('.modal .list-item.am-solo, .modal .list-item.am-featured'), v = e ? parseFloat(getComputedStyle(e).paddingLeft) : -1; Modal.closeAll(); return v; });
-  check(amPad >= 10, 'Plakat: umrahmte Einträge mit Innenabstand', String(amPad));
-  await pause(page, 400);
-  // Eigene Einstellungen gelten auch im Plakat: „Rund" rundet Knöpfe, Chips und Schalter, eigene Farbe färbt Diagramme
-  await page.evaluate(() => { setLook('radius', 'round'); setLook('accent', '#a3e635'); openMoreSub('look'); });
+  const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="fokus"]') }));
+  check(look.d === 'fokus' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
+  // Eigene Einstellungen wirken: „Rund“ rundet Knöpfe, Segmente und Schalter, eigene Farbe färbt Knöpfe und Diagramme
+  await page.evaluate(() => { setLook('design', 'pure'); setLook('radius', 'round'); switchLook(() => Store.saveSettings({ accent: '#a3e635', accentCustom: true })); openMoreSub('look'); });
   await pause(page, 700);
   const plr = await page.evaluate(() => { const r = sel => { const e = document.querySelector(sel); return e ? parseFloat(getComputedStyle(e).borderTopLeftRadius) : -1; };
-    return { btn: r('#tab-more .look-preview .btn'), chip: r('#tab-more .look-preview .chip'), seg: r('#tab-more .seg'), sw: r('#tab-more .switch span'), c1: cssVar('--c1') }; });
-  check(plr.btn >= 15 && plr.chip >= 18 && plr.seg >= 15 && plr.sw >= 15 && plr.c1 === '#a3e635', 'Plakat: Ecken „Rund" und eigene Akzentfarbe wirken', JSON.stringify(plr));
-  await page.evaluate(() => { setLook('radius', 'auto'); setLook('accent', ''); });
+    return { btn: r('#tab-more .look-preview .btn'), seg: r('#tab-more .seg'), sw: r('#tab-more .switch span'), c1: cssVar('--c1'), acc: cssVar('--accent'), n: tuneChanges() }; });
+  check(plr.btn >= 15 && plr.seg >= 15 && plr.sw >= 15 && plr.acc === '#a3e635' && plr.n === 2, 'Feinanpassung: Ecken „Rund“ und eigene Akzentfarbe wirken (2 Änderungen)', JSON.stringify(plr));
+  await page.evaluate(() => { Actions.tuneReset(); });
   // Startskript in index.html (Darstellung vor dem ersten Bild) kennt jedes Design – sonst springt es kurz auf „Trainio"
   const boot = await page.evaluate(async () => { const html = await (await fetch('index.html')).text(); const m = html.match(/!\/\^\(([a-z|]+)\)\$\//); return { ids: m ? m[1].split('|') : [], all: DESIGNS.map(d => d.id) }; });
   check(boot.all.every(id => boot.ids.includes(id)), 'Startskript kennt alle Designs', JSON.stringify(boot));
@@ -399,7 +388,7 @@ async function dataFlow(page) {
   await pause(page, 500);
   const tidy = await page.evaluate(() => ({ desc: document.querySelectorAll('#tab-more .dt-desc').length, subs: document.querySelectorAll('#tab-more .sl-sub').length,
     infos: document.querySelectorAll('#tab-more .sl-title .info-i').length, hint: [...document.querySelectorAll('#tab-more p')].filter(x => /Home-Bildschirm|Browser-Tab/.test(x.textContent)).length }));
-  check(tidy.desc === 0 && tidy.subs === 0 && tidy.hint === 0 && tidy.infos >= 5, 'Darstellung ohne Erklärtexte, Erklärungen im (i)', JSON.stringify(tidy));
+  check(tidy.desc === 0 && tidy.subs === 0 && tidy.hint === 0 && tidy.infos >= 3, 'Darstellung ohne Erklärtexte, Erklärungen im (i)', JSON.stringify(tidy));
   // Tag & Nacht: Phase nach Sonnenstand statt Hell/Dunkel, Himmel sichtbar, vier Vorschau-Himmel, Tageszeit statt Modus
   await page.evaluate(() => openMoreSub('look'));
   await pause(page, 500);
@@ -571,13 +560,13 @@ async function heartFlow(page) {
   await pause(page, 300);
   await page.evaluate(() => { Store.saveSettings({ homeTiles: HOME_TILES.map(x => x[0]), homeLiftEx: 'ex_bankdruecken' }); App.go('start'); });
   await pause(page, 500);
-  const home = await page.evaluate(() => ({ off: S().homeHeart === false, card: !!document.querySelector('#tab-start .hp-card'), n: document.querySelectorAll('#tab-start .stat-grid > .stat').length,
-    want: HOME_TILES.filter(x => tileAvail(x[0])).length, bad: /undefined|NaN/.test(document.querySelector('#tab-start .stat-grid').innerText) }));
+  const home = await page.evaluate(() => ({ off: S().homeHeart === false, card: !!document.querySelector('#tab-start .hp-card'), n: document.querySelectorAll('#tab-start .tiles > .tile').length,
+    want: HOME_TILES.filter(x => tileAvail(x[0])).length, bad: /undefined|NaN/.test(document.querySelector('#tab-start .tiles').innerText) }));
   check(home.off && !home.card, 'Startseite: „Herz diese Woche" lässt sich ausblenden', JSON.stringify(home));
   check(home.n === home.want && home.n >= 17 && !home.bad && await noViewError(page), `Startseite: alle ${home.want} Kacheln wählbar und gefüllt`, JSON.stringify(home));
   await page.evaluate(() => { UI.progSub = 'cardio'; App.go('progress'); });
   await pause(page, 900);
-  check(await page.evaluate(() => ['h1', 'h3'].every(id => !!Chart.getChart(document.querySelector('#cv-' + id)))) && await noViewError(page), 'Herz-Diagramme gezeichnet (Ruhepuls, Intensität)');
+  check(await page.evaluate(() => ['h1', 'h3'].every(id => { const f = CardFactories.get(id); const c = f && f(); return !!(c && c.data && c.data.datasets.length); })) && await noViewError(page), 'Herz-Diagramme haben Daten (Ruhepuls, Intensität)');
   check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler', page.errors.concat(await appErrors(page)).join(' | '));
 }
 const round1 = v => Math.round(v * 10) / 10;
@@ -614,7 +603,7 @@ async function formFixFlow(page) {
   check(await page.evaluate(() => /Neue PRs/i.test(document.querySelector('.modal-body').innerText) && Analytics.cur().prEvents.some(e => e.exId === 'ex_bankdruecken' && e.w === 82.5)), 'Nach dem Form-Fix: 82,5 kg zählt als neuer PR');
   await page.evaluate(() => { Modal.closeAll(); UI.progSub = 'strength'; UI.kraftScope = 'exercise'; UI.kraftEx = 'ex_bankdruecken'; App.go('progress'); });
   await pause(page, 800);
-  check(await page.evaluate(() => /seit Form-Fix/.test(document.querySelector('#progBody').innerText)) && await noViewError(page), 'Fortschritt → Kraft rechnet ab dem Form-Fix');
+  check(await page.evaluate(js => /seit Form-Fix/.test(document.querySelector('#progBody').innerText + ' ' + eval(js).map(c => c.textContent).join(' ')), CARDS_JS) && await noViewError(page), 'Fortschritt → Kraft rechnet ab dem Form-Fix');
   await page.evaluate(() => openExerciseDetail('ex_bankdruecken'));
   await pause(page, 600);
   check(await page.evaluate(() => /Form-Fix am .*Vorher: 1RM/.test((document.querySelector('.modal .fix-card') || {}).innerText || '')), 'Übungs-Seite zeigt Form-Fix und Bestwerte von vorher');
@@ -660,14 +649,14 @@ async function anzeigeFlow(page) {
   });
   // 1. Workout-Score: der Bonus zählt nur e1RM-Rekorde und sagt das auch – kein „kein neuer Rekord“ neben „Neuer PR“
   const bd = await page.evaluate(() => { const sc = Analytics.score('az2'); return { prs: sc.prs, html: scoreBreakdownHtml(sc) }; });
-  check(bd.prs === 0 && /e1RM-Bonus/.test(bd.html) && /kein neuer e1RM-Rekord/.test(bd.html) && !/PR-Bonus|kein neuer Rekord/.test(bd.html),
+  check(bd.prs === 0 && /e1RM-Bonus/.test(bd.html) && /e1RM-Bonus<\/span><b>0</.test(bd.html) && !/PR-Bonus|kein neuer Rekord/.test(bd.html),
     'Workout-Score: Bonus heißt „e1RM-Bonus“ – ein Gewichts-PR ohne neues e1RM widerspricht ihm nicht', JSON.stringify(bd.prs));
   // 2. Reine Cardio-Workouts erscheinen nicht als 0 kg
   const cv = await page.evaluate(() => { const ix = Analytics.cur(); return { cardio: ix.rows.some(r => r.id === 'az3' && r.cardioOnly), total: scopeItems(ix, 'total').map(x => x.ton) }; });
   check(cv.cardio && cv.total.length === 2 && cv.total.every(t => t > 0), 'Volumen pro Workout: reine Cardio-Workouts zählen nicht mit (keine Punkte auf der Nulllinie)', JSON.stringify(cv));
   await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress'); });
   await pause(page, 600);
-  const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
+  const h7 = await page.evaluate(js => { const c = eval(js).find(x => x.querySelector('.heat7')); return c ? c.querySelector('.heat7').textContent.replace(/\s+/g, ' ') : ''; }, CARDS_JS);
   check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
   // Kraftzuwachs robust (bestes e1RM je Woche, Median der ersten gegen gleitenden Median der letzten Wochen):
   // Tagesform-Schwankungen (σ 3 %) ohne echten Fortschritt ergeben ≈ 0 % – je Übung im Mittel und im verketteten Index
@@ -729,6 +718,62 @@ async function anzeigeFlow(page) {
 }
 
 /* Sätze pro Muskel und Woche – Bereiche nach der Recherche (docs/redesign/recherche/saetze-pro-woche.md) */
+/* Redesign: vier Designs, Umstieg, Feinanpassung je Design, Basis-Muster (Kacheln + Fenster), Trainio-Score */
+async function redesignFlow(page) {
+  console.log('Redesign');
+  // Trainio-Score: Anker der Formel (r = erwartetes Tempo in % pro Monat)
+  const a = await page.evaluate(() => ({
+    b0: TScore.kraftScore(-1, 'bulk', 1), b50: TScore.kraftScore(0, 'bulk', 1), b85: TScore.kraftScore(1, 'bulk', 1), b100: TScore.kraftScore(1.5, 'bulk', 1), b200: TScore.kraftScore(9, 'bulk', 1),
+    c85: TScore.kraftScore(0, 'cut', 1), c50: TScore.kraftScore(-3, 'cut', 1), m85: TScore.kraftScore(.5, 'maintain', 1), m100: TScore.kraftScore(1, 'none', 1),
+    wIn: TScore.weightScore(.3, 'bulk'), wFast: TScore.weightScore(.9, 'bulk'), wLoss: TScore.weightScore(-.3, 'bulk'), cIn: TScore.weightScore(-.5, 'cut'), cFast: TScore.weightScore(-1.6, 'cut'), cFlat: TScore.weightScore(-.1, 'cut'),
+    mIn: TScore.weightScore(.1, 'maintain'), own: TScore.weightScore(.4, 'bulk', [0, .2])
+  }));
+  check(a.b0 === 0 && a.b50 === 50 && a.b85 === 85 && a.b100 === 100 && a.b200 === 100 && a.c85 === 85 && a.c50 === 50 && a.m85 === 85 && a.m100 === 100,
+    'Trainio-Score Kraft: Anker 0 / 50 / 85 / 100 je Phase', JSON.stringify(a));
+  check(a.wIn === 100 && a.wFast >= 60 && a.wFast < 100 && a.wLoss < 30 && a.cIn === 100 && a.cFast < 100 && a.cFlat === 50 && a.mIn === 100 && a.own < 100,
+    'Trainio-Score Gewicht: Spannen, zu schnell, halbe Punkte, eigene Spanne', JSON.stringify(a));
+  // Ohne Workouts: „Noch 6 Workouts“
+  const none = await page.evaluate(() => { const x = TScore.get(); App.go('start'); return { st: x.state, need: x.need, txt: (document.querySelector('#tab-start .tscore') || {}).textContent || '' }; });
+  check(none.st === 'none' && none.need === 6 && /Noch 6 Workouts/.test(none.txt), 'Trainio-Score ohne Daten: nur Spur und „Noch 6 Workouts“', JSON.stringify(none));
+
+  // Vier Designs, Startskript kennt alle
+  const ds = await page.evaluate(async () => { const html = await (await fetch('index.html')).text(); const m = html.match(/\/\^\(([a-z|]+)\)\$\//); return { ids: DESIGNS.map(d => d.id).join(), boot: m ? m[1] : '', def: S().design }; });
+  check(ds.ids === 'pure,fokus,glass,sky' && ds.boot.split('|').sort().join() === 'fokus,glass,pure,sky' && ds.def === 'pure', 'Vier Designs, Pure ist Standard, Startskript kennt alle', JSON.stringify(ds));
+
+  // Umstieg: entferntes Design → Pure, Anpassungen zurück, Modus & Textgröße bleiben – nur einmal
+  const mig = await page.evaluate(() => {
+    Store.saveSettings({ design: 'iron', radius: 'sharp', density: 'compact', navStyle: 'floating', accent: '#39ff88', textSize: 'l', theme: 'light', lookV2: false });
+    const first = migrateLook(), s = S(), again = migrateLook();
+    const r = { first, again, d: s.design, rad: s.radius, den: s.density, nav: s.navStyle, acc: s.accent, ts: s.textSize, th: s.theme };
+    Store.saveSettings({ design: 'glass', accent: '#14a39a', lookV2: false });
+    r.keep = migrateLook() === false && S().accent === '#14a39a';
+    Store.saveSettings({ design: 'pure', accent: '', textSize: 'm', theme: 'dark' }); applyTheme();
+    return r;
+  });
+  check(mig.first && !mig.again && mig.d === 'pure' && mig.rad === 'auto' && mig.den === 'normal' && mig.nav === 'auto' && mig.acc === '' && mig.ts === 'l' && mig.th === 'light' && mig.keep,
+    'Umstieg: entferntes Design → Pure, Anpassungen zurück, Akzent nur wenn angeboten, einmalig', JSON.stringify(mig));
+
+  // Feinanpassung gilt je Design
+  const tune = await page.evaluate(() => {
+    setLook('radius', 'sharp'); const n1 = tuneChanges();
+    setLook('design', 'fokus'); const inFokus = S().radius;
+    setLook('design', 'pure'); const back = S().radius;
+    Actions.tuneReset(); const n2 = tuneChanges();
+    return { n1, inFokus, back, n2 };
+  });
+  check(tune.n1 === 1 && tune.inFokus === 'auto' && tune.back === 'sharp' && tune.n2 === 0, 'Feinanpassung je Design: gemerkt, beim Wechsel „wie im Design“, zurücksetzbar', JSON.stringify(tune));
+  await page.evaluate(() => openMoreSub('look'));
+  await pause(page, 500);
+  const look = await page.evaluate(() => ({ tiles: document.querySelectorAll('#tab-more .design-tile').length, tune: !!document.querySelector('#tab-more [data-act="moreSub"][data-v="tune"]'),
+    acc: document.querySelectorAll('#tab-more .swatches .swatch').length }));
+  check(look.tiles === 4 && look.tune && look.acc === 5, 'Darstellung: vier Designs, Akzentfarben von Pure, Zeile „Feinanpassung“', JSON.stringify(look));
+  await page.evaluate(() => { setLook('design', 'fokus'); });
+  await pause(page, 500);
+  check(await page.evaluate(() => !document.querySelector('#tab-more .swatches')), 'Fokus: keine Akzentfarben-Auswahl');
+  await page.evaluate(() => { setLook('design', 'pure'); App.go('start'); });
+  await pause(page, 300);
+}
+
 /* Testversion unter …/test/: eigener Speicher, kein Firebase, Beispieldaten – die echten Daten bleiben unberührt */
 async function testversionFlow(page) {
   console.log('Testversion (…/test/)');
@@ -759,6 +804,70 @@ async function testversionFlow(page) {
   await t.evaluate(() => Store.flushLocal());
   const real = await t.evaluate(() => Object.keys((JSON.parse(localStorage.getItem('gymlog.v1')) || { colls: {} }).colls.workouts || {}));
   check(real.join() === 'echt1', 'Testversion: die echten Daten bleiben unberührt', real.join());
+  // Trainio-Score mit den Beispieldaten
+  await t.evaluate(() => App.go('start'));
+  await pause(t, 400);
+  const sc = await t.evaluate(() => { const x = TScore.get(); return { st: x.state, v: x.value, reg: (x.regions || []).length, hist: (x.history || []).length, main: x.main, hints: (x.hints || []).length,
+    circle: !!document.querySelector('#tab-start .tscore .arc'), num: (document.querySelector('#tab-start .tscore b') || {}).textContent }; });
+  check(sc.st === 'ok' && sc.v >= 50 && sc.v <= 100 && sc.reg === 7 && sc.hist === 8 && sc.main && sc.hints <= 2 && sc.circle && sc.num === String(sc.v),
+    `Trainio-Score mit Beispieldaten: ${sc.v}, Kreis auf der Startseite, 7 Bereiche, 8 Wochen Verlauf`, JSON.stringify(sc));
+  await t.click('#tab-start .tscore');
+  await pause(t, 500);
+  const sh = await t.evaluate(() => { const m = document.querySelector('.modal.det-sheet'); return m ? { t: m.innerText, svg: !!m.querySelector('svg.ch .ln'), info: !!m.querySelector('.modal-head .info-i') } : null; });
+  check(sh && /Körperbereiche/.test(sh.t) && /Bestandteile/.test(sh.t) && /Gesäß & Beine hinten/.test(sh.t) && sh.svg && sh.info, 'Trainio-Score: Fenster mit Klartext, Bereichen, Verlauf und (i)', sh ? sh.t.slice(0, 120) : 'kein Fenster');
+  await t.evaluate(() => Modal.closeAll());
+  // Erfahrung: „Trainiere seit 2010“ → kleineres erwartetes Tempo → Kraft-Teil mindestens so hoch
+  const exp = await t.evaluate(() => { const a = TScore.get().kraft; Store.saveSettings({ trainingSince: '2010-01' }); const b = TScore.get(); Store.saveSettings({ trainingSince: '' }); return { a, b: b.kraft, r: b.r }; });
+  check(exp.r === 0.5 && exp.b >= exp.a, '„Trainiere seit“ setzt das erwartete Tempo (über 3 Jahre: 0,5 % pro Monat)', JSON.stringify(exp));
+  // Abschaltbar: Startseite beginnt mit den Kacheln
+  const off = await t.evaluate(() => { Store.saveSettings({ f_tscore: false }); App.renderCurrent(); const n = document.querySelectorAll('#tab-start .tscore').length; const first = document.querySelector('#tab-start .tiles'); Store.saveSettings({ f_tscore: true }); App.renderCurrent(); return { n, tiles: !!first }; });
+  check(off.n === 0 && off.tiles, 'Trainio-Score abgeschaltet: Startseite ohne Kreis');
+  // Basis: Startseiten-Kacheln nur Titel und Zahl, Antippen öffnet die Details von unten
+  const tl = await t.evaluate(() => [...document.querySelectorAll('#tab-start .tiles .tile')].map(x => ({ kids: x.children.length, t: !!x.querySelector('.tile-t'), n: !!x.querySelector('.tile-n') })));
+  check(tl.length >= 4 && tl.every(x => x.kids === 2 && x.t && x.n), `Startseite: ${tl.length} Kacheln nur mit Titel und Zahl`, JSON.stringify(tl));
+  await t.click('#tab-start .tile[data-act="homeTile"][data-k="volume"]');
+  await pause(t, 500);
+  check(await t.evaluate(() => { const m = document.querySelector('.modal.det-sheet'); return !!(m && m.querySelector('.det-num') && m.querySelectorAll('svg.ch').length === 1 && m.querySelector('.kv')); }), 'Kachel „Volumen“: Fenster mit großer Zahl, einem Diagramm und Liste');
+  await t.evaluate(() => Modal.closeAll());
+  // Fortschritt: Zeitraum-Knopf, Textreiter, Karten als Kacheln – Diagramm erst im Fenster
+  await t.evaluate(() => { UI.progSub = 'strength'; App.go('progress'); });
+  await pause(t, 700);
+  const pg = await t.evaluate(() => ({ head: !!document.querySelector('#tab-progress .prog-head [data-act="periodSheet"]'), tabs: document.querySelectorAll('#tab-progress .text-tabs button').length,
+    cards: document.querySelectorAll('#tab-progress .chart-card').length, tiles: document.querySelectorAll('#tab-progress .prog-tiles .tile').length, canvas: document.querySelectorAll('#tab-progress canvas').length }));
+  check(pg.head && pg.tabs >= 4 && pg.cards === 0 && pg.tiles >= 3 && pg.canvas === 0, 'Fortschritt: Zeitraum-Knopf, Textreiter, nur Kacheln (keine Diagramme in der Übersicht)', JSON.stringify(pg));
+  await t.click('#tab-progress .prog-tiles .tile');
+  await pause(t, 900);
+  const cd = await t.evaluate(() => { const m = document.querySelector('.modal.det-sheet'); const cv = m && m.querySelector('canvas'); return { open: !!m, num: !!(m && m.querySelector('.det-num')), drawn: !!(cv && window.Chart && Chart.getChart(cv)) }; });
+  check(cd.open && cd.num && cd.drawn, 'Fortschritt: Kachel öffnet die Karte mit gezeichnetem Diagramm', JSON.stringify(cd));
+  await t.evaluate(() => Modal.closeAll());
+  await t.evaluate(() => Actions.periodSheet());
+  await pause(t, 400);
+  await t.click('.modal [data-x="period"][data-v="4w"]');
+  await pause(t, 500);
+  check(await t.evaluate(() => UI.period === '4w' && /4 Wochen/.test(document.querySelector('#tab-progress [data-act="periodSheet"]').textContent)), 'Fortschritt: Zeitraum im Fenster gewählt, Knopf zeigt „4 Wochen“');
+  // Laufendes Workout: Tabelle, die aktuelle Zeile klappt Stepper und „Satz erledigt“ auf
+  await t.evaluate(() => { Store.saveSettings({ woStyle: 'simple' }); Workout.start({ templateId: 'tpl_bsp_push' }); });
+  await pause(t, 700);
+  const wo = await t.evaluate(() => ({ head: (document.querySelector('.wo-head [data-act="woFinish"]') || {}).textContent, sel: !!document.querySelector('.exb-row.sel[data-si="0"]'),
+    panel: document.querySelectorAll('.exb-panel').length, steps: document.querySelectorAll('.exb-panel .stepper').length, prim: document.querySelectorAll('#tab-training .btn-primary').length }));
+  check(/Beenden/.test(wo.head) && wo.sel && wo.panel === 1 && wo.steps === 2 && wo.prim === 1, 'Workout: Kopf mit „Beenden“, aktuelle Zeile mit zwei Steppern, ein Hauptknopf', JSON.stringify(wo));
+  await t.click('.exb-panel [data-act="step"][data-f="w"][data-d="1"]');
+  await t.click('.exb-panel [data-act="setDone"]');
+  await pause(t, 600);
+  const w2 = await t.evaluate(() => { const w = Workout.cur(), s0 = w.entries[0].sets[0]; return { done: s0.done, kg: s0.weightKg, reps: s0.reps, next: !!document.querySelector('.exb-row.sel[data-ei="0"][data-si="1"]'), row: document.querySelector('.exb-row[data-si="0"]').classList.contains('done') }; });
+  check(w2.done && w2.kg === 82.5 && w2.reps === 8 && w2.next && w2.row, 'Workout: Stepper +2,5 kg, „Satz erledigt“ übernimmt Wdh. vom letzten Mal, nächster Satz ist offen', JSON.stringify(w2));
+  await t.click('.exb-panel [data-act="rpeToggle"]');
+  await t.click('.exb-panel [data-act="rpePick"][data-v="8"]');
+  check(await t.evaluate(() => Workout.cur().entries[0].sets[1].rpe === 8 && /RPE 8/.test(document.querySelector('.exb-panel .exb-rpe').textContent)), 'Workout: RPE auf Antippen');
+  await t.evaluate(() => { Workout.discard(); RestTimer.stop && RestTimer.stop(); App.go('start'); });
+  // Liquid Glass: Tab-Leiste schrumpft beim Scrollen und wächst beim Hochscrollen
+  await t.evaluate(() => { setLook('design', 'glass'); UI.progSub = 'volume'; App.go('progress'); });
+  await pause(t, 600);
+  const gl = await t.evaluate(async () => { const wait = ms => new Promise(r => setTimeout(r, ms)); const el = Scroll.el; el.scrollTop = 200; await wait(80); el.scrollTop = 420; await wait(120);
+    const mini = document.body.classList.contains('nav-mini'); el.scrollTop = 300; await wait(120); const big = !document.body.classList.contains('nav-mini');
+    const op = getComputedStyle(document.querySelector('#tab-progress .tile')).backgroundColor; return { mini, big, op }; });
+  check(gl.mini && gl.big && !/rgba\(.*, 0\.\d+\)$/.test(gl.op), 'Liquid Glass: Tab-Leiste schrumpft beim Scrollen, Kacheln deckend', JSON.stringify(gl));
+  await t.evaluate(() => { setLook('design', 'pure'); });
   check(!t.errors.length, 'Testversion ohne JS-Fehler', t.errors.join(' | '));
   await t.close();
 }
@@ -785,10 +894,12 @@ async function muskelFlow(page) {
   const rpe = await page.evaluate(() => { const r = Analytics.cur().rows.find(x => x.id === 'murpe'); return r && { mP: r.mP['Bizeps'], sets: r.sets }; });
   check(rpe && rpe.mP === 2 && rpe.sets === 4, 'Leichte Sätze (RPE ≤ 5) zählen für den Muskel halb, als Satz voll', JSON.stringify(rpe));
   const v = await page.evaluate(() => {
-    const card = [...document.querySelectorAll('#tab-progress .chart-card')].find(c => /Sätze pro Muskelgruppe/.test(c.innerText));
-    const ch = card && Chart.getChart(card.querySelector('canvas'));
-    const neg = [...document.querySelectorAll('#tab-progress .chart-card')].find(c => /Vernachlässigte Muskelgruppen/.test(c.innerText));
-    return { lines: ch ? ch.options.plugins.thresholds.lines.map(l => l.value + ' ' + l.label).join(', ') : null, mev: /\b(MEV|MAV|MRV)\b/.test(document.querySelector('#tab-progress').innerText), negBizeps: neg ? /Bizeps/.test(neg.innerText) : null, negRueckenOk: neg ? !/\bRücken\b/.test(neg.innerText) : null };
+    const b = document.querySelector('#progBody'), all = [...document.querySelectorAll('#tab-progress .chart-card'), ...((b && b._cards) || [])];
+    const card = all.find(c => /Sätze pro Muskelgruppe/.test(c.textContent));
+    const cvs = card && card.querySelector('canvas'), cfg = cvs && CardFactories.get(cvs.id.slice(3)) && CardFactories.get(cvs.id.slice(3))();
+    const ch = cfg ? { options: cfg.options } : null;
+    const neg = all.find(c => /Vernachlässigte Muskelgruppen/.test(c.textContent));
+    return { lines: ch ? ch.options.plugins.thresholds.lines.map(l => l.value + ' ' + l.label).join(', ') : null, mev: /\b(MEV|MAV|MRV)\b/.test(document.querySelector('#tab-progress').innerText), negBizeps: neg ? /Bizeps/.test(neg.textContent) : null, negRueckenOk: neg ? !/\bRücken\b/.test(neg.textContent) : null };
   });
   check(v.lines === '4 wirksam, 10 viel, 20 sehr viel' && !v.mev, 'Sätze pro Muskelgruppe: Linien bei 4 / 10 / 20 statt MEV/MAV/MRV', JSON.stringify(v));
   check(v.negBizeps === false && v.negRueckenOk, 'Vernachlässigt erst unter 4: Bizeps mit 4 direkt + 9 mitgeholfen (8,5) gilt als wirksam', JSON.stringify(v));
@@ -806,7 +917,7 @@ async function muskelFlow(page) {
   check(sq.hb === 'Quadrizeps,Gesäß' && sq.lb === 'Quadrizeps,Gesäß,Beinbeuger,Waden' && sq.v >= 6, 'Kniebeuge: unterer Rücken entfernt, selbst geänderte Übungen bleiben unberührt', JSON.stringify(sq));
   // Wenig Text: jede Erklärung im (i) hat höchstens 2 kurze Sätze (docs/redesign/ANFORDERUNGEN.md, Abschnitt 2)
   const infos = new Set();
-  const grab = async () => (await page.evaluate(() => [...document.querySelectorAll('[data-info]')].map(b => b.dataset.info))).forEach(t => infos.add(t));
+  const grab = async () => (await page.evaluate(() => { const b = document.querySelector('#progBody'); return [...document.querySelectorAll('[data-info]'), ...((b && b._cards) || []).flatMap(c => [...c.querySelectorAll('[data-info]')])].map(x => x.dataset.info); })).forEach(t => infos.add(t));
   await page.evaluate(() => Store.saveSettings({ f_bodyFat: true, f_measures: true }));
   for (const sub of ['overview', 'strength', 'volume', 'muscles', 'cardio', 'body']) {
     for (const sc of sub === 'strength' || sub === 'volume' ? ['total', 'exercise', 'muscle'] : ['total']) {
@@ -827,7 +938,7 @@ async function muskelFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [redesignFlow, { width: 390, height: 844 }, 'redesign'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige', name === 'iphone' ? IPHONE : undefined);

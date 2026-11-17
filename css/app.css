@@ -1231,15 +1231,6 @@ button.tile:active { background: var(--surface-2); }
 @keyframes spin { to { transform: rotate(360deg); } }
 .share-modal .modal-foot .btn { flex: 1 1 auto; }
 .score-ring.sm .score-num { font-size: calc(30px * var(--fs)); }
-.score-bd { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 16px; }
-.sb-item { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 9px 12px 10px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-.sb-item span { font-size: calc(12px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
-.sb-item b { font-size: calc(17px * var(--fs)); font-variant-numeric: tabular-nums; }
-.sb-item b small { font-size: calc(12px * var(--fs)); color: var(--text-faint); font-weight: 600; }
-.sb-item small { font-size: calc(11.5px * var(--fs)); color: var(--text-faint); }
-.sb-item i { display: block; height: 4px; border-radius: 4px; background: var(--surface-3); margin-top: 6px; position: relative; overflow: hidden; }
-.sb-item i::after { content: ''; position: absolute; inset: 0 auto 0 0; width: var(--p); background: var(--accent); border-radius: inherit; }
-.sb-item.na b { color: var(--text-faint); }
 .wd-score { padding: 4px 0 2px; }
 @media (min-width: 560px) { .pr-grid { grid-template-columns: repeat(4, 1fr); } }
 .pr-box { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px 12px; }
@@ -1703,6 +1694,16 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .rest-dock .btn-icon { color: inherit; }
 .rest-dock.ending .rest-time, .rest-dock.done .rest-time { color: inherit; }
 
+/* Workout-Score: kleiner, dicker Ring ohne Leuchten, Aufschlüsselung als Liste */
+.score-ring { width: 104px; height: 104px; }
+.score-ring.sm { width: 84px; height: 84px; }
+.score-ring .ring-fg { filter: none; }
+.score-ring .score-num { font-family: var(--font-num); font-size: calc(30px * var(--fs)); font-weight: 600; }
+.score-ring.sm .score-num { font-size: calc(24px * var(--fs)); }
+.score-bd { margin-top: 16px; }
+.score-bd .kv.na b { color: var(--text-dim); }
+.wd-score { display: block; }
+
 /* Die Übungs-Tabelle im Workout ist selbst keine Karte – nur ihre Tabelle hat eine Fläche */
 :root .ex-card.exb { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
 :root .ex-card.exb::after { display: none; }
@@ -1890,7 +1891,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 .wall-tile.active { box-shadow: 0 0 0 2px var(--surface), 0 0 0 4px var(--accent); }
 .wall-tile span { position: absolute; left: 0; right: 0; bottom: -18px; font-size: 11px; font-weight: var(--fw-b); color: var(--text-dim); text-align: center; }
 .wall-row { display: flex; gap: 12px; overflow-x: auto; padding: 4px 4px 22px; scrollbar-width: none; }
-.look-preview { border-radius: var(--radius); padding: 14px; }
+.look-preview { padding: 0; }
 .look-group { margin-top: 22px; }
 .look-group > h4 { margin-bottom: 8px; }
 .look-current { display: flex; align-items: center; gap: 12px; }

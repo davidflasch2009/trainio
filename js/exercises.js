@@ -356,7 +356,7 @@ function openExerciseDetail(id) {
         ${ex.isCustom ? '<span class="badge info">Eigene Übung</span>' : ''}
       </div>
       <div class="muscle-pick mt-12">${(ex.muscleGroups || []).map(mg => `<span class="chip soft active" style="min-height:30px">${esc(mg)}</span>`).join('') || '<span class="dim small">Keine Muskelgruppen hinterlegt</span>'}</div>
-      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Eigene Notiz hinzufügen (z. B. Sitzhöhe, Griff) – erscheint in jedem Workout</span>`}</button>
+      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">Eigene Notiz hinzufügen</span>`}</button>
       ${ex.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)"><span class="bold">Technik-Tipp:</span> ${esc(ex.notes)}</div>` : ''}
       ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
