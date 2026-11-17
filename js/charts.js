@@ -187,7 +187,7 @@ function lineDS(label, data, color, opts = {}) {
   const c = chartColors();
   const n = data.length;
   return {
-    label, data, borderColor: color, backgroundColor: alpha(color, .1), fill: true, tension: .25,
+    label, data, borderColor: color, backgroundColor: alpha(color, .1), fill: false, tension: 0,   // Basis: keine Glättung, keine Fläche
     // Punkte nur bei wenigen Werten – sonst nur der letzte Wert als Endpunkt
     pointRadius: ctx => n <= 16 ? 3 : (ctx.dataIndex === n - 1 ? 3.5 : 0), pointHoverRadius: 5, pointHitRadius: 12, pointBackgroundColor: color,
     pointBorderColor: c.surface, pointBorderWidth: 2, borderWidth: 2, spanGaps: true, ...opts
@@ -308,11 +308,13 @@ const fixLines = (ss, from = -Infinity, to = Infinity) => {
   return lines.length ? { axis: 'x', lines } : undefined;
 };
 /* Karten-Builder: HTML sammeln, Charts nach dem Einfügen mounten */
+/* Diagramm-Funktionen je Karte – die Kacheln im Fortschritt zeichnen das Diagramm erst im Fenster (Actions.cardOpen) */
+const CardFactories = new Map();
 function chartBuilder() {
   const pending = [];
   return {
     card({ id, title, info, big, small, delta, sub, size = '', wide = false, factory, extra = '', top = '' }) {
-      if (factory) pending.push([id, factory]);
+      if (factory) { pending.push([id, factory]); CardFactories.set(id, factory); }
       return `<div class="chart-card ${wide ? 'wide' : ''}">
         <div class="cc-head"><span class="cc-title">${esc(title)}</span>${info ? infoBtn(info) : ''}${factory ? `<button class="btn-icon" style="width:36px;height:36px" data-act="chartExpand" data-id="${id}" data-title="${esc(title)}" aria-label="Vollbild">${icon('expand')}</button>` : ''}</div>
         ${top}
@@ -330,8 +332,9 @@ function chartBuilder() {
 }
 /* Vollbild + Tabellenansicht (jeder Chart hat eine Tabelle als Zwilling) */
 Actions.chartExpand = el => {
-  const src = Charts.get(el.dataset.id);
-  if (!src || !src.factory) return;
+  const f = CardFactories.get(el.dataset.id) || (Charts.get(el.dataset.id) || {}).factory;
+  const src = f ? { factory: f } : null;
+  if (!src) return;
   const cfg = src.factory();
   const m = Modal.open({
     title: el.dataset.title, size: 'full',

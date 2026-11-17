@@ -600,7 +600,7 @@ const Heart = (() => {
     const ageCta = `<button class="btn btn-secondary btn-sm mt-8" data-act="heartAge">${icon('user')} Geburtsjahr eintragen</button>`;
     const pw = planWeek();
     return `
-      <div class="hr-actions"><button class="btn btn-primary grow" data-act="rhrMeasure">${icon('heart')} Ruhepuls messen</button><button class="btn btn-secondary grow" data-act="hiitQuick">${icon('timer')} Intervall-Timer</button></div>
+      <div class="hr-actions"><button class="btn btn-primary grow" data-act="rhrMeasure">Ruhepuls messen</button><button class="btn btn-secondary grow" data-act="hiitQuick">Intervall-Timer</button></div>
       <div class="charts-grid">
         ${pw ? `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan · diese Woche</span><button class="btn-icon" style="width:36px;height:36px" data-act="heartPlan" aria-label="Herz-Plan bearbeiten">${icon('edit')}</button></div>${planBars(pw)}</div>`
           : `<div class="chart-card wide hp-card"><div class="cc-head"><span class="cc-title">Herz-Plan</span>${infoBtn('Dein Wochenziel fürs Herztraining, z. B. 3 Einheiten, davon 1× hart.')}</div>

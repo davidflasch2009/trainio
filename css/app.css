@@ -304,7 +304,7 @@ svg { flex-shrink: 0; }
 .stack-lg > * + * { margin-top: 20px; }
 .ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .center { text-align: center; }
-.mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-24 { margin-top: 24px; }
+.mt-8 { margin-top: 8px; } .mt-12 { margin-top: 12px; } .mt-16 { margin-top: 16px; } .mt-20 { margin-top: 20px; } .mt-24 { margin-top: 24px; } .mt-28 { margin-top: 28px; }
 .mb-8 { margin-bottom: 8px; } .mb-12 { margin-bottom: 12px; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
@@ -614,6 +614,7 @@ button.list-item.pressed, .list-item.clickable.pressed { background: var(--surfa
 /* Empty-State */
 .empty { text-align: center; padding: 32px 16px; color: var(--text-dim); }
 .bw-quick .row { gap: 8px; }
+.bw-quick .link-btn { font-size: calc(15px * var(--fs)); }
 .bw-quick .input { flex: 1; min-width: 0; font-size: max(16px, calc(20px * var(--fs))); font-weight: var(--fw-b); }
 .wd-when { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 0; color: var(--text-dim); font: inherit; text-align: left; cursor: pointer; }
 .wd-when svg, .wd-edit span svg { width: 14px; height: 14px; color: var(--text-faint); }
@@ -746,11 +747,11 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 }
 button.tile { cursor: pointer; transition: background .15s; }
 button.tile:active { background: var(--surface-2); }
-.tile-t { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); line-height: 1.3; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tile-t { font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); line-height: 1.3; overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow-wrap: anywhere; }
 .tile-n { font-family: var(--font-num); font-size: calc(32px * var(--fs)); font-weight: 600; line-height: 1.1; letter-spacing: -.02em; font-variant-numeric: tabular-nums;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tile-n small, .det-num small, .u { font-family: var(--font); font-size: calc(15px * var(--fs)); font-weight: 500; color: var(--text-dim); margin-left: 4px; letter-spacing: 0; }
-.tile-n.txt { font-size: calc(22px * var(--fs)); }
+.tile-n.txt { font-size: calc(20px * var(--fs)); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.2; overflow-wrap: anywhere; }
 .tile.warn .tile-n { color: var(--warning); }
 .sec-h { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 32px; margin: 28px 0 12px; }
 .sec-h h2 { font-size: calc(20px * var(--fs)); font-weight: 600; letter-spacing: -.01em; }
@@ -794,6 +795,13 @@ button.tile:active { background: var(--surface-2); }
 .goal-row .li-main { display: flex; flex-direction: column; gap: 10px; }
 .goal-line { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
 .start-date { margin-top: 12px; font-size: calc(15px * var(--fs)); color: var(--text-dim); font-weight: 500; }
+/* Fortschritt: Kopf, kleiner Score, Kacheln */
+.prog-head { margin-top: 8px; }
+.prog-score { display: flex; justify-content: center; margin: 20px 0 4px; }
+.prog-tiles { margin-top: 20px; }
+#progBody > .section-head:first-child { margin-top: 24px; }
+.det-card .chart-box { margin-top: 0; }
+.det-card .cc-sub { font-size: calc(15px * var(--fs)); color: var(--text-dim); }
 /* Diagramm in Fenstern: ruhig, ohne Schmuck */
 .ch { display: block; width: 100%; height: auto; overflow: visible; }
 .ch .gl { stroke: var(--grid); stroke-width: 1; }

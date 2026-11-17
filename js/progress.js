@@ -24,27 +24,106 @@ Views.progress = {
   render(el) {
     if (!progSubs().some(x => x[0] === UI.progSub)) UI.progSub = 'overview';
     const r = Analytics.range();
+    // Basis: Titel, Zeitraum als Knopf (öffnet ein Fenster mit Zeitraum und Einheit), darunter die Bereiche als Textreiter
     el.innerHTML = `
-      <div class="prog-controls">
-        <div class="seg tabs" role="tablist">${progSubs().map(([k, l]) => `<button role="tab" class="${UI.progSub === k ? 'active' : ''}" data-act="progSub" data-v="${k}">${l}</button>`).join('')}</div>
-        <div class="row pc-row">
-          <div class="chips grow pc-chips phase-chips">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}<span class="pc-sep" aria-hidden="true"></span>${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
-          <div class="seg sm" style="flex:0 0 auto" aria-label="Einheit"><button class="${unit() === 'kg' ? 'active' : ''}" data-act="unitSet" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-act="unitSet" data-v="lb">lb</button></div>
-        </div>
-        ${r.phase ? `<div class="tiny dim pc-phase">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
+      <div class="prog-head">
+        <div class="sec-h" style="margin:0"><h1 class="page-title">Fortschritt</h1><button class="btn btn-secondary btn-sm" data-act="periodSheet">${esc(periodLabel(r))} ${icon('chevD')}</button></div>
+        <div class="text-tabs mt-8" role="tablist">${progSubs().map(([k, l]) => `<button role="tab" class="${UI.progSub === k ? 'active' : ''}" aria-selected="${UI.progSub === k}" data-act="progSub" data-v="${k}">${l}</button>`).join('')}</div>
       </div>
       <div id="progBody"></div>`;
     updateTopH();
     // Aktiven Zeitraum/Tab in den scrollbaren Leisten sichtbar halten
-    $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
+    $$('.text-tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
     const body = $('#progBody', el);
     // Körper und Herz gehen auch ohne Workouts (Gewicht, Ruhepuls)
     if (!Analytics.cur().rows.length && UI.progSub !== 'body' && !(UI.progSub === 'cardio' && F('f_heart'))) {
       body.innerHTML = `<div class="card mt-16">${emptyState('chart', 'Noch keine Trainingsdaten', 'Sobald du Workouts trackst oder deine Arrow-History importierst, entstehen hier über 40 Auswertungen.', F('f_arrow') ? `<button class="btn btn-secondary" data-act="openArrow">${icon('upload')} Arrow-Import</button>` : '')}</div>`;
       return;
     }
+    if (UI.progSub === 'overview' && F('f_tscore')) body.insertAdjacentHTML('beforebegin', `<div class="prog-score">${TScore.circle(true)}</div>`);
     ProgressViews[progSubs().some(x => x[0] === UI.progSub) ? UI.progSub : 'overview'](body);
+    tileify(body);
   }
+};
+const PERIOD_NAMES = { '4w': '4 Wochen', '3m': '3 Monate', '6m': '6 Monate', '1y': '1 Jahr', all: 'Alles', custom: 'Eigener Zeitraum' };
+function periodLabel(r) {
+  if (String(UI.period).startsWith('ph:')) { const ph = phaseById(UI.period.slice(3)); return ph ? ph.name : 'Alles'; }
+  if (UI.period === 'custom' && r && r.custom) return `${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}`;
+  return PERIOD_NAMES[UI.period] || '3 Monate';
+}
+/* Zeitraum & Einheit: Fenster von unten (Zeiträume, Phasen, kg/lb) */
+Actions.periodSheet = () => {
+  const r = Analytics.range();
+  const row = (v, l, extra = '') => `<button class="list-item" data-x="period" data-v="${esc(v)}"><span class="li-main"><span class="li-title">${esc(l)}</span>${extra}</span>${UI.period === v ? icon('check', 'li-chev') : ''}</button>`;
+  const m = Modal.open({ title: 'Zeitraum', cls: 'det-sheet', body: `<div class="det">
+    <div class="list">${PERIODS.map(([k]) => row(k, PERIOD_NAMES[k])).join('')}</div>
+    <div><div class="sec-h" style="margin-top:0"><h2>Phasen</h2><button class="link-btn" data-x="phase">Neue Phase</button></div>
+      ${phases().length ? `<div class="list">${phases().map(ph => row('ph:' + ph.id, ph.name, `<div class="li-sub">${esc(PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][0] : 'Phase')} · seit ${fmtDate(ph.from)}</div>`)).join('')}</div>` : ''}</div>
+    ${r.phase ? `<button class="btn btn-secondary btn-block" data-x="phaseEdit">Phase „${esc(r.phase.name)}“ bearbeiten</button>` : ''}
+    <div><div class="sec-h" style="margin-top:0"><h2>Einheit</h2></div><div class="seg"><button class="${unit() === 'kg' ? 'active' : ''}" data-x="unit" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-x="unit" data-v="lb">lb</button></div></div>
+  </div>` });
+  m.el.addEventListener('click', e => {
+    const b = e.target.closest('[data-x]'); if (!b) return;
+    m.dismiss();
+    if (b.dataset.x === 'period') Actions.period({ dataset: { v: b.dataset.v } });
+    else if (b.dataset.x === 'unit') Store.saveSettings({ unit: b.dataset.v });
+    else if (b.dataset.x === 'phase') Actions.phaseEdit({ dataset: {} });
+    else if (b.dataset.x === 'phaseEdit') Actions.phaseEdit({ dataset: { id: r.phase.id } });
+  });
+};
+/* ---------- Basis: Übersichten zeigen je Karte nur Titel und Zahl ----------
+   Jede Diagramm-Karte wird zur Kachel (oder, ohne Zahl, zur Listenzeile). Antippen öffnet die ganze Karte als Fenster
+   von unten: große Zahl, das Diagramm (über CardFactories neu gezeichnet), die übrigen Angaben. */
+const UNIT_RE = /^(kg|lb|t|%|min|h|km|km\/h|bpm|\/min|ml\/kg\/min|cm|Tag|Tage|Woche|Wochen|Monate?|Satz|Sätze|Wdh\.?|Std\.?|Workouts?|Einheiten|Übungen|PRs?)$/;
+function tileify(body) {
+  const cards = $$('.chart-card', body);
+  if (!cards.length) return;
+  body._cards = [];
+  const groups = new Map();
+  for (const c of cards) { const g = c.parentElement; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(c); }
+  for (const [parent, list] of groups) {
+    const tiles = [], rows = [];
+    for (const c of list) {
+      const i = body._cards.push(c) - 1;
+      const title = ($('.cc-title', c) || {}).textContent || '';
+      const b = $('.cc-big b', c), sm = $('.cc-big small', c);
+      if (b) {
+        const num = b.innerHTML.replace(/<svg[\s\S]*?<\/svg>/g, '').trim();
+        const u = sm && UNIT_RE.test(sm.textContent.trim()) ? sm.textContent.trim() : '';
+        const txt = !/\d/.test(b.textContent) || b.textContent.trim().length > 9;
+        tiles.push(`<button class="tile" data-act="cardOpen" data-i="${i}"><span class="tile-t">${esc(title.trim())}</span><span class="tile-n ${txt ? 'txt' : ''}">${num}${u ? `<small>${esc(u)}</small>` : ''}</span></button>`);
+      } else rows.push(`<button class="list-item" data-act="cardOpen" data-i="${i}"><span class="li-main"><span class="li-title">${esc(title.trim())}</span></span>${icon('chevR', 'li-chev')}</button>`);
+    }
+    const html = (tiles.length ? `<div class="tiles">${tiles.join('')}</div>` : '') + (rows.length ? `<div class="list ${tiles.length ? 'mt-12' : ''}">${rows.join('')}</div>` : '');
+    const wrap = document.createElement('div');
+    wrap.className = 'prog-tiles';
+    wrap.innerHTML = html;
+    if (parent.classList.contains('charts-grid')) parent.replaceWith(wrap);
+    else { list[0].before(wrap); list.forEach(c => c.parentNode && c.parentNode.removeChild(c)); }
+  }
+}
+Actions.cardOpen = el => {
+  const body = el.closest('#progBody'), src = body && body._cards && body._cards[+el.dataset.i];
+  if (!src) return;
+  const c = src.cloneNode(true);
+  const title = ($('.cc-title', c) || {}).textContent || '';
+  const info = ($('.cc-head .info-i', c) || { dataset: {} }).dataset.info || '';
+  const exp = $('.cc-head [data-act="chartExpand"]', c);
+  const head = $('.cc-head', c);
+  if (head) head.parentNode.removeChild(head);
+  const big = $('.cc-big', c);
+  if (big) {
+    const b = $('b', big), sm = $('small', big);
+    const rest = [...big.children].filter(x => x !== b && x !== sm).map(x => x.outerHTML).join(' ');
+    const u = sm && UNIT_RE.test(sm.textContent.trim()) ? sm.textContent.trim() : '';
+    const sub = [sm && !u ? sm.innerHTML : '', rest].filter(Boolean).join(' ');
+    big.outerHTML = `<div><div class="det-num">${b ? b.innerHTML : ''}${u ? `<small>${esc(u)}</small>` : ''}</div>${sub ? `<div class="det-sub">${sub}</div>` : ''}</div>`;
+  }
+  const ids = [];
+  $$('canvas[id^="cv-"]', c).forEach(cv => { const id = cv.id.slice(3); ids.push(id); cv.id = 'cv-' + id + '__det'; });
+  const m = detailSheet({ title: title.trim(), info, body: `<div class="det det-card">${c.innerHTML}</div>`,
+    foot: exp ? `<button class="btn btn-secondary" data-act="chartExpand" data-id="${esc(exp.dataset.id)}" data-title="${esc(exp.dataset.title || title)}">Vollbild & Tabelle</button>` : '' });
+  if (ids.length) Charts.ensure().then(() => ids.forEach(id => { const f = CardFactories.get(id); if (f && !m.closed) Charts.mount(id + '__det', f); }));
 };
 /** Standard-Zeitraum aus den Einstellungen – null = zuletzt gewählter bleibt; gelöschte Phase → Alles */
 function defaultPeriod() {
@@ -595,8 +674,8 @@ ProgressViews.strength = body => {
       </div>`;
   };
   const head = `
-    <div class="card mt-12">
-      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="kraftScope" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="mt-20">
+      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Übung'], ['muscle', 'Muskel']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="kraftScope" data-v="${k}">${l}</button>`).join('')}</div>
       ${scope === 'exercise' ? `<select class="select mt-12" data-ch="kraftEx" aria-label="Übung">${exIds.map(id => `<option value="${esc(id)}" ${id === exId ? 'selected' : ''}>${esc(Ex.name(id))} (${ix.sessions[id].length}×)</option>`).join('')}</select>
       ${big3Chips.length ? `<div class="chips mt-12">${big3Chips.map(id => `<button class="chip ${id === exId ? 'active' : ''}" data-act="kraftEx" data-v="${esc(id)}">${esc(BIG3.find(b => b.ids.includes(id)).label)}</button>`).join('')}</div>` : ''}` : ''}
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="kraftMuscle" aria-label="Muskelgruppe">${musOpts.map(m => `<option ${m === muscle ? 'selected' : ''}>${esc(m)}</option>`).join('')}</select>` : ''}
@@ -811,8 +890,8 @@ ProgressViews.volume = body => {
   const cb = chartBuilder();
   const scopeName = scope === 'exercise' ? Ex.name(UI.volEx) : scope === 'muscle' ? `Übungen mit ${UI.volMuscle} als Hauptmuskel` : 'alle Übungen';
   body.innerHTML = `
-    <div class="card mt-12">
-      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Pro Übung'], ['muscle', 'Pro Muskelgruppe']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="volScope" data-v="${k}">${l}</button>`).join('')}</div>
+    <div class="mt-20">
+      <div class="seg fit">${[['total', 'Gesamt'], ['exercise', 'Übung'], ['muscle', 'Muskel']].map(([k, l]) => `<button class="${scope === k ? 'active' : ''}" data-act="volScope" data-v="${k}">${l}</button>`).join('')}</div>
       ${scope === 'exercise' ? `<select class="select mt-12" data-ch="volEx" aria-label="Übung">${exOpts.map(id => `<option value="${esc(id)}" ${id === UI.volEx ? 'selected' : ''}>${esc(Ex.name(id))}</option>`).join('')}</select>` : ''}
       ${scope === 'muscle' ? `<select class="select mt-12" data-ch="volMuscle" aria-label="Muskelgruppe">${MUSCLES.map(m => `<option ${m === UI.volMuscle ? 'selected' : ''}>${m}</option>`).join('')}</select>` : ''}
     </div>
