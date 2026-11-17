@@ -31,12 +31,12 @@ function renderActiveWorkout(el, w) {
             <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span><i class="roll">${st.done}</i>/${st.total} Sätze</span></div>
           </div>
           <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
-          <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Fertig'}</button>
+          <button class="btn btn-secondary btn-sm" data-act="woFinish">${w.editingId ? 'Speichern' : 'Beenden'}</button>
         </div>
         <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
       </div>
       <div class="wo-body">
-        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, basisCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
         ${!focus && st.total && st.done === st.total ? `<button class="btn btn-primary btn-block btn-lg mb-12" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>` : ''}
         <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
       </div>`;
@@ -57,7 +57,7 @@ function renderActiveWorkout(el, w) {
           </div>
         </div>
         <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
-        <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Beenden'}</button>
+        <button class="btn btn-secondary btn-sm" data-act="woFinish">${w.editingId ? 'Speichern' : 'Beenden'}</button>
       </div>
       <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
       ${w.entries.length ? `<div class="wo-tools">
@@ -381,6 +381,81 @@ function simpleCard(en, ei, w) {
       ${rows}
     </div>
     <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
+  </div>`;
+}
+/* ---------- Basis: schlichte Eingabe (docs/redesign/ANFORDERUNGEN.md, Abschnitt 3) ----------
+   Je Übung eine Tabelle (Satz, kg, Wdh., Haken). Die aktuelle Zeile klappt die Eingabe auf: Stepper für kg und Wdh.,
+   „Letztes Mal …“, RPE auf Antippen und der Hauptknopf „Satz erledigt“. Die Werte in den Zeilen sind schreibgeschützte
+   Felder – so übernehmen Stepper, Platzhalter („letztes Mal“) und „Satz erledigt“ die bewährte Logik. */
+function basisCard(en, ei, w) {
+  const ex = Ex.get(en.exerciseId);
+  const type = Ex.type(ex);
+  const last = S().woPrev !== false ? lastSessionFor(en.exerciseId, w) : null;
+  const ws = workSets(en);
+  const complete = en.sets.length > 0 && en.sets.every(s => s.done);
+  const uni = !!en.uni;
+  const generic = type === 'sec' ? 'Sek.' : 'Wdh.';
+  const [lo] = parseRange(en.target && en.target.reps);
+  const cur = openIndex(w) === ei;
+  const selS = w.sel && w.sel.e === ei ? w.sel.s : (cur ? firstOpen(en) : -1);
+  const ro = h => h.replace('<input class="set-in"', '<input class="set-in ro" readonly tabindex="-1"');
+  let no = 0;
+  const rows = en.sets.map((s, si) => {
+    const num = s.warmup ? 'W' : ++no;
+    const prev = last && !s.warmup ? last.list[num - 1] || null : null;
+    const d = `data-ei="${ei}" data-si="${si}"`;
+    const bVal = type === 'sec' ? s.durationSec : s.reps;
+    const wPh = prev && prev.w ? inputW(prev.w) : (type === 'kg' ? '–' : '0');
+    const ph = sidePh(s, prev, type);
+    const bPh = ph.l || (lo ? String(lo) : '–');
+    const sel = si === selS;
+    return `<div class="set-row exb-row ${s.done ? 'done' : ''} ${sel ? 'sel' : ''}" data-act="setSel" ${d}>
+      ${setNumHtml(s, num, d)}
+      <input class="set-in ro" readonly tabindex="-1" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht">
+      <input class="set-in ro" readonly tabindex="-1" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}">
+      ${uni ? ro(rInput(s, d, type, ph, generic)) : ''}
+      <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
+    </div>${sel ? basisPanel(ei, si, s, type, uni) : ''}`;
+  }).join('');
+  const lines = [
+    en.formFix ? `<div class="exs-last fix-line">${fixTxt(en)}</div>` : '',
+    fixSetsTxt(en) ? `<div class="exs-last fix-line">${fixSetsTxt(en)}</div>` : '',
+    pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : '',
+    en.note ? `<div class="exs-last">${esc(en.note)}</div>` : ''].join('');
+  return `<div class="ex-card exb ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}">
+    <div class="exb-head">
+      <button class="ex-name exb-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
+      <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
+    </div>
+    ${lines}
+    <div class="exb-tab">
+      <div class="exb-grid exb-hd"><span>Satz</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${generic}</span>`}<span></span></div>
+      ${rows}
+      <button class="exs-add" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
+    </div>
+    ${ws.length ? '' : ''}
+  </div>`;
+}
+function basisPanel(ei, si, s, type, uni = false) {
+  const d = `data-ei="${ei}" data-si="${si}"`;
+  const w = Workout.cur(), en = w && w.entries[ei];
+  const last = en ? lastSessionFor(en.exerciseId, w) : null;
+  const prev = en ? prevForSet(en, si, last) : null;
+  const ph = sidePh(s, prev, type);
+  const bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
+  const fmtPrev = p => type === 'sec' ? prevSec(p) + (p.w ? ` +${wNum(p.w)} ${unit()}` : '') : (p.w ? `${wNum(p.w)} ${unit()} × ${prevR(p)}` : `${prevR(p)} ${bShort}`);
+  const step = (f, inner, label) => `<div class="stepper"><button data-act="step" data-f="${f}" data-d="-1" ${d} aria-label="Weniger ${label}">${icon('minus')}</button><span class="stp-v">${inner}</span><button data-act="step" data-f="${f}" data-d="1" ${d} aria-label="Mehr ${label}">${icon('plus')}</button></div>`;
+  return `<div class="set-panel exb-panel ${uni ? 'uni' : ''}" ${d}>
+    <div class="exb-steps">
+      ${step('w', `<input inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${prev && prev.w ? esc(inputW(prev.w)) : '0'}" aria-label="Gewicht"><span class="u">${type === 'kg' ? unit() : '+' + unit()}</span>`, 'Gewicht')}
+      ${step('b', `<input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(ph.l || '0')}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}"><span class="u">${uni ? 'L' : bShort}</span>`, 'Wiederholungen')}
+      ${uni ? step('bR', rInput(s, d, type, { r: ph.r || '0', r0: ph.r0 || '0' }, '0', '') + `<span class="u">R</span>`, 'rechts') : ''}
+    </div>
+    <div class="exb-last"><span class="grow small dim">${prev ? `Letztes Mal ${esc(fmtPrev(prev))}` : 'Noch kein Vergleich'}</span>
+      ${type === 'kg' && F('f_plates') ? `<button class="btn btn-ghost btn-sm" data-act="plates" ${d}>Scheiben</button>` : ''}
+      <button class="btn btn-ghost btn-sm exb-rpe" data-act="rpeToggle" ${d}>RPE${s.rpe ? ' ' + nf(s.rpe, 1) : ''}</button></div>
+    <div class="rpe-chips exb-rpes" ${UI.rpeOpen ? '' : 'hidden'}>${RPE_VALUES.filter(v => v % 1 === 0).map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>
+    <button class="btn ${s.done ? 'btn-secondary' : 'btn-primary'} btn-block" data-act="setDone" ${d}>${s.done ? 'Rückgängig' : `${icon('check')} Satz erledigt`}</button>
   </div>`;
 }
 Actions.woMore = async () => {
@@ -962,9 +1037,8 @@ function selectSet(ei, si, { rerender = false } = {}) {
   const row = $(`.set-row[data-ei="${ei}"][data-si="${si}"]`);
   if (!row) return;
   row.classList.add('sel');
-  if (woSimple()) return;
   const en = w.entries[ei];
-  row.insertAdjacentHTML('afterend', setPanel(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId)), !!en.uni));
+  row.insertAdjacentHTML('afterend', (woSimple() ? basisPanel : setPanel)(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId)), !!en.uni));
 }
 Actions.setSel = el => {
   const w = Workout.cur();
@@ -1015,6 +1089,12 @@ Actions.rpePick = el => {
   $$(`.rpe-chips button[data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(b => b.classList.toggle('active', +b.dataset.v === +s.rpe));
   const sel = $(`.set-rpe[data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`);
   if (sel) sel.value = s.rpe ? String(s.rpe) : '';
+  $$(`.exb-rpe[data-ei="${el.dataset.ei}"][data-si="${el.dataset.si}"]`).forEach(b => { b.textContent = 'RPE' + (s.rpe ? ' ' + nf(s.rpe, 1) : ''); });
+};
+/* Basis: RPE auf Antippen – die Auswahl bleibt für die nächsten Sätze offen */
+Actions.rpeToggle = el => {
+  UI.rpeOpen = !UI.rpeOpen; saveUI();
+  $$('.exb-rpes').forEach(r => { r.hidden = !UI.rpeOpen; });
 };
 Actions.setDone = el => {
   const w = Workout.cur();
