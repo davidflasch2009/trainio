@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.33.10',
+  version: '1.34.0',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -74,7 +74,6 @@ const DEFAULT_SETTINGS = {
   weekStart: 'monday',
   defaultRestSec: 120,
   weightSteps: 2.5,
-  showRPE: true,
   notifyRestDone: true,
   // Eigene Ergänzungen
   activePlanId: '',
@@ -127,11 +126,9 @@ const DEFAULT_SETTINGS = {
   homeStats: true,
   homeRecent: 3,
   // Workout-Ansicht
-  woStyle: 'simple',
   woCollapse: true,
   simpleRPE: false,
   woView: 'list',
-  woStrip: true,
   woPrev: true,
   autoRest: true,
   autoScroll: true

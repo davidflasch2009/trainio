@@ -17,79 +17,31 @@ function lastSessionFor(exId, w) {
   const ss = Analytics.sessionsOf(exId).filter(s => s.wid !== w.editingId && s.wid !== w.id);
   return ss.length ? ss[ss.length - 1] : null;
 }
-const woSimple = () => S().woStyle !== 'detailed';
 function renderActiveWorkout(el, w) {
   const st = liveStats(w);
   const hBefore = cardHeights(el);
   const focus = S().woView === 'focus' && F('f_focus') && w.entries.length > 0;
-  if (woSimple()) {
-    el.innerHTML = `
-      <div class="wo-head wo-simple">
-        <div class="wo-main">
-          <div class="grow" style="min-width:0">
-            <div class="wo-title ellipsis">${esc(w.name)}</div>
-            <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span><i class="roll">${st.done}</i>/${st.total} Sätze</span></div>
-          </div>
-          <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
-          <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Fertig'}</button>
-        </div>
-        <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
-      </div>
-      <div class="wo-body">
-        ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
-        ${!focus && st.total && st.done === st.total ? `<button class="btn btn-primary btn-block btn-lg mb-12" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>` : ''}
-        <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
-      </div>`;
-    updateTopH();
-    fxOpenCard(el);
-    animCardHeights(el, hBefore);
-    animWoProgress(el, w, st);
-    return;
-  }
   el.innerHTML = `
-    <div class="wo-head">
+    <div class="wo-head wo-simple">
       <div class="wo-main">
         <div class="grow" style="min-width:0">
-          <button class="ex-name ellipsis" data-act="woRename" style="background:none;border:0;padding:0;color:var(--text);font-weight:800;font-size:calc(17px * var(--fs));max-width:100%;text-align:left">${esc(w.name)} ${icon('edit').replace('<svg', '<svg width="14" height="14" style="vertical-align:-1px;opacity:.5"')}</button>
-          <div class="wo-stats small dim">
-            ${w.editingId ? `<span class="badge warn">Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" style="font-size:calc(16px * var(--fs));color:var(--text)" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}
-            <span><i class="roll">${st.done}</i>/${st.total} Sätze</span><span>${fmtTon(st.vol)}</span>
-          </div>
+          <div class="wo-title ellipsis">${esc(w.name)}</div>
+          <div class="wo-stats small dim">${w.editingId ? `<span>Bearbeitung · ${fmtDate(w.date)}</span>` : `<span class="wo-timer" data-tick="wo">${fmtClock((Date.now() - w.startedAt) / 1000)}</span>`}<span><i class="roll">${st.done}</i>/${st.total} Sätze</span></div>
         </div>
         <button class="btn-icon" data-act="woMore" aria-label="Weitere Optionen">${icon('dots')}</button>
-        <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Beenden'}</button>
+        <button class="btn btn-primary" data-act="woFinish">${icon('check')} ${w.editingId ? 'Speichern' : 'Fertig'}</button>
       </div>
       <div class="wo-progress" style="width:100%"><i style="width:${st.total ? st.done / st.total * 100 : 0}%"></i></div>
-      ${w.entries.length ? `<div class="wo-tools">
-        ${F('f_focus') ? '' : '<!--'}<div class="seg sm wo-view" role="group" aria-label="Ansicht">
-          <button class="${focus ? '' : 'active'}" data-act="woView" data-v="list" aria-label="Listen-Ansicht: alle Übungen" title="Liste">${icon('list')}<span>Liste</span></button>
-          <button class="${focus ? 'active' : ''}" data-act="woView" data-v="focus" aria-label="Fokus-Ansicht: eine Übung groß" title="Fokus">${icon('target')}<span>Fokus</span></button>
-        </div>${F('f_focus') ? '' : '-->'}
-        ${S().woStrip !== false ? woStrip(w, focus) : `<button class="ws-item ws-all" data-act="woOverview">${icon('layers')} Übersicht</button>`}
-      </div>` : ''}
     </div>
     <div class="wo-body">
-    ${focus ? focusView(w) : `<div id="woEntries" class="${S().showRPE ? '' : 'no-rpe'} ${S().woPrev === false ? 'no-prev' : ''}">
-      ${w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, exerciseCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
-    </div>`}
-    <div class="row" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
-    ${F('f_woExtras') ? '' : '<div hidden>'}<div class="card mt-16">
-      <div class="form-grid">
-        <label class="field"><span>Körpergewicht (${unit()})</span><input class="input" inputmode="decimal" data-in="woBw" value="${inputW(w.bodyWeightKg)}" placeholder="optional"></label>
-        <label class="field"><span>Datum</span><input class="input" type="date" data-ch="woDate" value="${esc(w.date)}" max="${isoDate()}"></label>
-        <label class="field full"><span>Notizen</span><textarea class="textarea" data-in="woNotes" placeholder="Wie lief's? Schlaf, Energie, Technik …" style="min-height:72px">${esc(w.notes || '')}</textarea></label>
-      </div>
-    </div>${F('f_woExtras') ? '' : '</div>'}
-    <button class="btn btn-primary btn-block btn-lg mt-16" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>
-    <button class="btn btn-danger-ghost btn-block mt-12" data-act="woCancel">${icon('x')} ${w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen'}</button>
+      ${focus ? focusView(w) : w.entries.length ? w.entries.map((en, ei) => woCard(en, ei, w, simpleCard)).join('') : `<div class="card mb-12">${emptyState('dumbbell', 'Noch keine Übungen', 'Füge die erste Übung hinzu und leg los.')}</div>`}
+      ${!focus && st.total && st.done === st.total ? `<button class="btn btn-primary btn-block btn-lg mb-12" id="woFinishEnd" data-act="woFinish">${icon('check')} ${w.editingId ? 'Änderungen speichern' : 'Workout beenden'}</button>` : ''}
+      <div class="row mt-4" style="gap:8px"><button class="btn btn-secondary btn-lg grow" data-act="woAddEx">${icon('plus')} Übung hinzufügen</button><button class="btn btn-secondary btn-lg" data-act="startCardio" aria-label="Cardio hinzufügen">${icon('heart')} Cardio</button></div>
     </div>`;
   updateTopH();
   fxOpenCard(el);
   animCardHeights(el, hBefore);
   animWoProgress(el, w, st);
-  // Aktuelle Übung in der Leiste sichtbar halten
-  const strip = $('#woStrip', el), cur = strip && $('.ws-item.cur', strip);
-  if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
 }
 
 /* ---------- Sanfte Übergänge im Workout ---------- */
@@ -313,7 +265,7 @@ function cardioCard(en, ei, w) {
     </div>
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal ${fmtDateShort(last.date)}: ${esc(cardioTxt({ sec: last.secs, km: last.km, lvl: last.lvl || null }, info))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Übernehmen</button>` : ''}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
-    ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
+    ${exNotes(en, 'exs-last')}
     <div class="exs-sets cd-sets" style="--cd-cols:${cols}">
       <div class="set-head"><span></span><span>Min.</span>${dist ? '<span>km</span>' : ''}${lvl ? `<span>${esc(lvlHead)}</span>` : ''}${fill ? '<span></span>' : ''}<span></span></div>
       ${rows}
@@ -336,9 +288,8 @@ function simpleCard(en, ei, w) {
   const doneN = ws.filter(s => s.done).length;
   const complete = en.sets.length > 0 && en.sets.every(s => s.done);
   const rpe = !!S().simpleRPE;
-  const gw = goalWeight(en);
   const uni = !!en.uni;
-  const goal = `${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}`;
+  const goal = goalTxt(en, type);
   const fmtPrev = p => type === 'sec' ? prevSec(p) : (p.w ? `${wNum(p.w)}×${prevR(p)}` : `${prevR(p)}`);
   const generic = type === 'sec' ? 'Sek.' : 'Wdh.';
   const [lo] = parseRange(en.target && en.target.reps);
@@ -374,7 +325,7 @@ function simpleCard(en, ei, w) {
     ${en.formFix ? `<div class="exs-last fix-line">${fixTxt(en)}</div>` : ''}
     ${fixSetsTxt(en) ? `<div class="exs-last fix-line">${fixSetsTxt(en)}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
-    ${en.note ? `<div class="exs-last">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</div>` : ''}
+    ${exNotes(en, 'exs-last')}
     ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
     <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''} ${fill ? 'fill' : ''}">
       <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}${fill ? '<span></span>' : ''}<span></span></div>
@@ -390,9 +341,8 @@ Actions.woMore = async () => {
     w.entries.length && { key: 'ov', label: 'Übersicht aller Übungen', icon: 'layers' },
     F('f_focus') && w.entries.length && { key: 'view', label: focus ? 'Listen-Ansicht' : 'Fokus-Ansicht', icon: focus ? 'list' : 'target' },
     { key: 'rename', label: 'Umbenennen', icon: 'edit' },
-    F('f_woExtras') && woSimple() && { key: 'notes', label: 'Notiz, Datum & Körpergewicht', icon: 'note' },
+    F('f_woExtras') && { key: 'notes', label: 'Notiz, Datum & Körpergewicht', icon: 'note' },
     w.entries.length && { key: 'tpl', label: 'Als Workout speichern', icon: 'copy' },
-    { key: 'style', label: woSimple() ? 'Ausführliche Eingabe' : 'Schlichte Eingabe', icon: 'sliders' },
     { key: 'cancel', label: w.editingId ? 'Bearbeitung verwerfen' : 'Workout abbrechen', icon: 'x', danger: true }
   ]);
   if (k === 'ov') Actions.woOverview();
@@ -403,13 +353,24 @@ Actions.woMore = async () => {
       <label class="field"><span>Datum</span><input class="input" type="date" data-ch="woDate" value="${esc(w.date)}" max="${isoDate()}"></label>
       <label class="field full"><span>Notizen</span><textarea class="textarea" data-in="woNotes" placeholder="Wie lief's? Schlaf, Energie, Technik …">${esc(w.notes || '')}</textarea></label></div>` });
   else if (k === 'tpl') saveAsTemplate(w.entries, w.name);
-  else if (k === 'style') { Store.saveSettings({ woStyle: woSimple() ? 'detailed' : 'simple' }); App.renderCurrent(); }
   else if (k === 'cancel') Actions.woCancel();
 };
 
 /* ---------- Bausteine: Ziel, Fortschritt, Satz-Typen ---------- */
 const workSets = en => en.sets.filter(s => !s.warmup);
 const shortName = n => n.length > 18 ? n.replace(/\s*\(.*?\)\s*/g, ' ').trim().slice(0, 18) + (n.length > 18 ? '…' : '') : n;
+/** Ziel kurz: „2 × 4–8 je Seite · 82,5 kg ↑“ – der Pfeil zeigt, dass die App eine Steigerung vorschlägt */
+function goalTxt(en, type) {
+  const gw = goalWeight(en), up = en.suggestion && en.suggestion.type === 'up';
+  return `${workSets(en).length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${en.uni ? ' je Seite' : ''}${gw ? ' · ' + fmtW(gw) : ''}${up ? ' ↑' : ''}`;
+}
+/** Notizen zur Übung: aus dem Plan (Workout-Vorlage) und nur für heute */
+function exNotes(en, cls) {
+  const t = en.target && en.target.notes, n = en.note;
+  if (!t && !n) return '';
+  const ic = icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"');
+  return [t, n].filter(Boolean).map(x => `<div class="${cls}">${ic} ${esc(x)}</div>`).join('');
+}
 function goalWeight(en) {
   if (en.target && en.target.weightKg != null) return en.target.weightKg;
   if (en.suggestion && en.suggestion.weightKg) return en.suggestion.weightKg;
@@ -421,18 +382,6 @@ function goalReps(en, type) {
   if (t.reps) return String(t.reps).replace('-', '–');
   const s = workSets(en).find(x => (type === 'sec' ? x.durationSec : x.reps) != null);
   return s ? String(type === 'sec' ? s.durationSec : s.reps) : '–';
-}
-function goalBar(en, ei, type) {
-  const n = workSets(en).length;
-  const gw = goalWeight(en);
-  const wLabel = type === 'kg' ? 'Gewicht' : 'Zusatz';
-  const wVal = gw != null && gw > 0 ? fmtW(gw) : (type === 'kg' ? '–' : 'ohne');
-  return `<button class="ex-goal" data-act="goalEdit" data-ei="${ei}" aria-label="Ziel für ${esc(en.exerciseName)} bearbeiten">
-    <span class="eg"><small>Sätze × ${type === 'sec' ? 'Sek.' : 'Wdh.'}</small><b>${n} × ${esc(goalReps(en, type))}</b></span>
-    <span class="eg"><small>${wLabel}</small><b>${wVal}</b></span>
-    <span class="eg"><small>Pause</small><b>${fmtClock((en.target && en.target.restSec) || S().defaultRestSec)}</b></span>
-    <span class="eg-edit">${icon('edit')}</span>
-  </button>`;
 }
 function exSummary(en, w, type) {
   const ws = workSets(en);
@@ -465,86 +414,6 @@ function fixSetsTxt(en) {
   return nums.length ? `${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix bei Satz ${nums.join(', ')} – zählt nicht gegen dich` : '';
 }
 
-function exerciseCard(en, ei, w) {
-  const ex = Ex.get(en.exerciseId);
-  const type = Ex.type(ex);
-  const last = lastSessionFor(en.exerciseId, w);
-  const pr = Store.raw('prs', en.exerciseId);
-  const ws = workSets(en);
-  const complete = ws.length > 0 && ws.every(s => s.done) && en.sets.every(s => s.done);
-  const t = en.target || {};
-  const fmtPrev = s => !s ? '–' : type === 'sec' ? prevSec(s) + (s.w ? ` +${wNum(s.w)}` : '') : (s.w ? `${wNum(s.w)}×${prevR(s)}` : `${prevR(s)}`);
-  const lastTxt = last ? `Letztes Mal ${fmtDateShort(last.date)}: ${last.list.map(fmtPrev).join(' · ')}` : '';
-  const uni = !!en.uni;
-  const [lo] = parseRange(t.reps);
-  let workNo = 0;
-  const rows = en.sets.map((s, si) => {
-    const num = s.warmup ? 'W' : ++workNo;
-    const prev = last && !s.warmup ? (last.list[num - 1] || null) : null;
-    const sel = w.sel.e === ei && w.sel.s === si;
-    const isPR = F('f_prs') && s.done && !s.warmup && !s.fix && pr && type !== 'sec' && ((+s.weightKg || 0) > (pr.bestWeightKg || 0) + 1e-6 || e1rm(+s.weightKg, repsOf(s)) > (pr.best1RM || 0) + 0.05);
-    return setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni, lo) + (sel ? setPanel(ei, si, s, type, uni) : '');
-  }).join('');
-  const meta = ex ? [ex.equipment, (ex.muscleGroups || []).slice(0, 2).join(', ')].filter(Boolean).join(' · ') : '';
-  return `<div class="ex-card ${complete ? 'complete' : ''} ${uni ? 'uni' : ''}" id="ex-${en.uid}" style="scroll-margin-top:calc(env(safe-area-inset-top) + var(--wo-head-h, 120px))">
-    <div class="ex-card-head">
-      <span class="ex-idx ${catCls(ex && ex.category)}">${complete ? icon('check').replace('<svg', '<svg width="16" height="16"') : ei + 1}</span>
-      <div class="grow" style="min-width:0">
-        <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
-        ${meta ? `<div class="ex-sub">${esc(meta)}</div>` : ''}
-      </div>
-      <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Menü">${icon('dots')}</button>
-    </div>
-    ${goalBar(en, ei, type)}
-    <div class="ex-hints">
-      ${lastTxt ? `<span class="hint-chip">${esc(lastTxt)}</span>` : ''}
-      ${last && canFillAny(en, last) ? `<button class="hint-chip fill" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}
-      ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
-      ${t.notes ? `<span class="hint-chip note">${esc(t.notes)}</span>` : ''}
-      ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
-      ${pinChip(en.exerciseId, 'hint-chip pin')}
-      ${en.formFix ? `<span class="hint-chip fix-line">${fixTxt(en)}</span>` : ''}
-      ${fixSetsTxt(en) ? `<span class="hint-chip fix-line">${fixSetsTxt(en)}</span>` : ''}
-    </div>
-    <div class="set-head"><span>Satz</span><span>Letztes</span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}<span class="rpe-h">RPE</span><span></span></div>
-    ${rows}
-    ${exSummary(en, w, type)}
-    <div class="ex-foot">
-      <button class="btn btn-secondary btn-sm" data-act="setAdd" data-ei="${ei}">${icon('plus')} Satz</button>
-      ${type === 'kg' && F('f_warmup') ? `<button class="btn btn-ghost btn-sm" data-act="warmup" data-ei="${ei}">${icon('flame')} Aufwärmen</button>` : ''}
-    </div>
-  </div>`;
-}
-function setRow(ei, si, s, num, prev, type, sel, isPR, fmtPrev, uni = false, lo = null) {
-  const bVal = type === 'sec' ? s.durationSec : s.reps;
-  const wPh = prev && prev.w ? inputW(prev.w) : '';
-  const ph = sidePh(s, prev, type);
-  const bPh = ph.l || (lo ? String(lo) : '');
-  const d = `data-ei="${ei}" data-si="${si}"`;
-  const canFill = !isPR && setFillable(s, prev, type);
-  return `<div class="set-row ${s.done ? 'done' : ''} ${sel ? 'sel' : ''}" ${d}>
-    ${setNumHtml(s, num, d)}
-    ${canFill ? `<button class="set-prev can-fill" data-act="setFill" ${d} aria-label="${esc(fmtPrev(prev))} übernehmen" title="Antippen = übernehmen">${fmtPrev(prev)}</button>`
-      : `<span class="set-prev" data-act="setSel" ${d}>${isPR ? `<span class="accent bold">${icon('trophy').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} PR</span>` : fmtPrev(prev)}</span>`}
-    <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
-    <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
-    ${uni ? rInput(s, d, type, ph) : ''}
-    <select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">–</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>
-    <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Satz zurücksetzen' : 'Satz erledigt'}">${icon('check')}</button>
-  </div>`;
-}
-
-/* ---------- Übersichtsleiste ---------- */
-function woStrip(w, focus) {
-  const curE = focus ? focusIndex(w) : w.sel.e;
-  return `<div class="wo-strip" id="woStrip">${w.entries.map((en, i) => {
-    const ws = workSets(en), d = ws.filter(s => s.done).length;
-    const complete = ws.length && d === ws.length;
-    return `<button class="ws-item ${i === curE ? 'cur' : ''} ${complete ? 'complete' : ''}" data-act="woJump" data-ei="${i}" aria-label="${esc(en.exerciseName)}: ${d} von ${ws.length} Sätzen">
-      <span class="ws-ring" style="--p:${ws.length ? d / ws.length * 100 : 0}">${complete ? icon('check') : i + 1}</span>
-      <span class="ws-name">${esc(shortName(en.exerciseName))}</span><span class="ws-cnt">${d}/${ws.length}</span></button>`;
-  }).join('')}<button class="ws-item ws-all" data-act="woOverview">${icon('layers')} Übersicht</button></div>`;
-}
 
 /* ---------- Fokus-Modus ---------- */
 function focusIndex(w) {
@@ -612,9 +481,9 @@ function focusView(w) {
           ${rInput(s, d, type, ph, '', 'fc-in')}
           <button data-act="step" data-f="bR" data-d="1" ${d} aria-label="Mehr rechts">${icon('plus')}</button></div></div>` : ''}
       </div>
-      ${(woSimple() ? S().simpleRPE : S().showRPE) ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
+      ${S().simpleRPE ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
       <button class="btn ${s.done ? 'btn-secondary' : 'btn-primary'} btn-lg btn-block" data-act="setDone" ${d}>${icon(s.done ? 'undo' : 'check')} ${s.done ? 'Rückgängig' : 'Satz erledigt'}</button>
-      <div class="row" ${woSimple() ? 'hidden' : ''}>
+      <div class="row">
         ${type === 'kg' && F('f_plates') ? `<button class="btn btn-ghost btn-sm" data-act="plates" ${d}>${icon('plate')} Scheiben</button>` : ''}
         <span class="grow"></span>
         <button class="btn btn-ghost btn-sm" data-act="setMenu" ${d}>${icon('dots')} Satz-Optionen</button>
@@ -637,16 +506,11 @@ function focusView(w) {
       ${pinNote(en.exerciseId) ? `<div class="center mt-8">${pinChip(en.exerciseId)}</div>` : ''}
       ${en.formFix ? `<div class="center mt-8"><span class="hint-chip fix-line">${fixTxt(en)}</span></div>` : ''}
       ${fixSetsTxt(en) ? `<div class="center mt-8"><span class="hint-chip fix-line">${fixSetsTxt(en)}</span></div>` : ''}
-      ${woSimple() ? `<div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(`${ws.length} × ${goalReps(en, type)}${type === 'sec' ? ' s' : ''}${goalWeight(en) ? ' · ' + fmtW(goalWeight(en)) : ''}`)}</button></div>` : goalBar(en, ei, type)}
-      <div class="ex-hints" ${woSimple() ? 'hidden' : ''}>
-        ${en.suggestion ? `<span class="hint-chip ${en.suggestion.type === 'up' ? 'up' : ''}">${en.suggestion.type === 'up' ? '↑ ' : ''}${esc(en.suggestion.text)}</span>` : ''}
-        ${en.target && en.target.notes ? `<span class="hint-chip note">${esc(en.target.notes)}</span>` : ''}
-        ${en.note ? `<span class="hint-chip note">${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${esc(en.note)}</span>` : ''}
-      </div>
+      <div class="center"><button class="exs-goal" data-act="goalEdit" data-ei="${ei}">${esc(goalTxt(en, type))}</button></div>
+      ${exNotes(en, 'center small dim mt-8')}
       <div class="fc-sets">${pills}<button class="fc-pill add" data-act="setAdd" data-ei="${ei}" aria-label="Satz hinzufügen">${icon('plus')}</button></div>
       ${cur}
       ${exSummary(en, w, type)}
-      <div class="fc-foot" ${woSimple() ? 'hidden' : ''}>${type === 'kg' && F('f_warmup') ? `<button class="btn btn-ghost btn-sm" data-act="warmup" data-ei="${ei}">${icon('flame')} Aufwärmsätze</button>` : ''}</div>
     </div>
     <div class="fc-nav">
       <button class="btn btn-secondary" data-act="focusNav" data-d="-1" ${nPrev ? '' : 'disabled'}>${icon('chevL')}<span>${nPrev ? esc(shortName(nPrev.exerciseName)) : 'Anfang'}</span></button>
@@ -693,9 +557,6 @@ Actions.woJump = el => {
   }
   if (woCollapse()) return Actions.exOpen(el);
   if (fo >= 0) selectSet(ei, fo);
-  $$('.ws-item').forEach(b => b.classList.toggle('cur', +b.dataset.ei === ei));
-  const strip = $('#woStrip'), cur = strip && $('.ws-item.cur', strip);
-  if (cur) strip.scrollLeft = cur.offsetLeft - strip.clientWidth / 2 + cur.offsetWidth / 2;
   scrollToExercise(en);
 };
 function scrollToExercise(en) {
@@ -877,34 +738,6 @@ function openGoalEditor(ei) {
 }
 Actions.goalEdit = el => openGoalEditor(+el.dataset.ei);
 
-function setPanel(ei, si, s, type, uni = false) {
-  const d = `data-ei="${ei}" data-si="${si}"`;
-  const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
-  // Platzhalter wie in der Zeile: Werte vom letzten Mal
-  const w = Workout.cur(), en = w && w.entries[ei];
-  const prev = en ? prevForSet(en, si, lastSessionFor(en.exerciseId, w)) : null;
-  const ph = sidePh(s, prev, type);
-  return `<div class="set-panel ${uni ? 'uni' : ''}" ${d}>
-    <div><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
-      <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
-      <input inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${prev && prev.w ? esc(inputW(prev.w)) : '0'}" aria-label="Gewicht">
-      <button data-act="step" data-f="w" data-d="1" ${d} aria-label="Mehr Gewicht">${icon('plus')}</button></div></div>
-    <div><div class="stepper-label">${uni ? bShort + ' links' : bLabel}</div>
-      <div class="stepper"><button data-act="step" data-f="b" data-d="-1" ${d} aria-label="Weniger">${icon('minus')}</button>
-      <input inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(ph.l || '0')}" aria-label="${bLabel}${uni ? ' links' : ''}">
-      <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
-    ${uni ? `<div><div class="stepper-label">${bShort} rechts</div>
-      <div class="stepper"><button data-act="step" data-f="bR" data-d="-1" ${d} aria-label="Weniger rechts">${icon('minus')}</button>
-      ${rInput(s, d, type, { r: ph.r || '0', r0: ph.r0 || '0' }, '0', '')}
-      <button data-act="step" data-f="bR" data-d="1" ${d} aria-label="Mehr rechts">${icon('plus')}</button></div></div>` : ''}
-    ${S().showRPE ? `<div class="rpe-chips"><span class="tiny dim bold" style="width:30px">RPE</span>${[6, 7, 8, 9, 10].map(v => `<button data-act="rpePick" data-v="${v}" ${d} class="${+s.rpe === v ? 'active' : ''}">${v}</button>`).join('')}</div>` : ''}
-    <div class="panel-actions">
-      ${type === 'kg' && F('f_plates') ? `<button class="btn btn-ghost btn-sm" data-act="plates" ${d}>${icon('plate')} Scheiben</button>` : ''}
-      <span class="grow"></span>
-      <button class="btn ${s.done ? 'btn-secondary' : 'btn-primary'}" data-act="setDone" ${d}>${icon(s.done ? 'undo' : 'check')} ${s.done ? 'Rückgängig' : 'Satz erledigt'}</button>
-    </div>
-  </div>`;
-}
 function updateTopH() {
   const tb = $('#topbar');
   if (tb) document.documentElement.style.setProperty('--top-h', tb.offsetHeight + 'px');
@@ -958,13 +791,9 @@ function selectSet(ei, si, { rerender = false } = {}) {
   Workout.save();
   if (rerender) return App.renderCurrent();
   $$('.set-row.sel').forEach(r => r.classList.remove('sel'));
-  $$('.set-panel').forEach(p => p.remove());
   const row = $(`.set-row[data-ei="${ei}"][data-si="${si}"]`);
   if (!row) return;
   row.classList.add('sel');
-  if (woSimple()) return;
-  const en = w.entries[ei];
-  row.insertAdjacentHTML('afterend', setPanel(ei, si, en.sets[si], Ex.type(Ex.get(en.exerciseId)), !!en.uni));
 }
 Actions.setSel = el => {
   const w = Workout.cur();

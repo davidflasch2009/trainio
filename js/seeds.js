@@ -362,7 +362,7 @@ const SEED_EXERCISES_3 = [
 ];
 
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 7;
+const SEED_VERSION = 8;
 /* Korrigierte Muskeln (v6): Bei Kniebeugen wachsen Beinbeuger praktisch nicht mit (Kubo 2019), der untere Rücken hält
    nur – siehe docs/redesign/recherche/saetze-pro-woche.md. Alte Liste → neue Liste, nur wenn niemand sie geändert hat. */
 const SEED_MUSCLE_FIX = {
@@ -401,6 +401,11 @@ function ensureSeeds() {
     }
   }
   let patch = { seedVersion: SEED_VERSION };
+  if (v < 8) {
+    // „Ausführliche Eingabe“ gibt es nicht mehr: wer dort RPE eingetragen hat, bekommt die RPE-Spalte
+    const s = S();
+    if (s.woStyle === 'detailed' && s.showRPE !== false) patch.simpleRPE = true;
+  }
   if (v < 3) {
     // Vorgeschlagene Pläne entfernen, eigene Pläne in „Workouts + Wochenplan" umwandeln
     const now = Date.now();

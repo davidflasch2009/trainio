@@ -703,7 +703,7 @@ async function anzeigeFlow(page) {
   // 3. Pausen-Leiste: Nach jedem Satz bleibt der nächste Satz samt „Satz erledigt“ sichtbar über der Leiste
   await page.evaluate(() => {
     Store.put('templates', 'taz', { name: 'Brust', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 8, reps: '8', restSec: 90, notes: '' }], createdAt: Date.now() });
-    Store.saveSettings({ woStyle: 'detailed', autoRest: true, autoScroll: true, finishConfirm: 'never' });
+    Store.saveSettings({ autoRest: true, autoScroll: true, finishConfirm: 'never' });
     Workout.start({ templateId: 'taz' });
   });
   await pause(page, 600);
@@ -724,7 +724,35 @@ async function anzeigeFlow(page) {
     });
     if (r && r.bottom > r.dock) covered.push(r);
   }
-  check(!covered.length, 'Pausen-Leiste verdeckt den nächsten Satz nicht (ausführliche Eingabe, 6 Sätze nacheinander)', JSON.stringify(covered));
+  check(!covered.length, 'Pausen-Leiste verdeckt den nächsten Satz nicht (6 Sätze nacheinander)', JSON.stringify(covered));
+  // Nur noch die schlichte Eingabe – Plan-Notiz, Steigerungs-Hinweis und Menü-Funktionen bleiben erreichbar
+  const one = await page.evaluate(async () => {
+    Workout.discard();
+    Store.put('templates', 'tnote', { name: 'Notiz', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 2, reps: '5', restSec: 90, notes: 'Schulterblätter zusammen' }], createdAt: Date.now() });
+    Workout.start({ templateId: 'tnote' });
+    Workout.set(w => { w.entries[0].suggestion = { type: 'up', weightKg: 82.5, text: 'Mehr Gewicht: 82,5 kg' }; });
+    App.renderCurrent();
+    await new Promise(r => setTimeout(r, 300));
+    const tab = document.querySelector('#tab-training');
+    const menu = [];
+    const orig = window.actionMenu;
+    window.actionMenu = async (t, items) => { menu.push(...items.filter(Boolean).map(i => i.key)); return null; };
+    await Actions.woMore(); await Actions.exMenu({ dataset: { ei: 0 } });
+    window.actionMenu = orig;
+    return { note: tab.innerText.includes('Schulterblätter zusammen'), up: /82,5 kg ↑/.test(tab.innerText), detailed: !!tab.querySelector('.set-head .rpe-h, .wo-strip, .ex-goal, .set-panel'),
+      menu: menu.join(','), settings: !!document.querySelector('[data-seg="woStyle"]') };
+  });
+  check(one.note && one.up && !one.detailed && !/style/.test(one.menu) && /notes/.test(one.menu) && /warm/.test(one.menu) && /plates/.test(one.menu) && /drop/.test(one.menu),
+    'Nur eine Workout-Eingabe: Plan-Notiz und Steigerung sichtbar, Aufwärmen/Scheiben/Drop-Satz/Notiz im Menü', JSON.stringify(one));
+  const mig = await page.evaluate(async () => {
+    Store.saveSettings({ woStyle: 'detailed', simpleRPE: false, seedVersion: 7 });
+    ensureSeeds();
+    await new Promise(r => setTimeout(r, 200));
+    return { rpe: S().simpleRPE, v: S().seedVersion };
+  });
+  check(mig.rpe === true && mig.v >= 8, 'Umzug: wer „Ausführlich“ mit RPE hatte, behält die RPE-Eingabe als Spalte', JSON.stringify(mig));
+  await page.evaluate(() => { Workout.discard(); Workout.start({ templateId: 'taz' }); App.renderCurrent(); });
+  await pause(page, 300);
   // Workout-Kopf auf dem Handy deckend: darunter gescrollte Übungen scheinen in keinem Design durch
   const see = await page.evaluate(async () => {
     const out = [];

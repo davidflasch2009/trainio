@@ -95,10 +95,9 @@ function moreGroups() {
     { id: 'workout', title: 'Workout', ic: 'list',
       sections: [
         ['Eingabe', [
-          mi('Eingabe', 'Schlicht: nur Gewicht, Wdh. & Haken · Ausführlich: Stepper, Leisten, Spalten', segCtl('woStyle', [['simple', 'Schlicht'], ['detailed', 'Ausführlich']]), 'schlicht ausführlich stepper'),
           mi('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'), 'vorbelegen platzhalter'),
           mi('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'), 'vorherige werte'),
-          s.woStyle === 'detailed' ? mi('RPE anzeigen', 'Anstrengung 6–10 pro Satz', toggleCtl('showRPE'), 'rir') : mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir'),
+          mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir'),
           mi('Nächsten Satz vorbelegen', 'Nach dem Abhaken: Gewicht & Wdh. in den nächsten leeren Satz übernehmen', toggleCtl('carryNext'), 'übernehmen vorbelegen automatisch')]],
         ['Neue Übungen', [
           mi('Standard-Sätze', 'Wenn du eine Übung hinzufügst', selectCtl('defSets', [1, 2, 3, 4, 5, 6, 8, 10].map(n => [n, n + (n === 1 ? ' Satz' : ' Sätze')])), 'sätze anzahl standard'),
@@ -106,7 +105,6 @@ function moreGroups() {
         ['Ansicht', [
           mi('Standard-Ansicht', 'Liste: alle Übungen · Fokus: eine Übung groß', segCtl('woView', [['list', 'Liste'], ['focus', 'Fokus']]), 'liste fokus'),
           mi('Nur aktuelle Übung offen', 'Fertige & kommende Übungen werden zugeklappt', toggleCtl('woCollapse'), 'zuklappen einklappen'),
-          ...(s.woStyle === 'detailed' ? [mi('Übersichtsleiste', 'Alle Übungen mit Fortschritt oben im Workout', toggleCtl('woStrip'), 'leiste')] : []),
           mi('Automatisch weiterscrollen', 'Zur nächsten Übung, wenn eine fertig ist', toggleCtl('autoScroll'), 'scrollen'),
           mi('Bildschirm anlassen', 'Während eines Workouts (Wake Lock)', toggleCtl('wakeLock'), 'display sperre wake lock')]],
         ['Beenden', [

@@ -162,12 +162,12 @@ beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl d
   (Herz-Plan: Einheiten, Zone 2, hart).
 Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
 
-## Workout-Ansicht (ausführlich)
+## Workout-Ansicht
 
-- **Übersichtsleiste** oben: alle Übungen mit Fortschrittsring – antippen springt hin.
-- **Ziel-Leiste** pro Übung (Sätze × Wdh. · Gewicht · Pause) – antippen öffnet den Ziel-Editor
-  (Satzanzahl, Wdh.-Bereich, Gewicht, Pause, Notiz – optional auf alle offenen Sätze übertragen).
-- **Liste** (alle Übungen) oder **Fokus** (eine Übung, große Eingaben, vor/zurück).
+- **Ziel** pro Übung unter dem Namen („2 × 4–8 · 80 kg“, ein ↑ heißt: die App schlägt mehr Gewicht vor) –
+  antippen öffnet den Ziel-Editor (Satzanzahl, Wdh.-Bereich, Gewicht, Pause, Notiz – optional auf alle offenen
+  Sätze übertragen). Notizen aus „Meine Workouts“ stehen direkt unter der Übung.
+- **Liste** (alle Übungen) oder **Fokus** (eine Übung, große Eingaben mit ±, vor/zurück).
 - **Übersicht**: alle Übungen mit Ziel & erledigten Sätzen, umsortieren, Ziele ändern.
 - **Satz-Typen**: Aufwärmen (W), Drop-Satz (D), bis Muskelversagen (F).
 
@@ -196,15 +196,14 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
 
 ## Workout-Eingabe
 
-- **Schlicht** (Standard): pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben,
-  Notizen usw. hinter dem ⋯-Menü.
+- **Eine klare Eingabe:** pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben, Drop-Satz,
+  Notizen usw. hinter dem ⋯-Menü der Übung. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
+  RPE eingetragen hat, bekommt automatisch die RPE-Spalte (Mehr → Workout → RPE-Spalte).
 - **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
   Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
   „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
-  ebenfalls automatisch. In der ausführlichen Ansicht: Wert in der Spalte „Letztes“ antippen.
+  ebenfalls automatisch.
   Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
-- **Ausführlich**: Übersichtsleiste, Ziel-Leiste, „Letztes Mal"-Spalte, RPE, Stepper.
-- Umschalten unter **Mehr → Workout** oder im Workout über ⋯.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
   gibt es dann ein Feld für links und eins für rechts – rechts leer lassen = wie links. Einstellbar im
   Workout über ⋯ → „Einseitig", in „Meine Workouts" über den L/R-Schalter und beim Bearbeiten einer Übung.
@@ -310,7 +309,7 @@ Bank/Kniebeuge/Kreuzheben, Big-3-Total) und Cardio (Zeit, Distanz) – jeweils m
 
 Satz-Zeile **nach rechts wischen = abhaken** (bzw. zurücksetzen, wenn schon erledigt), **nach links = löschen** –
 mit „Rückgängig“ im Hinweis unten. Ab etwa einem Viertel der Breite rastet die Aktion ein; kürzer loslassen
-bricht ab. Gilt in der Listen-Ansicht (schlicht & ausführlich) und bei Cardio-Abschnitten.
+bricht ab. Gilt in der Listen-Ansicht und bei Cardio-Abschnitten.
 
 ## Dauerhafte Übungs-Notiz
 
@@ -332,7 +331,7 @@ nur Vorschau und Namen, Menüs nur ihre Titel:
 | --- | --- |
 | Konto & Profil | Anmeldung (Google, GitHub), **Anmeldewege verknüpfen/trennen**, Sync-Status, Name, Geschlecht, **Geburtsjahr**, **Maximalpuls** (für Pulszonen & VO2max) |
 | Training | aktiver Plan, Wochenziel, Wochenstart, **Herz-Plan**, Ruhepuls messen, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Zeitraum im Fortschritt** (4W … Alles oder eine Phase – bei jedem Öffnen des Fortschritts ausgewählt; gelöschte Phase → Alles) |
-| Workout | Eingabe (Schlicht/Ausführlich), Vorausfüllen, Letztes Mal, RPE, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
+| Workout | Vorausfüllen, Letztes Mal, RPE-Spalte, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
 | Pause & Timer | Standard-Pause, **Pausen-Timer** an/aus (startet nach jedem Satz), Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
 | Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (17 zur Auswahl, Reihenfolge), Karte „Herz diese Woche“ an/aus |
 | Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
@@ -387,7 +386,7 @@ Jeder Punkt bekommt ✓ oder ⚠, bei ⚠ mit einem konkreten Tipp (z. B. „Ca.
 - **Drop-Satz:** ⋯ an der Übung → „Drop-Satz hinzufügen“ hängt einen Satz mit „D“ an, Gewicht ca. 20 % unter
   dem letzten Satz (abgerundet aufs Gewichts-Inkrement). „Bis zum Muskelversagen“ gibt es über die Satznummer.
 - **Workout beenden:** Sobald alle Sätze abgehakt sind, erscheint unten ein großer „Workout beenden“-Knopf
-  (in der schlichten Eingabe; die ausführliche hat ihn immer), mit automatischem Scrollen dorthin.
+  mit automatischem Scrollen dorthin.
 
 ## Workouts nachträglich bearbeiten
 
