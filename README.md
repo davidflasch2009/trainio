@@ -65,6 +65,14 @@ Kurze Meldungen oben im Bildschirm lassen sich unter **Mehr → Meldungen** je G
 Fehler, Hinweise („Bitte ein Gewicht eintragen") und Meldungen mit Knopf („Rückgängig") kommen immer. Jede Meldung
 schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurzes Ziehen federt zurück).
 
+**Rückgängig statt Rückfrage** (wie bei iOS): Löschen und Zurücksetzen passiert sofort, die Meldung bietet einige
+Sekunden lang **„Rückgängig“** an und stellt dann alles genau wieder her. Das gilt für Workouts (samt Plan-Tagen),
+Pläne (samt aktivem Plan), Workouts im Verlauf (Bestwerte werden neu berechnet), Übungen (samt ihren Plätzen in deinen
+Workouts), Körper-Einträge mit Foto, Phasen, Ruhepuls-/VO2max-Einträge, den Herz-Plan, „Darstellung zurücksetzen“
+sowie im Workout für „Übung entfernen“ und „Workout abbrechen“ (die Meldung bleibt hier länger stehen). Weiter
+nachgefragt wird nur bei Unumkehrbarem und bei Konto-Aktionen: alle Daten löschen, Backup einspielen, Import
+zurücknehmen, Abmelden/Anmeldung trennen und beim Beenden des Workouts (einstellbar).
+
 ## Animationen
 
 Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** (Voll / Reduziert / Aus) und
@@ -645,7 +653,9 @@ gleichzeitig, Gastübernahme mit Ruhepuls, Abmelden, alternative Übungsnamen, u
 Cardio-PDF, Tastatur (Fokus bleibt im Dialog, Escape, Reiter mit Pfeiltasten), Kontrast aller 20 Designzustände
 (Text ≥ 4,5:1), 320 px breite Displays mit Text XL, Körper-Eingaben, 1RM-Formel und Fotovergleich. Die eigene
 Zahlentastatur wird per Touch durchgespielt: Tippen, Komma-Regeln, ±, Weiter → Abhaken → nächster Satz, fehlendes
-Gewicht, Links/Rechts, Cardio-Dauer, Tipp daneben, Fokus-Ansicht und Ausschalten. Firebase und CDNs sind
+Gewicht, Links/Rechts, Cardio-Dauer, Tipp daneben, Fokus-Ansicht, Ausschalten und volle Animationen (Feld bleibt
+sichtbar, Ziehen/Wischen). „Rückgängig statt Rückfrage“ wird für alle 11 Stellen geprüft: löschen ohne Rückfrage,
+Rückgängig stellt Daten, Plan-Tage, aktiven Plan, Fotos, Bestwerte und laufendes Workout exakt wieder her. Firebase und CDNs sind
 dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 

@@ -463,10 +463,10 @@ Actions.tplMenu = async el => {
   else if (k === 'dup') { const id = autoId(); Store.put('templates', id, { ...JSON.parse(JSON.stringify(t)), id: undefined, name: t.name + ' (Kopie)', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true }); toast('Workout dupliziert', 'success'); }
   else if (k === 'del') {
     const inPlans = Store.all('plans').filter(p => isSchedule(p) && p.schedule.includes(t.id));
-    if (!await confirmDialog({ title: 'Workout löschen?', text: `„${t.name}" wird gelöscht.${inPlans.length ? ' Die Tage im Trainingsplan werden zu Ruhetagen.' : ''} Bereits absolvierte Trainings bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
-    inPlans.forEach(p => Store.put('plans', p.id, { ...p, schedule: p.schedule.map(id => id === t.id ? null : id), updatedAt: Date.now() }, { replace: true }));
-    Store.del('templates', t.id);
-    toast('Workout gelöscht', 'success');
+    withUndo(`„${t.name}" gelöscht`, { docs: [['templates', t.id], ...inPlans.map(p => ['plans', p.id])], run: () => {
+      inPlans.forEach(p => Store.put('plans', p.id, { ...p, schedule: p.schedule.map(id => id === t.id ? null : id), updatedAt: Date.now() }, { replace: true }));
+      Store.del('templates', t.id);
+    } });
   }
 };
 Actions.planMenu = async el => {
@@ -483,10 +483,10 @@ Actions.planMenu = async el => {
   else if (k === 'edit') openScheduleEditor(p);
   else if (k === 'dup') { const id = autoId(); Store.put('plans', id, { ...JSON.parse(JSON.stringify(p)), id: undefined, name: p.name + ' (Kopie)', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true }); toast('Plan dupliziert', 'success'); }
   else if (k === 'del') {
-    if (!await confirmDialog({ title: 'Plan löschen?', text: `„${p.name}" wird gelöscht. Deine Workouts und dein Verlauf bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
-    Store.del('plans', p.id);
-    if (S().activePlanId === p.id) Store.saveSettings({ activePlanId: (Store.all('plans').find(isSchedule) || {}).id || '' });
-    toast('Plan gelöscht', 'success');
+    withUndo(`Plan „${p.name}" gelöscht`, { docs: [['plans', p.id]], settings: ['activePlanId'], run: () => {
+      Store.del('plans', p.id);
+      if (S().activePlanId === p.id) Store.saveSettings({ activePlanId: (Store.all('plans').find(isSchedule) || {}).id || '' });
+    } });
   }
 };
 
@@ -880,12 +880,9 @@ function openWorkoutDetail(id) {
     const b = e.target.closest('[data-x]');
     if (!b) return;
     if (b.dataset.x === 'del') {
-      if (await confirmDialog({ title: 'Workout löschen?', text: `${woTitle(wo)} vom ${fmtDate(wo.date)} wird endgültig gelöscht. PRs werden neu berechnet.`, okLabel: 'Löschen', danger: true })) {
-        Store.del('workouts', id);
-        m.dismiss();
-        PR.recalcAll();
-        toast('Workout gelöscht', 'success');
-      }
+      m.dismiss();
+      withUndo(`${woTitle(wo)} vom ${fmtDate(wo.date, { day: 'numeric', month: 'numeric' })} gelöscht`, { docs: [['workouts', id]],
+        run: () => { Store.del('workouts', id); PR.recalcAll(); }, after: () => PR.recalcAll() });
     } else if (b.dataset.x === 'meta') editMeta();
     else if (b.dataset.x === 'edit') {
       const k = await actionMenu('Workout bearbeiten', [

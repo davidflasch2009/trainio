@@ -288,9 +288,10 @@ const Heart = (() => {
     });
     m.el.addEventListener('click', async e => {
       const b = e.target.closest('[data-del]');
-      if (!b || !await confirmDialog({ title: 'Eintrag löschen?', okLabel: 'Löschen', danger: true })) return;
-      Store.del('heart', b.dataset.del);
-      b.closest('.list-item').remove();
+      if (!b) return;
+      const id = b.dataset.del, item = b.closest('.list-item'), next = item.nextElementSibling, parent = item.parentElement;
+      withUndo('Eintrag gelöscht', { docs: [['heart', id]], run: () => { Store.del('heart', id); item.remove(); },
+        after: () => { if (parent && parent.isConnected && !item.isConnected) parent.insertBefore(item, next && next.isConnected ? next : null); } });
     });
   }
   function planEdit() {
@@ -322,7 +323,8 @@ const Heart = (() => {
       if (!b) return;
       if (b.dataset.x === 'cancel') return m.close();
       if (b.dataset.x === 'off') {
-        if (await confirmDialog({ title: 'Herz-Plan beenden?', text: 'Deine Werte und Einheiten bleiben – nur das Wochenziel verschwindet.', okLabel: 'Beenden', danger: true })) { Store.saveSettings({ heartPlan: null }); m.close(); }
+        m.close();
+        withUndo('Herz-Plan beendet', { settings: ['heartPlan'], run: () => Store.saveSettings({ heartPlan: null }) });
         return;
       }
       const rg = parseInt($('#hpRhr', m.el).value, 10), vg = parseNum($('#hpVo2', m.el).value);

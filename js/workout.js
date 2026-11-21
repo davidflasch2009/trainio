@@ -178,8 +178,16 @@ const Workout = (() => {
     discard();
     return { id, doc, prs, editing };
   }
+  /** Abgebrochenes Workout zurückholen (Rückgängig) – nur, wenn inzwischen kein anderes läuft */
+  function restore(obj) {
+    if (w || !obj) return false;
+    w = obj;
+    save();
+    if (!w.editingId) WakeLock.request();
+    return true;
+  }
   return {
-    cur: () => w, save, start, load, discard, finish, makeEntry, newSet, autoSelect,
+    cur: () => w, save, start, load, discard, finish, restore, makeEntry, newSet, autoSelect,
     set(mut) { if (!w) return; mut(w); save(); }
   };
 })();

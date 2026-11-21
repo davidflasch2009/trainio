@@ -50,6 +50,22 @@ const TOAST_CATS = [
   ['sync', 'Verbindung & Sync', '„Offline", „Wieder online", Firebase'],
   ['update', 'App-Updates', '„Neue Version verfügbar"']
 ];
+/** Rückgängig statt Rückfrage (wie bei iOS): Betroffenes vorher merken, sofort ausführen und in der Meldung
+    „Rückgängig“ anbieten. docs: [[Sammlung, id], …] werden genau so wiederhergestellt, wie sie vorher waren
+    (auch wenn run sie ändert oder löscht); settings: Einstellungs-Schlüssel ebenso. after: läuft nach dem Wiederherstellen. */
+function withUndo(msg, { docs = [], settings = [], run, after = null, duration = 6000 }) {
+  const copy = v => v == null ? null : JSON.parse(JSON.stringify(v));
+  const snap = docs.map(([c, id]) => [c, id, copy(Store.raw(c, id))]);
+  const sv = Object.fromEntries(settings.map(k => [k, copy(S()[k])]));
+  run();
+  toast(msg, 'info', { duration, action: { label: 'Rückgängig', fn: () => {
+    snap.forEach(([c, id, d]) => d ? Store.put(c, id, d, { replace: true }) : Store.del(c, id));
+    if (settings.length) Store.saveSettings(sv);
+    if (after) after();
+    App.renderCurrent();
+    toast('Wiederhergestellt', 'success');
+  } } });
+}
 function toastCat(type, opts) {
   if (opts.cat) return opts.cat;
   if (type === 'error' || type === 'warn' || opts.action) return 'always';

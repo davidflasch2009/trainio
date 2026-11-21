@@ -309,11 +309,10 @@ Inputs.lookColor = el => {
   document.documentElement.style.cssText = accentCss(el.value, mode, lookSurf(D)) + (D.id === 'glass' ? `--glass-blur:${cssVar('--glass-blur')};` : '');
 };
 Actions.lookReset = async () => {
-  if (!await confirmDialog({ title: 'Darstellung zurücksetzen?', text: 'Design, Farben, Schrift und alle Anzeige-Optionen gehen zurück auf Standard. Deine Daten bleiben unberührt.', okLabel: 'Zurücksetzen' })) return;
-  const patch = {};
-  LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; });
+  const patch = {}, prev = {};
+  LOOK_KEYS.forEach(x => { patch[x] = DEFAULT_SETTINGS[x]; prev[x] = S()[x] === undefined ? DEFAULT_SETTINGS[x] : JSON.parse(JSON.stringify(S()[x])); });
   switchLook(() => Store.saveSettings(patch));
-  toast('Darstellung zurückgesetzt', 'success');
+  toast('Darstellung zurückgesetzt', 'info', { duration: 6000, action: { label: 'Rückgängig', fn: () => { switchLook(() => Store.saveSettings(prev)); toast('Wiederhergestellt', 'success'); } } });
 };
 
 /* Reihenfolge der Gruppen auf der Übersicht (Blöcke mit Abstand) */

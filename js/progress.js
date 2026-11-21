@@ -151,10 +151,13 @@ Actions.phaseEdit = el => {
     const b = e.target.closest('[data-x]'); if (!b) return;
     const list = (S().phases || []).filter(p => p.id !== d.id);
     if (b.dataset.x === 'del') {
-      if (!await confirmDialog({ title: 'Phase löschen?', text: `„${d.name}" wird entfernt. Deine Workouts bleiben erhalten.`, okLabel: 'Löschen', danger: true })) return;
-      Store.saveSettings({ phases: list });
-      if (UI.period === 'ph:' + d.id) { UI.period = defaultPeriod() || '3m'; saveUI(); }
-      m.close(); return;
+      const period = UI.period;
+      m.close();
+      withUndo(`Phase „${d.name}" gelöscht`, { settings: ['phases'], run: () => {
+        Store.saveSettings({ phases: list });
+        if (UI.period === 'ph:' + d.id) { UI.period = defaultPeriod() || '3m'; saveUI(); }
+      }, after: () => { UI.period = period; saveUI(); } });
+      return;
     }
     if (b.dataset.x === 'ok') {
       d.name = $('#phName', m.el).value.trim() || `${PHASE_TYPES[d.type][0]} ${new Date().getFullYear()}`;
@@ -1661,11 +1664,10 @@ function openBodyForm(entry) {
     if (!b) return;
     if (b.dataset.x === 'cancel') return m.close();
     if (b.dataset.x === 'del') {
-      if (!await confirmDialog({ title: 'Eintrag löschen?', text: `Körper-Eintrag vom ${fmtDate(entry.date)}${entry.photoId ? ' inkl. Foto' : ''} löschen?`, okLabel: 'Löschen', danger: true })) return;
-      Store.del('progress', entry.id);
-      if (entry.photoId) Store.del('photos', entry.photoId);
       m.close();
-      toast('Eintrag gelöscht', 'success');
+      withUndo(`Eintrag vom ${fmtDate(entry.date, { day: 'numeric', month: 'numeric' })}${entry.photoId ? ' mit Foto' : ''} gelöscht`, {
+        docs: [['progress', entry.id], ...(entry.photoId ? [['photos', entry.photoId]] : [])],
+        run: () => { Store.del('progress', entry.id); if (entry.photoId) Store.del('photos', entry.photoId); } });
       return;
     }
     const date = $('#bfDate', m.el).value;

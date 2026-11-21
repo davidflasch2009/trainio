@@ -411,16 +411,11 @@ function openExerciseDetail(id) {
       toast(`${ex.name} hinzugefügt`, 'success', { cat: 'workout' });
     } else if (x === 'del') {
       const usedPlans = Store.all('templates').filter(t => (t.exercises || []).some(y => y.exerciseId === id));
-      const ok = await confirmDialog({
-        title: 'Übung löschen?',
-        text: `„${ex.name}" wird aus der Bibliothek entfernt.${ss.length ? ` Sie kommt in ${ss.length} Workouts vor – der Verlauf bleibt mit Namen erhalten.` : ''}${usedPlans.length ? ` Sie wird aus ${usedPlans.length} deiner Workouts entfernt.` : ''}`,
-        okLabel: 'Löschen', danger: true
-      });
-      if (!ok) return;
-      usedPlans.forEach(t => Store.put('templates', t.id, { ...t, exercises: t.exercises.filter(y => y.exerciseId !== id), updatedAt: Date.now() }, { replace: true }));
-      Store.del('exercises', id);
       m.dismiss();
-      toast('Übung gelöscht', 'success');
+      withUndo(`„${ex.name}" gelöscht`, { docs: [['exercises', id], ...usedPlans.map(t => ['templates', t.id])], run: () => {
+        usedPlans.forEach(t => Store.put('templates', t.id, { ...t, exercises: t.exercises.filter(y => y.exerciseId !== id), updatedAt: Date.now() }, { replace: true }));
+        Store.del('exercises', id);
+      } });
     }
   });
 }

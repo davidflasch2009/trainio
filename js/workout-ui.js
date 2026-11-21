@@ -1152,9 +1152,14 @@ Actions.exMenu = async el => {
     if (w.openE === ei) w.openE = j; else if (w.openE === j) w.openE = ei;
   } else if (k === 'info') { openExerciseDetail(en.exerciseId); return; }
   else if (k === 'del') {
-    if (en.sets.some(s => s.done) && !await confirmDialog({ title: 'Übung entfernen?', text: `${en.exerciseName} hat bereits erledigte Sätze. Trotzdem entfernen?`, okLabel: 'Entfernen', danger: true })) return;
-    w.entries.splice(ei, 1);
+    const [gone] = w.entries.splice(ei, 1);
     w.openE = null;
+    toast(`${en.exerciseName} entfernt`, 'info', { duration: 6000, action: { label: 'Rückgängig', fn: () => {
+      const cw = Workout.cur(); if (!cw || cw.id !== w.id || cw.entries.some(e => e.uid === gone.uid)) return;
+      cw.entries.splice(Math.min(ei, cw.entries.length), 0, gone);
+      Workout.autoSelect(); Workout.save(); App.renderCurrent();
+      fx($('#ex-' + gone.uid), 'fx-up');
+    } } });
   }
   Workout.autoSelect();
   Workout.save();
@@ -1205,15 +1210,16 @@ Actions.woRename = async () => {
 };
 Actions.woCancel = async () => {
   const w = Workout.cur();
-  const ok = await confirmDialog({
-    title: w.editingId ? 'Änderungen verwerfen?' : 'Workout abbrechen?',
-    text: w.editingId ? 'Das gespeicherte Workout bleibt unverändert.' : 'Alle Sätze dieses Workouts gehen verloren. Das kann nicht rückgängig gemacht werden.',
-    okLabel: w.editingId ? 'Verwerfen' : 'Abbrechen & löschen', cancelLabel: 'Weiter trainieren', danger: true
-  });
-  if (!ok) return;
+  if (!w) return;
+  const keep = JSON.parse(JSON.stringify(w));
   Workout.discard();
   App.renderCurrent();
-  toast(w.editingId ? 'Änderungen verworfen' : 'Workout verworfen', 'info', { cat: 'workout' });
+  // Länger stehen lassen als sonst: hier steckt ein ganzes Training drin
+  toast(w.editingId ? 'Änderungen verworfen' : 'Workout abgebrochen', 'info', { duration: 9000, action: { label: 'Rückgängig', fn: () => {
+    if (!Workout.restore(keep)) return toast('Es läuft schon ein anderes Workout', 'warn');
+    App.go('training'); App.renderCurrent();
+    toast('Workout wiederhergestellt', 'success');
+  } } });
 };
 Actions.woFinish = async () => {
   const w = Workout.cur();
