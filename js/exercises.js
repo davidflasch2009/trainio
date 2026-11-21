@@ -317,7 +317,7 @@ function renderExList() {
     const mi = meta[e.id];
     const pr = Store.raw('prs', e.id);
     const t = Ex.type(e);
-    const right = mi.n ? `<b>${t === 'cardio' ? (pr && pr.bestKmh ? fmtKmh(pr.bestKmh) : pr && pr.bestDurSec ? fmtDur(pr.bestDurSec) : mi.n + '×') : t === 'kg' && pr && pr.best1RM ? fmtW(pr.best1RM, 0) : t !== 'kg' && pr ? (pr.bestReps || '–') + (t === 'sec' ? '' : ' Wdh.') : mi.n + '×'}</b>${relDays(mi.last)}` : '<span class="faint">noch nie</span>';
+    const right = mi.n ? `<b>${t === 'cardio' ? (pr && pr.bestKmh ? fmtKmh(pr.bestKmh) : pr && pr.bestDurSec ? fmtDur(pr.bestDurSec) : mi.n + '×') : t === 'kg' && pr && pr.best1RM ? fmtW(pr.best1RM, 0) : t !== 'kg' && pr ? (pr.bestReps || '–') + (t === 'sec' ? '' : ' Wdh.') : mi.n + '×'}</b>${relDays(mi.last)}` : '';
     return `<button class="ex-item" data-act="openExercise" data-id="${esc(e.id)}">
       ${regionDot(e)}
       <span class="grow" style="min-width:0">
@@ -359,14 +359,14 @@ function openExerciseDetail(id) {
         ${ex.isCustom ? '<span class="badge info">Eigene Übung</span>' : ''}
       </div>
       <div class="muscle-pick mt-12">${(ex.muscleGroups || []).map(mg => `<span class="chip soft active" style="min-height:30px">${esc(mg)}</span>`).join('') || '<span class="dim small">Keine Muskelgruppen hinterlegt</span>'}</div>
-      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Eigene Notiz hinzufügen (z. B. Sitzhöhe, Griff) – erscheint in jedem Workout</span>`}</button>
+      <button class="card tight mt-12 pin-card" data-act="pinNoteEdit" data-id="${esc(ex.id)}">${pinNote(ex.id) ? `${icon('note').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px;flex-shrink:0"')} <span class="bold">Meine Notiz:</span> ${esc(pinNote(ex.id))}` : `<span class="dim">📌 Notiz hinzufügen</span>`}</button>
       ${ex.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)"><span class="bold">Technik-Tipp:</span> ${esc(ex.notes)}</div>` : ''}
       ${ss.length && t === 'cardio' ? cardioDetailHtml(id, ss, showAll) : ss.length ? `
         <div class="pr-grid mt-16">
           ${t === 'kg' ? `
             <div class="pr-box"><span>Bestes 1RM (e)</span><b>${pr ? fmtW(pr.best1RM) : '–'}</b>${pr && pr.fixDate ? '<em>seit Form-Fix</em>' : ''}</div>
             <div class="pr-box"><span>Max-Gewicht</span><b>${pr ? fmtW(pr.bestWeightKg) : '–'}</b><em>${pr && pr.bestReps ? '× ' + pr.bestReps + ' Wdh.' : ''}</em></div>
-            <div class="pr-box"><span>Bestes Volumen</span><b>${pr ? fmtTon(pr.bestVolume) : '–'}</b><em>pro Session</em></div>`
+            <div class="pr-box"><span>Bestes Volumen</span><b>${pr ? fmtTon(pr.bestVolume) : '–'}</b></div>`
           : `<div class="pr-box"><span>${t === 'sec' ? 'Längster Satz' : 'Max Wdh.'}</span><b>${t === 'sec' ? fmtClock(maxOf(ss, s => maxOf(s.list, x => x.sec))) : (pr ? pr.bestReps : '–')}</b></div>
              <div class="pr-box"><span>Zusatzgewicht max</span><b>${pr && pr.bestWeightKg ? fmtW(pr.bestWeightKg) : '–'}</b></div>
              <div class="pr-box"><span>Sätze gesamt</span><b>${sum(ss.map(s => s.sets))}</b></div>`}
@@ -493,7 +493,7 @@ function openExerciseForm(ex, preset = {}) {
           <div class="seg">${Object.entries({ kg: 'Gewicht × Wdh.', reps: 'Nur Wdh.', sec: 'Zeit', cardio: 'Cardio' }).map(([k, l]) => `<button data-u="${k}" class="${Ex.type(d) === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>
         ${Ex.type(d) === 'cardio' ? `<div class="field"><span>Cardio-Felder</span>
           <div class="seg">${Object.entries({ dist: 'Dauer + Distanz', level: 'Dauer + Stufe', time: 'Nur Dauer' }).map(([k, l]) => `<button data-cm="${k}" class="${cardioInfo(d).mode === k ? 'active' : ''}">${l}</button>`).join('')}</div></div>` : ''}
-        <div class="list"><div class="set-line"><div class="sl-main"><div class="sl-title">Einseitig (links & rechts)</div><div class="sl-sub">Wdh. für jede Seite getrennt erfassen – z. B. Bulgarian Split Squat, einarmiges Rudern</div></div>
+        <div class="list"><div class="set-line"><div class="sl-main"><div class="sl-title">Einseitig (links & rechts)${infoBtn('Wdh. für jede Seite getrennt erfassen – z. B. Bulgarian Split Squat, einarmiges Rudern.')}</div></div>
           <label class="switch"><input type="checkbox" switch data-uni ${Ex.isUni(d) ? 'checked' : ''} aria-label="Einseitig"><span></span></label></div></div>
         <div class="field"><span>Muskelgruppen</span>
           <div class="muscle-pick">${[...MUSCLES, 'Ausdauer'].map(mg => `<button class="chip soft ${d.muscleGroups.includes(mg) ? 'active' : ''}" data-m="${esc(mg)}">${esc(mg)}</button>`).join('')}</div></div>

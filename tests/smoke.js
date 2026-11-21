@@ -668,8 +668,10 @@ async function anzeigeFlow(page) {
   check(cv.cardio && cv.total.length === 2 && cv.total.every(t => t > 0), 'Volumen pro Workout: reine Cardio-Workouts zählen nicht mit (keine Punkte auf der Nulllinie)', JSON.stringify(cv));
   await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress'); });
   await pause(page, 600);
-  const h7 = await page.evaluate(() => ((document.querySelector('#tab-progress .heat7') || {}).innerText || '').replace(/\s+/g, ' '));
-  check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag zeigt „Cardio“ statt „0 kg“', h7);
+  const h7 = await page.evaluate(() => [...document.querySelectorAll('#tab-progress .heat7 button')].map(b => b.getAttribute('aria-label')).join(' | '));
+  check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag heißt „Cardio“ statt „0 kg“ (Vorlesetext)', h7);
+  const h7txt = await page.evaluate(() => document.querySelector('#tab-progress .heat7').innerText.replace(/\s+/g, ' ').trim());
+  check(!/kg|\dt\b|Cardio/.test(h7txt), '„Letzte 7 Tage“: in den Kästchen nur der Wochentag, keine Mini-Werte', h7txt);
   // Kraftzuwachs robust (bestes e1RM je Woche, Median der ersten gegen gleitenden Median der letzten Wochen):
   // Tagesform-Schwankungen (σ 3 %) ohne echten Fortschritt ergeben ≈ 0 % – je Übung im Mittel und im verketteten Index
   // der Karte „Kraftzuwachs“. Das frühere laufende Maximum gegen die erste Session zeigt bei denselben Daten ≈ +6 %.
@@ -1118,6 +1120,59 @@ async function befundeFlow(page) {
   check(!logged.length, 'Fehlerprotokoll bleibt leer', logged.join(' | '));
 }
 
+/** Weniger Kleintext: entfernte Hinweise bleiben weg, Wichtiges (Dauer, Volumen, Ziele, Erklärungen im ⓘ) bleibt */
+async function kleintextFlow(page) {
+  console.log('Weniger Kleintext');
+  await page.evaluate(() => {
+    Store.saveSettings({ motion: 'off', woView: 'list' });
+    Store.put('templates', 'k_tpl', { name: 'K-Push', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 3, reps: '6-8', restSec: 90 }], createdAt: Date.now() });
+    Store.put('plans', 'k_plan', { name: 'K-Plan', schedule: ['k_tpl', null, 'k_tpl', null, null, null, null], createdAt: Date.now() });
+    Store.saveSettings({ activePlanId: 'k_plan' });
+    const st = Date.now() - 3 * 864e5;
+    Store.put('workouts', 'k_w1', { date: isoDate(new Date(st)), startedAt: st, durationSec: 3000, name: 'K-Push', templateId: 'k_tpl',
+      entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [{ reps: 8, weightKg: 80, rpe: 8, done: true }, { reps: 7, weightKg: 80, rpe: 9, done: true }] }] });
+    PR.recalcAll();
+    App.go('start', { instant: true });
+  });
+  await pause(page, 400);
+  const start = await page.evaluate(() => { const t = document.querySelector('#tab-start').innerText; const mw = (document.querySelector('#tab-start .mw-stats') || {}).innerText || '';
+    return { seit: /seit \w+\.? \d{4}/.test(t), plan: [...document.querySelectorAll('#tab-start .stat-sub')].some(e => e.textContent.includes('K-Plan')), mw }; });
+  check(!start.seit && !start.plan && /min/.test(start.mw) && !/Sätze|RPE/.test(start.mw), 'Startseite: kein „seit …“, kein Planname, Workout-Zeile nur Dauer und Volumen', JSON.stringify(start));
+  await page.evaluate(() => { UI.trainSub = 'plans'; App.go('training', { instant: true }); });
+  await pause(page, 300);
+  const pl = await page.evaluate(() => ({ tage: /\d Trainingstage/.test(document.querySelector('#tab-training').innerText), ex: !!document.querySelector('#tab-training .tpl-ex') }));
+  check(!pl.tage && !pl.ex, 'Pläne: keine „Trainingstage“-Zahl, keine Übungsliste in den Workout-Karten', JSON.stringify(pl));
+  await page.evaluate(() => { Workout.start({ templateId: 'k_tpl' }); App.go('training', { instant: true }); });
+  await pause(page, 300);
+  const wo = await page.evaluate(() => ({ last: /Letztes Mal/.test(document.querySelector('#tab-training').innerText), ph: document.querySelector('#tab-training [data-in="setW"][data-si="0"]').placeholder }));
+  check(!wo.last && wo.ph === '80', 'Workout: keine „Letztes Mal“-Zeile, die Werte stehen grau im Feld', JSON.stringify(wo));
+  await page.evaluate(() => { Store.saveSettings({ woView: 'focus' }); App.renderCurrent(); });
+  await pause(page, 300);
+  const fo = await page.evaluate(() => document.querySelector('#tab-training').innerText);
+  check(!/Letztes Mal|geplant/.test(fo), 'Fokus: kein „Letztes Mal“, kein „Sätze geplant“', fo.slice(0, 160));
+  await page.evaluate(() => { Store.saveSettings({ woView: 'list' }); Workout.discard(); openWorkoutDetail('k_w1'); });
+  await pause(page, 500);
+  const sc = await page.evaluate(() => { const m = document.querySelector('.modal-wrap:not(.closing) .modal'); const more = m.querySelector('.score-more'); return { hidden: more ? more.hidden : null, ring: !!m.querySelector('button.score-ring') }; });
+  if (sc.ring) {
+    await page.click('.modal-wrap:not(.closing) .score-toggle');
+    const sc2 = await page.evaluate(() => { const m = document.querySelector('.modal-wrap:not(.closing) .modal'); return { hidden: m.querySelector('.score-more').hidden, exp: m.querySelector('.score-ring').getAttribute('aria-expanded') + '/' + m.querySelector('.score-toggle').getAttribute('aria-expanded'), clean: m.querySelector('.score-ring .score-mid').children.length === 1, bonus: /e1RM-Bonus/.test(m.innerText) }; });
+    check(sc.hidden === true && sc2.hidden === false && sc2.exp === 'true/true' && sc2.clean && sc2.bonus, 'Workout-Score: Ring nur mit Zahl, Pfeil darunter klappt die Aufschlüsselung auf', JSON.stringify({ sc, sc2 }));
+  } else check(true, 'Workout-Score aus – keine Aufschlüsselung');
+  await page.evaluate(() => { Modal.closeAll(); openExerciseDetail('ex_bankdruecken'); });
+  await pause(page, 500);
+  const ex = await page.evaluate(() => document.querySelector('.modal-wrap:not(.closing) .modal').innerText);
+  check(!/pro Session|erscheint in jedem Workout/.test(ex) && /Notiz hinzufügen/.test(ex), 'Übung: kein „pro Session“, Notiz-Knopf kurz', ex.slice(0, 200));
+  await page.evaluate(() => { Modal.closeAll(); App.go('exercises', { instant: true }); });
+  await pause(page, 400);
+  check(!/noch nie/.test(await page.evaluate(() => document.querySelector('#tab-exercises').innerText)), 'Übungsliste: kein „noch nie“ bei unbenutzten Übungen');
+  await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress', { instant: true }); });
+  await pause(page, 500);
+  const pg = await page.evaluate(() => ({ t: document.querySelector('#tab-progress').innerText, info: [...document.querySelectorAll('#tab-progress [data-info]')].map(b => b.dataset.info).join(' ') }));
+  check(!/heute zählt, sobald|\(11 W\)|aktueller e1RM-PR|vs\. Vorperiode/.test(pg.t) && /Ganze Vorwoche/.test(pg.info), 'Fortschritt: Fußnoten im ⓘ, kein „(11 W)“, kein „vs. Vorperiode“', pg.t.slice(0, 120));
+  await page.evaluate(() => { Modal.closeAll(); App.go('start', { instant: true }); });
+  check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler mit weniger Kleintext', page.errors.concat(await appErrors(page)).join(' | '));
+}
+
 /** Rückgängig statt Rückfrage: Löschen passiert sofort, „Rückgängig“ in der Meldung stellt alles genau wieder her */
 async function rueckgaengigFlow(page) {
   console.log('Rückgängig statt Rückfrage');
@@ -1403,7 +1458,7 @@ async function schmalFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [befundeFlow, { width: 390, height: 844 }, 'befunde'], [tastaturFlow, { width: 390, height: 844 }, 'tastatur'], [rueckgaengigFlow, { width: 390, height: 844 }, 'rueckgaengig'], [schmalFlow, { width: 320, height: 700 }, 'schmal'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [befundeFlow, { width: 390, height: 844 }, 'befunde'], [tastaturFlow, { width: 390, height: 844 }, 'tastatur'], [rueckgaengigFlow, { width: 390, height: 844 }, 'rueckgaengig'], [kleintextFlow, { width: 390, height: 844 }, 'kleintext'], [schmalFlow, { width: 320, height: 700 }, 'schmal'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige' || name === 'tastatur', name === 'iphone' ? IPHONE : undefined);

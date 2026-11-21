@@ -976,7 +976,7 @@ function emptyState(ic, title, text, btn = '') {
 }
 function deltaHtml(cur, prev, { invert = false, fmt = null, suffix = '', neutral = false } = {}) {
   if (prev == null || cur == null || !Number.isFinite(prev) || !Number.isFinite(cur)) return '';
-  if (prev === 0) return cur > 0 ? `<span class="delta up">${icon('arrowUp')}neu</span>` : '';
+  if (prev === 0) return '';   // ohne Vergleichswert kein Pfeil („neu“ sagte nichts aus)
   const d = (cur - prev) / Math.abs(prev);
   const cls = Math.abs(d) < 0.005 || neutral ? 'flat' : ((d > 0) !== invert ? 'up' : 'down');
   const ic = Math.abs(d) < 0.005 ? '' : icon(d > 0 ? 'arrowUp' : 'arrowDown');

@@ -217,8 +217,7 @@ Actions.pinNoteEdit = async el => {
 /* ---------- Cardio-Karte: pro Abschnitt Dauer (+ Distanz) (+ Stufe), km/h wird berechnet ---------- */
 function cardioGoalTxt(en) {
   const info = cardioInfo(Ex.get(en.exerciseId)), m = parseNum(en.target && en.target.reps);
-  const what = info.mode === 'dist' ? 'Dauer + Distanz' : info.mode === 'level' && info.lvl ? `Dauer + ${info.lvl}` : 'Dauer';
-  return m ? `Ziel ${nf(m, 0)} min · ${what}` : what;
+  return m && info ? `Ziel ${nf(m, 0)} min` : '';
 }
 function cardioSumTxt(en) {
   const t = cardioTotals(en.sets.map(x => ({ ...x, done: true })));
@@ -258,7 +257,7 @@ function cardioCard(en, ei, w) {
     <div class="exs-head">
       <div class="grow" style="min-width:0">
         <button class="ex-name" data-act="openExercise" data-id="${esc(en.exerciseId)}">${esc(en.exerciseName)}</button>
-        <div class="exs-goal" style="text-decoration:none">${esc(cardioGoalTxt(en))}</div>
+        ${cardioGoalTxt(en) ? `<div class="exs-goal" style="text-decoration:none">${esc(cardioGoalTxt(en))}</div>` : ''}
       </div>
       <span class="exs-count ${complete ? 'ok' : ''}">${complete ? icon('check') : en.sets.length > 1 ? `<i class="roll">${doneN}</i>/${en.sets.length}` : ''}</span>
       <button class="btn-icon" data-act="exMenu" data-ei="${ei}" aria-label="Übungs-Optionen">${icon('dots')}</button>
@@ -290,7 +289,6 @@ function simpleCard(en, ei, w) {
   const rpe = !!S().simpleRPE;
   const uni = !!en.uni;
   const goal = goalTxt(en, type);
-  const fmtPrev = p => type === 'sec' ? prevSec(p) : (p.w ? `${wNum(p.w)}×${prevR(p)}` : `${prevR(p)}`);
   const generic = type === 'sec' ? 'Sek.' : 'Wdh.';
   const [lo] = parseRange(en.target && en.target.reps);
   const fill = !!last;
@@ -326,7 +324,6 @@ function simpleCard(en, ei, w) {
     ${fixSetsTxt(en) ? `<div class="exs-last fix-line">${fixSetsTxt(en)}</div>` : ''}
     ${pinNote(en.exerciseId) ? `<div class="exs-last">${pinChip(en.exerciseId)}</div>` : ''}
     ${exNotes(en, 'exs-last')}
-    ${last ? `<div class="exs-last"><span class="grow">Letztes Mal: ${esc(last.list.map(fmtPrev).join(' · '))}</span>${canFillAny(en, last) ? `<button class="link-btn" data-act="exFill" data-ei="${ei}">${icon('fillIn')} Alle übernehmen</button>` : ''}</div>` : ''}
     <div class="exs-sets ${rpe ? 'rpe' : ''} ${uni ? 'uni' : ''} ${fill ? 'fill' : ''}">
       <div class="set-head"><span></span><span>${type === 'kg' ? unit() : '+' + unit()}</span>${uni ? '<span>Links</span><span>Rechts</span>' : `<span>${type === 'sec' ? 'Sek.' : 'Wdh.'}</span>`}${rpe ? '<span>RPE</span>' : ''}${fill ? '<span></span>' : ''}<span></span></div>
       ${rows}
@@ -387,7 +384,7 @@ function exSummary(en, w, type) {
   const ws = workSets(en);
   const done = ws.filter(s => s.done);
   const dots = `<span class="dots">${ws.map(s => `<i class="${s.done ? 'on' : ''}"></i>`).join('')}</span>`;
-  if (!done.length) return `<div class="ex-sum">${dots}<span>${ws.length} ${ws.length === 1 ? 'Satz' : 'Sätze'} geplant</span></div>`;
+  if (!done.length) return '';
   let txt;
   if (type === 'sec') txt = `${fmtClock(sum(done.map(s => (+s.durationSec || 0) + (s.durationSecR != null ? +s.durationSecR || 0 : 0))))} gesamt`;
   else {
@@ -445,7 +442,6 @@ function focusView(w) {
   const last = lastSessionFor(en.exerciseId, w);
   const si = w.sel.e === ei && en.sets[w.sel.s] ? w.sel.s : firstOpen(en);
   const s = si >= 0 ? en.sets[si] : null;
-  const fmtPrev = p => !p ? '–' : type === 'sec' ? prevSec(p) + (p.w ? ` +${wNum(p.w)}` : '') : (p.w ? `${wNum(p.w)} ${unit()} × ${prevR(p)}` : `${prevR(p)} Wdh.`);
   const ws = workSets(en);
   const uni = !!en.uni;
   let workNo = 0;
@@ -466,7 +462,7 @@ function focusView(w) {
     const bPh = ph.l || (lo ? String(lo) : '');
     const bLabel = type === 'sec' ? 'Sekunden' : 'Wiederholungen', bShort = type === 'sec' ? 'Sek.' : 'Wdh.';
     cur = `<div class="fc-cur">
-      <div class="fc-label"><b>${s.warmup ? 'Aufwärmsatz' : `Satz ${no} von ${ws.length}`}${s.done ? ' <span class="badge accent">erledigt</span>' : ''}</b>${prev ? `<span>Letztes Mal: ${esc(fmtPrev(prev))}</span>` : ''}${setFillable(s, prev, type) ? `<button class="link-btn fc-fill" data-act="setFill" ${d}>${icon('fillIn')} Übernehmen</button>` : ''}</div>
+      <div class="fc-label"><b>${s.warmup ? 'Aufwärmsatz' : `Satz ${no} von ${ws.length}`}${s.done ? ' <span class="badge accent">erledigt</span>' : ''}</b></div>
       <div class="fc-steppers ${uni ? 'uni' : ''}">
         <div class="fc-big"><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
           <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
@@ -662,13 +658,13 @@ function openGoalEditor(ei) {
     const body = () => `
       <div class="ge-sum" id="geSum">${esc(summary())}</div>
       <div class="mt-12">
-        <div class="ge-row"><div class="ge-l"><b>Arbeitssätze</b><small>${doneN ? `${doneN} schon erledigt` : 'Wie oft?'}</small></div>${stepper('sets', st.sets, 'Sätze')}</div>
-        <div class="ge-row stack"><div class="ge-l"><b>${bName}</b><small>Feste Zahl oder Bereich von – bis</small></div>
+        <div class="ge-row"><div class="ge-l"><b>Arbeitssätze</b>${doneN ? `<small>${doneN} schon erledigt</small>` : ''}</div>${stepper('sets', st.sets, 'Sätze')}</div>
+        <div class="ge-row stack"><div class="ge-l"><b>${bName}</b></div>
           <div class="ge-pair">${stepper('lo', st.lo, 'von')}<span class="dim">–</span>${stepper('hi', st.hi, 'bis')}</div>
           <div class="ge-quick" style="width:100%">${(type === 'sec' ? [[30], [45], [60], [90]] : [[5], [8], [10], [12], [6, 8], [8, 12], [12, 15]]).map(([a, b]) => `<button data-q="${a}-${b || ''}">${a}${b ? '–' + b : ''}</button>`).join('')}</div></div>
         <div class="ge-row"><div class="ge-l"><b>${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</b><small>Schritt ${nf(S().weightSteps, 2)} ${unit()}</small></div>${stepper('w', st.w != null ? String(st.w).replace('.', ',') : '', 'Gewicht')}</div>
-        <div class="ge-row"><div class="ge-l"><b>Pause</b><small>nach jedem Satz</small></div>${stepper('rest', fmtClock(st.rest), 'Pause')}</div>
-        <div class="ge-row"><div class="ge-l"><b>Für alle offenen Sätze übernehmen</b><small>Gewicht & ${bName} eintragen</small></div><label class="switch"><input type="checkbox" switch id="geApply" ${st.apply ? 'checked' : ''}><span></span></label></div>
+        <div class="ge-row"><div class="ge-l"><b>Pause</b></div>${stepper('rest', fmtClock(st.rest), 'Pause')}</div>
+        <div class="ge-row"><div class="ge-l"><b>Für alle offenen Sätze übernehmen</b></div><label class="switch"><input type="checkbox" switch id="geApply" ${st.apply ? 'checked' : ''}><span></span></label></div>
       </div>
       <label class="field mt-12"><span>Notiz zur Übung</span><input class="input" id="geNote" value="${esc(st.note)}" placeholder="z. B. Sitzhöhe 4, enger Griff"></label>`;
     let saved = false;
@@ -1245,18 +1241,28 @@ Actions.woFinish = async () => {
 /* ---------- Workout-Score: Ring (füllt sich, Zahl zählt hoch) + Aufschlüsselung ---------- */
 function scoreRingHtml(sc, small = false) {
   const R = 52, L = 2 * Math.PI * R;
-  return `<div class="score-ring ${small ? 'sm' : ''}" data-score="${sc.score}" role="img" aria-label="Workout-Score ${sc.score} von 100">
+  return `<button type="button" class="score-ring ${small ? 'sm' : ''}" data-act="scoreMore" data-score="${sc.score}" aria-expanded="false" aria-label="Workout-Score ${sc.score} von 100 – Aufschlüsselung zeigen">
     <svg viewBox="0 0 120 120"><circle class="ring-bg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10"/><circle class="ring-fg" cx="60" cy="60" r="${R}" fill="none" stroke-width="10" stroke-dasharray="${L}" style="stroke-dashoffset:${L}" data-len="${L}"/></svg>
-    <div class="score-mid"><b class="score-num">${sc.score}</b></div></div>`;
+    <div class="score-mid"><b class="score-num">${sc.score}</b></div></button>`;
 }
+/** Score-Ring antippen: Aufschlüsselung (Fortschritt, Erledigt, Anstrengung, e1RM-Bonus) auf- und zuklappen */
+Actions.scoreMore = el => {
+  const box = el.closest('.modal') || document, more = $('.score-more', box);
+  if (!more) return;
+  more.hidden = !more.hidden;
+  // Ring und Pfeil-Knopf darunter zeigen denselben Zustand
+  $$('[data-act="scoreMore"]', box).forEach(b => { b.setAttribute('aria-expanded', String(!more.hidden)); b.classList.toggle('open', !more.hidden); });
+  if (!more.hidden) fx(more, 'fx-open');
+};
 function scoreBreakdownHtml(sc) {
   const W = Analytics.SCORE_W;
   const item = (k, l, why) => sc.parts[k] == null
     ? `<div class="sb-item na"><span>${l}</span><b>–</b><small>${why}</small></div>`
     : `<div class="sb-item"><span>${l}</span><b>${Math.round(sc.parts[k] * W[k])}<small> / ${W[k]}</small></b><i style="--p:${Math.round(sc.parts[k] * 100)}%"></i></div>`;
-  return `<div class="score-bd">${item('prog', 'Fortschritt', 'keine Vergleichswerte')}${item('done', 'Erledigt', '')}${item('rpe', 'Anstrengung', 'kein RPE eingetragen')}
+  return `<button type="button" class="score-toggle" data-act="scoreMore" aria-expanded="false" aria-label="Score-Aufschlüsselung zeigen">${icon('chevD')}</button>
+    <div class="score-more" hidden><div class="score-bd">${item('prog', 'Fortschritt', 'keine Vergleichswerte')}${item('done', 'Erledigt', '')}${item('rpe', 'Anstrengung', 'kein RPE eingetragen')}
     <div class="sb-item"><span>e1RM-Bonus</span><b>${sc.bonus ? '+' + sc.bonus : '0'}</b><small>${sc.prs ? `${sc.prs} ${sc.prs === 1 ? 'neuer e1RM-Rekord' : 'neue e1RM-Rekorde'}` : 'kein neuer e1RM-Rekord'}</small></div></div>
-    ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}`;
+    ${sc.scaled ? '<p class="tiny faint center mt-8">Fehlende Teile werden auf 100 hochgerechnet.</p>' : ''}</div>`;
 }
 /** Ring von leer auf den Score füllen, Zahl im gleichen Tempo hochzählen.
  *  Je höher der Score, desto länger dauert es und desto stärker bremst es am Ende ab.

@@ -43,13 +43,13 @@ Views.start = {
         workouts: `<div class="stat">
           <div class="stat-label">${icon('trophy')} Workouts</div>
           <div class="stat-value">${ix.rows.length}</div>
-          <div class="stat-sub">${ix.rows.length ? 'seit ' + fmtDate(ix.rows[0].date, { month: 'short', year: 'numeric' }) : 'Leg los!'}</div>
+          ${ix.rows.length ? '' : '<div class="stat-sub">Leg los!</div>'}
         </div>`,
         score: scoreTile(ix, t),
         next: k !== 'next' ? '' : `<button class="stat clickable" data-act="startNext" style="text-align:left;color:inherit;font:inherit;cursor:pointer">
           <div class="stat-label">${icon('calendar')} ${next ? whenLabel(next) : 'Nächstes Training'}</div>
           <div class="stat-value" style="font-size:19px">${next ? esc(next.day.name) : '–'}</div>
-          <div class="stat-sub ellipsis">${next ? esc(next.plan.name) : activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>
+          ${next ? '' : `<div class="stat-sub ellipsis">${activePlan() ? 'Keine Tage geplant' : 'Plan erstellen →'}</div>`}
         </button>`
       })[k] || moreTile(k, ix, t, cw)).join('')}</div>`}
       <div class="mt-16">
@@ -160,7 +160,7 @@ function miniWorkoutCard(r) {
     <div class="date-box"><b>${d.getDate()}</b><span>${MONTHS[d.getMonth()]}</span></div>
     <div class="grow">
       <div class="bold ellipsis">${esc(r.name)}</div>
-      <div class="mw-stats"><span>${icon('timer', '') .replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.dur)}</span>${r.sets || !r.cSec ? `<span>${fmtTon(r.ton)}</span><span>${r.sets} Sätze</span>` : ''}${r.cSec || r.cKm ? `<span>${icon('heart').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.cSec)}${r.cKm ? ' · ' + fmtKm(r.cKm) : ''}</span>` : ''}${r.avgRpe ? `<span>RPE ${nf(r.avgRpe, 1)}</span>` : ''}</div>
+      <div class="mw-stats"><span>${icon('timer', '') .replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.dur)}</span>${r.sets || !r.cSec ? `<span>${fmtTon(r.ton)}</span>` : ''}${r.cSec || r.cKm ? `<span>${icon('heart').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} ${fmtDur(r.cSec)}${r.cKm ? ' · ' + fmtKm(r.cKm) : ''}</span>` : ''}</div>
     </div>
     ${icon('chevR', 'li-chev')}
   </button>`;
@@ -175,7 +175,7 @@ Actions.startSheet = async () => {
   if (Workout.cur()) return App.go('training');
   const n = Analytics.nextPlanDay();
   const k = await actionMenu('Workout starten', [
-    n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), sub: `laut „${n.plan.name}"`, icon: 'play', featured: true },
+    n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), icon: 'play', featured: true },
     Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', icon: 'list' },
     { key: 'cardio', label: 'Cardio', icon: 'heart', featured: 'plain' },
@@ -412,7 +412,7 @@ function renderPlans(el) {
   el.innerHTML = `
     <div class="section-head" style="margin-top:4px"><h2>Trainingsplan</h2>${p ? `<span class="row" style="gap:14px"><button class="link-btn" data-act="planAnalyze" data-id="${esc(p.id)}">Analyse</button><button class="link-btn" data-act="planEdit" data-id="${esc(p.id)}">Bearbeiten</button></span>` : ''}</div>
     ${p ? `<div class="card">
-        <div class="row between"><b class="ellipsis">${esc(p.name)}</b><span class="small dim">${planDaysCount(p)} Trainingstage</span></div>
+        <b class="ellipsis" style="display:block">${esc(p.name)}</b>
         <div class="week-plan mt-12">${p.schedule.map((id, i) => {
           const t = Tpl.get(id);
           return `<button class="wp-day ${i === td ? 'today' : ''} ${t ? 'has' : ''}" data-act="${t ? 'tplMenu' : 'planEdit'}" data-id="${esc(t ? t.id : p.id)}" aria-label="${WEEKDAYS[i]}: ${t ? esc(t.name) : 'Ruhetag'}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></button>`;
@@ -436,7 +436,6 @@ function tplCard(t, p) {
       <div class="grow" style="min-width:0">
         <h3 class="ellipsis">${esc(t.name)}</h3>
         <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ${tplSets(t)} Sätze · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
-        <p class="tiny faint mt-8 tpl-ex">${(t.exercises || []).map(x => esc(Ex.name(x.exerciseId))).join(' · ')}</p>
       </div>
       <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Optionen">${icon('dots')}</button>
     </div>
@@ -691,13 +690,13 @@ function openPlanAnalysis(plan) {
 
       <div class="section-head"><h4>Balance</h4></div>
       <div class="card">
-        ${head('pp', 'Push / Pull', c.pp.val != null ? `<span class="pa-val">${nf(c.pp.val, 2)}</span>` : '')}
-        <div class="small dim">${a.pull} Pull-Sätze / ${a.push} Push-Sätze pro Woche · ausgewogen 0,8–1,2</div>
+        ${head('pp', 'Push / Pull', c.pp.val != null ? `<span class="pa-val">${nf(c.pp.val, 2)}</span>` : '', 'Pull-Sätze geteilt durch Push-Sätze pro Woche. Ausgewogen ist 0,8–1,2 (grüner Bereich).')}
+        <div class="small dim">${a.pull} Pull-Sätze / ${a.push} Push-Sätze pro Woche</div>
         ${c.pp.val != null ? paGauge(c.pp.val, 0.8, 1.2, 2, c.pp.ok) : ''}${tip('pp')}
       </div>
       <div class="card mt-12">
-        ${head('lu', 'Beine / Oberkörper', c.lu.val != null ? `<span class="pa-val">${nf(c.lu.val, 2)}</span>` : '')}
-        <div class="small dim">${a.legs} Bein-Sätze / ${a.push + a.pull} Oberkörper-Sätze pro Woche · ausgewogen 0,4–0,8</div>
+        ${head('lu', 'Beine / Oberkörper', c.lu.val != null ? `<span class="pa-val">${nf(c.lu.val, 2)}</span>` : '', 'Bein-Sätze geteilt durch Oberkörper-Sätze (Push + Pull) pro Woche. Ausgewogen ist 0,4–0,8 (grüner Bereich).')}
+        <div class="small dim">${a.legs} Bein-Sätze / ${a.push + a.pull} Oberkörper-Sätze pro Woche</div>
         ${c.lu.val != null ? paGauge(c.lu.val, 0.4, 0.8, 1.5, c.lu.ok) : ''}${tip('lu')}
       </div>
 
@@ -762,7 +761,6 @@ function renderHistory(el) {
     const act = !has ? 'disabled' : has.length === 1 ? `data-act="openWorkout" data-id="${esc(has[0].id)}"` : `data-act="calDay" data-date="${iso}"`;
     cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${act} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}${has ? `<span class="cal-dots">${'<i></i>'.repeat(Math.min(3, has.length))}${has.length > 3 ? '<b>+</b>' : ''}</span>` : ''}</button>`;
   }
-  const monthCount = Object.keys(byDate).filter(k => k.startsWith(`${cy}-${pad(cm + 1)}`)).length;
   // Gruppierung nach Monat
   const groups = [];
   for (const r of rows) {
@@ -777,7 +775,7 @@ function renderHistory(el) {
         <div class="center"><div class="cal-pick">
           <select class="select cal-sel" data-ch="calPick" data-k="m" aria-label="Monat">${MONTHS_LONG.map((n, i) => `<option value="${i}" ${i === cm ? 'selected' : ''}>${n}</option>`).join('')}</select>
           <select class="select cal-sel" data-ch="calPick" data-k="y" aria-label="Jahr">${calYears(cy).map(y => `<option value="${y}" ${y === cy ? 'selected' : ''}>${y}</option>`).join('')}</select>
-        </div><div class="tiny dim">${monthCount} Trainingstage</div></div>
+        </div></div>
         <button class="btn-icon" data-act="calNav" data-d="1" aria-label="Nächster Monat">${icon('chevR')}</button>
       </div>
       <div class="cal">${heads.map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>

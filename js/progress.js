@@ -178,7 +178,7 @@ Actions.phaseEdit = el => {
 
 const ProgressViews = {};
 const rangeLabel = r => r.all ? 'gesamt' : `${fmtDN(r.from, { day: '2-digit', month: '2-digit', year: '2-digit' })} – ${fmtDN(r.to, { day: '2-digit', month: '2-digit', year: '2-digit' })}`;
-const prevLabel = 'vs. Vorperiode';
+const prevLabel = '';   // Vergleich zeigt der Pfeil mit Prozent; die Karte erklärt ihn im ⓘ
 
 /* ---------- Übersicht ---------- */
 ProgressViews.overview = body => {
@@ -206,7 +206,6 @@ ProgressViews.overview = body => {
     ['PRs', nf(a.prs, 0), nf(b.prs, 0), deltaHtml(a.prs, b.prs, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) })]
   ];
   const wdName = WD_SHORT[dowOfDN(e)];
-  const todayNote = e < t ? ' · heute zählt, sobald dein Workout gespeichert ist' : '';
   const monthName = d => d.toLocaleDateString('de-DE', { month: 'long' });
   // 12-Wochen-Minibars (laufende Woche blass, Ø nur aus abgeschlossenen Wochen)
   const weeks12 = Array.from({ length: 12 }, (_, i) => cw - (11 - i) * 7);
@@ -247,12 +246,12 @@ ProgressViews.overview = body => {
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Workouts gesamt</span>${infoBtn('Alle gespeicherten Workouts. Balken = Workouts pro Woche der letzten 12 Wochen.')}</div>
-        <div class="cc-big"><b>${ix.rows.length}</b><small>Ø ${nf(avgDone(wCounts, 11), 1)} / Woche (11 W)</small></div>
+        <div class="cc-big"><b>${ix.rows.length}</b><small>Ø ${nf(avgDone(wCounts, 11), 1)} / Woche</small></div>
         <div class="minibars" role="img" aria-label="Workouts pro Woche, letzte 12 Wochen">${wCounts.map((n, i) => `<i class="${n ? '' : 'zero'}${i === 11 ? ' run' : ''}" style="height:${Math.max(4, n / mxW * 100)}%" title="KW ${isoWeek(weeks12[i]).week}: ${n}${i === 11 ? ' (läuft noch)' : ''}"></i>`).join('')}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn('Diese Woche gegen die Vorwoche, jeweils bis zum gleichen Wochentag. Heute zählt erst nach deinem Workout.')}</div>
-        ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev), `${e < cw ? 'Noch kein abgeschlossener Tag diese Woche' : `Vorwoche bis ${wdName}`}${todayNote} · ganze Vorwoche: ${wkFull.n} ${wkFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(wkFull.ton)}`)}
+        <div class="cc-head"><span class="cc-title">Wochenvergleich</span>${infoBtn(`Gegen die Vorwoche bis zum gleichen Tag${e < cw ? '' : ` (${wdName})`}, heute zählt erst nach dem Workout. Ganze Vorwoche: ${wkFull.n} ${wkFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(wkFull.ton)}.`)}</div>
+        ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev))}
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Tage mit Training in diesem Monat. Vergleich: dein Ø der letzten 6 Monate bis zum gleichen Tag.')}</div>
@@ -260,9 +259,8 @@ ProgressViews.overview = body => {
         <div class="cc-sub">Soll bis heute (anteilig): ${nf(expected, 1)} Tage · Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}</div>
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`${monthName(nowD)} gegen ${monthName(pmD)}, jeweils bis zum gleichen Tag. Körpergewicht: Ø des ganzen Monats.`)}</div>
-        ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])],
-          `${e < ms ? 'Noch kein abgeschlossener Tag diesen Monat' : `${monthName(pmD)} bis zum ${e - ms + 1}.`}${todayNote} · ganzer Monat: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}`)}
+        <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`Gegen ${monthName(pmD)} bis zum gleichen Tag, Gewicht als Monats-Ø. Ganzer ${monthName(pmD)}: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}.`)}</div>
+        ${cmpTable([monthName(nowD), monthName(pmD)], [...cmpRows(moNow, moPrev), ...(bwNow || bwPrev ? [['Ø Gewicht', bwNow ? fmtW(bwNow) : '–', bwPrev ? fmtW(bwPrev) : '–', bwNow && bwPrev ? deltaHtml(bwNow, bwPrev, { fmt: d => (d > 0 ? '+' : '') + fmtW(d), neutral: true }) : '']] : [])])}
       </div>
       ${!F('f_score') ? '' : (() => {
         // Workout-Score im Zeitraum: Punkte je Workout + Ø der letzten 3 Wochen
@@ -287,19 +285,19 @@ ProgressViews.overview = body => {
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">${icon('target', 'cc-ic')} Nächster PR-Angriff</span>${infoBtn('Die Übung, bei der ein neuer Rekord am nächsten liegt. Der Vorschlag zielt auf etwa 1,5 % mehr e1RM.')}</div>
         ${attack ? `<div class="cc-big"><b style="font-size:20px">${esc(Ex.name(attack.exId))}</b></div>
-          <div class="cc-sub">Versuche <b class="accent">${fmtW(attack.weight)} × ${attack.reps}</b> · aktueller e1RM-PR ${fmtW(attack.pr)} · zuletzt ${relDays(attack.lastDn)}</div>
+          <div class="cc-sub">Versuche <b class="accent">${fmtW(attack.weight)} × ${attack.reps}</b></div>
           <button class="btn btn-secondary btn-sm mt-12" data-act="openExercise" data-id="${esc(attack.exId)}">Verlauf ansehen</button>`
         : '<p class="dim small mt-8">Trainiere Übungen mindestens 3× – dann schlagen wir dir hier den nächsten PR vor.</p>'}
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">${icon('trophy', 'cc-ic')} Aktive PRs</span>${infoBtn('Anzahl Übungen, bei denen in den letzten 4 Wochen ein neues geschätztes 1RM gefallen ist.')}</div>
         <div class="cc-big"><b>${activePRs.length}</b><small>Übungen mit PR in 4 Wochen</small></div>
-        <div class="cc-sub">${activePRs.slice(0, 5).map(id => esc(Ex.name(id))).join(' · ') || 'Zeit für neue Rekorde!'}</div>
+        ${activePRs.length ? '' : '<div class="cc-sub">Zeit für neue Rekorde!</div>'}
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Letzte 7 Tage</span>${infoBtn('Jede Zelle ist ein Tag; je kräftiger das Grün, desto mehr Volumen. Tippen öffnet das Workout.')}</div>
-        <div class="heat7">${days7.map(d => `<button style="background:${heatColor(d.lv)};${d.lv >= 3 ? 'color:var(--accent-ink)' : ''}" class="${d.dn === t ? 'today' : ''}" ${d.rs.length ? `data-act="openWorkout" data-id="${esc(d.rs[d.rs.length - 1].id)}"` : 'disabled'} title="${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) + ' · ' + dayVolTxt(d.rs, d.ton) : 'Ruhetag'}" aria-label="${WD_SHORT[dowOfDN(d.dn)]}: ${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) : 'Ruhetag'}">
-          <span>${WD_SHORT[dowOfDN(d.dn)]}</span><span style="font-size:10px;opacity:.8">${d.rs.length ? dayVolTxt(d.rs, d.ton).replace(' ', '') : '·'}</span></button>`).join('')}</div>
+        <div class="heat7">${days7.map(d => `<button style="background:${heatColor(d.lv)};${d.lv >= 3 ? 'color:var(--accent-ink)' : ''}" class="${d.dn === t ? 'today' : ''}" ${d.rs.length ? `data-act="openWorkout" data-id="${esc(d.rs[d.rs.length - 1].id)}"` : 'disabled'} title="${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) + ' · ' + dayVolTxt(d.rs, d.ton) : 'Ruhetag'}" aria-label="${WD_SHORT[dowOfDN(d.dn)]}: ${d.rs.length ? esc(d.rs.map(r => r.name).join(', ')) + ', ' + dayVolTxt(d.rs, d.ton) : 'Ruhetag'}">
+          <span>${WD_SHORT[dowOfDN(d.dn)]}</span></button>`).join('')}</div>
       </div>
       <div class="chart-card wide">
         <div class="cc-head"><span class="cc-title">Trainings-Konsistenz (52 Wochen)</span>${infoBtn('GitHub-Style: jede Zelle ein Tag, Farbintensität nach Tagesvolumen (Quartile). Tippen öffnet das Workout.')}</div>

@@ -36,7 +36,8 @@ Rand transparent), `icon-maskable-192.png`, `icon-maskable-512.png` (vollflächi
 Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
 je höher der Score, desto länger dauert es und desto stärker bremst die Zahl am Ende ab. **Bei 100** wird der
 Ring golden, leuchtet auf und die Zahl springt, dazu Konfetti und Vibration (im Workout-Detail nur der
-Gold-Ring). Im Ring steht nur die Zahl. Darunter die Aufschlüsselung:
+Gold-Ring). Im Ring steht nur die Zahl. **Ring antippen** klappt die Aufschlüsselung auf (eingeklappt sieht man
+Dauer, Volumen, Sätze und RPE):
 - **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen; Cardio: Distanz
   und Dauer). Deutlich besser (≥ +2,5 %) volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
   bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
@@ -222,8 +223,8 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
     zu „Abhaken“ über. Bei „Animationen: Reduziert/Aus“ entsprechend ruhiger. Passt sich jedem Design an.
   - Ausschalten: **Mehr → Workout → Eigene Zahlentastatur**. Am Computer (Maus) gibt es sie nicht.
 - **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
-  Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
-  „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
+  Feldern (nicht als Text, keine zusätzliche „Letztes Mal“-Zeile). Der Pfeil-Knopf neben dem Satz übernimmt die
+  Werte als Text, ⋯ → „Letztes Mal übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
   ebenfalls automatisch.
   Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
@@ -446,6 +447,10 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
   gestern verglichen, auch bei der Volumen-Kachel auf der Startseite), Trainingstage im Monat, Push/Pull/Legs, PR-Angriff, aktive PRs, letzte 7 Tage,
   Jahres-Kalender; darunter immer sichtbar „Mehr Stats" (Lieblings-Übung, Workout-Dauer, Sätze pro Workout,
   PRs pro Monat, Rekord-Workout, Gesamt bewegt, Erste-Hilfe-Ampel) und die Meilensteine.
+- **Wenig Kleintext:** Unter Zahlen steht nur, was man zum Verstehen braucht. Erklärungen (z. B. bis wann
+  verglichen wird, die ganze Vorwoche, ausgewogene Bereiche in der Plan-Analyse) stecken im ⓘ der Karte; ein
+  Vergleichspfeil erscheint nur, wenn es einen Vergleichswert gibt. Ebenso schlank: Startseite (keine Satz-/RPE-Angaben
+  in „Letzte Workouts“), Workout-Karten in „Meine Workouts“ ohne Übungsliste, Übungsliste ohne „noch nie“.
 - **Kraft** mit Filter **Gesamt / Pro Übung / Pro Muskelgruppe**: Gesamt und Muskelgruppe zeigen den
   **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
   Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,
