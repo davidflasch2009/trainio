@@ -1471,12 +1471,12 @@ function showSummary({ id, doc, prs }) {
   const real = F('f_prs') ? prs.filter(p => !p.first) : [];
   const firsts = F('f_prs') ? prs.filter(p => p.first && !p.fix) : [], fixes = prs.filter(p => p.fix);
   // Vergleich mit dem letzten gleichen Plan-Tag
-  const prevSame = Analytics.cur().rows.filter(r => r.id !== id && ((doc.planId && r.planId === doc.planId && r.name === doc.planDayName) || (!doc.planId && r.name === doc.name))).pop();
+  const prevSame = Analytics.cur().rows.filter(r => r.id !== id && ((doc.planId && r.planId === doc.planId && r.day === doc.planDayName) || (!doc.planId && r.name === doc.name))).pop();
   const m = Modal.open({
     title: 'Workout gespeichert',
     body: `<div class="center" style="padding:14px 0 4px">
         ${sc ? scoreRingHtml(sc) : `<div class="sum-badge sum-draw">${icon(real.length ? 'trophy' : 'checkCircle')}</div>`}
-        <h2 class="mt-8">${esc(doc.planDayName || doc.name)}</h2>
+        <h2 class="mt-8">${esc(woTitle(doc))}</h2>
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
       ${sc ? scoreBreakdownHtml(sc) : ''}
@@ -1501,7 +1501,7 @@ function showSummary({ id, doc, prs }) {
     const b = e.target.closest('[data-x]');
     if (!b) return;
     if (b.dataset.x === 'share') shareWorkout({ ...doc, id });
-    else if (b.dataset.x === 'tpl') saveAsTemplate(doc.entries, doc.planDayName || doc.name);
+    else if (b.dataset.x === 'tpl') saveAsTemplate(doc.entries, woTitle(doc));
     else m.close();
   });
   if (goalsHit.length) {

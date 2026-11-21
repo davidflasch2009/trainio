@@ -3,7 +3,7 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v87';
+const CACHE = 'gymlog-v88';
 /* Testversion des Umbaus unter …/test/ (eine zweite Kopie der App auf derselben Domain): Sie bekommt eigene Caches.
    Die echte App lässt alles unter /test/ in Ruhe und löscht nur ihre eigenen Caches. Gleiche Regel wie in js/core.js. */
 const TESTVERSION = /\/test\/sw\.js$/.test(self.location.pathname);
@@ -24,8 +24,10 @@ const CDN_ASSETS = [
 ];
 // Design-Schriften (Google Fonts) ebenfalls cache-first → Designs funktionieren offline
 const CDN_HOSTS = ['www.gstatic.com', 'cdn.jsdelivr.net', 'fonts.googleapis.com', 'fonts.gstatic.com'];
-// Firestore-, Auth- und Google-API-Requests NIE cachen
+// Firestore-, Auth- und Google-API-Requests NIE cachen – außer den Schrift-Stylesheets (fonts.googleapis.com),
+// sonst fehlt offline die Designschrift, sobald der normale Browser-Cache geleert ist
 const BYPASS = /(firestore\.googleapis\.com|googleapis\.com|identitytoolkit|securetoken|firebaseinstallations|accounts\.google\.com|apis\.google\.com|\/__\/auth\/)/;
+const bypass = url => BYPASS.test(url.href) && url.hostname !== 'fonts.googleapis.com';
 
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
@@ -60,7 +62,7 @@ self.addEventListener('fetch', event => {
   const req = event.request;
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
-  if (BYPASS.test(url.href)) return;
+  if (bypass(url)) return;
   if (!TESTVERSION && url.href.startsWith(TEST_PATH)) return;   // Testversion: gehört ihrem eigenen Service Worker
 
   // Navigation (HTML): network-first, Fallback auf Cache

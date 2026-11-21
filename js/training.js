@@ -374,11 +374,8 @@ Views.training = {
     const w = Workout.cur();
     if (w) return renderActiveWorkout(el, w);
     el.innerHTML = `
-      <div class="seg mb-12" role="tablist">
-        <button class="${UI.trainSub !== 'history' ? 'active' : ''}" data-act="trainSub" data-v="plans">Pläne</button>
-        <button class="${UI.trainSub === 'history' ? 'active' : ''}" data-act="trainSub" data-v="history">Verlauf</button>
-      </div>
-      <div id="trainBody"></div>`;
+      ${tabsHtml([['plans', 'Pläne'], ['history', 'Verlauf']], UI.trainSub === 'history' ? 'history' : 'plans', 'trainSub', 'trainBody', 'Training', 'seg mb-12')}
+      <div id="trainBody" ${tabPanelAttrs('trainBody', UI.trainSub === 'history' ? 'history' : 'plans')}></div>`;
     const body = $('#trainBody', el);
     if (UI.trainSub === 'history') renderHistory(body);
     else renderPlans(body);
@@ -775,7 +772,7 @@ function renderHistory(el) {
   }
   el.innerHTML = `
     <div class="card">
-      <div class="row between mb-8">
+      <div class="row between mb-8 cal-head">
         <button class="btn-icon" data-act="calNav" data-d="-1" aria-label="Vorheriger Monat">${icon('chevL')}</button>
         <div class="center"><div class="cal-pick">
           <select class="select cal-sel" data-ch="calPick" data-k="m" aria-label="Monat">${MONTHS_LONG.map((n, i) => `<option value="${i}" ${i === cm ? 'selected' : ''}>${n}</option>`).join('')}</select>
@@ -821,7 +818,7 @@ Actions.calDay = async el => {
   const k = await actionMenu(fmtDateLong(el.dataset.date), rows.map(r => {
     const wo = Store.raw('workouts', r.id) || {};
     const time = wo.startedAt ? new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr · ' : '';
-    return { key: r.id, label: wo.planDayName || wo.name || r.name, sub: time + fmtDur(wo.durationSec) + (r.cardioOnly ? ' · Cardio' : ` · ${r.sets} Sätze`), icon: r.cardioOnly ? 'heart' : 'dumbbell' };
+    return { key: r.id, label: woTitle(wo, r.name), sub: time + fmtDur(wo.durationSec) + (r.cardioOnly ? ' · Cardio' : ` · ${r.sets} Sätze`), icon: r.cardioOnly ? 'heart' : 'dumbbell' };
   }));
   if (k) openWorkoutDetail(k);
 };
@@ -837,7 +834,7 @@ function openWorkoutDetail(id) {
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
   const sc = F('f_score') ? Analytics.score(id) : null;
   const m = Modal.open({
-    title: wo.planDayName || wo.name || 'Workout', size: 'lg',
+    title: woTitle(wo), size: 'lg',
     body: `
       <button class="wd-when" data-x="meta" aria-label="Datum, Uhrzeit und Dauer bearbeiten">${esc(fmtDateLong(wo.date))}${parseISO(wo.date).getFullYear() !== new Date().getFullYear() ? ' ' + parseISO(wo.date).getFullYear() : ''}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''} ${icon('edit')}</button>
       ${sc ? `<div class="wd-score mt-12">${scoreRingHtml(sc, true)}${scoreBreakdownHtml(sc)}</div>` : ''}
@@ -883,7 +880,7 @@ function openWorkoutDetail(id) {
     const b = e.target.closest('[data-x]');
     if (!b) return;
     if (b.dataset.x === 'del') {
-      if (await confirmDialog({ title: 'Workout löschen?', text: `${wo.planDayName || wo.name || 'Workout'} vom ${fmtDate(wo.date)} wird endgültig gelöscht. PRs werden neu berechnet.`, okLabel: 'Löschen', danger: true })) {
+      if (await confirmDialog({ title: 'Workout löschen?', text: `${woTitle(wo)} vom ${fmtDate(wo.date)} wird endgültig gelöscht. PRs werden neu berechnet.`, okLabel: 'Löschen', danger: true })) {
         Store.del('workouts', id);
         m.dismiss();
         PR.recalcAll();
@@ -912,7 +909,7 @@ function openWorkoutMeta(id, onSaved) {
   const m = Modal.open({
     title: 'Workout bearbeiten', size: 'sm',
     body: `<div class="form-grid">
-        <label class="field full"><span>Name</span><input class="input" id="wmName" value="${esc(wo.planDayName || wo.name || '')}" placeholder="Workout"></label>
+        <label class="field full"><span>Name</span><input class="input" id="wmName" value="${esc(woTitle(wo, ''))}" placeholder="Workout"></label>
         <label class="field"><span>Datum</span><input class="input" type="date" id="wmDate" value="${esc(wo.date)}" max="${isoDate()}"></label>
         <label class="field"><span>Startzeit</span><input class="input" type="time" id="wmTime" value="${st ? p2(st.getHours()) + ':' + p2(st.getMinutes()) : ''}"></label>
         <div class="field full"><span>Dauer</span>
@@ -938,12 +935,12 @@ function openWorkoutMeta(id, onSaved) {
     else if (st) start.setHours(st.getHours(), st.getMinutes(), 0, 0);
     else start.setHours(12, 0, 0, 0);
     const bw = parseNum(v('#wmBw'));
+    if (bw && !bwValidKg(round(fromU(bw), 2))) return toast(`Bitte ein Körpergewicht ${bwRangeTxt()} eintragen`, 'warn');
     const name = v('#wmName') || wo.name || 'Workout';
     const patch = {
       date, startedAt: start.getTime(), endedAt: start.getTime() + durSec * 1000, durationSec: durSec, durationEstimated: false,
       name, notes: $('#wmNotes', m.el).value.trim(), bodyWeightKg: bw ? round(fromU(bw), 2) : null, updatedAt: Date.now()
     };
-    if (wo.planDayName) patch.planDayName = name;
     Store.put('workouts', id, patch);
     m.close();
     toast('Workout aktualisiert', 'success');
@@ -951,7 +948,7 @@ function openWorkoutMeta(id, onSaved) {
   });
 }
 function workoutText(wo) {
-  const lines = [`${wo.planDayName || wo.name || 'Workout'} – ${fmtDate(wo.date)}`, `Dauer: ${fmtDur(wo.durationSec)}`];
+  const lines = [`${woTitle(wo)} – ${fmtDate(wo.date)}`, `Dauer: ${fmtDur(wo.durationSec)}`];
   let ton = 0;
   for (const en of wo.entries || []) {
     const done = (en.sets || []).filter(s => s.done !== false && !s.warmup);
@@ -995,7 +992,7 @@ async function shareWorkout(wo) {
     if (b.dataset.x === 'text') return shareText(wo);
     if (!file) return;
     try {
-      if (canFiles(file)) { await navigator.share({ files: [file], title: `${wo.planDayName || wo.name || 'Workout'} · ${APP.name}` }); return; }
+      if (canFiles(file)) { await navigator.share({ files: [file], title: `${woTitle(wo)} · ${APP.name}` }); return; }
       const a = document.createElement('a');
       a.href = url; a.download = file.name; document.body.appendChild(a); a.click(); a.remove();
       toast('Bild gespeichert', 'success', { cat: 'always' });
@@ -1089,7 +1086,7 @@ async function shareImage(wo) {
 
   // Titel (max. 2 Zeilen) und Datum mit Uhrzeit
   let y = 290;
-  const title = (wo.planDayName || wo.name || 'Workout');
+  const title = woTitle(wo);
   font(fwx, 92, FN.disp); x.fillStyle = C.text; x.textAlign = 'left';
   const words = (upper ? title.toUpperCase() : title).split(/\s+/), lines = [];
   for (const wd of words) { const l = lines.length ? lines[lines.length - 1] + ' ' + wd : wd; if (lines.length && x.measureText(l).width <= W - 2 * P) lines[lines.length - 1] = l; else lines.push(wd); }

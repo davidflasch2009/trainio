@@ -75,6 +75,18 @@ const Store = (() => {
   let settingsCache = null;
   const dirty = new Set();
   let flushTimer = null;
+  /* Mehrere Tabs: jeder Tab merkt sich, welche Einträge er seit dem letzten Schreiben selbst geändert hat.
+     Vor dem Schreiben liest er den Stand der anderen Tabs ein und legt nur seine eigenen Änderungen darüber –
+     so überschreibt kein Tab, was ein anderer gerade gespeichert hat. */
+  const STAMP = LS.data + '.stamp';
+  const TAB = Math.random().toString(36).slice(2, 10);
+  let stamp = null;            // Stand im localStorage, den dieser Tab zuletzt gelesen oder geschrieben hat
+  let stampSeq = 0;
+  let wiped = false;           // bewusst alles geleert (Abmelden, Löschen, Backup) → nicht mit altem Stand mischen
+  let localChange = false;     // eigene Änderung seit dem letzten Schreiben
+  const touched = {};
+  COLLS.forEach(c => { touched[c] = new Set(); });
+  const touch = (c, id) => { if (!NO_MIRROR.has(c)) touched[c].add(id); };
 
   /* ---------- lokal ---------- */
   function loadLocal() {
@@ -88,19 +100,54 @@ const Store = (() => {
         queue = Array.isArray(o.queue) ? o.queue : [];
         for (const c of COLLS) if (o.colls && o.colls[c]) data[c] = o.colls[c];
       }
+      stamp = localStorage.getItem(STAMP);
       if (!data.meta.settings) {
         const s = localStorage.getItem(LS.settings);
         if (s) data.meta.settings = { ...JSON.parse(s), id: 'settings' };
       }
     } catch (e) { console.warn('Lokaler Cache defekt – wird neu aufgebaut', e); }
   }
+  /** Stand eines anderen Tabs übernehmen; eigene, noch nicht geschriebene Änderungen bleiben obenauf.
+      Liefert die Sammlungen, die sich dadurch geändert haben. */
+  function adoptOtherTab() {
+    const cur = localStorage.getItem(STAMP);
+    if (cur === stamp) return [];
+    let o = null;
+    try { o = JSON.parse(localStorage.getItem(LS.data) || 'null'); } catch (e) {}
+    stamp = cur;
+    // Mit Konto verbunden: Firestore gleicht die Tabs selbst ab und liefert den maßgeblichen Stand
+    if (!o || (o.owner || 'local') !== owner || online()) return [];
+    const changed = [];
+    for (const c of COLLS) {
+      if (NO_MIRROR.has(c)) continue;
+      const next = { ...((o.colls && o.colls[c]) || {}) };
+      for (const id of touched[c]) { if (data[c][id]) next[id] = data[c][id]; else delete next[id]; }
+      if (JSON.stringify(next) !== JSON.stringify(data[c])) { data[c] = next; changed.push(c); }
+    }
+    if (Array.isArray(o.queue) && o.queue.length) {
+      const key = q => q.t + '|' + q.c + '|' + q.id;
+      const have = new Set(queue.map(key));
+      o.queue.forEach(q => { if (!have.has(key(q))) queue.push(q); });
+    }
+    return changed;
+  }
+  function notify(cs) {
+    for (const c of cs) { ver[c]++; if (c === 'meta') settingsCache = null; dirty.add(c); }
+    if (cs.length && !flushTimer) flushTimer = setTimeout(flush, 0);
+  }
   let quotaWarned = false;
   const writeLocal = () => {
     try {
+      if (!wiped) notify(adoptOtherTab());
+      wiped = false;
+      localChange = false;
       const colls = {};
       for (const c of COLLS) if (!NO_MIRROR.has(c)) colls[c] = data[c];
       localStorage.setItem(LS.data, JSON.stringify({ owner, cloudInit, mergePending, queue, savedAt: Date.now(), colls }));
       if (data.meta.settings) localStorage.setItem(LS.settings, JSON.stringify(data.meta.settings));
+      stamp = TAB + ':' + Date.now() + ':' + (++stampSeq);
+      localStorage.setItem(STAMP, stamp);
+      COLLS.forEach(c => touched[c].clear());
     } catch (e) {
       console.error(e);
       if (!quotaWarned) { quotaWarned = true; toast('Lokaler Speicher voll – bitte Backup machen und alte Daten löschen', 'error'); }
@@ -110,19 +157,29 @@ const Store = (() => {
   // App geht in den Hintergrund (iOS beendet sie dort evtl.) → sofort sichern statt erst nach 300 ms –
   // aber nie, bevor die gespeicherten Daten geladen sind (sonst würden sie mit einem leeren Stand überschrieben)
   let loaded = false;
-  document.addEventListener('visibilitychange', () => { if (document.hidden && loaded) writeLocal(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden && loaded && localChange) writeLocal(); });
+  // Ein anderer Tab hat gespeichert → dessen Stand sofort übernehmen (Fotos liegen gemeinsam in IndexedDB)
+  window.addEventListener('storage', e => {
+    if (!loaded || e.key !== STAMP || e.newValue === stamp) return;
+    notify(adoptOtherTab());
+    PhotoDB.all().then(p => {
+      if (JSON.stringify(Object.keys(p).sort()) === JSON.stringify(Object.keys(data.photos).sort())) return;
+      data.photos = p; notify(['photos']);
+    });
+  });
 
   function queueEmit(c) {
     ver[c]++;
     if (c === 'meta') settingsCache = null;
     dirty.add(c);
+    localChange = true;
     if (!flushTimer) flushTimer = setTimeout(flush, 0);
   }
   function flush() {
     flushTimer = null;
     const cs = [...dirty];
     dirty.clear();
-    saveLocal();
+    if (localChange) saveLocal();
     for (const c of cs) (listeners.get(c) || []).forEach(cb => { try { cb(c); } catch (e) { console.error(e); } });
     (listeners.get('*') || []).forEach(cb => { try { cb(cs); } catch (e) { console.error(e); } });
   }
@@ -170,6 +227,7 @@ const Store = (() => {
     const prev = data[coll][id];
     const next = opts.replace || !prev ? { ...doc, id } : { ...prev, ...doc, id };
     data[coll][id] = next;
+    touch(coll, id);
     if (coll === 'photos') PhotoDB.put(id, next);
     queueEmit(coll);
     if (online()) { try { track(ref(coll).doc(id).set(toRemote(next), { merge: !opts.replace })); } catch (e) { fsError(e); } }
@@ -178,6 +236,7 @@ const Store = (() => {
   }
   function del(coll, id) {
     delete data[coll][id];
+    touch(coll, id);
     if (coll === 'photos') PhotoDB.del(id);
     queueEmit(coll);
     if (online()) { try { track(ref(coll).doc(id).delete()); } catch (e) { fsError(e); } }
@@ -187,6 +246,7 @@ const Store = (() => {
   /** Mehrere Writes – lokal sofort, remote in Firestore-Batches à 500 */
   async function batch(ops, onProgress) {
     for (const op of ops) {
+      touch(op.coll, op.id);
       if (op.type === 'put') {
         const prev = data[op.coll][op.id];
         data[op.coll][op.id] = op.replace || !prev ? { ...op.doc, id: op.id } : { ...prev, ...op.doc, id: op.id };
@@ -270,17 +330,19 @@ const Store = (() => {
 
   /* ---------- Seeds & Reset ---------- */
   function seedLocal() {
-    if (!Object.keys(data.exercises).length) for (const e of seedExerciseDocs()) data.exercises[e.id] = e;
+    if (!Object.keys(data.exercises).length) for (const e of seedExerciseDocs()) { data.exercises[e.id] = e; touch('exercises', e.id); }
     queueEmit('exercises');
   }
   function resetData() {
     COLLS.forEach(c => { if (c === 'meta') { const s = data.meta.settings; data.meta = s ? { settings: s } : {}; } else data[c] = {}; queueEmit(c); });
     queue = [];
+    wiped = true;
+    COLLS.forEach(c => touched[c].clear());
     PhotoDB.clear();
   }
   function hasUserData() {
     return all('workouts').length > 0 || all('progress').length > 0 ||
-      all('exercises').some(e => e.isCustom) || all('plans').length > 0 || all('templates').length > 0;
+      all('exercises').some(e => e.isCustom) || all('plans').length > 0 || all('templates').length > 0 || all('heart').length > 0;
   }
 
   /* ---------- Firebase verbinden / trennen ---------- */
@@ -338,7 +400,7 @@ const Store = (() => {
       if (hasUserData() && askMerge && await askMerge()) {
         // Gast-Daten ins bestehende Konto übernehmen (Seeds haben feste IDs → keine Duplikate)
         const ops = [];
-        for (const c of ['workouts', 'progress', 'photos', 'imports']) for (const id of Object.keys(data[c])) ops.push({ type: 'put', coll: c, id });
+        for (const c of ['workouts', 'progress', 'photos', 'imports', 'heart']) for (const id of Object.keys(data[c])) ops.push({ type: 'put', coll: c, id });
         all('exercises').filter(e => e.isCustom).forEach(e => ops.push({ type: 'put', coll: 'exercises', id: e.id }));
         all('plans').forEach(p => ops.push({ type: 'put', coll: 'plans', id: p.id }));
         all('templates').forEach(t => ops.push({ type: 'put', coll: 'templates', id: t.id }));
@@ -381,6 +443,14 @@ const Store = (() => {
     detachListeners();
     uid = null; db = null; owner = 'local'; cloudInit = false; mergePending = false; pendingInit = false;
     resetData();
+    // Persönliches (Name, Körper- und Herzwerte, Ziele) gehört zum Konto und bleibt nicht auf dem Gerät
+    if (data.meta.settings) {
+      const s = { ...data.meta.settings };
+      PERSONAL_SETTINGS.forEach(k => { if (k in DEFAULT_SETTINGS) s[k] = DEFAULT_SETTINGS[k]; else delete s[k]; });
+      data.meta.settings = s;
+      settingsCache = null;
+      try { localStorage.setItem(LS.settings, JSON.stringify(s)); } catch (e) {}
+    }
     seedLocal();
     saveLocal();
     emitSync();

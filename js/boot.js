@@ -11,18 +11,22 @@
    getippt wird. Bis dahin bietet eine Meldung „Neu laden" an. Workout und Daten sind vorher gesichert. */
 function registerSW() {
   if (!('serviceWorker' in navigator) || location.protocol === 'file:') return;
-  const hadController = !!navigator.serviceWorker.controller;
+  // Seite schon von einem Service Worker kontrolliert? Beim allerersten Start übernimmt er die Seite erst nach dem
+  // Installieren (clients.claim) – das ist kein Update. Danach führt jeder Wechsel zum Neuladen.
+  let hadController = !!navigator.serviceWorker.controller, wantReload = false;
   // „Gerade gestartet": App geöffnet oder aus dem Hintergrund zurück (iPhone lädt dabei nicht neu) und noch nichts angetippt
   let t0 = Date.now(), reloading = false, touched = false;
   const fresh = () => { t0 = Date.now(); touched = false; document.addEventListener('pointerdown', () => { touched = true; }, { capture: true, once: true, passive: true }); };
   fresh();
   navigator.serviceWorker.addEventListener('controllerchange', () => {
-    if (!hadController || reloading) return;
+    if (reloading) return;
+    if (!hadController && !wantReload) { hadController = true; return; }
     reloading = true;
     location.reload();
   });
   const apply = sw => {
     if (!sw || sw.state !== 'installed') return;
+    wantReload = true;
     Store.flushLocal();
     sw.postMessage({ type: 'SKIP_WAITING' });
   };

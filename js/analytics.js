@@ -53,7 +53,7 @@ function cardioInfo(ex) {
 function cardioBase(ex) {
   const c = CARDIO_CFG[String(ex.id || '').replace(/^ex_/, '')];
   if (c) return { mode: c[0], lvl: c[1] || null };
-  const n = norm([ex.name, ...(ex.aliases || [])].join(' '));
+  const n = norm([ex.name, ...exAliases(ex)].join(' '));
   if (/(fußball|fussball|soccer|basketball|handball|volleyball|tennis|badminton|squash|klettern|boulder|tanz|dance|zumba|kampf|boxen|yoga|golf|hockey)/.test(n)) return { mode: 'time', lvl: null };
   if (/(laufband|treadmill)/.test(n)) return { mode: 'dist', lvl: 'Steigung' };
   if (/(ergometer|bike|rad|cycl|spinning|ruder|row|ski|crosstrainer|elliptical)/.test(n)) return { mode: 'dist', lvl: 'Stufe' };
@@ -119,12 +119,12 @@ const Ex = {
     const n = norm(name);
     if (!n) return null;
     const all = Store.all('exercises');
-    const exact = all.find(e => norm(e.name) === n) || all.find(e => (e.aliases || []).some(a => norm(a) === n));
+    const exact = all.find(e => norm(e.name) === n) || all.find(e => exAliases(e).some(a => norm(a) === n));
     if (exact) return exact;
     // Fallback: gleiche Wörter in anderer Reihenfolge, Klammern/Bindestriche egal
     // („Triceps Pushdown (Rope)" = „Triceps Rope Pushdown")
     const k = wordKey(name);
-    return all.find(e => [e.name, ...(e.aliases || [])].some(a => wordKey(a) === k)) || null;
+    return all.find(e => [e.name, ...exAliases(e)].some(a => wordKey(a) === k)) || null;
   }
 };
 function exMeta() {
@@ -147,7 +147,7 @@ function buildIndex(W, EX, F = 'epley') {
   for (const w of ws) {
     const dn = dnOf(w.date);
     const row = {
-      id: w.id, date: w.date, dn, name: w.planDayName || w.name || 'Freies Workout', startedAt: w.startedAt || null,
+      id: w.id, date: w.date, dn, name: w.name || w.planDayName || 'Freies Workout', day: w.planDayName || null, startedAt: w.startedAt || null,
       dur: w.durationSec || 0, ton: 0, sets: 0, reps: 0, rpeSum: 0, rpeN: 0, rpeVol: 0, planned: 0, done: 0,
       cSec: 0, cKm: 0, cBy: {}, cardioOnly: false,
       muscles: {}, mP: {}, mS: {}, cats: {}, bins: [0, 0, 0, 0], restAvg: null, avgRpe: null, ex: [], exVol: {}, exSets: {}, exSetsW: {}, exReps: {}, imp: !!w.importId,

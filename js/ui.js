@@ -136,6 +136,29 @@ const ErrLog = (() => {
 window.addEventListener('error', e => ErrLog.add(e.error || e.message, 'Fehler'));
 window.addEventListener('unhandledrejection', e => ErrLog.add(e.reason, 'Aktion'));
 
+/* ---------- Reiter (Pläne/Verlauf, Fortschritt-Bereiche): vollständige Tab-Struktur für Hilfstechniken ----------
+   items: [[Wert, Beschriftung]] · act: Aktion beim Antippen · panel: id des Inhaltsbereichs */
+function tabsHtml(items, cur, act, panel, label, cls = 'seg') {
+  return `<div class="${cls}" role="tablist" aria-label="${esc(label)}">${items.map(([k, l]) => {
+    const on = k === cur;
+    return `<button type="button" role="tab" id="tab-${esc(panel)}-${esc(k)}" aria-selected="${on}" aria-controls="${esc(panel)}" tabindex="${on ? 0 : -1}" class="${on ? 'active' : ''}" data-act="${esc(act)}" data-v="${esc(k)}">${l}</button>`;
+  }).join('')}</div>`;
+}
+/** Inhaltsbereich zu tabsHtml */
+const tabPanelAttrs = (panel, cur) => `role="tabpanel" aria-labelledby="tab-${esc(panel)}-${esc(cur)}"`;
+// Pfeiltasten, Pos1 und Ende wechseln zwischen Reitern (Fokus bleibt nach dem Neu-Zeichnen auf dem Reiter)
+document.addEventListener('keydown', e => {
+  const t = e.target.closest && e.target.closest('[role="tab"]');
+  if (!t || !['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+  const tabs = [...t.closest('[role="tablist"]').querySelectorAll('[role="tab"]')], i = tabs.indexOf(t);
+  const n = tabs[e.key === 'Home' ? 0 : e.key === 'End' ? tabs.length - 1 : (i + (e.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length];
+  if (!n || n === t) return;
+  e.preventDefault();
+  const { act, v } = n.dataset;
+  n.click();
+  requestAnimationFrame(() => { const b = document.querySelector(`[role="tab"][data-act="${act}"][data-v="${v}"]`); if (b) b.focus({ preventScroll: true }); });
+});
+
 /* ---------- Modals (Stack-fähig) ---------- */
 const Modal = (() => {
   const stack = [];
@@ -144,7 +167,7 @@ const Modal = (() => {
     const wrap = document.createElement('div');
     wrap.className = 'modal-wrap';
     wrap.innerHTML = `<div class="modal-backdrop"></div>
-      <div class="modal ${size} ${cls}" role="dialog" aria-modal="true" aria-label="${esc(title)}">
+      <div class="modal ${size} ${cls}" role="dialog" aria-modal="true" aria-label="${esc(title)}" tabindex="-1">
         <div class="modal-head"><h2>${esc(title)}${info ? infoBtn(info) : ''}</h2><button class="btn-icon" data-modal-close aria-label="Schließen">${icon('x')}</button></div>
         <div class="modal-body">${body}</div>
         ${foot ? `<div class="modal-foot">${foot}</div>` : ''}
@@ -152,7 +175,7 @@ const Modal = (() => {
     $('#modalRoot').appendChild(wrap);
     document.body.classList.add('modal-open');
     const m = {
-      wrap, el: $('.modal', wrap), body: $('.modal-body', wrap), onClose, closed: false,
+      wrap, el: $('.modal', wrap), body: $('.modal-body', wrap), onClose, closed: false, prevFocus: document.activeElement,
       close: v => close(m, v),
       /** schließen, weil es woanders weitergeht (löschen, bearbeiten, starten …) */
       dismiss: v => close(m, v),
@@ -170,9 +193,21 @@ const Modal = (() => {
     $('[data-modal-close]', wrap).addEventListener('click', () => close(m));
     if (!m.alert) sheetSwipe(m);
     stack.push(m);
+    syncInert();
+    // Fokus in den Dialog (auf das Fenster selbst – so springt auf dem Handy keine Tastatur auf)
+    m.el.focus({ preventScroll: true });
     requestAnimationFrame(() => requestAnimationFrame(() => wrap.classList.add('open')));
     return m;
   }
+  /* Solange ein Dialog offen ist, ist alles dahinter für Tastatur und Screenreader gesperrt (auch tiefere Dialoge) */
+  const BEHIND = ['#app', '#bottomNav', '#restDock', '#fabRoot'];
+  function syncInert() {
+    const on = stack.length > 0;
+    BEHIND.forEach(s => { const el = $(s); if (el) el.inert = on; });
+    stack.forEach((m, i) => { m.wrap.inert = i < stack.length - 1; });
+  }
+  const FOCUSABLE = 'a[href], button:not([disabled]), input:not([disabled]):not([type="hidden"]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])';
+  const focusables = el => [...el.querySelectorAll(FOCUSABLE)].filter(x => x.offsetParent !== null || x.getClientRects().length);
   /** Bottom-Sheet (Handy) wegwischen: am Kopf jederzeit, im Inhalt nur ganz oben gescrollt. Folgt dem Finger 1:1,
       nach oben nur mit Widerstand. Beim Loslassen zählt die Geschwindigkeit der letzten Bewegung: schnell nach unten
       oder weit genug → das Fenster gleitet mit Fingertempo hinaus, sonst federt es zurück. */
@@ -238,10 +273,28 @@ const Modal = (() => {
     if (typeof Charts !== 'undefined') Charts.destroyIn(m.wrap);
     if (instant) m.wrap.remove();
     else { m.wrap.classList.add('closing'); setTimeout(() => m.wrap.remove(), 340); }
+    m.wrap.inert = true;
+    syncInert();
     if (!stack.length) document.body.classList.remove('modal-open');
+    // Fokus zurück: in den nächsten Dialog oder dorthin, wo er vorher war
+    const top = stack[stack.length - 1];
+    const back = m.prevFocus && m.prevFocus.isConnected && !m.prevFocus.closest('[inert]') ? m.prevFocus : top ? top.el : null;
+    if (back && (!document.activeElement || document.activeElement === document.body || m.wrap.contains(document.activeElement))) back.focus({ preventScroll: true });
     if (m.onClose) m.onClose(value);
   }
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && stack.length) close(stack[stack.length - 1]); });
+  document.addEventListener('keydown', e => {
+    if (!stack.length || e.defaultPrevented) return;
+    const top = stack[stack.length - 1];
+    if (e.key === 'Escape') { close(top); return; }
+    if (e.key !== 'Tab') return;
+    // Tab bleibt im obersten Dialog und springt am Ende wieder an den Anfang
+    const f = focusables(top.el);
+    if (!f.length) { e.preventDefault(); top.el.focus(); return; }
+    const a = document.activeElement, i = f.indexOf(a);
+    if (!top.el.contains(a) || a === top.el) { e.preventDefault(); (e.shiftKey ? f[f.length - 1] : f[0]).focus(); }
+    else if (e.shiftKey && i === 0) { e.preventDefault(); f[f.length - 1].focus(); }
+    else if (!e.shiftKey && i === f.length - 1) { e.preventDefault(); f[0].focus(); }
+  });
   return { open, close, top: () => stack[stack.length - 1], count: () => stack.length, closeAll: () => [...stack].reverse().forEach(m => close(m)) };
 })();
 
@@ -498,9 +551,9 @@ const Dropdown = (() => {
       return;
     }
     const opts = [...cur.menu.querySelectorAll('.dd-opt:not(:disabled)')], i = opts.indexOf(document.activeElement);
-    if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); close(true); }
+    if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); e.stopPropagation(); close(true); }
     else if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); const n = opts[clamp(i + (e.key === 'ArrowDown' ? 1 : -1), 0, opts.length - 1)]; if (n) n.focus(); }
-  });
+  }, true);
   // neue <select> automatisch umbauen; geänderte Optionen → Text nachziehen; Feld weg → Menü zu
   new MutationObserver(list => {
     for (const m of list) {

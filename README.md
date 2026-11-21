@@ -5,7 +5,8 @@ link: https://davidflasch2009.github.io/trainio/
 Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-Step
 (`index.html` + `css/app.css` + `js/*.js`, direkt so auslieferbar).
 
-- Läuft sofort im **lokalen Modus** (Daten im Browser), auch ohne Firebase.
+- Läuft sofort im **lokalen Modus** (Daten im Browser), auch ohne Firebase. In mehreren Tabs gleichzeitig offen?
+  Kein Problem – Änderungen aus allen Tabs werden zusammengeführt, keiner überschreibt den anderen.
 - Mit Firebase: Anmeldung mit Google oder GitHub + Sync zwischen iPhone und Laptop (Firestore, offline-fähig).
 - Diagramme: Chart.js 4 · PDF-Export: jsPDF 2 · beide lazy per CDN geladen.
 
@@ -146,6 +147,9 @@ angepasst), Glas-Hintergrund & Unschärfe, Ecken, Schrift, Textgröße, Dichte, 
 Tab-Leiste (klassisch/schwebend, mit/ohne Beschriftung), Start-Tab, Animationen, Vibration,
 Konfetti und Inhalte der Startseite. Diese Einstellungen gelten in jedem Design – auch dort, wo das Design selbst
 etwas vorgibt (z. B. „Ecken: Rund“ im eckigen Plakat).
+**Lesbarkeit:** Jeder Text erreicht in allen Designs und Modi mindestens den WCAG-Kontrast 4,5:1, auch blasse
+Nebeninfos und Haupt-Buttons. Auf 320 px schmalen Displays mit Text XL ragt nichts über den Rand, und Dialoge
+lassen sich vollständig mit der Tastatur bedienen: Fokus im Dialog, Escape schließt zuerst nur die offene Auswahl.
 
 **Startseite** (Mehr → Darstellung → Startseite): Statistik-Kacheln frei wählen und sortieren (je zwei nebeneinander,
 beliebig viele), die Karte „Herz diese Woche“ ein-/ausblenden und die Zahl der letzten Workouts. 17 Kacheln:
@@ -407,6 +411,8 @@ werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau m
 werden übersprungen oder auf Wunsch überschrieben; „Letzten Import rückgängig machen" nimmt alles wieder zurück.
 Körperfett, Umfänge und Fotos lassen sich unter **Mehr → Tabs & Funktionen** (oder im Körper-Tab über
 „Anzeige anpassen") einschalten – vorhandene Daten bleiben erhalten.
+**Plausible Werte:** Gewicht 20–400 kg (in lb dieselbe Spanne, erst umgerechnet, dann geprüft), Umfänge 1–300 cm,
+Körperfett 0–70 %, kein Datum in der Zukunft – ungültige Eingaben werden mit Hinweis zurückgewiesen.
 
 ## Diagramme
 
@@ -518,7 +524,9 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
    durch die echten Werte ersetzen.
 
 Solange dort noch `DEINE_API_KEY` steht, läuft die App im lokalen Modus. Daten, die du lokal
-erfasst hast, kannst du beim ersten Login ins Konto übernehmen.
+erfasst hast (Workouts, Pläne, eigene Übungen, Körper- und Herzwerte wie der Ruhepuls), kannst du beim ersten
+Login ins Konto übernehmen. Beim **Abmelden** werden die Daten und persönlichen Angaben (Name, Geburtsjahr,
+Körper- und Herzwerte, Ziele) vom Gerät entfernt – sie bleiben im Konto; Design und Bedienung bleiben eingestellt.
 
 ### Anmelden mit GitHub (einmalig)
 
@@ -618,7 +626,10 @@ alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout
 Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit laufendem Workout, Datenwege
 (Backup/Restore, Arrow-Import, Gewichts-CSV), Design-Wechsel bei gezeichneten Diagrammen, Herz & Ausdauer
 (Ruhepuls tippen/eintragen, VO2max-Schätzung, Herz-Plan, Intensität, Intervall-Timer bis zum Eintrag) und Form-Fix
-(Score neutral, PRs neu, Kraft ab dem Fix). Firebase und CDNs sind
+(Score neutral, PRs neu, Kraft ab dem Fix). Außerdem alle 18 Befunde aus dem Prüfbericht zu 1.33.8: zwei Tabs
+gleichzeitig, Gastübernahme mit Ruhepuls, Abmelden, alternative Übungsnamen, umbenannte Plan-Workouts,
+Cardio-PDF, Tastatur (Fokus bleibt im Dialog, Escape, Reiter mit Pfeiltasten), Kontrast aller 20 Designzustände
+(Text ≥ 4,5:1), 320 px breite Displays mit Text XL, Körper-Eingaben, 1RM-Formel und Fotovergleich. Firebase und CDNs sind
 dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 

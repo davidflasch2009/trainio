@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.33.8',
+  version: '1.33.9',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -136,6 +136,9 @@ const DEFAULT_SETTINGS = {
   autoRest: true,
   autoScroll: true
 };
+/* Persönliche Einstellungen: gehören zum Konto und werden beim Abmelden vom Gerät entfernt (Darstellung bleibt) */
+const PERSONAL_SETTINGS = ['displayName', 'sex', 'birthYear', 'hrMax', 'heartPlan', 'hiit', 'bwGoal', 'bwRate', 'goals', 'phases',
+  'weeklyGoal', 'activePlanId', 'homeLiftEx'];
 
 /* ==========================================================================
    1. Utilities
@@ -172,7 +175,15 @@ function textMatches(fields, q) {
   if (words.length > 1 && words.every(w => w.length >= 2)) { const hay = keys.join(' '); return words.every(w => hay.includes(w)); }
   return false;
 }
-const exMatches = (e, q, extra = []) => textMatches([e.name, ...(e.aliases || []), ...(e.muscleGroups || []), ...extra], q);
+/** Titel eines Workouts: der vom Nutzer vergebene Name, sonst der Plantag */
+const woTitle = (w, fb = 'Workout') => (w && (w.name || w.planDayName)) || fb;
+/** Alternative Namen einer Übung als Liste – ältere Stände konnten sie als Komma-Text gespeichert haben */
+const exAliases = e => {
+  const a = e && e.aliases;
+  if (Array.isArray(a)) return a.filter(x => typeof x === 'string' && x.trim()).map(x => x.trim());
+  return typeof a === 'string' ? a.split(',').map(x => x.trim()).filter(Boolean) : [];
+};
+const exMatches = (e, q, extra = []) => textMatches([e.name, ...exAliases(e), ...(e.muscleGroups || []), ...extra], q);
 /** Namens-Schlüssel unabhängig von Wortreihenfolge und Satzzeichen */
 const wordKey = s => norm(s).replace(/[^\p{L}\p{N}]+/gu, ' ').trim().split(' ').sort().join(' ');
 

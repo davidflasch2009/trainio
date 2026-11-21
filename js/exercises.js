@@ -250,16 +250,19 @@ function open1RM() {
   let w = 80, r = 5;
   const draw = () => {
     const one = e1rm(w, r) || w;
+    const f = S().e1rmFormula, fName = (E1RM_FORMULAS.find(x => x[0] === f) || E1RM_FORMULAS[0])[1];
+    // Wdh. bei x % des 1RM – mit derselben Formel zurückgerechnet (Epley: 30·(100/p − 1), Brzycki: 37 − 36·p/100)
+    const repsAt = p => { const ep = 30 * (100 / p - 1), bz = 37 - 36 * p / 100; return f === 'brzycki' ? bz : f === 'avg' ? (ep + bz) / 2 : ep; };
     const rows = [100, 95, 90, 85, 80, 75, 70, 65, 60, 50].map(p => {
       const load = one * p / 100;
-      const reps = p === 100 ? 1 : Math.max(1, Math.round(30 * (100 / p - 1)));
+      const reps = p === 100 ? 1 : Math.max(1, Math.round(repsAt(p)));
       return `<tr><td>${p} %</td><td class="r bold">${nf(load, 1)} ${unit()}</td><td class="r dim">≈ ${reps} Wdh.</td></tr>`;
     }).join('');
     m.setBody(`<div class="form-grid">
         <label class="field"><span>Gewicht (${unit()})</span><input class="input num-input" id="rmW" inputmode="decimal" value="${String(w).replace('.', ',')}"></label>
         <label class="field"><span>Wiederholungen</span><input class="input num-input" id="rmR" inputmode="numeric" value="${r}"></label>
       </div>
-      <div class="center mt-16"><p class="dim small">Geschätztes 1RM (Epley)</p><div style="font-size:42px;font-weight:800">${nf(one, 1)} <small class="dim" style="font-size:18px">${unit()}</small></div></div>
+      <div class="center mt-16"><p class="dim small">Geschätztes 1RM (${f === 'avg' ? 'Mittelwert aus Epley und Brzycki' : fName})</p><div style="font-size:42px;font-weight:800">${nf(one, 1)} <small class="dim" style="font-size:18px">${unit()}</small></div></div>
       <table class="tbl mt-12"><tbody>${rows}</tbody></table>`);
     $('#rmW', m.el).addEventListener('change', e => { w = parseNum(e.target.value) || 0; draw(); });
     $('#rmR', m.el).addEventListener('change', e => { r = Math.max(1, Math.round(parseNum(e.target.value) || 1)); draw(); });
@@ -500,16 +503,22 @@ function openExerciseForm(ex, preset = {}) {
         <div class="field"><span>Muskelgruppen</span>
           <div class="muscle-pick">${[...MUSCLES, 'Ausdauer'].map(mg => `<button class="chip soft ${d.muscleGroups.includes(mg) ? 'active' : ''}" data-m="${esc(mg)}">${esc(mg)}</button>`).join('')}</div></div>
         <label class="field"><span>Technik-Notiz</span><textarea class="textarea" data-f="notes" placeholder="1 Satz Technik-Tipp">${esc(d.notes || '')}</textarea></label>
-        <label class="field"><span>Alternative Namen (Komma-getrennt)</span><input class="input" data-f="aliases" value="${esc((d.aliases || []).join(', '))}" placeholder="z. B. englischer Name aus Arrow"></label>
+        <label class="field"><span>Alternative Namen (Komma-getrennt)</span><input class="input" data-f="aliases" value="${esc(exAliases(d).join(', '))}" placeholder="z. B. englischer Name aus Arrow"></label>
       </div>`);
     draw();
     m.body.addEventListener('input', e => {
       const f = e.target.dataset.f;
       if (!f) return;
-      if (f === 'aliases') d.aliases = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
+      if (f === 'aliases') d.aliases = exAliases({ aliases: e.target.value });
       else d[f] = e.target.value;
     });
-    m.body.addEventListener('change', e => { if (e.target.matches('[data-uni]')) { d.unilateral = e.target.checked; return; } const f = e.target.dataset.f; if (f) d[f] = e.target.value; });
+    m.body.addEventListener('change', e => {
+      if (e.target.matches('[data-uni]')) { d.unilateral = e.target.checked; return; }
+      const f = e.target.dataset.f;
+      // Alternative Namen bleiben eine Liste (als Text öffnete der Editor beim nächsten Mal leer)
+      if (f === 'aliases') d.aliases = exAliases({ aliases: e.target.value });
+      else if (f) d[f] = e.target.value;
+    });
     m.el.addEventListener('click', e => {
       const u = e.target.closest('[data-u]');
       if (u) { d.defaultUnit = u.dataset.u; if (u.dataset.u === 'cardio') d.category = 'Cardio'; else if (d.category === 'Cardio' && Ex.type(d) === 'cardio') d.category = 'Full Body'; draw(); return; }
@@ -532,7 +541,7 @@ function openExerciseForm(ex, preset = {}) {
       const id = ex ? ex.id : autoId();
       Store.put('exercises', id, {
         name, category: d.category, muscleGroups: d.muscleGroups, equipment: d.equipment, defaultUnit: d.defaultUnit || 'kg', ...(d.cardioMode ? { cardioMode: d.cardioMode } : {}), ...(d.myNote ? { myNote: d.myNote } : {}),
-        notes: (d.notes || '').trim(), aliases: d.aliases || [], isCustom: ex ? !!ex.isCustom : true, unilateral: Ex.isUni(d),
+        notes: (d.notes || '').trim(), aliases: exAliases(d), isCustom: ex ? !!ex.isCustom : true, unilateral: Ex.isUni(d),
         createdAt: ex ? ex.createdAt || Date.now() : Date.now(), updatedAt: Date.now()
       }, { replace: true });
       result = id;

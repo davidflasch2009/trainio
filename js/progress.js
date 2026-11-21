@@ -26,14 +26,14 @@ Views.progress = {
     const r = Analytics.range();
     el.innerHTML = `
       <div class="prog-controls">
-        <div class="seg tabs" role="tablist">${progSubs().map(([k, l]) => `<button role="tab" class="${UI.progSub === k ? 'active' : ''}" data-act="progSub" data-v="${k}">${l}</button>`).join('')}</div>
+        ${tabsHtml(progSubs(), UI.progSub, 'progSub', 'progBody', 'Fortschritt', 'seg tabs')}
         <div class="row pc-row">
           <div class="chips grow pc-chips phase-chips">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}<span class="pc-sep" aria-hidden="true"></span>${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
           <div class="seg sm" style="flex:0 0 auto" aria-label="Einheit"><button class="${unit() === 'kg' ? 'active' : ''}" data-act="unitSet" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-act="unitSet" data-v="lb">lb</button></div>
         </div>
         ${r.phase ? `<div class="tiny dim pc-phase">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
       </div>
-      <div id="progBody"></div>`;
+      <div id="progBody" ${tabPanelAttrs('progBody', UI.progSub)}></div>`;
     updateTopH();
     // Aktiven Zeitraum/Tab in den scrollbaren Leisten sichtbar halten
     $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
@@ -917,7 +917,7 @@ function exRegions(ex) {
   if (!ex) return {};
   const key = ex.id + '|' + (ex.muscleGroups || []).join(',') + '|' + ex.name;
   if (_regCache.has(key)) return _regCache.get(key);
-  const n = norm([ex.name, ...(ex.aliases || [])].join(' '));
+  const n = norm([ex.name, ...exAliases(ex)].join(' '));
   const has = re => re.test(n);
   const out = {};
   const add = (regs, w) => regs.forEach(r => { out[r] = Math.max(out[r] || 0, w); });
@@ -1428,11 +1428,16 @@ ProgressViews.body = body => {
       ${icon('chevR', 'li-chev')}</button>`).join('')}</div>` : `<div class="card">${emptyState('scale', 'Noch keine Einträge', 'Trag oben dein Gewicht ein – der Verlauf entsteht automatisch.')}</div>`}`;
   cb.mountAll();
 };
+/* Körpergewicht: plausible Spanne in kg – gilt für jede Einheit gleich (erst umrechnen, dann prüfen) */
+const BW_MIN_KG = 20, BW_MAX_KG = 400;
+const bwValidKg = kg => kg != null && kg >= BW_MIN_KG - 0.005 && kg <= BW_MAX_KG + 0.005;
+const bwRangeTxt = () => `zwischen ${nf(toU(BW_MIN_KG), 0)} und ${nf(toU(BW_MAX_KG), 0)} ${unit()}`;
 Actions.bwQuickSave = () => {
   const inp = $('#bwQuick');
   const v = parseNum(inp && inp.value);
-  if (!v || v < 20 || v > 400) { toast('Bitte ein Gewicht eintragen', 'warn'); if (inp) inp.focus(); return; }
-  const kg = round(fromU(v), 2), today = isoDate();
+  const kg = v ? round(fromU(v), 2) : null, today = isoDate();
+  if (!v) { toast('Bitte ein Gewicht eintragen', 'warn'); if (inp) inp.focus(); return; }
+  if (!bwValidKg(kg)) { toast(`Bitte ein Gewicht ${bwRangeTxt()} eintragen`, 'warn'); if (inp) inp.focus(); return; }
   const ex = Store.all('progress').find(p => p.date === today && p.bodyWeightKg > 0) || Store.all('progress').find(p => p.date === today);
   if (ex) Store.put('progress', ex.id, { bodyWeightKg: kg, updatedAt: Date.now() });
   else Store.put('progress', autoId(), { date: today, bodyWeightKg: kg, bodyFatPct: null, measurements: null, photoUrl: null, photoId: null, notes: '', createdAt: Date.now(), updatedAt: Date.now() }, { replace: true });
@@ -1665,12 +1670,21 @@ function openBodyForm(entry) {
     }
     const date = $('#bfDate', m.el).value;
     if (!isISO(date)) return toast('Bitte ein gültiges Datum wählen', 'warn');
+    if (date > isoDate()) return toast('Das Datum darf nicht in der Zukunft liegen', 'warn');
     const w = parseNum($('#bfW', m.el).value), bfv = parseNum($('#bfBf', m.el).value);
     const meas = {};
-    let any = false;
-    $$('[data-mk]', m.el).forEach(i => { const v = parseNum(i.value); meas[i.dataset.mk] = v && v > 0 ? v : null; if (v) any = true; });
+    let any = false, badMeas = false;
+    // Umfänge: leer = keine Messung; nur Werte über 0 (und unter 300 cm) zählen als Messung
+    $$('[data-mk]', m.el).forEach(i => {
+      const v = i.value.trim() ? parseNum(i.value) : null;
+      if (v == null) { meas[i.dataset.mk] = null; if (i.value.trim()) badMeas = true; return; }
+      if (v <= 0 || v > 300) { badMeas = true; meas[i.dataset.mk] = null; return; }
+      meas[i.dataset.mk] = v; any = true;
+    });
+    if (badMeas) return toast('Bitte Umfänge zwischen 1 und 300 cm eintragen', 'warn');
+    if (w != null && !bwValidKg(round(fromU(w), 2))) return toast(`Bitte ein Gewicht ${bwRangeTxt()} eintragen`, 'warn');
+    if (bfv != null && (bfv < 0 || bfv > 70)) return toast('Bitte einen Körperfettanteil zwischen 0 und 70 % eintragen', 'warn');
     if (w == null && bfv == null && !any && !photoData && !existingPhoto && !$('#bfNotes', m.el).value.trim()) return toast('Bitte mindestens einen Wert eintragen', 'warn');
-    if ((w != null && w <= 0) || (bfv != null && (bfv < 0 || bfv > 70))) return toast('Bitte plausible Werte eingeben', 'warn');
     const id = entry ? entry.id : autoId();
     let photoId = entry ? entry.photoId || null : null;
     if (photoData) {
@@ -1705,7 +1719,7 @@ Actions.photoCompare = el => {
         <span class="cmp-tag" style="left:10px">${esc(fmtDate(before.date))}</span><span class="cmp-tag" style="right:10px">${esc(fmtDate(after.date))}</span>
       </div>
       <input type="range" min="0" max="100" value="50" id="pcRange" class="mt-12" style="width:100%;accent-color:var(--accent);height:32px" aria-label="Vergleichs-Regler">
-      <p class="center dim small mt-8">${Math.round(dayNum(after.date) - dayNum(before.date))} Tage Unterschied</p>`);
+      <p class="center dim small mt-8">${(n => `${n} ${n === 1 ? 'Tag' : 'Tage'} Unterschied`)(Math.abs(Math.round(dayNum(after.date) - dayNum(before.date))))}</p>`);
     const set = v => { $('#pcTop', m.el).style.clipPath = `inset(0 ${100 - v}% 0 0)`; $('#pcLine', m.el).style.left = v + '%'; };
     $('#pcRange', m.el).addEventListener('input', e => set(+e.target.value));
     const box = $('#pcBox', m.el);

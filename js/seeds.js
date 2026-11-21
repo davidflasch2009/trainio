@@ -362,7 +362,7 @@ const SEED_EXERCISES_3 = [
 ];
 
 const EX_PREFIX = 'ex_';
-const SEED_VERSION = 6;
+const SEED_VERSION = 7;
 /* Korrigierte Muskeln (v6): Bei Kniebeugen wachsen Beinbeuger praktisch nicht mit (Kubo 2019), der untere Rücken hält
    nur – siehe docs/redesign/recherche/saetze-pro-woche.md. Alte Liste → neue Liste, nur wenn niemand sie geändert hat. */
 const SEED_MUSCLE_FIX = {
@@ -392,6 +392,12 @@ function ensureSeeds() {
       const e = Store.raw('exercises', id);
       if (!e || e.isCustom || (e.muscleGroups || []).join('|') !== from.join('|')) continue;
       ops.push({ type: 'put', coll: 'exercises', id, doc: { ...e, muscleGroups: to.slice(), updatedAt: Date.now() }, replace: true });
+    }
+  }
+  if (v < 7) {
+    // Alternative Namen, die als Komma-Text gespeichert wurden, wieder als Liste ablegen
+    for (const e of Store.all('exercises')) {
+      if (e.aliases != null && !Array.isArray(e.aliases)) ops.push({ type: 'put', coll: 'exercises', id: e.id, doc: { ...e, aliases: exAliases(e), updatedAt: Date.now() }, replace: true });
     }
   }
   let patch = { seedVersion: SEED_VERSION };

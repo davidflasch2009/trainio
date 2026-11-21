@@ -96,7 +96,7 @@ const Workout = (() => {
     });
     w = edit
       ? { ...doc, id: doc.id, editingId: doc.id, entries, rest: null, sel: { e: 0, s: 0 } }
-      : { id: autoId(), editingId: null, name: doc.planDayName || doc.name || 'Workout', planId: doc.planId || null, planDayIndex: doc.planDayIndex ?? null, planDayName: doc.planDayName || null, date: isoDate(), startedAt: Date.now(), bodyWeightKg: null, notes: '', entries, rest: null, sel: { e: 0, s: 0 } };
+      : { id: autoId(), editingId: null, name: woTitle(doc), planId: doc.planId || null, planDayIndex: doc.planDayIndex ?? null, planDayName: doc.planDayName || null, date: isoDate(), startedAt: Date.now(), bodyWeightKg: null, notes: '', entries, rest: null, sel: { e: 0, s: 0 } };
     autoSelect();
     save();
     if (!edit) WakeLock.request();

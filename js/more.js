@@ -544,7 +544,7 @@ Actions.exportCSV = () => {
   const head = ['date', 'workoutName', 'exerciseName', 'setNumber', 'reps', 'weightKg', 'rpe', 'done', 'notes', 'warmup', 'durationSec', 'repsRight', 'durationSecRight', 'distanceKm', 'level'];
   const lines = [head];
   for (const w of W) for (const en of w.entries || []) (en.sets || []).forEach((s, i) => {
-    lines.push([w.date, w.planDayName || w.name || '', Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '', dec(s.distKm), dec(s.level)]);
+    lines.push([w.date, woTitle(w, ''), Ex.entryName(en), i + 1, s.reps ?? '', dec(s.weightKg), dec(s.rpe), s.done === false ? 'false' : 'true', w.notes || '', s.warmup ? 'true' : 'false', s.durationSec ?? '', s.repsR ?? '', s.durationSecR ?? '', dec(s.distKm), dec(s.level)]);
   });
   download(`trainio-workouts-${isoDate()}.csv`, '﻿' + lines.map(r => r.map(q).join(';')).join('\r\n'), 'text/csv;charset=utf-8');
   toast(`${lines.length - 1} Sätze exportiert`, 'success');
@@ -639,7 +639,7 @@ async function pdfWorkoutLog(from) {
     st.need(24);
     d.setFillColor(238, 241, 245); d.roundedRect(15, st.y - 5, 180, 9, 2, 2, 'F');
     d.setFont('helvetica', 'bold'); d.setFontSize(11);
-    st.text(`${fmtDate(w.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}  ·  ${w.planDayName || w.name || 'Workout'}`, 18, st.y + 1);
+    st.text(`${fmtDate(w.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' })}  ·  ${woTitle(w)}`, 18, st.y + 1);
     d.setFont('helvetica', 'normal'); d.setFontSize(9); d.setTextColor(90);
     st.text(`${fmtDur(w.durationSec)} · ${row && row.cardioOnly ? 'Cardio' : `${fmtTon(row ? row.ton : 0)} · ${row ? row.sets : 0} Sätze`}${row && row.cSec && !row.cardioOnly ? ' · Cardio ' + fmtDur(row.cSec) : ''}`, 192, st.y + 1, { align: 'right' });
     d.setTextColor(20);
@@ -663,6 +663,52 @@ async function pdfWorkoutLog(from) {
   d.save(`trainio-protokoll-${isoDate()}.pdf`);
   toast('PDF erstellt', 'success');
 }
+/** Inhalt des Übungs-Reports je Erfassungsart: Kennzahlen, Kurve(n), Tabellenspalten und -zeilen */
+function pdfReportSpec(type, ss, pr, info) {
+  const num = v => +v || 0;
+  const min = sec => round(num(sec) / 60, 1);
+  if (type === 'cardio') {
+    const secT = sum(ss.map(s => num(s.secs))), kmT = sum(ss.map(s => num(s.km)));
+    const bestKmh = maxOf(ss, s => num(s.kmh)), longest = maxOf(ss, s => num(s.secs));
+    const dist = kmT > 0;
+    return {
+      boxes: [['Gesamtdauer', secT ? fmtDur(secT) : '-'], dist ? ['Gesamtdistanz', fmtKm(kmT)] : ['Längste Einheit', longest > 0 ? fmtDur(longest) : '-'],
+        dist ? ['Bestes Tempo', bestKmh > 0 ? fmtKmh(bestKmh) : '-'] : ['Höchste Stufe', ss.some(s => num(s.lvl) > 0) ? nf(maxOf(ss, s => num(s.lvl)), 1) : '-'], ['Sessions', String(ss.length)]],
+      chart: dist ? ['Distanz (km)', s => round(num(s.km), 2), 'Dauer (min)', s => min(s.secs)] : ['Dauer (min)', s => min(s.secs)],
+      yUnit: dist ? '' : 'min',
+      cols: ['Abschnitte', 'Dauer', 'Distanz', 'Tempo'],
+      row: s => [(s.list || []).map(x => cardioTxt(x, info)).join('  ·  ') || '-', s.secs ? (s.secs % 60 ? fmtClock(s.secs) + ' min' : fmtDur(s.secs)) : '-', s.km ? fmtKm(s.km) : '-', s.kmh > 0 ? fmtKmh(s.kmh) : '-']
+    };
+  }
+  if (type === 'sec') {
+    const hold = s => Math.max(0, maxOf(s.list || [], x => num(x.sec)));
+    const best = maxOf(ss, hold), total = sum(ss.map(s => num(s.secs)));
+    return {
+      boxes: [['Längster Satz', best > 0 ? fmtClock(best) + ' min' : '-'], ['Gesamtzeit', total ? fmtDur(total) : '-'], ['Sätze', nf(sum(ss.map(s => num(s.sets))), 0)], ['Sessions', String(ss.length)]],
+      chart: ['Längster Satz (s)', s => hold(s)], yUnit: 's',
+      cols: ['Sätze', 'Längster', 'Anzahl', 'Gesamt'],
+      row: s => [(s.list || []).map(prevSec).join('  '), hold(s) > 0 ? fmtClock(hold(s)) : '-', String(s.sets || 0), s.secs ? fmtClock(s.secs) : '-']
+    };
+  }
+  if (type === 'reps') {
+    const top = s => Math.max(0, maxOf(s.list || [], x => num(x.r)));
+    const best = maxOf(ss, top);
+    return {
+      boxes: [['Meiste Wdh.', best > 0 ? nf(best, 0) : '-'], ['Wdh. gesamt', nf(sum(ss.map(s => num(s.reps))), 0)], ['Sätze', nf(sum(ss.map(s => num(s.sets))), 0)], ['Sessions', String(ss.length)]],
+      chart: ['Meiste Wdh.', s => top(s), 'Wdh. gesamt', s => num(s.reps)], yUnit: '',
+      cols: ['Sätze', 'Beste Serie', 'Anzahl', 'Wdh.'],
+      row: s => [(s.list || []).map(x => x.w ? `${wNum(x.w)}×${prevR(x)}` : String(prevR(x))).join('  '), top(s) > 0 ? nf(top(s), 0) : '-', String(s.sets || 0), nf(num(s.reps), 0)]
+    };
+  }
+  const prW = pr && num(pr.bestWeightKg) > 0;
+  return {
+    boxes: [['Bestes e1RM', pr && num(pr.best1RM) > 0 ? fmtW(pr.best1RM) : '-'], ['Max-Gewicht', prW ? `${fmtW(pr.bestWeightKg)}${pr.bestReps ? ` × ${pr.bestReps}` : ''}` : '-'],
+      ['Bestes Volumen', pr && num(pr.bestVolume) > 0 ? fmtTon(pr.bestVolume) : '-'], ['Sessions', String(ss.length)]],
+    chart: ['e1RM', s => round(toU(num(s.best)), 1), 'Max-Gewicht', s => round(toU(num(s.maxW)), 1)], yUnit: unit(),
+    cols: ['Sätze', 'Bester Satz', 'e1RM', 'Volumen'],
+    row: s => [(s.list || []).map(x => x.w ? `${wNum(x.w)}×${prevR(x)}` : `${prevR(x)}`).join('  '), s.bestSet ? `${wNum(s.bestSet.w)}×${s.bestSet.r}` : '-', s.best ? wNum(s.best) : '-', fmtTon(num(s.vol))]
+  };
+}
 async function pdfExerciseReport(exId, from) {
   const ss = Analytics.sessionsOf(exId).filter(s => s.dn >= from);
   if (!ss.length) throw new Error('Keine Daten für diese Übung im Zeitraum');
@@ -674,7 +720,10 @@ async function pdfExerciseReport(exId, from) {
   d.setFont('helvetica', 'normal'); d.setFontSize(10); d.setTextColor(90);
   st.text(`Übungs-Report · ${fmtDate(ss[0].date)} - ${fmtDate(ss[ss.length - 1].date)} · ${ss.length} Sessions`, 15, 29);
   d.setTextColor(20);
-  const boxes = [['Bestes e1RM', pr ? fmtW(pr.best1RM) : '-'], ['Max-Gewicht', pr ? `${fmtW(pr.bestWeightKg)} × ${pr.bestReps}` : '-'], ['Bestes Volumen', pr ? fmtTon(pr.bestVolume) : '-'], ['Sessions', String(ss.length)]];
+  // Je nach Erfassungsart eigene Kennzahlen, Kurve und Tabelle (Cardio: Dauer & Distanz, Zeit: Haltedauer, Wdh.: Wiederholungen)
+  const ex = Ex.get(exId), type = Ex.type(ex);
+  const R = pdfReportSpec(type, ss, pr, cardioInfo(ex || {}));
+  const boxes = R.boxes;
   boxes.forEach(([k, v], i) => {
     const x = 15 + i * 45.5;
     d.setFillColor(238, 241, 245); d.roundedRect(x, 35, 43, 18, 2, 2, 'F');
@@ -685,35 +734,37 @@ async function pdfExerciseReport(exId, from) {
   if (await Charts.ensure()) {
     const cv = document.createElement('canvas');
     cv.width = 1000; cv.height = 460;
-    const pts = ss.filter(s => s.best > 0).map(s => ({ x: s.dn, y: round(toU(s.best), 1) }));
-    const vol = ss.map(s => ({ x: s.dn, y: round(toU(s.maxW), 1) }));
+    const [l1, f1, l2, f2] = R.chart;
+    const pts = ss.map(s => ({ x: s.dn, y: f1(s) })).filter(p => p.y > 0);
+    const vol = l2 ? ss.map(s => ({ x: s.dn, y: f2(s) })).filter(p => p.y > 0) : [];
     const ch = new window.Chart(cv.getContext('2d'), {
       type: 'line',
       data: { datasets: [
-        { label: 'e1RM', data: pts, borderColor: '#0b8f48', backgroundColor: 'rgba(11,143,72,.12)', fill: true, tension: .3, pointRadius: pts.length < 40 ? 3 : 0, borderWidth: 3 },
-        { label: 'Max-Gewicht', data: vol, borderColor: '#2a78d6', fill: false, tension: .3, pointRadius: 0, borderWidth: 2 }] },
+        { label: l1, data: pts, borderColor: '#0b8f48', backgroundColor: 'rgba(11,143,72,.12)', fill: true, tension: .3, pointRadius: pts.length < 40 ? 3 : 0, borderWidth: 3 },
+        ...(l2 ? [{ label: l2, data: vol, borderColor: '#2a78d6', fill: false, tension: .3, pointRadius: 0, borderWidth: 2 }] : [])] },
       plugins: [{ id: 'bg', beforeDraw: c => { const x = c.ctx; x.save(); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.restore(); } }],
       options: { responsive: false, animation: false, devicePixelRatio: 1, plugins: { legend: { labels: { color: '#333', font: { size: 16 } } }, tooltip: { enabled: false } },
         scales: { x: { type: 'linear', ticks: { color: '#555', font: { size: 14 }, callback: v => fmtDN(v, { day: '2-digit', month: '2-digit', year: '2-digit' }), maxTicksLimit: 8 }, grid: { display: false } },
-          y: { ticks: { color: '#555', font: { size: 14 }, callback: v => nf(v, 0) + ' ' + unit() }, grid: { color: '#e5e5e5' } } } }
+          y: { beginAtZero: type !== 'kg', ticks: { color: '#555', font: { size: 14 }, callback: v => nf(v, 0) + (R.yUnit ? ' ' + R.yUnit : '') }, grid: { color: '#e5e5e5' } } } }
     });
     d.addImage(cv.toDataURL('image/jpeg', 0.88), 'JPEG', 15, 60, 180, 83);
     ch.destroy();
     st.y = 152;
   } else st.y = 62;
   d.setFont('helvetica', 'bold'); d.setFontSize(9);
-  const cols = [[15, 'Datum'], [42, 'Sätze'], [140, 'Bester Satz'], [165, 'e1RM'], [195, 'Volumen']];
+  const cols = [[15, 'Datum'], [42, R.cols[0]], [140, R.cols[1]], [165, R.cols[2]], [195, R.cols[3]]];
   cols.forEach(([x, l], i) => st.text(l, x, st.y, i >= 2 ? { align: i === 4 ? 'right' : 'left' } : undefined));
   d.setFont('helvetica', 'normal');
   st.y += 5;
   for (const s of [...ss].reverse()) {
-    const lines = d.splitTextToSize(pdfSafe(s.list.map(x => x.w ? `${wNum(x.w)}×${prevR(x)}` : `${prevR(x)}`).join('  ')), 94);
+    const [list, c3, c4, c5] = R.row(s);
+    const lines = d.splitTextToSize(pdfSafe(list), 94);
     st.need(lines.length * 4.2 + 1.5);
     st.text(fmtDate(s.date), 15, st.y);
     d.text(lines, 42, st.y);
-    st.text(s.bestSet ? `${wNum(s.bestSet.w)}×${s.bestSet.r}` : '-', 140, st.y);
-    st.text(s.best ? wNum(s.best) : '-', 165, st.y);
-    st.text(fmtTon(s.vol), 195, st.y, { align: 'right' });
+    st.text(c3, 140, st.y);
+    st.text(c4, 165, st.y);
+    st.text(c5, 195, st.y, { align: 'right' });
     st.y += lines.length * 4.2 + 1.5;
   }
   footer(st);
