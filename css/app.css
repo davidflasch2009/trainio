@@ -485,7 +485,8 @@ svg { flex-shrink: 0; }
   background: linear-gradient(to bottom, color-mix(in srgb, var(--bg) 88%, transparent) 0%, color-mix(in srgb, var(--bg) 70%, transparent) 55%, transparent 100%); }
 #sbShade { opacity: 0; transition: opacity .25s; }
 body.is-scrolled #sbShade { opacity: 1; }
-[data-design="glass"] .wo-head { background: color-mix(in srgb, var(--bg) 70%, var(--glass-bar)) !important; }
+/* Workout-Kopf deckend: Glas-Leiste über der Seitenfarbe, sonst scheinen darunter gescrollte Übungen durch */
+[data-design="glass"] .wo-head { background: linear-gradient(var(--glass-bar), var(--glass-bar)), var(--bg) !important; }
 
 .topbar.empty { position: relative; min-height: 0; height: env(safe-area-inset-top); padding: 0; border-bottom: 0 !important; background: transparent !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; box-shadow: none !important; }
 .topbar:not(.empty) { min-height: 48px; padding-top: calc(env(safe-area-inset-top) + 6px); padding-bottom: 6px; }
@@ -1555,8 +1556,9 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
     -webkit-backdrop-filter: none; backdrop-filter: none;
     background: linear-gradient(180deg, var(--glass-sheen), transparent 46%), color-mix(in srgb, var(--glass) 62%, var(--bg));
   }
-  [data-design="glass"] :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 92%, transparent); }
-  :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: color-mix(in srgb, var(--bg) 96%, transparent); }
+  /* Ohne Weichzeichner (Handy) deckend – sonst scheint der Inhalt darunter durch */
+  [data-design="glass"] :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: linear-gradient(var(--glass-bar), var(--glass-bar)), var(--bg); }
+  :is(.wo-head, .prog-controls) { -webkit-backdrop-filter: none; backdrop-filter: none; background: var(--bg); }
 }
 
 /* ---------- Trainio ---------- */
@@ -1899,7 +1901,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="sky"] .topbar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; }
 [data-design="sky"] .topbar.scrolled { background: color-mix(in srgb, var(--sk-top) 72%, transparent); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border-bottom-color: transparent; }
 [data-design="sky"] #sbShade, [data-design="sky"] .edge-sb { background: linear-gradient(to bottom, color-mix(in srgb, var(--sk-top) 90%, transparent) 0%, color-mix(in srgb, var(--sk-top) 70%, transparent) 55%, transparent 100%); }
-[data-design="sky"] .wo-head { background: color-mix(in srgb, var(--sk-top) 86%, transparent) !important; }
+[data-design="sky"] .wo-head { background: var(--sk-top) !important; }
 [data-design="sky"] .prog-controls { background: var(--tip); border-color: var(--edge) !important; box-shadow: var(--soft); }
 [data-design="sky"] .bottom-nav { background: var(--bar); border-color: var(--edge); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%); }
 [data-design="sky"][data-nav="floating"] .bottom-nav { box-shadow: var(--soft), inset 0 1px 0 var(--edge); }

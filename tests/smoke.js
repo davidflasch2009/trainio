@@ -725,6 +725,23 @@ async function anzeigeFlow(page) {
     if (r && r.bottom > r.dock) covered.push(r);
   }
   check(!covered.length, 'Pausen-Leiste verdeckt den nächsten Satz nicht (ausführliche Eingabe, 6 Sätze nacheinander)', JSON.stringify(covered));
+  // Workout-Kopf auf dem Handy deckend: darunter gescrollte Übungen scheinen in keinem Design durch
+  const see = await page.evaluate(async () => {
+    const out = [];
+    for (const d of DESIGNS) for (const m of d.phased ? ['dark'] : ['light', 'dark']) {
+      Store.saveSettings({ design: d.id, theme: m }); applyTheme();
+      await new Promise(r => setTimeout(r, 60));
+      const h = document.querySelector('.wo-head');
+      if (!h) { out.push(d.id + ': kein Kopf'); continue; }
+      // Deckkraft aus rgb(a)(…) oder color(srgb … / a) lesen
+      const c = getComputedStyle(h).backgroundColor, sl = c.match(/\/\s*([\d.]+)\s*\)$/), rg = c.match(/^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/);
+      const alpha = c === 'transparent' ? 0 : sl ? +sl[1] : rg ? +rg[1] : 1;
+      if (alpha < 1) out.push(`${d.id}·${m} ${c}`);
+    }
+    Store.saveSettings({ design: 'gymlog', theme: 'dark' }); applyTheme();
+    return out;
+  });
+  check(!see.length, 'Workout-Kopf auf dem Handy in allen Designs deckend (nichts scheint durch)', see.join(', '));
   await page.evaluate(() => Workout.discard ? Workout.discard() : null);
 }
 
