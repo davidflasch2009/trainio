@@ -207,8 +207,11 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
     Pause startet, und die Tastatur steht gleich im nächsten Satz der Übung.
   - Der **erste Tipp ersetzt** den Wert im Feld (82,5 → „8“ ergibt 8, nicht 82,58). ⌫ löscht eine Stelle,
     gedrückt halten löscht alles.
-  - Schließen mit ⌄, Tipp daneben oder nach unten wischen. Die Pausen-Leiste rückt über die Tastatur, der aktive
-    Satz bleibt sichtbar. Passt sich jedem Design an.
+  - Schließen mit ⌄, Tipp daneben oder nach unten wischen – die Tastatur folgt dabei dem Finger und federt bei
+    kurzem Ziehen zurück. Die Pausen-Leiste rückt über die Tastatur, der aktive Satz bleibt sichtbar.
+  - Bewegung wie auf dem iPhone: Die Tastatur federt herein wie die Fenster der App, Seite und Pausen-Leiste gleiten
+    im selben Takt mit, Tasten leuchten sofort beim Antippen auf, bei ± rollt die Zahl, und „Weiter“ blendet weich
+    zu „Abhaken“ über. Bei „Animationen: Reduziert/Aus“ entsprechend ruhiger. Passt sich jedem Design an.
   - Ausschalten: **Mehr → Workout → Eigene Zahlentastatur**. Am Computer (Maus) gibt es sie nicht.
 - **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
   Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,

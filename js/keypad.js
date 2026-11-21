@@ -7,6 +7,16 @@
 const KP_FIELDS = ['setW', 'setB', 'setBR', 'cdDur', 'cdKm', 'cdLvl'];
 const KP_SEL = KP_FIELDS.map(f => `[data-in="${f}"]`).join(',');
 
+/** iOS-Kurve cubic-bezier(.32, .72, 0, 1) als Funktion für Scroll-Animationen */
+function easeIOS(t) {
+  const x1 = .32, y1 = .72, x2 = 0, y2 = 1;
+  const bx = u => 3 * x1 * u * (1 - u) ** 2 + 3 * x2 * u * u * (1 - u) + u ** 3;
+  const by = u => 3 * y1 * u * (1 - u) ** 2 + 3 * y2 * u * u * (1 - u) + u ** 3;
+  let lo = 0, hi = 1, u = t;
+  for (let i = 0; i < 24; i++) { u = (lo + hi) / 2; if (bx(u) < t) lo = u; else hi = u; }
+  return by(u);
+}
+
 const Keypad = (() => {
   let root = null, target = null, key = null, fresh = false, own = false, swallow = 0, holdT = 0, padT = 0, quiet = false;
   // Wo der Finger zuletzt aufgesetzt hat: Ein Tipp aufs Feld öffnet die Tastatur – liegt sie danach unter dem Finger,
@@ -52,6 +62,7 @@ const Keypad = (() => {
         ${k('sep', ',', 'kp-dim')}${k(0, 0)}${k('back', icon('backspace'), 'kp-dim', 'Löschen (gedrückt halten: alles löschen)')}
       </div>`;
     document.body.appendChild(root);
+    void root.offsetWidth;   // Startlage festhalten, damit schon das erste Öffnen hereinfedert
     // Tasten nehmen dem Feld nie den Fokus weg
     ['pointerdown', 'mousedown'].forEach(t => root.addEventListener(t, e => { if (e.target.closest('.kp-k, .kp-close')) e.preventDefault(); }));
     root.addEventListener('click', e => {
@@ -68,13 +79,33 @@ const Keypad = (() => {
       holdT = setTimeout(() => { swallow = Date.now() + 600; write(''); vibrate(15); }, 480);
     });
     ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => root.addEventListener(t, () => clearTimeout(holdT)));
-    // Nach unten wischen schließt
-    let y0 = null;
-    root.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; }, { passive: true });
+    // Taste leuchtet sofort beim Aufsetzen auf (wie die iPhone-Tastatur) und klingt beim Loslassen weich aus
+    let down = null, downT = 0;
+    const lift = () => { if (!down) return; const n = down; down = null; setTimeout(() => n.classList.remove('down'), Math.max(0, 70 - (performance.now() - downT))); };
+    root.addEventListener('pointerdown', e => { const b = e.target.closest('.kp-k, .kp-close'); if (!b || b.disabled) return; lift(); down = b; downT = performance.now(); b.classList.add('down'); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(t => root.addEventListener(t, lift));
+    // Nach unten wischen: Tastatur folgt dem Finger, loslassen schließt (weit oder schnell genug) oder federt zurück
+    let y0 = null, t0 = 0, dy = 0, drag = false;
+    root.addEventListener('touchstart', e => { y0 = e.touches[0].clientY; t0 = performance.now(); dy = 0; drag = false; }, { passive: true });
     root.addEventListener('touchmove', e => {
-      if (y0 != null && e.touches[0].clientY - y0 > 48) { y0 = null; clearTimeout(holdT); swallow = Date.now() + 500; close(); }
+      if (y0 == null) return;
+      dy = e.touches[0].clientY - y0;
+      if (!drag && dy > 8) { drag = true; clearTimeout(holdT); lift(); root.classList.add('dragging'); }
+      if (drag) root.style.transform = `translateY(${Math.max(0, dy - 8)}px)`;
     }, { passive: true });
-    root.addEventListener('touchend', () => { y0 = null; }, { passive: true });
+    const end = () => {
+      if (y0 == null) return;
+      const v = dy / Math.max(1, performance.now() - t0);
+      y0 = null;
+      if (!drag) return;
+      drag = false;
+      swallow = Date.now() + 400;   // der Klick am Ende des Wischens drückt keine Taste
+      root.classList.remove('dragging');
+      root.style.transform = '';
+      if (dy > 70 || (dy > 24 && v > 0.45)) close();
+    };
+    root.addEventListener('touchend', end, { passive: true });
+    root.addEventListener('touchcancel', end, { passive: true });
   }
 
   /** Feld neu suchen, falls die Ansicht inzwischen neu gezeichnet wurde */
@@ -107,8 +138,18 @@ const Keypad = (() => {
     if (!root || !isOpen()) return;
     root.classList.remove('open');
     // Platz unten und Pausen-Leiste erst kurz danach zurücksetzen: sonst verrutscht die Seite zwischen
-    // Antippen und Klick, und der Tipp (z. B. auf den Haken) landet daneben
+    // Antippen und Klick, und der Tipp (z. B. auf den Haken) landet daneben. Steht die Seite ganz unten,
+    // gleitet sie vorher sanft dorthin, wo sie ohne den Extra-Platz endet – statt danach zu springen.
     clearTimeout(padT);
+    const sc = Scroll.el, view = sc.querySelector('.view');
+    if (view) {
+      const padOpen = parseFloat(getComputedStyle(view).paddingBottom);
+      document.body.classList.remove('kp-open');
+      const padNormal = parseFloat(getComputedStyle(view).paddingBottom);
+      document.body.classList.add('kp-open');
+      const maxAfter = sc.scrollHeight - (padOpen - padNormal) - sc.clientHeight;
+      if (Scroll.y > maxAfter + 1) glide(Math.max(0, maxAfter), 300);
+    }
     padT = setTimeout(() => { if (!isOpen()) document.body.classList.remove('kp-open'); }, 350);
     if (target) {
       target.classList.remove('kp-target');
@@ -127,7 +168,8 @@ const Keypad = (() => {
       const no = en.sets.slice(0, key.si + 1).filter(x => !x.warmup).length;
       what = `${t === 'cardio' ? 'Abschnitt ' + (key.si + 1) : s.warmup ? 'Aufwärmsatz' : 'Satz ' + no} · <b>${esc(sp.label)}</b>`;
     }
-    $('.kp-what', root).innerHTML = what;
+    const wb = $('.kp-what', root);
+    if (wb.innerHTML !== what) { wb.innerHTML = what; if (isOpen()) fx(wb, 'fx-kp-swap'); }
     const sep = $('[data-k="sep"]', root);
     sep.textContent = sp.sep; sep.disabled = !sp.sep; sep.setAttribute('aria-label', sp.sep === ':' ? 'Doppelpunkt' : sp.sep ? 'Komma' : '');
     const pl = $('[data-k="plus"]', root), mi = $('[data-k="minus"]', root);
@@ -135,8 +177,10 @@ const Keypad = (() => {
     pl.setAttribute('aria-label', `${sp.label} plus ${sp.step}`); mi.setAttribute('aria-label', `${sp.label} minus ${sp.step}`);
     const go = $('[data-k="go"]', root), g = group(el), last = g.indexOf(el) === g.length - 1;
     const mode = !last ? 'next' : s && !s.done ? 'done' : 'close';
+    const changed = go.dataset.mode && go.dataset.mode !== mode;
     go.dataset.mode = mode;
-    go.innerHTML = mode === 'next' ? 'Weiter' : mode === 'done' ? `${icon('check')}<span>Abhaken</span>` : 'OK';
+    go.innerHTML = `<span class="kp-go-in">${mode === 'next' ? 'Weiter' : mode === 'done' ? `${icon('check')}<span>Abhaken</span>` : 'OK'}</span>`;
+    if (changed) fx(go.firstChild, 'fx-kp-swap');
     go.setAttribute('aria-label', mode === 'next' ? 'Weiter zum nächsten Feld' : mode === 'done' ? 'Satz abhaken' : 'Tastatur schließen');
   }
 
@@ -146,13 +190,34 @@ const Keypad = (() => {
     const r = box.getBoundingClientRect();
     const head = $('#tab-training .wo-head');
     const top = (head ? head.getBoundingClientRect().bottom : 0) + 8;
+    // Tastatur und Pausen-Leiste fahren evtl. gerade noch herein – darum ihre Endlage, nicht die aktuelle
+    const kpTop = innerHeight - root.offsetHeight;
     const dock = $('.rest-dock:not(.leaving)');
-    const bottom = (dock && dock.offsetParent ? dock.getBoundingClientRect().top : root.getBoundingClientRect().top) - 10;
+    const bottom = (dock && dock.offsetParent ? kpTop - 8 - dock.offsetHeight : kpTop) - 10;
     let dy = 0;
     if (r.bottom > bottom) dy = r.bottom - bottom;
     if (r.top - dy < top) dy = r.top - top;
-    if (Math.abs(dy) > 1) Scroll.to(Scroll.y + dy, smooth && S().motion === 'full');
+    if (Math.abs(dy) > 1) glide(Scroll.y + dy, smooth ? 340 : 480);
   }
+  /** Seite weich scrollen – mit derselben Kurve wie die Tastatur (iOS), bei reduzierter Bewegung sofort */
+  let glideId = 0;
+  function glide(to, ms) {
+    const sc = Scroll.el, from = sc.scrollTop;
+    to = Math.max(0, Math.min(to, sc.scrollHeight - sc.clientHeight));
+    const id = ++glideId;
+    if (!motionFull() || Math.abs(to - from) < 2) { Scroll.to(to); return; }
+    const t0 = performance.now();
+    const step = now => {
+      if (id !== glideId) return;
+      const k = Math.min(1, (now - t0) / ms);
+      sc.scrollTop = from + (to - from) * easeIOS(k);
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
+  // Wer selbst scrollt, übernimmt sofort
+  Scroll.el.addEventListener('touchstart', () => { glideId++; }, { passive: true });
+  Scroll.el.addEventListener('wheel', () => { glideId++; }, { passive: true });
 
   /** Wert setzen und wie beim Tippen melden (Inputs-Handler speichern und gleichen andere Felder ab) */
   function write(v) {
@@ -188,6 +253,8 @@ const Keypad = (() => {
     const sp = spec(key.f, typeOf(key.ei));
     if (sp.stepF) Actions.step({ dataset: { ei: String(key.ei), si: String(key.si), f: sp.stepF, d: String(d) }, parentElement: null });
     else { write(sp.own(el.value || el.placeholder, d)); vibrate(8); }
+    const cur = resolve();
+    if (cur) fx(cur, d > 0 ? 'fx-roll-up' : 'fx-roll-down');
     fresh = true;   // ein Tipp auf eine Ziffer danach ersetzt den neuen Wert
     paint();
   }

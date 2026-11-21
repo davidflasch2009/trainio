@@ -2361,10 +2361,15 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
   padding: 2px max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
   background: linear-gradient(var(--surface), var(--surface)), var(--bg); color: var(--text);
   border-top: var(--bw) solid var(--border); box-shadow: 0 -10px 30px rgba(0, 0, 0, .14);
-  transform: translateY(105%); visibility: hidden; transition: transform .22s var(--ease-out), visibility 0s .22s;
-  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+  transform: translateY(105%); visibility: hidden; transition: transform .3s var(--ease-ios), visibility 0s .3s;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: none;
 }
-.numpad.open { transform: none; visibility: visible; transition: transform .26s var(--ease-out), visibility 0s; }
+/* Hereinfedern wie die Fenster der App (iOS-Feder, ~1 % Überschwingen; ohne linear() nur die Kurve). Unter der
+   Tastatur reicht ihr Hintergrund über den Rand, damit beim Federn und Ziehen keine Lücke aufgeht. */
+.numpad.open { transform: none; visibility: visible; transition: transform .5s var(--ease-ios), visibility 0s;
+  transition: transform .5s linear(0, 0.0196 2.8%, 0.0697 5.6%, 0.1397 8.3%, 0.2211 11.1%, 0.3077 13.9%, 0.3947 16.7%, 0.4788 19.4%, 0.5578 22.2%, 0.6301 25%, 0.6951 27.8%, 0.7525 30.6%, 0.8024 33.3%, 0.845 36.1%, 0.881 38.9%, 0.911 41.7%, 0.9355 44.4%, 0.9553 47.2%, 0.971 50%, 0.9832 52.8%, 0.9924 55.6%, 0.9993 58.3%, 1.0042 61.1%, 1.0075 63.9%, 1.0096 66.7%, 1.0107 69.4%, 1.0111 72.2%, 1.011 75%, 1.0105 77.8%, 1.0097 80.6%, 1.0088 83.3%, 1.0079 86.1%, 1.0069 88.9%, 1.006 91.7%, 1.0051 94.4%, 1.0043 97.2%, 1), visibility 0s; }
+.numpad.dragging { transition: none; }
+.numpad::after { content: ''; position: absolute; left: 0; right: 0; top: 100%; height: 60px; background: inherit; pointer-events: none; }
 .kp-bar { display: flex; align-items: center; gap: 8px; min-height: 42px; max-width: 560px; margin: 0 auto; padding-left: 6px; }
 .kp-what { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: calc(14px * var(--fs)); color: var(--text-dim); }
 .kp-what b { color: var(--text); font-weight: var(--fw-x); }
@@ -2374,9 +2379,20 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .kp-k {
   border: var(--bw) solid transparent; border-radius: calc(12px * var(--rs)); background: var(--surface-2); color: var(--text); padding: 0;
   font-family: var(--font-num); font-size: 25px; font-weight: 600; font-variant-numeric: tabular-nums;
-  display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; transition: transform .08s, background-color .08s;
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0;
+  transition: transform .34s cubic-bezier(.3, 1.35, .55, 1), background-color .22s ease-out, filter .22s ease-out;
 }
-.kp-k:active { transform: scale(.95); background-color: var(--surface-3); }
+/* Antippen: sofort hell/eingedrückt, beim Loslassen federt die Taste zurück und die Farbe klingt aus */
+.kp-k.down { transform: scale(.93); background-color: var(--surface-3); transition-duration: .05s; }
+.kp-k.kp-pm.down { background-color: color-mix(in srgb, var(--accent) 30%, var(--surface)); }
+.kp-k.kp-go.down { background-color: var(--accent); filter: brightness(.88); transform: scale(.96); }
+.kp-close { transition: transform .34s cubic-bezier(.3, 1.35, .55, 1), opacity .2s; }
+.kp-close.down { transform: scale(.85); opacity: .6; transition-duration: .05s; }
+.kp-go-in { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.fx-kp-swap { animation: kpSwap .26s var(--ease-ios); }
+@keyframes kpSwap { from { opacity: 0; transform: scale(.82); } }
+.kp-what.fx-kp-swap { animation: kpFade .22s var(--ease-out); }
+@keyframes kpFade { from { opacity: .2; } }
 .kp-k svg { width: 26px; height: 26px; }
 .kp-k.kp-dim { color: var(--text-dim); }
 .kp-k:disabled { background: transparent; color: transparent; }
@@ -2385,11 +2401,12 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .kp-k.kp-go svg { width: 24px; height: 24px; }
 /* Platz unter dem Workout, damit jeder Satz über die Tastatur gescrollt werden kann; Pausen-Leiste sitzt darüber */
 body.kp-open .view { padding-bottom: calc(var(--kp-h, 300px) + 24px); }
-.rest-dock { transition: bottom .24s var(--ease-out); }
+.rest-dock { transition: bottom .42s var(--ease-ios); }
 body.kp-open .rest-dock { bottom: calc(var(--kp-h, 300px) + 8px); }
 body.kp-open .fab { display: none; }
 /* Feld, in das die Tastatur gerade schreibt */
 .set-in.kp-target { box-shadow: 0 0 0 2px var(--accent); }
+.fc-big .stepper { transition: box-shadow .2s; }
 .fc-big .stepper:has(.kp-target) { box-shadow: 0 0 0 2px var(--accent); }
 @media (min-width: 900px) { .numpad { left: auto; right: 0; width: 420px; border-left: var(--bw) solid var(--border); border-top-left-radius: calc(18px * var(--rs)); } }
 /* Tastatur passend zum Design */

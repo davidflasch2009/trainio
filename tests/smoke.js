@@ -1213,6 +1213,32 @@ async function tastaturFlow(page) {
   const f1 = await page.evaluate(() => Workout.cur().entries[1].sets[1]);
   check(f1.done && f1.weightKg === 12 && f1.reps === 10 && f1.repsR === 9, 'Fokus-Ansicht: Satz über die Tastatur abgehakt', JSON.stringify(f1));
 
+  // Volle Animationen: Feld weit unten steht nach dem Hereinfedern über der Tastatur (nicht aus der Zwischenlage
+  // gerechnet); kurz ziehen federt zurück ohne Tastendruck, weit nach unten wischen schließt
+  await page.evaluate(() => { Keypad.close(); Store.saveSettings({ motion: 'full', woView: 'list' }); App.renderCurrent(); });
+  await pause(page, 500);
+  await page.evaluate(() => document.querySelector('#tab-training [data-in="cdDur"]').scrollIntoView({ block: 'end' }));
+  await pause(page, 200);
+  await page.tap('#tab-training [data-in="cdDur"]');
+  await pause(page, 800);
+  const anim = await page.evaluate(() => { const r = Keypad.target.closest('.set-row').getBoundingClientRect(), kp = document.querySelector('#numpad');
+    return { row: Math.round(r.bottom), kpTop: Math.round(kp.getBoundingClientRect().top), end: innerHeight - kp.offsetHeight, v: Keypad.target.value }; });
+  check(anim.row <= anim.kpTop && anim.kpTop === anim.end, 'Volle Animationen: Tastatur federt herein, Feld weit unten steht danach darüber', JSON.stringify(anim));
+  const cdp = page.cdp || (page.cdp = await page.context().newCDPSession(page));
+  const drag = async (dy, steps) => {
+    const tp = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: 120, y }] });
+    await tp('touchStart', 640);
+    for (let k = 1; k <= steps; k++) { await tp('touchMove', 640 + dy * k / steps); await page.waitForTimeout(30); }
+    await tp('touchEnd');
+    await pause(page, 600);
+  };
+  await drag(40, 5);
+  const back = await page.evaluate(v => ({ open: Keypad.isOpen(), same: Keypad.target.value === v, tf: getComputedStyle(document.querySelector('#numpad')).transform }), anim.v);
+  check(back.open && back.same && back.tf === 'none', 'Kurz nach unten ziehen: Tastatur federt zurück, nichts wird getippt', JSON.stringify(back));
+  await drag(160, 10);
+  check(!(await page.evaluate(() => Keypad.isOpen())), 'Weit nach unten wischen schließt die Tastatur');
+  await page.evaluate(() => Store.saveSettings({ motion: 'off' }));
+
   // Ausschalten
   await page.evaluate(() => { Keypad.close(); Store.saveSettings({ numpad: false, woView: 'list' }); App.renderCurrent(); });
   await pause(page, 300);
