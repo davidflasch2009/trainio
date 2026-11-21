@@ -98,6 +98,7 @@ function moreGroups() {
           mi('Werte als Text vorausfüllen', 'Aus: Letztes Mal steht grau als Platzhalter – mit dem Pfeil pro Satz übernehmen', toggleCtl('prefillText'), 'vorbelegen platzhalter'),
           mi('Letztes Mal anzeigen', 'Werte vom letzten Training als Hilfe', toggleCtl('woPrev'), 'vorherige werte'),
           mi('RPE-Spalte', 'Anstrengung 6–10 pro Satz', toggleCtl('simpleRPE'), 'rir'),
+          mi('Eigene Zahlentastatur', 'Auf dem Handy: große Ziffern, ± und „Abhaken“ statt der Handy-Tastatur', toggleCtl('numpad'), 'tastatur ziffern keypad nummernblock'),
           mi('Nächsten Satz vorbelegen', 'Nach dem Abhaken: Gewicht & Wdh. in den nächsten leeren Satz übernehmen', toggleCtl('carryNext'), 'übernehmen vorbelegen automatisch')]],
         ['Neue Übungen', [
           mi('Standard-Sätze', 'Wenn du eine Übung hinzufügst', selectCtl('defSets', [1, 2, 3, 4, 5, 6, 8, 10].map(n => [n, n + (n === 1 ? ' Satz' : ' Sätze')])), 'sätze anzahl standard'),

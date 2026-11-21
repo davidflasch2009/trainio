@@ -2354,3 +2354,53 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 .exs-last.fix-line { font-weight: 600; }
 .fix-card { display: flex; gap: 10px; align-items: flex-start; background: var(--warning-soft); border-color: transparent; font-size: calc(13.5px * var(--fs)); line-height: 1.4; }
 .fix-card svg { width: 18px; height: 18px; flex-shrink: 0; color: var(--warning); margin-top: 1px; }
+
+/* ---------- Eigene Zahlentastatur im Workout (js/keypad.js) ---------- */
+.numpad {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 60;
+  padding: 2px max(8px, env(safe-area-inset-right)) calc(8px + env(safe-area-inset-bottom)) max(8px, env(safe-area-inset-left));
+  background: linear-gradient(var(--surface), var(--surface)), var(--bg); color: var(--text);
+  border-top: var(--bw) solid var(--border); box-shadow: 0 -10px 30px rgba(0, 0, 0, .14);
+  transform: translateY(105%); visibility: hidden; transition: transform .22s var(--ease-out), visibility 0s .22s;
+  -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; touch-action: manipulation;
+}
+.numpad.open { transform: none; visibility: visible; transition: transform .26s var(--ease-out), visibility 0s; }
+.kp-bar { display: flex; align-items: center; gap: 8px; min-height: 42px; max-width: 560px; margin: 0 auto; padding-left: 6px; }
+.kp-what { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: calc(14px * var(--fs)); color: var(--text-dim); }
+.kp-what b { color: var(--text); font-weight: var(--fw-x); }
+.kp-close { border: 0; background: none; color: var(--text-dim); min-width: 48px; min-height: 42px; padding: 0; display: flex; align-items: center; justify-content: center; }
+.kp-close svg { width: 26px; height: 26px; }
+.kp-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) minmax(0, 1.15fr); grid-auto-rows: 52px; gap: 6px; max-width: 560px; margin: 0 auto; }
+.kp-k {
+  border: var(--bw) solid transparent; border-radius: calc(12px * var(--rs)); background: var(--surface-2); color: var(--text); padding: 0;
+  font-family: var(--font-num); font-size: 25px; font-weight: 600; font-variant-numeric: tabular-nums;
+  display: flex; align-items: center; justify-content: center; gap: 6px; min-width: 0; transition: transform .08s, background-color .08s;
+}
+.kp-k:active { transform: scale(.95); background-color: var(--surface-3); }
+.kp-k svg { width: 26px; height: 26px; }
+.kp-k.kp-dim { color: var(--text-dim); }
+.kp-k:disabled { background: transparent; color: transparent; }
+.kp-k.kp-pm { background: var(--accent-soft); color: var(--accent-text); font-family: var(--font); font-size: min(calc(16px * var(--fs)), 4.4vw); font-weight: var(--fw-x); white-space: nowrap; }
+.kp-k.kp-go { grid-column: 4; grid-row: 3 / span 2; background: var(--accent); color: var(--accent-ink); font-family: var(--font); font-size: min(calc(17px * var(--fs)), 4.4vw); font-weight: var(--fw-x); flex-direction: column; gap: 2px; }
+.kp-k.kp-go svg { width: 24px; height: 24px; }
+/* Platz unter dem Workout, damit jeder Satz über die Tastatur gescrollt werden kann; Pausen-Leiste sitzt darüber */
+body.kp-open .view { padding-bottom: calc(var(--kp-h, 300px) + 24px); }
+.rest-dock { transition: bottom .24s var(--ease-out); }
+body.kp-open .rest-dock { bottom: calc(var(--kp-h, 300px) + 8px); }
+body.kp-open .fab { display: none; }
+/* Feld, in das die Tastatur gerade schreibt */
+.set-in.kp-target { box-shadow: 0 0 0 2px var(--accent); }
+.fc-big .stepper:has(.kp-target) { box-shadow: 0 0 0 2px var(--accent); }
+@media (min-width: 900px) { .numpad { left: auto; right: 0; width: 420px; border-left: var(--bw) solid var(--border); border-top-left-radius: calc(18px * var(--rs)); } }
+/* Tastatur passend zum Design */
+[data-design="glass"] .numpad { background: linear-gradient(var(--glass-bar), var(--glass-bar)), var(--bg); }
+[data-design="sky"] .numpad { background: linear-gradient(var(--sheet), var(--sheet)), var(--sk-top); border-color: var(--edge); }
+[data-design="plakat"] .numpad { border-top: var(--rule) solid var(--text); box-shadow: none; }
+[data-design="plakat"] .kp-k.kp-pm { background: transparent; border: 1.5px solid var(--text); color: var(--text); }
+[data-design="plakat"] .kp-k { font-weight: 700; }
+[data-design="iron"] :is(.kp-k.kp-go, .kp-k.kp-pm) { font-family: var(--font-display); text-transform: uppercase; letter-spacing: .04em; }
+[data-design="fokus"] .kp-k.kp-pm { background: transparent; border-color: var(--border-strong); color: var(--text); }
+[data-design="pure"] .numpad { box-shadow: none; }
+[data-design="iron"] .kp-k.kp-go { letter-spacing: .01em; font-size: min(calc(16px * var(--fs)), 4vw); }
+/* Niedriger Bildschirm (Handy quer): kompaktere Tastatur, damit der Satz darüber sichtbar bleibt */
+@media (max-height: 560px) { .kp-bar, .kp-close { min-height: 34px; } .kp-grid { grid-auto-rows: 40px; gap: 5px; } .kp-k { font-size: 21px; } }

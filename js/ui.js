@@ -882,6 +882,7 @@ const App = {
     catch (e) { console.error(e); el.innerHTML = `<div class="empty">${icon('warn')}<h3>Ups, Fehler beim Anzeigen</h3><p class="small">${esc(e.message)}</p></div>`; }
     renderFab();
     RestTimer.render();
+    if (typeof Keypad !== 'undefined') Keypad.sync();
   }
 };
 Actions.go = el => App.go(el.dataset.tab);

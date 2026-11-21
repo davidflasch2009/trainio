@@ -199,6 +199,17 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
 - **Eine klare Eingabe:** pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben, Drop-Satz,
   Notizen usw. hinter dem ⋯-Menü der Übung. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
   RPE eingetragen hat, bekommt automatisch die RPE-Spalte (Mehr → Workout → RPE-Spalte).
+- **Eigene Zahlentastatur** (Handy/Tablet mit Touch): Ein Tipp auf Gewicht, Wdh., Sekunden oder einen Cardio-Wert
+  öffnet statt der Handy-Tastatur eine große Zahlentastatur:
+  - **± passend zum Feld**: Gewicht in deinem Gewichtsschritt (z. B. ±2,5 kg), Wdh. ±1, Sekunden ±5 s,
+    Cardio-Dauer ±1 min (Komma-Taste wird zu „:“ für 30:15), Distanz ±0,5 km.
+  - **„Weiter“** springt Gewicht → Wdh. (→ rechts); im letzten Feld heißt die Taste **„Abhaken“**: Satz erledigt,
+    Pause startet, und die Tastatur steht gleich im nächsten Satz der Übung.
+  - Der **erste Tipp ersetzt** den Wert im Feld (82,5 → „8“ ergibt 8, nicht 82,58). ⌫ löscht eine Stelle,
+    gedrückt halten löscht alles.
+  - Schließen mit ⌄, Tipp daneben oder nach unten wischen. Die Pausen-Leiste rückt über die Tastatur, der aktive
+    Satz bleibt sichtbar. Passt sich jedem Design an.
+  - Ausschalten: **Mehr → Workout → Eigene Zahlentastatur**. Am Computer (Maus) gibt es sie nicht.
 - **Letztes Mal als Platzhalter**: Was du beim letzten Mal pro Satz gemacht hast, steht grau in den
   Feldern (nicht als Text). Der Pfeil-Knopf neben dem Satz übernimmt die Werte als Text,
   „Alle übernehmen“ macht das für alle leeren Sätze der Übung. Der Haken übernimmt leere Felder
@@ -331,7 +342,7 @@ nur Vorschau und Namen, Menüs nur ihre Titel:
 | --- | --- |
 | Konto & Profil | Anmeldung (Google, GitHub), **Anmeldewege verknüpfen/trennen**, Sync-Status, Name, Geschlecht, **Geburtsjahr**, **Maximalpuls** (für Pulszonen & VO2max) |
 | Training | aktiver Plan, Wochenziel, Wochenstart, **Herz-Plan**, Ruhepuls messen, Einheit, Gewichts-Inkrement, Stange, Scheiben, Aufwärmsätze, **1RM-Formel** (Epley/Brzycki/Mittelwert – wirkt auf Diagramme, PRs und Score), **Zeitraum im Fortschritt** (4W … Alles oder eine Phase – bei jedem Öffnen des Fortschritts ausgewählt; gelöschte Phase → Alles) |
-| Workout | Vorausfüllen, Letztes Mal, RPE-Spalte, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
+| Workout | Vorausfüllen, Letztes Mal, RPE-Spalte, **eigene Zahlentastatur**, **nächsten Satz vorbelegen**, **Standard-Sätze/-Wdh. für neue Übungen**, Ansicht, Zuklappen, Scrollen, Bildschirm an, **Nachfrage beim Beenden** (immer / bei offenen Sätzen / nie) |
 | Pause & Timer | Standard-Pause, **Pausen-Timer** an/aus (startet nach jedem Satz), Benachrichtigung, Ton, **Pausen-Ton** (Piep/Doppelton/Gong/Glocke, Probehören), **Vorwarnung** (5/10/15 s), **Pause nach Aufwärmsätzen**, **Pause vor einem Drop-Satz** |
 | Darstellung | Vorschau, Design, Modus, Akzentfarbe, Glas-Hintergrund, Ecken, Schrift, Textgröße, Dichte, Kontrast, Tab-Leiste, Animationen, Startseite, **App-Icon**, **Startseiten-Kacheln** (17 zur Auswahl, Reihenfolge), Karte „Herz diese Woche“ an/aus |
 | Meldungen | Hinweise oben ein-/ausschalten: Bestätigungen (Standard aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates |
@@ -482,6 +493,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/workout.js` | Workout-Engine (aktives Workout) |
 | `js/training.js` | Start-Tab + Training-Tab (Pläne, Verlauf, Workout-Detail, Teilen) |
 | `js/workout-ui.js` | Aktives Workout: Ansicht & Bedienung, Abschluss mit Score |
+| `js/keypad.js` | Eigene Zahlentastatur im Workout (Touch): Ziffern, ± je Feld, Weiter/Abhaken |
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
 | `js/progress.js` | Fortschritt-Tab |
@@ -628,7 +640,9 @@ Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit 
 (Score neutral, PRs neu, Kraft ab dem Fix). Außerdem alle 18 Befunde aus dem Prüfbericht zu 1.33.8: zwei Tabs
 gleichzeitig, Gastübernahme mit Ruhepuls, Abmelden, alternative Übungsnamen, umbenannte Plan-Workouts,
 Cardio-PDF, Tastatur (Fokus bleibt im Dialog, Escape, Reiter mit Pfeiltasten), Kontrast aller 20 Designzustände
-(Text ≥ 4,5:1), 320 px breite Displays mit Text XL, Körper-Eingaben, 1RM-Formel und Fotovergleich. Firebase und CDNs sind
+(Text ≥ 4,5:1), 320 px breite Displays mit Text XL, Körper-Eingaben, 1RM-Formel und Fotovergleich. Die eigene
+Zahlentastatur wird per Touch durchgespielt: Tippen, Komma-Regeln, ±, Weiter → Abhaken → nächster Satz, fehlendes
+Gewicht, Links/Rechts, Cardio-Dauer, Tipp daneben, Fokus-Ansicht und Ausschalten. Firebase und CDNs sind
 dabei gesperrt – nur Chart.js kommt aus `node_modules` (`npm install`), damit die Diagramme echt gezeichnet werden.
 Derselbe Test läuft bei jedem Push als GitHub-Action („Test“); bei Fehlern gibt es dort Screenshots.
 

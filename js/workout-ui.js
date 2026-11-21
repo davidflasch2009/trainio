@@ -142,7 +142,7 @@ function sidePh(s, prev, type) {
 }
 function rInput(s, d, type, ph, generic = '', cls = 'set-in') {
   const v = type === 'sec' ? s.durationSecR : s.repsR;
-  return `<input class="${cls}" inputmode="numeric" data-in="setBR" ${d} value="${v ?? ''}" placeholder="${esc(ph.r || generic)}" data-ph0="${esc(ph.r0 || generic)}" aria-label="${type === 'sec' ? 'Sekunden rechts' : 'Wiederholungen rechts'}" enterkeyhint="done">`;
+  return `<input class="${cls}" inputmode="${kpIM('numeric')}" data-in="setBR" ${d} value="${v ?? ''}" placeholder="${esc(ph.r || generic)}" data-ph0="${esc(ph.r0 || generic)}" aria-label="${type === 'sec' ? 'Sekunden rechts' : 'Wiederholungen rechts'}" enterkeyhint="done">`;
 }
 
 /* ---------- Letztes Mal übernehmen: Platzhalter → echte Werte (nur leere Felder) ---------- */
@@ -246,9 +246,9 @@ function cardioCard(en, ei, w) {
     const lvPh = prev && prev.lvl != null ? nf(prev.lvl, 1) : '–';
     return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
       <button class="set-num" data-act="setMenu" ${d} aria-label="Abschnitt ${si + 1} Optionen">${si + 1}</button>
-      <input class="set-in" inputmode="decimal" data-in="cdDur" ${d} value="${esc(durIn(s.durationSec))}" placeholder="${esc(durPh)}" aria-label="Dauer in Minuten (z. B. 30 oder 30:15)" enterkeyhint="next">
-      ${dist ? `<input class="set-in" inputmode="decimal" data-in="cdKm" ${d} value="${s.distKm != null ? esc(nf(s.distKm, 3)) : ''}" placeholder="${esc(kmPh)}" aria-label="Distanz in km" enterkeyhint="${lvl ? 'next' : 'done'}">` : ''}
-      ${lvl ? `<input class="set-in" inputmode="decimal" data-in="cdLvl" ${d} value="${s.level != null ? esc(nf(s.level, 1)) : ''}" placeholder="${esc(lvPh)}" aria-label="${esc(lvl)}" enterkeyhint="done">` : ''}
+      <input class="set-in" inputmode="${kpIM('decimal')}" data-in="cdDur" ${d} value="${esc(durIn(s.durationSec))}" placeholder="${esc(durPh)}" aria-label="Dauer in Minuten (z. B. 30 oder 30:15)" enterkeyhint="next">
+      ${dist ? `<input class="set-in" inputmode="${kpIM('decimal')}" data-in="cdKm" ${d} value="${s.distKm != null ? esc(nf(s.distKm, 3)) : ''}" placeholder="${esc(kmPh)}" aria-label="Distanz in km" enterkeyhint="${lvl ? 'next' : 'done'}">` : ''}
+      ${lvl ? `<input class="set-in" inputmode="${kpIM('decimal')}" data-in="cdLvl" ${d} value="${s.level != null ? esc(nf(s.level, 1)) : ''}" placeholder="${esc(lvPh)}" aria-label="${esc(lvl)}" enterkeyhint="done">` : ''}
       ${fill ? fillBtn(s, prev, 'cardio', d) : ''}
       <button class="set-check" data-act="setDone" ${d} aria-label="${s.done ? 'Abschnitt zurücksetzen' : 'Abschnitt erledigt'}">${icon('check')}</button>
     </div>`;
@@ -305,8 +305,8 @@ function simpleCard(en, ei, w) {
     const bPh = ph.l || (lo ? String(lo) : generic);
     return `<div class="set-row ${s.done ? 'done' : ''}" ${d}>
       ${setNumHtml(s, num, d)}
-      <input class="set-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
-      <input class="set-in" inputmode="numeric" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
+      <input class="set-in" inputmode="${kpIM('decimal')}" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht" enterkeyhint="next">
+      <input class="set-in" inputmode="${kpIM('numeric')}" data-in="setB" ${d} value="${bVal ?? ''}" placeholder="${esc(bPh)}" aria-label="${type === 'sec' ? 'Sekunden' : 'Wiederholungen'}${uni ? ' links' : ''}" enterkeyhint="${uni ? 'next' : 'done'}">
       ${uni ? rInput(s, d, type, ph, generic) : ''}
       ${rpe ? `<select class="set-rpe" data-ch="setRpe" ${d} aria-label="RPE"><option value="">RPE</option>${RPE_VALUES.map(v => `<option value="${v}" ${+s.rpe === v ? 'selected' : ''}>${nf(v, 1)}</option>`).join('')}</select>` : ''}
       ${fill ? fillBtn(s, prev, type, d) : ''}
@@ -470,11 +470,11 @@ function focusView(w) {
       <div class="fc-steppers ${uni ? 'uni' : ''}">
         <div class="fc-big"><div class="stepper-label">${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</div>
           <div class="stepper"><button data-act="step" data-f="w" data-d="-1" ${d} aria-label="Weniger Gewicht">${icon('minus')}</button>
-          <input class="fc-in" inputmode="decimal" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht">
+          <input class="fc-in" inputmode="${kpIM('decimal')}" data-in="setW" ${d} value="${inputW(s.weightKg)}" placeholder="${esc(wPh)}" aria-label="Gewicht">
           <button data-act="step" data-f="w" data-d="1" ${d} aria-label="Mehr Gewicht">${icon('plus')}</button></div></div>
         <div class="fc-big"><div class="stepper-label">${uni ? bShort + ' links' : bLabel}</div>
           <div class="stepper"><button data-act="step" data-f="b" data-d="-1" ${d} aria-label="Weniger">${icon('minus')}</button>
-          <input class="fc-in" inputmode="numeric" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(bPh)}" aria-label="${bLabel}${uni ? ' links' : ''}">
+          <input class="fc-in" inputmode="${kpIM('numeric')}" data-in="setB" ${d} value="${(type === 'sec' ? s.durationSec : s.reps) ?? ''}" placeholder="${esc(bPh)}" aria-label="${bLabel}${uni ? ' links' : ''}">
           <button data-act="step" data-f="b" data-d="1" ${d} aria-label="Mehr">${icon('plus')}</button></div></div>
         ${uni ? `<div class="fc-big"><div class="stepper-label">${bShort} rechts</div>
           <div class="stepper"><button data-act="step" data-f="bR" data-d="-1" ${d} aria-label="Weniger rechts">${icon('minus')}</button>
