@@ -456,6 +456,7 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 - **Kennzahl-Kacheln gleichmäßig** (Zusammenfassung, Workout-Detail): „Ø RPE“ erscheint nur mit eingetragenem RPE.
   Bleiben drei Kacheln, stehen sie nebeneinander (Dauer kurz als „64 min“), sonst zwei Spalten; eine übrige letzte
   Kachel geht über die ganze Breite. Beschriftung und Wert stehen in allen Kennzahl-Kacheln zentriert.
+  Die Satz-Tabellen im Workout-Detail zeigen die Spalte „RPE“ nur, wenn im Workout irgendwo ein RPE eingetragen ist.
 - **Kraft** mit Filter **Gesamt / Pro Übung / Pro Muskelgruppe**: Gesamt und Muskelgruppe zeigen den
   **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
   Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,

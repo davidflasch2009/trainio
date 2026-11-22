@@ -828,6 +828,8 @@ function openWorkoutDetail(id) {
   const row = Analytics.cur().rows.find(r => r.id === id);
   const prEv = Analytics.cur().prEvents.filter(p => p.wid === id);
   const sc = F('f_score') ? Analytics.score(id) : null;
+  // RPE-Spalte nur, wenn in diesem Workout irgendwo ein RPE eingetragen ist (wie die Kachel „Ø RPE“)
+  const hasRpe = (wo.entries || []).some(en => (en.sets || []).some(s => s.rpe != null && s.rpe !== ''));
   const m = Modal.open({
     title: woTitle(wo), size: 'lg',
     body: `
@@ -857,9 +859,9 @@ function openWorkoutDetail(id) {
           <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}${en.formFix ? ' <span class="badge warn">Form-Fix</span>' : ''}</button>
           <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
           ${en.formFix && en.formFix.note ? `<div class="tiny dim">${esc(en.formFix.note)}</div>` : ''}
-          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th><th class="r">RPE</th><th class="r">e1RM</th></tr></thead><tbody>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th>${hasRpe ? '<th class="r">RPE</th>' : ''}<th class="r">e1RM</th></tr></thead><tbody>
           ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}${s.fix && !s.warmup ? ' <span class="badge warn" style="padding:1px 5px">Form-Fix</span>' : ''}</td>
-            <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td><td class="r">${s.rpe ?? '–'}</td>
+            <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td>${hasRpe ? `<td class="r">${s.rpe ?? '–'}</td>` : ''}
             <td class="r dim">${!isSec && !s.fix && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td></tr>`).join('')}
           </tbody></table></div></div>`;
       }).join('')}`,

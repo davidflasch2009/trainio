@@ -1233,11 +1233,15 @@ async function kleintextFlow(page) {
     openWorkoutDetail('k_w1'); await wait(400);
     const g1 = document.querySelector('.modal-wrap:not(.closing) .modal .pr-grid');
     out.detailMitRpe = g1.children.length === 4 && !g1.classList.contains('n3') && /Ø RPE/.test(g1.innerText);
+    const rpeTh = () => [...document.querySelectorAll('.modal-wrap:not(.closing) .modal .tbl th')].some(th => th.textContent === 'RPE');
+    out.rpeSpalteMit = rpeTh();
     Modal.closeAll(); await wait(300);
     Store.put('workouts', 'k_w2', { date: isoDate(new Date(Date.now() - 864e5)), startedAt: Date.now() - 864e5, durationSec: 3840, name: 'K-Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [{ reps: 8, weightKg: 80, done: true }] }] });
     openWorkoutDetail('k_w2'); await wait(400);
     const g2 = document.querySelector('.modal-wrap:not(.closing) .modal .pr-grid');
     out.detailOhneRpe = g2.children.length === 3 && g2.classList.contains('n3') && !/Ø RPE/.test(g2.innerText) && /64 min/.test(g2.innerText) && getComputedStyle(g2).gridTemplateColumns.split(' ').length === 3;
+    // ohne eingetragenes RPE keine leere RPE-Spalte in der Satz-Tabelle
+    out.rpeSpalteOhne = !rpeTh() && document.querySelector('.modal-wrap:not(.closing) .modal .tbl tbody tr').children.length === document.querySelector('.modal-wrap:not(.closing) .modal .tbl thead tr').children.length;
     // Text in den Kacheln zentriert – auch bei der bearbeitbaren Dauer mit Stift
     out.zentriert = [...g2.children].every(b => getComputedStyle(b).textAlign === 'center') && getComputedStyle(g2.querySelector('.wd-edit span')).justifyContent === 'center';
     Modal.closeAll(); await wait(300);
@@ -1259,7 +1263,7 @@ async function kleintextFlow(page) {
   });
   const r2bad = Object.entries(r2).filter(([, v]) => !v).map(([k]) => k);
   check(!r2bad.length, 'Weniger Kleintext, Runde 2: Start, Pläne, Fortschritt, Listen, Fenster, Pausen-Leiste', 'nicht erfüllt: ' + r2bad.join(', '));
-  check(r2.detailOhneRpe && r2.detailMitRpe && r2.fuenfKacheln && r2.zentriert, 'Kacheln: ohne RPE drei nebeneinander („64 min“), mit RPE vier, ungerade Zahl → letzte über die ganze Breite, Text zentriert', JSON.stringify(r2));
+  check(r2.detailOhneRpe && r2.detailMitRpe && r2.fuenfKacheln && r2.zentriert && r2.rpeSpalteMit && r2.rpeSpalteOhne, 'Kacheln: ohne RPE drei nebeneinander („64 min“), mit RPE vier, ungerade Zahl → letzte über die ganze Breite, Text zentriert; RPE-Spalte nur mit RPE', JSON.stringify(r2));
   await page.evaluate(() => { Modal.closeAll(); App.go('start', { instant: true }); });
   check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler mit weniger Kleintext', page.errors.concat(await appErrors(page)).join(' | '));
 }
