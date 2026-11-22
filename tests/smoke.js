@@ -307,7 +307,7 @@ async function dataFlow(page) {
     for (let i = 1; i <= 6; i++) { const st = Date.now() - i * 86400000 * 3; ops.push({ type: 'put', coll: 'workouts', id: 'dw' + i, doc: { date: isoDate(new Date(st)), startedAt: st, durationSec: 3000, name: 'Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [{ reps: 8, weightKg: 60 + i, done: true }] }] } }); }
     ops.push({ type: 'put', coll: 'templates', id: 'dt1', doc: { name: 'Push', exercises: [{ exerciseId: 'ex_bankdruecken', sets: 3, reps: '8', restSec: 90 }] } });
     await Store.batch(ops); await PR.recalcAll();
-    Store.saveSettings({ design: 'paper' });
+    Store.saveSettings({ design: 'plakat' });
   });
   const before = await count();
   // Backup herunterladen
@@ -329,7 +329,7 @@ async function dataFlow(page) {
   const after = await count();
   fs.rmSync(file, { force: true });
   check(after.w === before.w && after.t === before.t && after.pr === before.pr, 'Backup wiederhergestellt (Workouts, Vorlagen, PRs)', JSON.stringify({ before, after }));
-  check(await page.evaluate(() => S().design === 'paper'), 'Einstellungen aus dem Backup übernommen');
+  check(await page.evaluate(() => S().design === 'plakat'), 'Einstellungen aus dem Backup übernommen');
   // Arrow-Import mit dem Beispiel, danach rückgängig
   await page.evaluate(() => { Actions.openArrow(); }); await pause(page, 500);
   await page.click('.modal [data-x="example"]'); await pause(page, 200);
@@ -363,13 +363,16 @@ async function dataFlow(page) {
   check(cv && cv.every(c => c.sharp), 'Diagramme mit voller Pixeldichte', cv ? JSON.stringify(cv.filter(c => !c.sharp)) : '');
   await page.evaluate(() => openMoreSub('look'));
   await pause(page, 600);
-  for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="iron"]']) {
+  const designs = await page.locator('#tab-more .design-tile').evaluateAll(tiles => tiles.map(t => t.dataset.v));
+  check(designs.join(',') === 'gymlog,glass,pure,plakat,fokus,sky', 'Darstellung zeigt die sechs verfügbaren Designs', designs.join(','));
+  check(await page.evaluate(() => ['paper', 'iron', 'carbon'].every(design => lookAttrs({ design })['data-design'] === 'gymlog')), 'Entfernte Designs fallen auf Trainio zurück');
+  for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="pure"]']) {
     await page.click(`#tab-more ${sel}`);
     await pause(page, 450);
   }
   await pause(page, 600);   // Überblendung zu Ende
-  const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="iron"]') }));
-  check(look.d === 'iron' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
+  const look = await page.evaluate(() => ({ d: document.documentElement.dataset.design, t: document.documentElement.dataset.theme, swap: document.documentElement.classList.contains('look-swap'), active: !!document.querySelector('#tab-more .design-tile.active[data-v="pure"]') }));
+  check(look.d === 'pure' && look.t === 'light' && !look.swap && look.active, 'Design, Farbe und Modus übernommen', JSON.stringify(look));
   // Plakat: eckig, Linien statt Karten, Rot nur als Akzent
   await page.click('#tab-more [data-k="accent"][data-v=""]').catch(() => page.evaluate(() => Store.saveSettings({ accent: '' })));
   await page.click('#tab-more [data-k="design"][data-v="plakat"]');
@@ -908,7 +911,7 @@ function contrastChecks() {
     const ink = ratio(parse(v['--accent']).c, parse(v['--accent-ink']).c);
     if (ink < 4.5) low.push(`${design}·${state} Button-Schrift ${ink.toFixed(2)}`);
   }
-  check(n === 20 && !low.length, `T09: Text und Haupt-Buttons in allen ${n} Designzuständen mindestens 4,5:1`, low.slice(0, 6).join(', '));
+  check(n === 14 && !low.length, `T09: Text und Haupt-Buttons in allen ${n} Designzuständen mindestens 4,5:1`, low.slice(0, 6).join(', '));
   const sw = read('sw.js');
   check(/url\.hostname !== 'fonts\.googleapis\.com'/.test(sw) && sw.includes('if (bypass(url)) return;'), 'T17: Schrift-Stylesheets von Google Fonts landen im Offline-Cache');
   const boot = read('js/boot.js');
@@ -1118,7 +1121,7 @@ async function befundeFlow(page) {
 
   // T02 + T04: Ruhepuls allein zählt als Gasteingabe; Abmelden entfernt den Profilnamen, das Design bleibt
   const out = await page.evaluate(async () => {
-    Store.saveSettings({ displayName: 'QA offline', birthYear: 1990, design: 'iron' });
+    Store.saveSettings({ displayName: 'QA offline', birthYear: 1990, design: 'pure' });
     Store.detach();
     await new Promise(r => setTimeout(r, 400));
     const s = JSON.parse(localStorage.getItem(LS.settings) || '{}');
@@ -1126,7 +1129,7 @@ async function befundeFlow(page) {
     const heartOnly = Store.hasUserData();
     return { name: S().displayName, by: S().birthYear, design: S().design, lsName: s.displayName, heartOnly };
   });
-  check(out.name === '' && out.by === null && out.lsName === '' && out.design === 'iron', 'T04: nach dem Abmelden ist der Profilname vom Gerät entfernt, das Design bleibt', JSON.stringify(out));
+  check(out.name === '' && out.by === null && out.lsName === '' && out.design === 'pure', 'T04: nach dem Abmelden ist der Profilname vom Gerät entfernt, das Design bleibt', JSON.stringify(out));
   check(out.heartOnly, 'T02: ein gespeicherter Ruhepuls allein löst die Übernahme-Rückfrage aus', JSON.stringify(out));
   await page.evaluate(() => Store.saveSettings({ design: 'gymlog' }));
   check(!page.errors.length, 'keine JavaScript-Fehler bei den Befund-Prüfungen', page.errors.join(' | '));
@@ -1333,11 +1336,11 @@ async function rueckgaengigFlow(page) {
   check(await page.evaluate(() => S().heartPlan && S().heartPlan.rhrGoal === 52), 'Rückgängig: Herz-Plan wieder aktiv');
 
   // Darstellung zurücksetzen
-  await page.evaluate(() => Store.saveSettings({ design: 'iron', theme: 'dark' }));
+  await page.evaluate(() => Store.saveSettings({ design: 'pure', theme: 'dark' }));
   await page.evaluate(() => Actions.lookReset()); await pause(page, 400);
   check(await page.evaluate(() => S().design === DEFAULT_SETTINGS.design), 'Darstellung zurücksetzen: sofort Standard');
   await undo(); await pause(page, 300);
-  check(await page.evaluate(() => S().design === 'iron' && S().theme === 'dark'), 'Rückgängig: Design wieder wie vorher');
+  check(await page.evaluate(() => S().design === 'pure' && S().theme === 'dark'), 'Rückgängig: Design wieder wie vorher');
 
   // Im Workout: Übung mit erledigtem Satz entfernen, Workout abbrechen
   await page.evaluate(() => { Workout.start({ templateId: 'u_tpl' }); Workout.set(w => { w.entries[0].sets[0] = { ...w.entries[0].sets[0], weightKg: 60, reps: 8, done: true }; }); App.go('training', { instant: true }); });

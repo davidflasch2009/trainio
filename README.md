@@ -53,8 +53,8 @@ Verlauf in Fortschritt → Übersicht („Workout-Score“).
 ## Workout teilen
 
 Der Teilen-Knopf (beim Abschluss und im Workout-Detail) erstellt ein **Bild im Story-Format 9:16**
-(1080 × 1920) im eigenen Design – Farben, Akzent und Schrift des gewählten Themes (Liquid Glass mit Aurora,
-Carbon mit Karbon-Muster, Paper mit Papier-Körnung). Darauf: Name, Datum, Score-Ring (bei 100 in Gold),
+(1080 × 1920) im eigenen Design – Farben, Akzent und Schrift des gewählten Themes.
+Liquid Glass zeigt zum Beispiel den Aurora-Hintergrund. Darauf: Name, Datum, Score-Ring (bei 100 in Gold),
 Dauer, Volumen, Sätze, PRs und je Übung der beste Satz – PRs mit Pokal. Bei vielen Übungen wird der Ring
 kleiner; was nicht passt, steht als „+ N weitere“. In der Vorschau: **Bild teilen** (Teilen-Menü, dort auch
 „Bild sichern“) bzw. **Bild speichern**, wo der Browser keine Bilder teilen kann, oder **Als Text** (wie bisher).
@@ -117,17 +117,14 @@ Ruhig wie iOS. Alle Animationen folgen **Mehr → Darstellung → Animationen** 
 
 ## Designs & Darstellung
 
-Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
+Unter **Mehr → Darstellung** gibt es 6 Designs, jedes in **Hell und Dunkel**
 (oder automatisch nach System / Uhrzeit) – nur „Tag & Nacht“ wechselt von selbst mit dem Sonnenstand:
 
 | Design | Look |
 | --- | --- |
 | Trainio | Ruhiges Graphit mit gedecktem Grün – klar und professionell (Standard) |
 | Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
-| Iron | Industrial-Gym: Stahl, Orange, Condensed-Schrift |
 | Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
-| Carbon | Graphit & Rennrot mit feiner Karbon-Struktur – sportlich wie ein Cockpit |
-| Paper | Warmes Papier mit Serifen-Titeln (Newsreader) und Ton-Akzent – ruhig und editorial |
 | Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |
 | Fokus | Schwarz-weiß und ruhig: nur Schwarz, Weiß und Grau (auch Knöpfe, Diagramme und Konfetti), Systemschrift, keine Effekte – Farbe tragen nur Signale wie Rot/Grün für schlechter/besser und Fehler. Im Workout **Spotlight**: nur die aktuelle Übung ist voll da (die anderen treten zurück, antippen holt sie nach vorn), der nächste offene Satz hat eine feine Linie, erledigte Sätze sind gedimmt |
 | Tag & Nacht | Der Himmel als Hintergrund, in vier Phasen: **Dämmerung** (Lavendel & Pfirsich), **Tag** (Himmelblau, Sonnengelb), **Sonnenuntergang** (Violett & Orange, dunkel) und **Nacht** (Nachtblau, Mondsilber, Sterne). Siehe unten |
@@ -148,7 +145,7 @@ Unter **Mehr → Darstellung** gibt es 9 Designs, jedes in **Hell und Dunkel**
   auf der Startseite der nächste Sonnenauf- oder -untergang. Auch das Teilen-Bild zeigt den Himmel von jetzt.
 - Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich wie überall frei einstellen.
 
-Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal) genutzt
+Wer vorher eines der entfernten Designs (Lernio, Mono, Brutal, Soft, Neon, Terminal, Paper, Iron, Carbon) genutzt
 hat, landet automatisch bei Trainio.
 
 Dazu einstellbar: Akzentfarbe (12 Vorgaben oder eigene Farbe – Kontrast wird automatisch
@@ -665,7 +662,7 @@ Verlauf, Übungssuche, alle Einstellungs-Gruppen, Zurück-Wischen, Neuladen mit 
 (Ruhepuls tippen/eintragen, VO2max-Schätzung, Herz-Plan, Intensität, Intervall-Timer bis zum Eintrag) und Form-Fix
 (Score neutral, PRs neu, Kraft ab dem Fix). Außerdem alle 18 Befunde aus dem Prüfbericht zu 1.33.8: zwei Tabs
 gleichzeitig, Gastübernahme mit Ruhepuls, Abmelden, alternative Übungsnamen, umbenannte Plan-Workouts,
-Cardio-PDF, Tastatur (Fokus bleibt im Dialog, Escape, Reiter mit Pfeiltasten), Kontrast aller 20 Designzustände
+Cardio-PDF, Tastatur (Fokus bleibt im Dialog, Escape, Reiter mit Pfeiltasten), Kontrast aller 14 Designzustände
 (Text ≥ 4,5:1), 320 px breite Displays mit Text XL, Körper-Eingaben, 1RM-Formel und Fotovergleich. Die eigene
 Zahlentastatur wird per Touch durchgespielt: Tippen, Komma-Regeln, ±, Weiter → Abhaken → nächster Satz, fehlendes
 Gewicht, Links/Rechts, Cardio-Dauer, Tipp daneben, Fokus-Ansicht, Ausschalten und volle Animationen (Feld bleibt

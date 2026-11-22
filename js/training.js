@@ -1018,7 +1018,7 @@ async function shareImage(wo) {
   const C = { bg: v('--bg'), surf: v('--surface'), surf3: v('--surface-3'), border: v('--border'), text: v('--text'), dim: v('--text-dim'), faint: v('--text-faint'), accent: v('--accent'), acc: v('--accent-text'), gold: v('--gold-text') || '#f6bb2a' };
   const FN = { body: v('--font') || 'system-ui, sans-serif', disp: v('--font-display') || v('--font') || 'system-ui, sans-serif', num: v('--font-num') || v('--font') || 'system-ui, sans-serif' };
   const fwx = v('--fw-x') || '700', upper = v('--title-transform') === 'uppercase', rsv = parseFloat(v('--rs')), rs = Number.isFinite(rsv) ? rsv : 1;
-  // Web-Schriften des Designs (Barlow, Titillium, Newsreader) vor dem Zeichnen laden
+  // Web-Schriften des gewählten Designs vor dem Zeichnen laden
   await Promise.race([Promise.all(['400', '600', fwx].flatMap(w => [FN.body, FN.disp, FN.num].map(f => document.fonts.load(`${w} 60px ${f}`).catch(() => {})))), new Promise(r => setTimeout(r, 1500))]);
   const logo = await new Promise(r => { const i = new Image(); i.onload = () => r(i); i.onerror = () => r(null); i.src = iconSrc('icon-192.png'); });
   const id = wo.id, row = Analytics.cur().rows.find(r => r.id === id);
@@ -1054,16 +1054,6 @@ async function shareImage(wo) {
   } else {
     glow(W * .12, H * .06, 980, C.accent, dark ? .2 : .1);
     glow(W * .95, H * .92, 1100, C.accent, dark ? .13 : .07);
-  }
-  if (design === 'carbon') {
-    const pc = document.createElement('canvas'); pc.width = pc.height = 14;
-    const p = pc.getContext('2d'); p.fillStyle = dark ? 'rgba(255,255,255,.035)' : 'rgba(0,0,0,.035)';
-    p.fillRect(0, 0, 7, 7); p.fillRect(7, 7, 7, 7);
-    x.fillStyle = x.createPattern(pc, 'repeat'); x.fillRect(0, 0, W, H);
-  }
-  if (design === 'paper') {
-    x.fillStyle = dark ? 'rgba(255,240,220,.035)' : 'rgba(90,70,40,.05)';
-    for (let i = 0; i < 9000; i++) x.fillRect(Math.random() * W, Math.random() * H, 2, 2);
   }
 
   // Kopf: Logo, App-Name, Datum
@@ -1128,7 +1118,6 @@ async function shareImage(wo) {
     if (design === 'plakat') { x.fillStyle = C.text; x.fillRect(tx, y, tw, 5); }
     else { rr(tx, y, tw, th, tr); x.fillStyle = C.surf; x.fill(); }
     if (design !== 'pure' && design !== 'glass' && design !== 'plakat') { x.lineWidth = 2; x.strokeStyle = C.border; x.stroke(); }
-    if (design === 'iron') { x.fillStyle = C.accent; x.fillRect(tx, y, tw, 5); }
     const tpad = design === 'plakat' ? 0 : 24;
     x.textAlign = 'left'; font(design === 'plakat' ? '700' : '600', 27, FN.body); x.fillStyle = C.dim; x.fillText(upper || design === 'plakat' ? l.toUpperCase() : l, tx + tpad, y + th * .32);
     x.fillStyle = l === 'PRs' && +val > 0 ? C.acc : C.text; shrink(val, fwx, design === 'plakat' ? 58 : 50, FN.num, tw - 2 * tpad - (tpad ? 0 : 8)); x.fillText(val, tx + tpad, y + th * .76);

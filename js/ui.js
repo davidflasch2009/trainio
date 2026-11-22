@@ -674,24 +674,18 @@ const WakeLock = (() => {
 /* ---------- Darstellung: Designs × Hell/Dunkel, Akzent, Feinschliff ---------- */
 const GF = 'https://fonts.googleapis.com/css2?display=swap&family=';
 const DESIGN_FONTS = {
-  iron: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700',
-  carbon: GF + 'Titillium+Web:wght@400;600;700',
-  paper: GF + 'Newsreader:opsz,wght@6..72,500;6..72,600',
   // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
   plakat: GF + 'Archivo:wght@400;500;600;700',
   // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
   sky: GF + 'Fraunces:opsz,wght,SOFT@9..144,400..700,100'
 };
-const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: DESIGN_FONTS.iron };
+const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed: GF + 'Barlow+Condensed:wght@500;600;700;800&family=Barlow:wght@400;500;600;700' };
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben).
    phased: kein Hell/Dunkel zum Auswählen – das Design folgt der Tageszeit (js/sky.js), surf dann je Phase */
 const DESIGNS = [
   { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#141518', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
-  { id: 'iron', name: 'Iron', desc: 'Industrial-Gym: Stahl, Orange, Condensed', surf: { dark: '#17191b', light: '#f9f8f5' } },
   { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
-  { id: 'carbon', name: 'Carbon', desc: 'Graphit & Rennrot – sportlich wie ein Cockpit', surf: { dark: '#16171a', light: '#ffffff' } },
-  { id: 'paper', name: 'Paper', desc: 'Warmes Papier & Serifen-Titel – ruhig und editorial', surf: { dark: '#22201d', light: '#fbf8f2' } },
   { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },
   { id: 'fokus', name: 'Fokus', desc: 'Schwarz-weiß und ruhig – im Workout tritt alles außer der aktuellen Übung zurück', nav: 'classic', surf: { dark: '#0e0e0e', light: '#ffffff' } },
   { id: 'sky', name: 'Tag & Nacht', desc: 'Der Himmel als Hintergrund: Dämmerung, Tag, Sonnenuntergang & Nacht – wechselt von selbst mit dem Sonnenstand', nav: 'floating', phased: true,
