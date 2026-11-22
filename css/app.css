@@ -703,8 +703,8 @@ button.list-item.pressed, .list-item.clickable.pressed { background: var(--surfa
 .bw-quick .input { flex: 1; min-width: 0; font-size: max(16px, calc(20px * var(--fs))); font-weight: var(--fw-b); }
 .wd-when { display: inline-flex; align-items: center; gap: 6px; background: none; border: 0; padding: 4px 0; color: var(--text-dim); font: inherit; text-align: left; cursor: pointer; }
 .wd-when svg, .wd-edit span svg { width: 14px; height: 14px; color: var(--text-faint); }
-.pr-box.wd-edit { font: inherit; color: inherit; text-align: left; cursor: pointer; border: 0; width: 100%; }
-.pr-box.wd-edit span { display: flex; align-items: center; gap: 4px; }
+.pr-box.wd-edit { font: inherit; color: inherit; cursor: pointer; border: 0; width: 100%; }
+.pr-box.wd-edit span { display: flex; align-items: center; justify-content: center; gap: 4px; }
 .wm-dur { gap: 8px; }
 .wm-dur .input { max-width: 84px; text-align: center; }
 .sum-badge { width: 64px; height: 64px; margin: 0 auto; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-text); }
@@ -1211,7 +1211,7 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .sb-item.na b { color: var(--text-faint); }
 .wd-score { padding: 4px 0 2px; }
 @media (min-width: 560px) { .pr-grid { grid-template-columns: repeat(4, 1fr); } }
-.pr-box { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px 12px; }
+.pr-box { background: var(--surface-2); border-radius: calc(12px * var(--rs)); padding: 10px 12px; text-align: center; }
 .pr-box span { font-size: calc(11.5px * var(--fs)); color: var(--text-dim); font-weight: var(--fw-b); }
 .pr-box b { display: block; font-size: calc(19px * var(--fs)); font-weight: var(--fw-x); margin-top: 2px; }
 .pr-box em { font-style: normal; font-size: calc(11.5px * var(--fs)); color: var(--text-faint); }

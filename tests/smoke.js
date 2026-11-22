@@ -1238,6 +1238,8 @@ async function kleintextFlow(page) {
     openWorkoutDetail('k_w2'); await wait(400);
     const g2 = document.querySelector('.modal-wrap:not(.closing) .modal .pr-grid');
     out.detailOhneRpe = g2.children.length === 3 && g2.classList.contains('n3') && !/Ø RPE/.test(g2.innerText) && /64 min/.test(g2.innerText) && getComputedStyle(g2).gridTemplateColumns.split(' ').length === 3;
+    // Text in den Kacheln zentriert – auch bei der bearbeitbaren Dauer mit Stift
+    out.zentriert = [...g2.children].every(b => getComputedStyle(b).textAlign === 'center') && getComputedStyle(g2.querySelector('.wd-edit span')).justifyContent === 'center';
     Modal.closeAll(); await wait(300);
     const t5 = document.createElement('div'); t5.innerHTML = prTiles([['A', 1], ['B', 2], ['C', 3], ['D', 4], ['E', 5]]); document.body.append(t5);
     const last = t5.querySelector('.pr-grid').lastElementChild, first = t5.querySelector('.pr-grid').firstElementChild;
@@ -1257,7 +1259,7 @@ async function kleintextFlow(page) {
   });
   const r2bad = Object.entries(r2).filter(([, v]) => !v).map(([k]) => k);
   check(!r2bad.length, 'Weniger Kleintext, Runde 2: Start, Pläne, Fortschritt, Listen, Fenster, Pausen-Leiste', 'nicht erfüllt: ' + r2bad.join(', '));
-  check(r2.detailOhneRpe && r2.detailMitRpe && r2.fuenfKacheln, 'Kacheln: ohne RPE drei nebeneinander („64 min“), mit RPE vier, ungerade Zahl → letzte über die ganze Breite', JSON.stringify(r2));
+  check(r2.detailOhneRpe && r2.detailMitRpe && r2.fuenfKacheln && r2.zentriert, 'Kacheln: ohne RPE drei nebeneinander („64 min“), mit RPE vier, ungerade Zahl → letzte über die ganze Breite, Text zentriert', JSON.stringify(r2));
   await page.evaluate(() => { Modal.closeAll(); App.go('start', { instant: true }); });
   check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler mit weniger Kleintext', page.errors.concat(await appErrors(page)).join(' | '));
 }
