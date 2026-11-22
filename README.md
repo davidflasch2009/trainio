@@ -122,7 +122,7 @@ Unter **Mehr → Darstellung** gibt es 6 Designs, jedes in **Hell und Dunkel**
 
 | Design | Look |
 | --- | --- |
-| Trainio | Ruhiges Graphit mit gedecktem Grün – klar und professionell (Standard) |
+| Trainio | Nachtblau & Kreide wie ein Vereinstrikot, Gold für Rekorde, feine doppelte Nadelstreifen; Zahlen in einer schmalen Sportschrift (Standard) |
 | Liquid Glass | Glas-Material mit Unschärfe & Wallpaper, wie iOS 26 |
 | Pure | Reines Schwarz & Weiß, Systemschrift, Buttons schwarz/weiß, Akzent nur wo nötig |
 | Plakat | Schweizer Sportplakat: strenges Raster, große Grotesk-Zahlen (Helvetica Neue auf iPhone/Mac, sonst Archivo), Schwarz-Weiß & Signalrot. Linien statt Karten, eckig, keine Schatten, keine Verläufe; Auswahl schwarz, Rot nur für Aktionen. Auch das Teilen-Bild im Plakat-Stil. Ecken, Akzentfarbe, Schrift, Dichte, Kontrast und Tab-Leiste lassen sich trotzdem frei einstellen |

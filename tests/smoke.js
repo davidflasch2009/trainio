@@ -366,6 +366,22 @@ async function dataFlow(page) {
   const designs = await page.locator('#tab-more .design-tile').evaluateAll(tiles => tiles.map(t => t.dataset.v));
   check(designs.join(',') === 'gymlog,glass,pure,plakat,fokus,sky', 'Darstellung zeigt die sechs verfügbaren Designs', designs.join(','));
   check(await page.evaluate(() => ['paper', 'iron', 'carbon'].every(design => lookAttrs({ design })['data-design'] === 'gymlog')), 'Entfernte Designs fallen auf Trainio zurück');
+  // Trainio-Standard: Nachtblau & Kreide, Gold für Rekorde, Kreidestreifen, Sportschrift für Zahlen
+  const tr = await page.evaluate(() => {
+    Store.saveSettings({ design: 'gymlog', theme: 'dark', accent: '' }); applyTheme();
+    const box = document.createElement('div'); box.innerHTML = `<span class="badge accent">${icon('trophy')} PR</span><div class="card">x</div>`; document.querySelector('#tab-more').append(box);
+    const cs = el => getComputedStyle(el), root = cs(document.documentElement);
+    const out = {
+      bg: root.getPropertyValue('--bg').trim(), accent: root.getPropertyValue('--accent').trim(),
+      gold: cs(box.querySelector('.i-trophy')).color, stripes: /repeating-linear-gradient/.test(cs(document.body).backgroundImage),
+      noBorder: cs(box.querySelector('.card')).borderTopColor === 'rgba(0, 0, 0, 0)', font: /Saira/.test(root.getPropertyValue('--font-num')),
+      fontLink: !!document.querySelector('link[href*="Saira"]')
+    };
+    box.remove();
+    return out;
+  });
+  check(tr.bg === '#0c111c' && tr.accent === '#ece6d3' && tr.gold === 'rgb(214, 178, 94)' && tr.stripes && tr.noBorder && tr.font && tr.fontLink,
+    'Trainio-Design: Nachtblau & Kreide, Pokale in Gold, Kreidestreifen, Karten ohne Rahmen im Dunkeln, Sportschrift geladen', JSON.stringify(tr));
   for (const sel of ['[data-k="accent"][data-v="#0a84ff"]', '[data-k="design"][data-v="glass"]', '[data-k="theme"][data-v="light"]', '[data-k="design"][data-v="pure"]']) {
     await page.click(`#tab-more ${sel}`);
     await pause(page, 450);

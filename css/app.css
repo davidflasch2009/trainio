@@ -40,26 +40,34 @@
   color-scheme: light;
 }
 
-/* ---------- Trainio (Standard): ruhiges Graphit mit gedecktem Grün ---------- */
+/* ---------- Trainio (Standard): Nachtblau & Kreide wie ein Vereinstrikot, Gold für Rekorde ---------- */
+[data-design="gymlog"] {
+  --rs: .62;
+  --font-num: "Saira Semi Condensed", var(--font);
+  --font-display: "Saira Semi Condensed", var(--font);
+  --title-spacing: -.005em;
+}
 [data-design="gymlog"][data-theme="dark"] {
-  --bg: #0b0c0e; --surface: #141518; --surface-2: #1b1d21; --surface-3: #25282d;
-  --border: #222429; --border-strong: #31343a;
-  --text: #f1f2f4; --text-dim: #9fa4ad; --text-faint: #83878f;
-  --accent: #38c97f; --accent-dim: #1f6e47; --accent-text: #56d696; --accent-ink: #03130a; --accent-soft: rgba(56, 201, 127, .12);
+  --bg: #0c111c; --surface: #151b2a; --surface-2: #1d2436; --surface-3: #283044;
+  --border: #222a3d; --border-strong: #343d55;
+  --text: #f2eee3; --text-dim: #b3b1ac; --text-faint: #9b9a97;
+  --accent: #ece6d3; --accent-dim: #5d5a50; --accent-text: #e8e1cb; --accent-ink: #111726; --accent-soft: rgba(236, 230, 211, .11);
   --danger: #f2555a; --danger-soft: rgba(242, 85, 90, .13); --warning: #f0a531; --warning-soft: rgba(240, 165, 49, .13);
-  --success: #38c97f; --info: #5ba4f5;
-  --shadow: 0 18px 48px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .3); --grid: #1f2126;
-  --card-shadow: inset 0 1px 0 rgba(255, 255, 255, .03), 0 1px 2px rgba(0, 0, 0, .25);
+  --success: #e8e1cb; --info: #5ba4f5;
+  --gold: #d6b25e; --gold-soft: rgba(214, 178, 94, .13); --stripe: rgba(236, 230, 211, .055);
+  --shadow: 0 18px 48px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .3); --grid: #1d2435;
+  --card-shadow: none;
 }
 [data-design="gymlog"][data-theme="light"] {
-  --bg: #f4f5f7; --surface: #ffffff; --surface-2: #f1f3f5; --surface-3: #e5e8ec;
-  --border: #e4e7eb; --border-strong: #cdd2d9;
-  --text: #0f1216; --text-dim: #555d69; --text-faint: #686e77;
-  --accent: #12864a; --accent-dim: #8fd3ad; --accent-text: #0f7d45; --accent-ink: #ffffff; --accent-soft: rgba(22, 163, 90, .1);
+  --bg: #f2f4f8; --surface: #ffffff; --surface-2: #ebeef4; --surface-3: #dde1ea;
+  --border: #dfe3eb; --border-strong: #c5cbd8;
+  --text: #111726; --text-dim: #4d5567; --text-faint: #5c6478;
+  --accent: #1b2848; --accent-dim: #a7b1ca; --accent-text: #1b2848; --accent-ink: #ffffff; --accent-soft: rgba(27, 40, 72, .07);
   --danger: #c8383e; --danger-soft: rgba(210, 58, 64, .09); --warning: #996100; --warning-soft: rgba(217, 138, 0, .11);
-  --success: #0f7d45; --info: #296cc9;
-  --shadow: 0 18px 48px rgba(16, 24, 40, .13), 0 2px 8px rgba(16, 24, 40, .05); --grid: #eceef2;
-  --card-shadow: 0 1px 2px rgba(16, 24, 40, .05), 0 1px 3px rgba(16, 24, 40, .03);
+  --success: #1b2848; --info: #296cc9;
+  --gold: #8a6614; --gold-soft: rgba(138, 102, 20, .1); --stripe: rgba(27, 40, 72, .04);
+  --shadow: 0 18px 48px rgba(16, 24, 40, .13), 0 2px 8px rgba(16, 24, 40, .05); --grid: #e6e9ef;
+  --card-shadow: none;
 }
 
 /* ---------- Liquid Glass: transluzentes Material über Wallpaper (iOS 26) ---------- */
@@ -1484,6 +1492,15 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 
 /* ---------- Trainio ---------- */
 [data-design="gymlog"] .stat .stat-label svg { color: var(--accent-text); }
+/* doppelte Kreidestreifen im Hintergrund, die Karten bleiben glatt */
+[data-design="gymlog"] body { background-image: repeating-linear-gradient(90deg, transparent 0 40px, var(--stripe) 40px 41px, transparent 41px 44px, var(--stripe) 44px 45px); background-attachment: fixed; }
+/* im Dunkeln trennt die Füllung – Rahmen nur noch an der aktuellen und an fertigen Übungen */
+[data-design="gymlog"][data-theme="dark"] :is(.card, .stat, .chart-card, .list, .ex-card:not(.ex-open):not(.complete)) { border-color: transparent; }
+/* Beschriftungen wie auf einer Anzeigetafel */
+[data-design="gymlog"] :is(.stat .stat-label, .pr-box > span) { text-transform: uppercase; letter-spacing: .07em; font-size: calc(11px * var(--fs)); font-weight: var(--fw-b); }
+/* Gold heißt Rekord */
+[data-design="gymlog"] .i-trophy { color: var(--gold) !important; }
+[data-design="gymlog"] .badge:has(.i-trophy) { background: var(--gold-soft); color: var(--gold); }
 [data-design="gymlog"] .set-row.done { background: color-mix(in srgb, var(--accent) 6%, transparent); }
 [data-design="gymlog"][data-theme="dark"] :is(.modal, .toast, .rest-dock, .popover) { box-shadow: var(--shadow), inset 0 1px 0 rgba(255, 255, 255, .04); }
 

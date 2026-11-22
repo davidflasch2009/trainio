@@ -674,6 +674,8 @@ const WakeLock = (() => {
 /* ---------- Darstellung: Designs × Hell/Dunkel, Akzent, Feinschliff ---------- */
 const GF = 'https://fonts.googleapis.com/css2?display=swap&family=';
 const DESIGN_FONTS = {
+  // Trainio: Zahlen und Überschriften in einer leicht schmalen Sportschrift (Trikotnummern), Text bleibt Systemschrift
+  gymlog: GF + 'Saira+Semi+Condensed:wght@500;600;700',
   // Plakat nutzt Helvetica Neue (iPhone/Mac); Archivo nur, wo sie fehlt
   plakat: GF + 'Archivo:wght@400;500;600;700',
   // Tag & Nacht: Fraunces mit weichen Rundungen (SOFT 100) für Titel und große Zahlen
@@ -683,7 +685,7 @@ const USER_FONTS = { rounded: GF + 'Nunito:wght@400;600;700;800;900', condensed:
 /* surf = Kartenfarbe je Modus (für die Kontrast-Berechnung eigener Akzentfarben).
    phased: kein Hell/Dunkel zum Auswählen – das Design folgt der Tageszeit (js/sky.js), surf dann je Phase */
 const DESIGNS = [
-  { id: 'gymlog', name: 'Trainio', desc: 'Ruhiges Graphit mit gedecktem Grün – klar und professionell', surf: { dark: '#141518', light: '#ffffff' } },
+  { id: 'gymlog', name: 'Trainio', desc: 'Nachtblau & Kreide wie ein Vereinstrikot, Gold für Rekorde, feine Nadelstreifen', surf: { dark: '#151b2a', light: '#ffffff' } },
   { id: 'glass', name: 'Liquid Glass', desc: 'Glas, Unschärfe & Licht – wie iOS 26', nav: 'floating', surf: { dark: '#25273b', light: '#f6f7fb' } },
   { id: 'pure', name: 'Pure', desc: 'Reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig', surf: { dark: '#161618', light: '#f5f5f7' } },
   { id: 'plakat', name: 'Plakat', desc: 'Schweizer Sportplakat: Raster, große Grotesk-Zahlen, Schwarz-Weiß & Signalrot', nav: 'classic', surf: { dark: '#0b0b0b', light: '#ffffff' } },

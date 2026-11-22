@@ -3,7 +3,7 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v98';
+const CACHE = 'gymlog-v99';
 /* Testversion des Umbaus unter …/test/ (eine zweite Kopie der App auf derselben Domain): Sie bekommt eigene Caches.
    Die echte App lässt alles unter /test/ in Ruhe und löscht nur ihre eigenen Caches. Gleiche Regel wie in js/core.js. */
 const TESTVERSION = /\/test\/sw\.js$/.test(self.location.pathname);
