@@ -1381,6 +1381,11 @@ async function tastaturFlow(page) {
   await pause(page, 300);
   await page.tap('#tab-training .fc-cur [data-in="setW"]');
   await key('1', '2', 'go', '1', '0', 'go', '9', 'go');
+  // Übung fertig → nächste Übung: die Pausen-Leiste gleitet sofort mit der Tastatur nach unten, statt kurz „Satz erledigt“ zu verdecken
+  const fd = await page.evaluate(() => { const w = Workout.cur(), d = document.querySelector('.rest-dock:not(.leaving)'), q = `[data-ei="${w.sel.e}"][data-si="${w.sel.s}"]`;
+    const b = [...document.querySelectorAll(`#tab-training [data-act="setDone"]${q}`)].find(n => n.offsetParent);
+    return { e: w.sel.e, raised: !!d && parseFloat(getComputedStyle(d).bottom) >= document.querySelector('#numpad').offsetHeight, dock: d ? Math.round(parseFloat(getComputedStyle(d).bottom)) : null, btn: b ? Math.round(b.getBoundingClientRect().bottom) : null, top: d ? Math.round(innerHeight - parseFloat(getComputedStyle(d).bottom) - d.offsetHeight) : null }; });
+  check(fd.e === 2 && !fd.raised && fd.dock != null && (fd.btn == null || fd.btn <= fd.top), 'Fokus: nach dem Übungswechsel geht die Pausen-Leiste gleich mit der Tastatur nach unten', JSON.stringify(fd));
   await pause(page, 300);
   const f1 = await page.evaluate(() => Workout.cur().entries[1].sets[1]);
   check(f1.done && f1.weightKg === 12 && f1.reps === 10 && f1.repsR === 9, 'Fokus-Ansicht: Satz über die Tastatur abgehakt', JSON.stringify(f1));
@@ -1458,7 +1463,9 @@ async function schmalFlow(page) {
   const base = `http://127.0.0.1:${srv.address().port}`;
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
+  const only = (process.env.ONLY || '').split(',').filter(Boolean);   // ONLY=anzeige,kleintext: nur diese Abläufe
   for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [befundeFlow, { width: 390, height: 844 }, 'befunde'], [tastaturFlow, { width: 390, height: 844 }, 'tastatur'], [rueckgaengigFlow, { width: 390, height: 844 }, 'rueckgaengig'], [kleintextFlow, { width: 390, height: 844 }, 'kleintext'], [schmalFlow, { width: 320, height: 700 }, 'schmal'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+    if (only.length && !only.includes(name)) continue;
     let page = null;
     try {
       page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige' || name === 'tastatur', name === 'iphone' ? IPHONE : undefined);

@@ -128,19 +128,22 @@ const Keypad = (() => {
     const wasOpen = isOpen();
     clearTimeout(padT);
     root.classList.add('open');
-    document.body.classList.add('kp-open');
+    document.body.classList.add('kp-open', 'kp-dock');
     document.documentElement.style.setProperty('--kp-h', root.offsetHeight + 'px');
     paint();
     if (reveal) requestAnimationFrame(() => show(el, wasOpen));
   }
 
-  function close() {
+  /** now === true: nach „Abhaken" bzw. wenn das Feld verschwunden ist – kein Tipp mehr unterwegs, die Pausen-Leiste gleitet gleich mit der Tastatur
+      nach unten (sonst verdeckt sie kurz „Satz erledigt" der nächsten Übung) */
+  function close(now) {
     if (!root || !isOpen()) return;
     root.classList.remove('open');
     // Platz unten und Pausen-Leiste erst kurz danach zurücksetzen: sonst verrutscht die Seite zwischen
     // Antippen und Klick, und der Tipp (z. B. auf den Haken) landet daneben. Steht die Seite ganz unten,
     // gleitet sie vorher sanft dorthin, wo sie ohne den Extra-Platz endet – statt danach zu springen.
     clearTimeout(padT);
+    if (now === true) document.body.classList.remove('kp-dock');
     const sc = Scroll.el, view = sc.querySelector('.view');
     if (view) {
       const padOpen = parseFloat(getComputedStyle(view).paddingBottom);
@@ -150,7 +153,7 @@ const Keypad = (() => {
       const maxAfter = sc.scrollHeight - (padOpen - padNormal) - sc.clientHeight;
       if (Scroll.y > maxAfter + 1) glide(Math.max(0, maxAfter), 300);
     }
-    padT = setTimeout(() => { if (!isOpen()) document.body.classList.remove('kp-open'); }, 350);
+    padT = setTimeout(() => { if (!isOpen()) document.body.classList.remove('kp-open', 'kp-dock'); }, 350);
     if (target) {
       target.classList.remove('kp-target');
       if (document.activeElement === target) target.blur();
@@ -275,7 +278,7 @@ const Keypad = (() => {
     const nx = w.sel;
     const nextEl = nx && nx.e === ei && nx.s >= 0 ? $$(`#tab-training [data-ei="${nx.e}"][data-si="${nx.s}"]`).find(n => eligible(n) && n.offsetParent) : null;
     if (nextEl) attach(nextEl);
-    else close();
+    else close(true);
   }
 
   function press(k) {
@@ -317,7 +320,7 @@ const Keypad = (() => {
     sync() {
       if (!isOpen()) return;
       const el = resolve();
-      if (!el) return close();
+      if (!el) return close(true);   // Feld ist weg (z. B. nächste Übung nach „Abhaken"): Leiste gleich mit nach unten
       if (el !== target) { target = el; el.classList.add('kp-target'); if (!quiet) el.focus({ preventScroll: true }); }
       paint();
     },

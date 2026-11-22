@@ -2408,7 +2408,7 @@ html.look-swap *, html.look-swap *::before, html.look-swap *::after { transition
 /* Platz unter dem Workout, damit jeder Satz über die Tastatur gescrollt werden kann; Pausen-Leiste sitzt darüber */
 body.kp-open .view { padding-bottom: calc(var(--kp-h, 300px) + 24px); }
 .rest-dock { transition: bottom .42s var(--ease-ios); }
-body.kp-open .rest-dock { bottom: calc(var(--kp-h, 300px) + 8px); }
+body.kp-dock .rest-dock { bottom: calc(var(--kp-h, 300px) + 8px); }
 body.kp-open .fab { display: none; }
 /* Feld, in das die Tastatur gerade schreibt */
 .set-in.kp-target { box-shadow: 0 0 0 2px var(--accent); }

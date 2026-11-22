@@ -217,7 +217,8 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
   - Der **erste Tipp ersetzt** den Wert im Feld (82,5 → „8“ ergibt 8, nicht 82,58). ⌫ löscht eine Stelle,
     gedrückt halten löscht alles.
   - Schließen mit ⌄, Tipp daneben oder nach unten wischen – die Tastatur folgt dabei dem Finger und federt bei
-    kurzem Ziehen zurück. Die Pausen-Leiste rückt über die Tastatur, der aktive Satz bleibt sichtbar.
+    kurzem Ziehen zurück. Die Pausen-Leiste rückt über die Tastatur, der aktive Satz bleibt sichtbar. Schließt sich
+    die Tastatur nach „Abhaken“ (nächste Übung), gleitet die Leiste gleich mit nach unten.
   - Bewegung wie auf dem iPhone: Die Tastatur federt herein wie die Fenster der App, Seite und Pausen-Leiste gleiten
     im selben Takt mit, Tasten leuchten sofort beim Antippen auf, bei ± rollt die Zahl, und „Weiter“ blendet weich
     zu „Abhaken“ über. Bei „Animationen: Reduziert/Aus“ entsprechend ruhiger. Passt sich jedem Design an.
@@ -646,6 +647,7 @@ Der Service Worker läuft nur über `http://localhost` oder `https://`, nicht ü
 npm install                        # einmalig
 npx playwright install chromium    # einmalig
 npm test
+ONLY=tastatur,kleintext npm test   # nur einzelne Abläufe im Browser
 ```
 
 Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
