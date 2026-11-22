@@ -17,7 +17,6 @@ Views.start = {
     const volPrev = Analytics.volumeBetween(cw - 7, cw - 7 + (Analytics.cmpEnd() - cw));
     const next = Analytics.nextPlanDay();
     const w = Workout.cur();
-    const goal = weeklyTarget();
     const dots = Array.from({ length: 7 }, (_, i) => `<i class="${st.days.has(cw + i) ? 'on' : ''} ${cw + i === t ? 'today' : ''}" title="${WD_SHORT[dowOfDN(cw + i)]}"></i>`).join('');
     const nRecent = S().homeRecent ?? 3;
     const recent = nRecent ? ix.rows.slice(-nRecent).reverse() : [];
@@ -33,7 +32,6 @@ Views.start = {
           <div class="stat-label">${icon('flame')} Streak ${infoBtn('Aufeinanderfolgende Wochen mit mindestens einem Workout. Die Punkte zeigen deine Trainingstage dieser Woche.')}</div>
           <div class="stat-value">${st.cur}<small>${st.cur === 1 ? 'Woche' : 'Wochen'}</small></div>
           <div class="week-dots">${dots}</div>
-          <div class="stat-sub">${st.days.size}/${goal} Tage diese Woche</div>
         </div>`,
         volume: `<div class="stat">
           <div class="stat-label">${icon('bolt')} Volumen ${infoBtn('Wiederholungen × Gewicht aller Sätze dieser Woche. Vergleich: Vorwoche bis zum gleichen Tag.')}</div>
@@ -176,7 +174,7 @@ Actions.startSheet = async () => {
   const n = Analytics.nextPlanDay();
   const k = await actionMenu('Workout starten', [
     n && { key: 'next', label: `${n.day.name}`, kicker: whenLabel(n), icon: 'play', featured: true },
-    Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', sub: Tpl.all().slice(0, 3).map(t => t.name).join(' · ') + (Tpl.all().length > 3 ? ' …' : ''), icon: 'layers' },
+    Tpl.all().length && { key: 'pick', label: 'Eins meiner Workouts', icon: 'layers' },
     { key: 'compose', label: 'Workout zusammenstellen', icon: 'list' },
     { key: 'cardio', label: 'Cardio', icon: 'heart', featured: 'plain' },
     { key: 'free', label: 'Leeres Workout', icon: 'plus' },
@@ -299,8 +297,8 @@ function goalDialog(exId, old) {
       body: `<p class="bold">${esc(Ex.name(exId))}</p>
         <div class="seg fit mt-12" id="gType">${[['wr', 'Gewicht × Wdh.'], ['e1rm', 'e1RM']].map(([k, l]) => `<button type="button" data-t="${k}" class="${type === k ? 'active' : ''}">${l}</button>`).join('')}</div>
         <div class="form-grid mt-12">
-          <label class="field" id="gRepsF"><span>Wiederholungen</span><input class="input num-input" id="gReps" inputmode="numeric" value="${reps0}"></label>
-          <label class="field" id="gKgF"><span id="gKgL"></span><input class="input num-input" id="gKg" inputmode="decimal" value="${old ? String(round(toU(old.kg), 2)).replace('.', ',') : sugW(reps0)}"></label>
+          <label class="field" id="gRepsF"><span>Wiederholungen${infoBtn('Erreicht, sobald du einen Satz mit so vielen Wiederholungen bei diesem Gewicht schaffst.')}</span><input class="input num-input" id="gReps" inputmode="numeric" value="${reps0}"></label>
+          <label class="field" id="gKgF"><span id="gKgL"></span><input class="input num-input" id="gKg" inputmode="decimal" value="${old ? String(round(toU(old.kg), 2)).replace('.', ',') : String(sugW(reps0)).replace('.', ',')}"></label>
         </div>
         <p class="tiny dim mt-12" id="gHint"></p>`,
       foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>`,
@@ -314,7 +312,7 @@ function goalDialog(exId, old) {
       $m('#gKgL').textContent = type === 'wr' ? `Gewicht (${unit()})` : `Ziel-1RM (${unit()})`;
       const reps = Math.round(parseNum($m('#gReps').value) || 0), b = reps > 0 ? bestForReps(exId, reps) : null, c = best1RM(exId);
       $m('#gHint').textContent = type === 'wr'
-        ? `Erreicht, sobald du einen Satz mit mindestens ${reps || '…'} Wdh. bei diesem Gewicht schaffst. ${b ? `Bisher schwerster Satz mit ${reps}+ Wdh.: ${fmtW(b.w)} × ${b.r}.` : `Bisher kein Satz mit ${reps || '…'}+ Wdh.`}`
+        ? `${b ? `Bisher schwerster Satz mit ${reps}+ Wdh.: ${fmtW(b.w)} × ${b.r}.` : `Bisher kein Satz mit ${reps || '…'}+ Wdh.`}`
         : `Geschätztes 1RM aus deinen Sätzen (${(E1RM_FORMULAS.find(f => f[0] === S().e1rmFormula) || E1RM_FORMULAS[0])[1]}). ${c ? `Aktuell ${fmtW(c, 1)}.` : 'Noch keine Sätze.'}`;
     };
     draw();
@@ -324,7 +322,7 @@ function goalDialog(exId, old) {
       if (t && t.dataset.t !== type) {
         type = t.dataset.t;
         const kgIn = $m('#gKg');
-        kgIn.value = type === 'wr' ? sugW(Math.round(parseNum($m('#gReps').value) || 8)) : sug1();
+        kgIn.value = String(type === 'wr' ? sugW(Math.round(parseNum($m('#gReps').value) || 8)) : sug1()).replace('.', ',');
         draw(); return;
       }
       const x = e.target.closest('[data-x]'); if (!x) return;
@@ -435,7 +433,7 @@ function tplCard(t, p) {
     <div class="row top">
       <div class="grow" style="min-width:0">
         <h3 class="ellipsis">${esc(t.name)}</h3>
-        <p class="small dim mt-8">${(t.exercises || []).length} Übungen · ${tplSets(t)} Sätze · ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
+        <p class="small dim mt-8">ca. ${planDayMinutes(t)} min${days.length ? ` · <span class="accent bold">${days.join(', ')}</span>` : ''}</p>
       </div>
       <button class="btn-icon" data-act="tplMenu" data-id="${esc(t.id)}" aria-label="Workout-Optionen">${icon('dots')}</button>
     </div>
@@ -569,7 +567,6 @@ function openScheduleEditor(plan) {
     const n = draft.schedule.filter(id => Tpl.get(id)).length;
     m.setBody(`
       <label class="field"><span>Name</span><input class="input" id="spName" value="${esc(draft.name)}"></label>
-      <p class="small dim mt-12"><b>${n} Trainingstage</b>${n ? `, ca. ${Math.round(sum(draft.schedule.map(id => Tpl.get(id) ? planDayMinutes(Tpl.get(id)) : 0)) / 60 * 10) / 10} h pro Woche` : ''}.</p>
       <div class="list mt-12">${draft.schedule.map((id, i) => `
         <div class="set-line sched-row">
           <div class="sl-main"><div class="sl-title">${WEEKDAYS[i]}</div></div>
@@ -686,7 +683,7 @@ function openPlanAnalysis(plan) {
   Modal.open({ title: `Analyse: ${(plan && plan.name) || 'Trainingsplan'}`, size: 'lg', info: 'Grundlage sind die geplanten Arbeitssätze deiner Workouts (ohne Cardio). Hilfsmuskeln zählen für Frequenz und Erholung nicht mit.',
     body: !a.days.length ? emptyState('calendar', 'Noch keine Trainingstage', 'Weise den Wochentagen Workouts zu, dann kann der Plan analysiert werden.') : `
       <div class="week-plan">${(plan.schedule || []).map((id, i) => { const t = Tpl.get(id); return `<div class="wp-day ${t ? 'has' : ''}"><span>${WD_KURZ[i]}</span><b>${t ? esc(t.name) : '–'}</b></div>`; }).join('')}</div>
-      <p class="small dim mt-12">${a.days.length} Trainingstage · ${7 - a.days.length} Ruhetage · ${a.sets} Sätze · ca. ${nf(a.min / 60, 1)} h pro Woche</p>
+      <p class="small dim mt-12">${a.sets} Sätze · ca. ${nf(a.min / 60, 1)} h pro Woche</p>
 
       <div class="section-head"><h4>Balance</h4></div>
       <div class="card">
@@ -836,13 +833,11 @@ function openWorkoutDetail(id) {
     body: `
       <button class="wd-when" data-x="meta" aria-label="Datum, Uhrzeit und Dauer bearbeiten">${esc(fmtDateLong(wo.date))}${parseISO(wo.date).getFullYear() !== new Date().getFullYear() ? ' ' + parseISO(wo.date).getFullYear() : ''}${wo.startedAt ? ' · ' + new Date(wo.startedAt).toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' }) + ' Uhr' : ''} ${icon('edit')}</button>
       ${sc ? `<div class="wd-score mt-12">${scoreRingHtml(sc, true)}${scoreBreakdownHtml(sc)}</div>` : ''}
-      <div class="pr-grid mt-12">
-        <button class="pr-box wd-edit" data-x="meta" aria-label="Dauer bearbeiten"><span>Dauer ${icon('edit')}</span><b>${fmtDur(wo.durationSec)}</b></button>
-        ${row && row.cardioOnly ? '' : `<div class="pr-box"><span>Volumen</span><b>${fmtTon(row ? row.ton : 0)}</b></div>
-        <div class="pr-box"><span>Sätze</span><b>${row ? row.sets : 0}</b></div>
-        <div class="pr-box"><span>Ø RPE</span><b>${row && row.avgRpe ? nf(row.avgRpe, 1) : '–'}</b></div>`}
-        ${row && (row.cSec || row.cKm) ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(row.cSec)}</b></div>${row.cKm ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(row.cKm)}</b></div>` : ''}` : ''}
-      </div>
+      ${prTiles([
+        { html: n => `<button class="pr-box wd-edit" data-x="meta" aria-label="Dauer bearbeiten"><span>Dauer ${icon('edit')}</span><b>${n === 3 ? fmtMin(wo.durationSec) : fmtDur(wo.durationSec)}</b></button>` },
+        ...(row && row.cardioOnly ? [] : [['Volumen', fmtTon(row ? row.ton : 0)], ['Sätze', row ? row.sets : 0], ...(row && row.avgRpe ? [['Ø RPE', nf(row.avgRpe, 1)]] : [])]),
+        ...(row && (row.cSec || row.cKm) ? [['Cardio', fmtDur(row.cSec)], ...(row.cKm ? [['Distanz', fmtKm(row.cKm)]] : [])] : [])
+      ], 'mt-12')}
       ${prEv.length ? `<div class="mt-12 row wrap">${prEv.map(p => `<span class="badge accent">${icon('trophy')} ${esc(Ex.name(p.exId))} ${fmtW(p.w)} × ${p.r}</span>`).join('')}</div>` : ''}
       ${wo.notes ? `<div class="card tight mt-12" style="background:var(--surface-2)">${icon('note').replace('<svg', '<svg width="16" height="16" style="vertical-align:-3px;margin-right:6px"')}${esc(wo.notes)}</div>` : ''}
       ${(wo.entries || []).map(en => {

@@ -974,6 +974,14 @@ Scroll.el.addEventListener('scroll', () => { const s = Scroll.y > 4; $('#topbar'
 function emptyState(ic, title, text, btn = '') {
   return `<div class="empty">${icon(ic)}<h3>${esc(title)}</h3><p class="small">${esc(text)}</p>${btn ? `<div class="mt-16">${btn}</div>` : ''}</div>`;
 }
+/** Kennzahl-Kacheln gleichmäßig: 3 nebeneinander, sonst 2 Spalten – eine übrige letzte Kachel geht über die ganze Breite.
+    Kachel: [Titel, Wert (oder n => Wert, n = Anzahl Kacheln), Zusatz-HTML] oder { html: n => … } */
+function prTiles(tiles, cls = '') {
+  const n = tiles.length;
+  const val = v => typeof v === 'function' ? v(n) : v;
+  const html = tiles.map(t => Array.isArray(t) ? `<div class="pr-box"><span>${t[0]}</span><b>${val(t[1])}</b>${t[2] || ''}</div>` : t.html(n)).join('');
+  return `<div class="pr-grid ${n === 3 ? 'n3' : n % 2 ? 'odd' : ''} ${cls}">${html}</div>`;
+}
 function deltaHtml(cur, prev, { invert = false, fmt = null, suffix = '', neutral = false } = {}) {
   if (prev == null || cur == null || !Number.isFinite(prev) || !Number.isFinite(cur)) return '';
   if (prev === 0) return '';   // ohne Vergleichswert kein Pfeil („neu“ sagte nichts aus)

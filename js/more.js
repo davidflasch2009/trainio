@@ -155,8 +155,8 @@ function moreGroups() {
       sections: [['', [
         ...(!isStandalone() && (deferredInstall || Auth.isIOS()) ? [mRow(navRow('install', 'install', 'App installieren'), 'App installieren', 'Zum Home-Bildschirm hinzufügen', 'home bildschirm')] : []),
         mRow(navRow('checkUpdate', 'refresh', 'Nach Updates suchen', `Version ${APP.version}`), 'Nach Updates suchen', `Version ${APP.version}`, 'update aktualisieren neue version'),
-        mRow(navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} Einträge` : 'Keine Fehler aufgezeichnet'), 'Fehlerprotokoll', '', 'fehler absturz log bug'),
-        mRow(`<a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span><div class="li-sub">${esc(APP.repo.replace('https://', ''))}</div></span>${icon('chevR', 'li-chev')}</a>`, 'Repository', 'GitHub', 'quellcode code'),
+        mRow(navRow('openErrLog', 'warn', 'Fehlerprotokoll', ErrLog.all().length ? `${ErrLog.all().length} ${ErrLog.all().length === 1 ? 'Eintrag' : 'Einträge'}` : 'Keine Fehler aufgezeichnet'), 'Fehlerprotokoll', '', 'fehler absturz log bug'),
+        mRow(`<a class="list-item" href="${APP.repo}" target="_blank" rel="noopener"><span class="li-icon">${icon('link')}</span><span class="li-main"><span class="li-title">Repository</span></span>${icon('chevR', 'li-chev')}</a>`, 'Repository', 'GitHub', 'quellcode code'),
         mRow(`<a class="list-item" href="${APP.contact}" target="_blank" rel="noopener"><span class="li-icon">${icon('mail')}</span><span class="li-main"><span class="li-title">Kontakt & Feedback</span></span>${icon('chevR', 'li-chev')}</a>`, 'Kontakt & Feedback', 'Issue auf GitHub öffnen', 'hilfe fehler melden')]]] }
   ];
 }
@@ -346,8 +346,7 @@ function moreHomeHtml(groups) {
       const rows = ids.filter(id => by[id]).map(id => row(by[id]));
       if (i === 0 && !F('f_exercises')) rows.unshift(navRow('openLibrary', 'book', 'Übungs-Bibliothek'));
       return `<div class="list mt-16">${rows.join('')}</div>`;
-    }).join('')}
-    <p class="center tiny faint mt-24">${APP.name} v${APP.version} · ${Store.all('workouts').length} Workouts · ${Store.all('exercises').length} Übungen</p>`;
+    }).join('')}`;
 }
 function morePageHtml(g) {
   return `<h2 class="more-title">${g.title}${g.intro ? infoBtn(g.intro) : ''}</h2>${g.head ? `<div class="mt-12">${g.head}</div>` : ''}` +

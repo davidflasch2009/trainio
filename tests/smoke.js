@@ -1079,9 +1079,9 @@ async function befundeFlow(page) {
   // T15: 1RM-Rechner nennt die gewählte Formel
   const rm = [];
   for (const f of ['epley', 'brzycki', 'avg']) {
-    rm.push(await page.evaluate(async f => { Store.saveSettings({ e1rmFormula: f }); open1RM(); await new Promise(r => setTimeout(r, 250)); const t = Modal.top().el.innerText; Modal.closeAll(); await new Promise(r => setTimeout(r, 300)); return t; }, f));
+    rm.push(await page.evaluate(async f => { Store.saveSettings({ e1rmFormula: f }); open1RM(); await new Promise(r => setTimeout(r, 250)); const el = Modal.top().el; const t = el.innerText + ' ' + [...el.querySelectorAll('[data-info]')].map(b => b.dataset.info).join(' ') + (/\(Epley\)/.test(el.innerText) ? ' SICHTBAR' : ''); Modal.closeAll(); await new Promise(r => setTimeout(r, 300)); return t; }, f));
   }
-  check(/Epley/.test(rm[0]) && /93,3/.test(rm[0]) && /Brzycki/.test(rm[1]) && !/Epley\)/.test(rm[1]) && /\n90 kg/.test(rm[1]) && /Mittelwert/.test(rm[2]) && /91,7/.test(rm[2]), 'T15: 1RM-Rechner beschriftet Epley, Brzycki und Mittelwert richtig');
+  check(/Epley/.test(rm[0]) && /93,3/.test(rm[0]) && /Brzycki/.test(rm[1]) && !/Epley\)/.test(rm[1]) && /\n90 kg/.test(rm[1]) && /Mittelwert/.test(rm[2]) && /91,7/.test(rm[2]) && !rm.some(x => /SICHTBAR/.test(x)), 'T15: 1RM-Rechner nennt Epley, Brzycki und Mittelwert richtig (im ⓘ)');
   await page.evaluate(() => Store.saveSettings({ e1rmFormula: 'epley' }));
 
   // T16: Fotovergleich mit vertauschter Reihenfolge zeigt positiven Abstand
@@ -1169,6 +1169,62 @@ async function kleintextFlow(page) {
   await pause(page, 500);
   const pg = await page.evaluate(() => ({ t: document.querySelector('#tab-progress').innerText, info: [...document.querySelectorAll('#tab-progress [data-info]')].map(b => b.dataset.info).join(' ') }));
   check(!/heute zählt, sobald|\(11 W\)|aktueller e1RM-PR|vs\. Vorperiode/.test(pg.t) && /Ganze Vorwoche/.test(pg.info), 'Fortschritt: Fußnoten im ⓘ, kein „(11 W)“, kein „vs. Vorperiode“', pg.t.slice(0, 120));
+  // Runde 2: alle Seiten
+  const r2 = await page.evaluate(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    const txt = q => (document.querySelector(q) || {}).innerText || '';
+    const info = q => [...document.querySelectorAll(q + ' [data-info]')].map(b => b.dataset.info).join(' ');
+    const out = {};
+    Modal.closeAll(); App.go('start', { instant: true }); await wait(150);
+    out.start = !/Tage diese Woche/.test(txt('#tab-start'));
+    UI.trainSub = 'plans'; App.go('training', { instant: true }); await wait(150);
+    out.plaene = !/Übungen · \d+ Sätze/.test(txt('#tab-training')) && /ca\. \d+ min/.test(txt('#tab-training'));
+    UI.progSub = 'overview'; App.go('progress', { instant: true }); App.renderCurrent(); await wait(300);
+    const pt = txt('#tab-progress');
+    out.fortschritt = !/diese Woche \d+\/\d+ Tage|Soll bis heute \(|Stufen erreicht ·/.test(pt) && /Soll bis heute: /.test(info('#tab-progress')) && !document.querySelector('.gh-legend, .ms-legend');
+    App.go('exercises', { instant: true }); await wait(200);
+    out.uebungen = !/^\d+ Übungen$/m.test(txt('#tab-exercises'));
+    App.go('more', { instant: true }); await wait(150);
+    out.mehr = !/Workouts · \d+ Übungen/.test(txt('#tab-more'));
+    Actions.openWarmupCfg(); await wait(250);
+    out.aufwaermen = !/bei 100 kg/.test(txt('.modal-wrap:not(.closing) .modal'));
+    Modal.closeAll(); await wait(300);
+    open1RM(); await wait(250);
+    out.rm = !/\(Epley/.test(txt('.modal-wrap:not(.closing) .modal'));
+    Modal.closeAll(); await wait(300);
+    goalDialog('ex_bankdruecken'); await wait(250);
+    const gk = document.querySelector('#gKg').value, gh = document.querySelector('#gHint').textContent;
+    out.kraftziel = !/\./.test(gk) && !/Erreicht, sobald/.test(gh) && /Bisher/.test(gh) && /Erreicht, sobald/.test(info('.modal-wrap:not(.closing) .modal'));
+    Modal.closeAll(); await wait(300);
+    // Kacheln: ohne RPE drei nebeneinander, Dauer kurz; mit RPE vier; ungerade → letzte breit
+    openWorkoutDetail('k_w1'); await wait(400);
+    const g1 = document.querySelector('.modal-wrap:not(.closing) .modal .pr-grid');
+    out.detailMitRpe = g1.children.length === 4 && !g1.classList.contains('n3') && /Ø RPE/.test(g1.innerText);
+    Modal.closeAll(); await wait(300);
+    Store.put('workouts', 'k_w2', { date: isoDate(new Date(Date.now() - 864e5)), startedAt: Date.now() - 864e5, durationSec: 3840, name: 'K-Push', entries: [{ exerciseId: 'ex_bankdruecken', exerciseName: 'Bankdrücken', sets: [{ reps: 8, weightKg: 80, done: true }] }] });
+    openWorkoutDetail('k_w2'); await wait(400);
+    const g2 = document.querySelector('.modal-wrap:not(.closing) .modal .pr-grid');
+    out.detailOhneRpe = g2.children.length === 3 && g2.classList.contains('n3') && !/Ø RPE/.test(g2.innerText) && /64 min/.test(g2.innerText) && getComputedStyle(g2).gridTemplateColumns.split(' ').length === 3;
+    Modal.closeAll(); await wait(300);
+    const t5 = document.createElement('div'); t5.innerHTML = prTiles([['A', 1], ['B', 2], ['C', 3], ['D', 4], ['E', 5]]); document.body.append(t5);
+    const last = t5.querySelector('.pr-grid').lastElementChild, first = t5.querySelector('.pr-grid').firstElementChild;
+    out.fuenfKacheln = t5.querySelector('.pr-grid.odd') && Math.round(last.getBoundingClientRect().width) > Math.round(first.getBoundingClientRect().width) * 1.8;
+    t5.remove();
+    // Pausen-Leiste: kein Wort „Pause", Vorlesetext bleibt
+    Store.saveSettings({ autoRest: true, woView: 'list' });
+    Workout.start({ templateId: 'k_tpl' }); App.go('training', { instant: true }); await wait(200);
+    Workout.set(w => Object.assign(w.entries[0].sets[0], { weightKg: 80, reps: 8 })); App.renderCurrent();
+    [...document.querySelectorAll('#tab-training [data-act="setDone"]')].find(n => n.offsetParent).click(); await wait(400);
+    const dock = document.querySelector('.rest-dock');
+    out.pause = !!dock && !/^Pause/.test(dock.querySelector('.rest-label').innerText) && dock.getAttribute('aria-label') === 'Pause' && /\d:\d\d/.test(dock.innerText);
+    Store.saveSettings({ woView: 'focus' }); App.renderCurrent(); await wait(150);
+    out.einSatz = !!document.querySelector('#tab-training .ex-sum') && !/\d+\/\d+/.test(txt('#tab-training .ex-sum'));
+    Workout.discard(); Store.saveSettings({ woView: 'list' }); App.renderCurrent();
+    return out;
+  });
+  const r2bad = Object.entries(r2).filter(([, v]) => !v).map(([k]) => k);
+  check(!r2bad.length, 'Weniger Kleintext, Runde 2: Start, Pläne, Fortschritt, Listen, Fenster, Pausen-Leiste', 'nicht erfüllt: ' + r2bad.join(', '));
+  check(r2.detailOhneRpe && r2.detailMitRpe && r2.fuenfKacheln, 'Kacheln: ohne RPE drei nebeneinander („64 min“), mit RPE vier, ungerade Zahl → letzte über die ganze Breite', JSON.stringify(r2));
   await page.evaluate(() => { Modal.closeAll(); App.go('start', { instant: true }); });
   check(!page.errors.length && !(await appErrors(page)).length, 'keine JavaScript-Fehler mit weniger Kleintext', page.errors.concat(await appErrors(page)).join(' | '));
 }

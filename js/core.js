@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.36.2',
+  version: '1.36.3',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -239,6 +239,8 @@ function fmtDur(sec) {
   if (m < 60) return `${m} min`;
   return `${Math.floor(m / 60)} h ${pad(m % 60)} min`;
 }
+/** Dauer nur in Minuten (für enge Kacheln) */
+function fmtMin(sec) { return sec ? `${Math.round(sec / 60)} min` : '–'; }
 function relDays(dn) {
   const d = todayDN() - dn;
   if (d <= 0) return 'heute';

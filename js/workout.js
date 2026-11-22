@@ -235,11 +235,11 @@ const RestTimer = (() => {
     const box = $('.rest-dock:not(.leaving)', dock);
     if (box) { $('#restLbl', box).textContent = w.rest.label || ''; tick(); return; }
     const RL = 2 * Math.PI * 17;
-    dock.innerHTML = `<div class="rest-dock" id="restBox">
+    dock.innerHTML = `<div class="rest-dock" id="restBox" role="group" aria-label="Pause">
       <div class="rest-row">
         <button class="rest-mini" data-act="restBig" aria-label="Großer Countdown"><svg viewBox="0 0 40 40"><circle class="ring-bg" cx="20" cy="20" r="17" fill="none" stroke-width="4"/><circle id="restMini" class="ring-fg" cx="20" cy="20" r="17" fill="none" stroke-width="4" stroke-dasharray="${RL}" data-len="${RL}"/></svg></button>
         <button class="rest-time" data-act="restBig" id="restTime" aria-label="Großer Countdown">0:00</button>
-        <div class="rest-label"><b>Pause</b><br><span id="restLbl">${esc(w.rest.label)}</span></div>
+        <div class="rest-label"><span id="restLbl">${esc(w.rest.label)}</span></div>
         <button class="btn btn-sm btn-secondary" data-act="restAdj" data-d="-15">−15</button>
         <button class="btn btn-sm btn-secondary" data-act="restAdj" data-d="15">+15</button>
         <button class="btn-icon" data-act="restSkip" aria-label="Pause beenden">${icon('x')}</button>

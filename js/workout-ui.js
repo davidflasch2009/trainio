@@ -395,7 +395,7 @@ function exSummary(en, w, type) {
     const d = lastVol && vol ? (vol - lastVol) / lastVol : null;
     txt = `${vol ? `<b>${fmtTon(vol)}</b>` : `<b>${sum(done.map(repsSum))} Wdh.</b>`} · Top ${top.weightKg ? wNum(top.weightKg) + '×' : ''}${repsTxt(top)}${d != null && Math.abs(d) >= .005 ? ` <span class="${d > 0 ? 'up' : 'down'}">${d > 0 ? '↑' : '↓'} ${nf(Math.abs(d) * 100, 0)} %</span>` : ''}`;
   }
-  return `<div class="ex-sum">${dots}<span>${done.length}/${ws.length}</span><span>${txt}</span></div>`;
+  return `<div class="ex-sum">${dots}<span>${txt}</span></div>`;
 }
 const KIND_LABEL = { drop: 'D', fail: 'F' };
 function setNumHtml(s, num, d) {
@@ -662,7 +662,7 @@ function openGoalEditor(ei) {
         <div class="ge-row stack"><div class="ge-l"><b>${bName}</b></div>
           <div class="ge-pair">${stepper('lo', st.lo, 'von')}<span class="dim">–</span>${stepper('hi', st.hi, 'bis')}</div>
           <div class="ge-quick" style="width:100%">${(type === 'sec' ? [[30], [45], [60], [90]] : [[5], [8], [10], [12], [6, 8], [8, 12], [12, 15]]).map(([a, b]) => `<button data-q="${a}-${b || ''}">${a}${b ? '–' + b : ''}</button>`).join('')}</div></div>
-        <div class="ge-row"><div class="ge-l"><b>${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</b><small>Schritt ${nf(S().weightSteps, 2)} ${unit()}</small></div>${stepper('w', st.w != null ? String(st.w).replace('.', ',') : '', 'Gewicht')}</div>
+        <div class="ge-row"><div class="ge-l"><b>${type === 'kg' ? 'Gewicht' : 'Zusatzgewicht'} (${unit()})</b></div>${stepper('w', st.w != null ? String(st.w).replace('.', ',') : '', 'Gewicht')}</div>
         <div class="ge-row"><div class="ge-l"><b>Pause</b></div>${stepper('rest', fmtClock(st.rest), 'Pause')}</div>
         <div class="ge-row"><div class="ge-l"><b>Für alle offenen Sätze übernehmen</b></div><label class="switch"><input type="checkbox" switch id="geApply" ${st.apply ? 'checked' : ''}><span></span></label></div>
       </div>
@@ -1321,13 +1321,11 @@ function showSummary({ id, doc, prs }) {
         <p class="dim">${esc(fmtDateLong(doc.date))}</p>
       </div>
       ${sc ? scoreBreakdownHtml(sc) : ''}
-      <div class="pr-grid sum-tiles mt-16 fx-stagger">
-        <div class="pr-box"><span>Dauer</span><b>${fmtDur(doc.durationSec)}</b></div>
-        ${done.length || !ct.n ? `<div class="pr-box"><span>Volumen</span><b>${fmtTon(vol)}</b>${prevSame ? `<em>${deltaHtml(vol, prevSame.ton)} vs. ${fmtDateShort(prevSame.date)}</em>` : ''}</div>
-        <div class="pr-box"><span>Sätze</span><b>${done.length}</b></div>
-        <div class="pr-box"><span>Ø RPE</span><b>${rpes.length ? nf(avg(rpes), 1) : '–'}</b></div>` : ''}
-        ${ct.n ? `<div class="pr-box"><span>Cardio</span><b>${fmtDur(ct.sec)}</b></div>${ct.km ? `<div class="pr-box"><span>Distanz</span><b>${fmtKm(ct.km)}</b></div>` : ''}${ct.kmh ? `<div class="pr-box"><span>Ø Tempo</span><b>${fmtKmh(ct.kmh)}</b></div>` : ''}` : ''}
-      </div>
+      ${prTiles([
+        ['Dauer', n => n === 3 ? fmtMin(doc.durationSec) : fmtDur(doc.durationSec)],
+        ...(done.length || !ct.n ? [['Volumen', fmtTon(vol), prevSame ? `<em>${deltaHtml(vol, prevSame.ton)}</em>` : ''], ['Sätze', done.length], ...(rpes.length ? [['Ø RPE', nf(avg(rpes), 1)]] : [])] : []),
+        ...(ct.n ? [['Cardio', fmtDur(ct.sec)], ...(ct.km ? [['Distanz', fmtKm(ct.km)]] : []), ...(ct.kmh ? [['Ø Tempo', fmtKmh(ct.kmh)]] : [])] : [])
+      ], 'sum-tiles mt-16 fx-stagger')}
       ${real.length ? `<h4 class="mt-24 mb-8">Neue PRs</h4><div class="list sum-prs">${real.map((p, i) => `<div class="list-item pr-shine" style="--i:${i}"><span class="li-icon" style="color:var(--accent-text)">${icon('trophy')}</span><span class="li-main"><span class="li-title">${esc(PR.label(p))}</span><div class="li-sub">${[p.imp.weight && 'Gewicht', p.imp.e1rm && 'e1RM', p.imp.volume && 'Volumen', p.imp.reps && 'Wiederholungen', p.imp.dur && 'Längste Einheit', p.imp.km && 'Weiteste Distanz', p.imp.kmh && 'Schnellstes Tempo'].filter(Boolean).join(' · ')}</div></span></div>`).join('')}</div>` : ''}
       ${goalsHit.length ? `<h4 class="mt-24 mb-8">Ziel erreicht</h4><div class="list">${goalsHit.map(g => `<div class="list-item am-featured fx-up"><span class="li-icon">${icon('target')}</span><span class="li-main"><span class="li-title">${esc(Ex.name(g.exId))} ${goalLabel(g)}</span><div class="li-sub">${goalType(g) === 'wr' ? `Heute geschafft: ${fmtW(g.best)} × ${g.reps}+` : `Geschätztes 1RM heute: ${fmtW(g.best, 1)}`}</div></span></div>`).join('')}</div>` : ''}
       ${fixes.length ? `<p class="dim small mt-16">${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix – neue Startwerte für: ${fixes.map(p => esc(p.name)).join(', ')}. PRs zählen ab heute neu.</p>` : ''}

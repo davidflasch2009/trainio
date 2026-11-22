@@ -158,7 +158,7 @@ function openPlates(kg, ctx = null) {
       ${applyHtml()}
       <h4 class="mt-16 mb-8">Stange</h4>
       <div class="chips wrap">${uniq([...(unit() === 'lb' ? [45, 35, 25] : [20, 15, 10]), bar]).filter(v => v > 0).sort((a, b) => b - a).map(v => `<button class="chip sm ${bar === v ? 'active' : ''}" data-plb="${v}">${nf(v, 1)} ${unit()}</button>`).join('')}<button class="chip sm ${bar === 0 ? 'active' : ''}" data-plb="0">Ohne</button></div>
-      <button class="btn btn-ghost btn-sm mt-12" data-act="openPlatesCfg">${icon('sliders')} Verfügbare Scheiben: ${plates.map(x => nf(x, 2)).join(' · ')}</button>`);
+      <button class="btn btn-ghost btn-sm mt-12" data-act="openPlatesCfg">${icon('sliders')} Scheiben anpassen</button>`);
   };
   draw();
   m.el.addEventListener('change', e => { if (e.target.id === 'plT') { total = Math.max(0, parseNum(e.target.value) || 0); draw(); } });
@@ -188,12 +188,11 @@ Actions.openWarmupCfg = () => {
   let bar = S().warmupBar !== false;
   const PRESETS = [['Kurz', [[50, 8], [75, 3]]], ['Standard', [[40, 5], [60, 3], [80, 2]]], ['Kraft', [[40, 5], [55, 3], [70, 2], [85, 1], [92, 1]]]];
   const m = Modal.open({ title: 'Aufwärmsätze', info: 'Prozent vom Arbeitsgewicht und Wiederholungen je Aufwärmsatz. Gerundet auf dein Gewichts-Inkrement.', size: 'sm', foot: `<button class="btn btn-secondary" data-x="cancel">Abbrechen</button><button class="btn btn-primary" data-x="ok">${icon('check')} Speichern</button>` });
-  const ex = 100;
   const draw = () => {
     steps.sort((a, b) => a[0] - b[0]);
     m.setBody(`<div class="chips">${PRESETS.map(([n, st]) => `<button class="chip" data-pre="${n}">${n}</button>`).join('')}</div>
       <div class="list mt-12">${steps.map(([pc, r], i) => `<div class="set-line wu-row">
-          <div class="sl-main"><div class="sl-title">Satz ${i + 1}</div><div class="sl-sub">bei 100 kg → ${nf(Math.round(ex * pc / 100 / 2.5) * 2.5, 1)} kg × ${r}</div></div>
+          <div class="sl-main"><div class="sl-title">Satz ${i + 1}</div></div>
           <div class="pe-step wu-step"><button data-wp="${i}" data-d="-5" aria-label="Weniger Prozent">${icon('minus')}</button><span>${pc} %</span><button data-wp="${i}" data-d="5" aria-label="Mehr Prozent">${icon('plus')}</button></div>
           <div class="pe-step wu-step"><button data-wr="${i}" data-d="-1" aria-label="Weniger Wdh.">${icon('minus')}</button><span>${r}×</span><button data-wr="${i}" data-d="1" aria-label="Mehr Wdh.">${icon('plus')}</button></div>
           <button class="btn-icon" data-wdel="${i}" aria-label="Entfernen">${icon('x')}</button>
@@ -262,7 +261,7 @@ function open1RM() {
         <label class="field"><span>Gewicht (${unit()})</span><input class="input num-input" id="rmW" inputmode="decimal" value="${String(w).replace('.', ',')}"></label>
         <label class="field"><span>Wiederholungen</span><input class="input num-input" id="rmR" inputmode="numeric" value="${r}"></label>
       </div>
-      <div class="center mt-16"><p class="dim small">Geschätztes 1RM (${f === 'avg' ? 'Mittelwert aus Epley und Brzycki' : fName})</p><div style="font-size:42px;font-weight:800">${nf(one, 1)} <small class="dim" style="font-size:18px">${unit()}</small></div></div>
+      <div class="center mt-16"><p class="dim small">Geschätztes 1RM${infoBtn(`${f === 'avg' ? 'Mittelwert aus Epley und Brzycki' : 'Formel: ' + fName}. Umstellen unter Mehr → Training.`)}</p><div style="font-size:42px;font-weight:800">${nf(one, 1)} <small class="dim" style="font-size:18px">${unit()}</small></div></div>
       <table class="tbl mt-12"><tbody>${rows}</tbody></table>`);
     $('#rmW', m.el).addEventListener('change', e => { w = parseNum(e.target.value) || 0; draw(); });
     $('#rmR', m.el).addEventListener('change', e => { r = Math.max(1, Math.round(parseNum(e.target.value) || 1)); draw(); });
@@ -281,7 +280,7 @@ Views.exercises = {
       <div class="chips mt-12" aria-label="Muskelgruppe">${['all', ...REGION_NAMES].map(c => `<button class="chip ${exCatNow() === c ? 'active' : ''}" data-act="exCat" data-v="${c}">${c === 'all' ? 'Alle' : c}</button>`).join('')}</div>
       <div class="chips mt-8" aria-label="Equipment">${['all', ...EQUIPMENT, 'Eigene'].map(c => `<button class="chip soft ${UI.exEq === c ? 'active' : ''}" data-act="exEq" data-v="${c}">${c === 'all' ? 'Jedes Equipment' : c}</button>`).join('')}</div>
       <div class="row between mt-12">
-        <span class="small dim" id="exCount"></span>
+        <span class="grow"></span>
         <select class="select" data-ch="exSort" style="width:auto;min-height:38px;padding-top:4px;padding-bottom:4px;font-size:14px" aria-label="Sortierung">
           ${[['az', 'A–Z'], ['recent', 'Zuletzt trainiert'], ['freq', 'Am häufigsten'], ['strong', 'Stärkstes e1RM']].map(([k, l]) => `<option value="${k}" ${UI.exSort === k ? 'selected' : ''}>${l}</option>`).join('')}
         </select>
@@ -312,7 +311,6 @@ function renderExList() {
     strong: (a, b) => meta[b.id].best - meta[a.id].best || a.name.localeCompare(b.name, 'de')
   };
   items.sort(by[UI.exSort] || by.az);
-  $('#exCount').textContent = `${items.length} Übung${items.length === 1 ? '' : 'en'}`;
   list.innerHTML = items.length ? items.map(e => {
     const mi = meta[e.id];
     const pr = Store.raw('prs', e.id);

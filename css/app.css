@@ -1245,6 +1245,8 @@ table.tbl { width: 100%; border-collapse: collapse; font-size: calc(13.5px * var
 .reg-6 { background: color-mix(in srgb, var(--c5) 18%, transparent); color: var(--c5); }
 .reg-x { background: var(--surface-2); color: var(--text-faint); }
 .pr-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+.pr-grid.n3 { grid-template-columns: repeat(3, 1fr); }
+.pr-grid.odd > :last-child { grid-column: 1 / -1; }
 /* Workout-Score: Ring füllt sich in der Akzentfarbe, Zahl in der Mitte */
 .score-ring { position: relative; width: 156px; height: 156px; margin: 0 auto; }
 button.score-ring { display: block; border: 0; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -1339,8 +1341,6 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .heat7 button.today { box-shadow: inset 0 0 0 2px var(--text-faint); }
 .gh-heat { overflow-x: auto; padding-bottom: 4px; -webkit-overflow-scrolling: touch; }
 .gh-heat svg { display: block; }
-.gh-legend { display: flex; align-items: center; gap: 4px; justify-content: flex-end; font-size: calc(11px * var(--fs)); color: var(--text-faint); margin-top: 6px; }
-.gh-legend i { width: 11px; height: 11px; border-radius: calc(3px * var(--rs)); display: inline-block; }
 .ampel { display: grid; grid-template-columns: 1fr auto; gap: 0; }
 .ampel-row { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: var(--bw) solid var(--border); font-size: calc(14px * var(--fs)); }
 .ampel-row:last-child { border-bottom: 0; }
@@ -1361,8 +1361,6 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .ms-pips i.on { background: var(--c); }
 .ms-bar { height: 6px; }
 .ms-sub { font-size: calc(12px * var(--fs)); color: var(--text-faint); font-variant-numeric: tabular-nums; }
-.ms-legend { display: inline-flex; align-items: center; gap: 4px; margin-left: 6px; }
-.ms-legend::before { content: ''; width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
 .badges-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .badge-tile { background: var(--surface-2); border-radius: calc(14px * var(--rs)); padding: 12px 8px; text-align: center; font-size: calc(12px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); border: 1px solid transparent; }
 .badge-tile .bt-ic { display: grid; place-items: center; margin: 0 auto 6px; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-3); color: var(--text-faint); }

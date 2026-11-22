@@ -108,9 +108,9 @@ function rateRuleAt(ws) {
   return g && g.min != null && g.max != null ? { lo: g.min, hi: g.max, phase: null, type: g.type } : null;
 }
 /** Zwei Eingabefelder „von / bis" für den Wochen-Bereich */
-const rateFields = (lo, hi, ph = ['', '']) => `<div class="form-grid">
-    <label class="field"><span>von (${rateUnit()} pro Woche)</span><input class="input" id="rtMin" value="${esc(rateToInput(lo))}" placeholder="${esc(ph[0])}" autocomplete="off" enterkeyhint="next"></label>
-    <label class="field"><span>bis (${rateUnit()} pro Woche)</span><input class="input" id="rtMax" value="${esc(rateToInput(hi))}" placeholder="${esc(ph[1])}" autocomplete="off" enterkeyhint="done"></label>
+const rateFields = (lo, hi, ph = ['', ''], short = false) => `<div class="form-grid">
+    <label class="field"><span>von (${rateUnit()}${short ? '' : ' pro Woche'})</span><input class="input" id="rtMin" value="${esc(rateToInput(lo))}" placeholder="${esc(ph[0])}" autocomplete="off" enterkeyhint="next"></label>
+    <label class="field"><span>bis (${rateUnit()}${short ? '' : ' pro Woche'})</span><input class="input" id="rtMax" value="${esc(rateToInput(hi))}" placeholder="${esc(ph[1])}" autocomplete="off" enterkeyhint="done"></label>
   </div>`;
 /** Liest „von / bis"; null = kein Bereich, false = ungültig (Hinweis wurde gezeigt) */
 function readRate(root) {
@@ -141,7 +141,7 @@ Actions.phaseEdit = el => {
         <label class="field"><span>Ende (leer = läuft noch)</span><input class="input" type="date" id="phTo" value="${esc(d.to || '')}"></label>
       </div>
       <div><div class="bold small mb-8">Gewicht pro Woche (optional)</div>
-        ${rateFields(d.rateMin, d.rateMax, [rateToInput(sug[0]), rateToInput(sug[1])])}</div>
+        ${rateFields(d.rateMin, d.rateMax, [rateToInput(sug[0]), rateToInput(sug[1])], true)}</div>
     </div>`,
     foot: `${old ? `<button class="btn btn-danger-ghost" data-x="del" style="flex:0 0 auto" aria-label="Löschen">${icon('trash')}</button>` : ''}<button class="btn btn-secondary" data-x="c">Abbrechen</button><button class="btn btn-primary" data-x="ok">Speichern</button>`
   });
@@ -220,7 +220,6 @@ ProgressViews.overview = body => {
   const avg6 = avg(prev6);
   const monthFrac = Math.max(0, e - ms + 1) / new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const expected = avg6 * monthFrac;
-  const goal = weeklyTarget();
   // P/P/L letzte 4 Wochen
   const r4 = ix.rows.filter(r => r.dn > t - 28);
   const catSum = k => sum(r4.map(r => r.cats[k] || 0));
@@ -242,7 +241,7 @@ ProgressViews.overview = body => {
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">${icon('flame', 'cc-ic')} Streak</span>${infoBtn('Aufeinanderfolgende Kalenderwochen mit mindestens einem Workout. Die aktuelle Woche zählt, sobald du trainiert hast.')}</div>
         <div class="cc-big"><b>${st.cur}</b><small>${st.cur === 1 ? 'Woche' : 'Wochen'} in Folge</small></div>
-        <div class="cc-sub">Längster Streak: ${st.best} Wochen · diese Woche ${st.days.size}/${goal} Tage</div>
+        <div class="cc-sub">Längster Streak: ${st.best} Wochen</div>
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Workouts gesamt</span>${infoBtn('Alle gespeicherten Workouts. Balken = Workouts pro Woche der letzten 12 Wochen.')}</div>
@@ -254,9 +253,8 @@ ProgressViews.overview = body => {
         ${cmpTable(['Diese Woche', 'Vorwoche'], cmpRows(wkNow, wkPrev))}
       </div>
       <div class="chart-card">
-        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn('Tage mit Training in diesem Monat. Vergleich: dein Ø der letzten 6 Monate bis zum gleichen Tag.')}</div>
+        <div class="cc-head"><span class="cc-title">Trainingstage im ${now.toLocaleDateString('de-DE', { month: 'long' })}</span>${infoBtn(`Tage mit Training in diesem Monat, verglichen mit deinem Ø der letzten 6 Monate. Soll bis heute: ${nf(expected, 1)}, Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}.`)}</div>
         <div class="cc-big"><b>${curMonth}</b><small>Ø ${nf(avg6, 1)} / Monat (6 M.)</small>${now.getDate() >= 3 ? deltaHtml(curMonth, expected) : ''}</div>
-        <div class="cc-sub">Soll bis heute (anteilig): ${nf(expected, 1)} Tage · Hochrechnung: ${nf(monthFrac ? curMonth / monthFrac : 0, 0)}</div>
       </div>
       <div class="chart-card">
         <div class="cc-head"><span class="cc-title">Monatsrückblick</span>${infoBtn(`Gegen ${monthName(pmD)} bis zum gleichen Tag, Gewicht als Monats-Ø. Ganzer ${monthName(pmD)}: ${moFull.n} ${moFull.n === 1 ? 'Workout' : 'Workouts'}, ${fmtTon(moFull.ton)}.`)}</div>
@@ -373,8 +371,7 @@ function ghHeatmap(ix) {
   }
   const lbl = S().weekStart === 'sunday' ? ['', 'Mo', '', 'Mi', '', 'Fr', ''] : ['Mo', '', 'Mi', '', 'Fr', '', 'So'];
   const W = left + 53 * (cs + gap), H = top + 7 * (cs + gap);
-  return `<div class="gh-heat" id="ghHeat"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Trainingstage der letzten 52 Wochen">${months}${lbl.map((l, i) => l ? `<text x="0" y="${top + i * (cs + gap) + 10}" style="text-anchor:start;font-size:10px" fill="var(--text-faint)">${l}</text>` : '').join('')}${cells}</svg></div>
-    <div class="gh-legend">weniger ${[0, 1, 2, 3, 4].map(l => `<i style="background:${heatColor(l)}"></i>`).join('')} mehr</div>`;
+  return `<div class="gh-heat" id="ghHeat"><svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" role="img" aria-label="Trainingstage der letzten 52 Wochen">${months}${lbl.map((l, i) => l ? `<text x="0" y="${top + i * (cs + gap) + 10}" style="text-anchor:start;font-size:10px" fill="var(--text-faint)">${l}</text>` : '').join('')}${cells}</svg></div>`;
 }
 
 /* ---------- Spezial-Statistiken (§17.6) ---------- */
@@ -502,7 +499,7 @@ function badgesHtml(ix) {
       </div>
     </div>`;
   };
-  return `<p class="small dim mb-8">${got} von ${total} Stufen erreicht · ${TIERS.map(([l, c]) => `<span class="ms-legend" style="--c:${c}">${l}</span>`).join(' ')}</p>
+  return `<p class="small dim mb-8">${got} von ${total} Stufen erreicht</p>
     ${groups.map(([g, ms]) => `<div class="card mb-12"><h4 class="mb-8">${esc(g)}</h4>${ms.map(row).join('')}</div>`).join('')}
     <div class="card"><h4 class="mb-8">Spezial</h4><div class="badges-grid">${special.map(([i, l, sub, ok]) => `<div class="badge-tile ${ok ? 'got' : ''}"><span class="bt-ic">${icon(i)}</span>${esc(l)}${sub ? `<em>${esc(sub)}</em>` : ''}</div>`).join('')}</div></div>`;
 }
@@ -1238,7 +1235,6 @@ ProgressViews.cardio = body => {
   }
   const rowsR = Analytics.rowsIn(r), rowsP = prv ? Analytics.rowsIn(prv) : null;
   const tot = (rs, k) => sum(rs.map(x => x[k]));
-  const units = rs => rs.reduce((n, x) => n + Object.keys(x.cBy).length, 0);
   const weeks = Analytics.weeksOf(r);
   const wLabels = weeks.map(w => 'KW ' + isoWeek(w).week);
   const perWeek = k => weeks.map(w => sum(rowsR.filter(x => x.dn >= w && x.dn < w + 7).map(x => x[k])));
@@ -1266,7 +1262,7 @@ ProgressViews.cardio = body => {
   body.innerHTML = `${heart}
     <div class="charts-grid">
       ${cb.card({ id: 'c1', wide: true, title: 'Cardio-Minuten pro Woche', info: 'Cardio-Minuten pro Woche. Gestrichelt: Ø der abgeschlossenen Wochen.',
-        big: fmtDur(curMin * 60), small: `im Zeitraum · ${units(rowsR)} Einheiten`, delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',
+        big: fmtDur(curMin * 60), small: 'im Zeitraum', delta: deltaHtml(curMin, prevMin), sub: prv ? prevLabel : '',
         factory: () => sum(minW) ? barChart(wLabels, [barDS('Minuten', minW, c.accent), avgLine(minW)], { running: ri, tooltipFmt: v => nf(v, 0) + ' min' }) : null })}
       ${cb.card({ id: 'c2', wide: true, title: 'Distanz pro Woche', info: 'Summe aller Distanzen (km) pro Kalenderwoche – nur Arten mit Distanz (Laufen, Rad, Rudern …).',
         big: curKm ? fmtKm(curKm) : '–', small: 'im Zeitraum', delta: deltaHtml(curKm, prevKm), sub: prv ? prevLabel : '',
@@ -1421,7 +1417,7 @@ ProgressViews.body = body => {
       </div>` : ''}
     </div>
     <button class="btn btn-ghost btn-block mt-12" data-act="bodyCfg">${icon('sliders')} Anzeige anpassen</button>
-    <div class="section-head"><h2>Verlauf</h2><span class="small dim">${P.length} Einträge</span></div>
+    <div class="section-head"><h2>Verlauf</h2></div>
     ${P.length ? `<div class="list">${[...P].reverse().map(p => `<button class="list-item" data-act="bodyEdit" data-id="${esc(p.id)}">
       <span class="li-icon">${icon(p.photoId && F('f_photos') ? 'camera' : 'scale')}</span>
       <span class="li-main"><span class="li-title">${esc(fmtDate(p.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }))}</span>

@@ -451,7 +451,14 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 - **Wenig Kleintext:** Unter Zahlen steht nur, was man zum Verstehen braucht. Erklärungen (z. B. bis wann
   verglichen wird, die ganze Vorwoche, ausgewogene Bereiche in der Plan-Analyse) stecken im ⓘ der Karte; ein
   Vergleichspfeil erscheint nur, wenn es einen Vergleichswert gibt. Ebenso schlank: Startseite (keine Satz-/RPE-Angaben
-  in „Letzte Workouts“), Workout-Karten in „Meine Workouts“ ohne Übungsliste, Übungsliste ohne „noch nie“.
+  in „Letzte Workouts“), Workout-Karten in „Meine Workouts“ ohne Übungsliste, Übungsliste ohne „noch nie“ und ohne Gesamtzahl.
+  Keine Legenden, wo Farben oder Abzeichen schon sprechen (Konsistenz, Meilensteine), keine Zahl, die direkt daneben
+  schon zu sehen ist (Tage der Woche unter den Streak-Punkten, Trainings-/Ruhetage über der Wochenleiste, „1/3“ neben
+  den Satz-Punkten). Die Pausen-Leiste zeigt nur Zeit und „Als Nächstes“; Formel im 1RM-Rechner und Ziel-Erklärung
+  stehen im ⓘ.
+- **Kennzahl-Kacheln gleichmäßig** (Zusammenfassung, Workout-Detail): „Ø RPE“ erscheint nur mit eingetragenem RPE.
+  Bleiben drei Kacheln, stehen sie nebeneinander (Dauer kurz als „64 min“), sonst zwei Spalten; eine übrige letzte
+  Kachel geht über die ganze Breite.
 - **Kraft** mit Filter **Gesamt / Pro Übung / Pro Muskelgruppe**: Gesamt und Muskelgruppe zeigen den
   **Kraftzuwachs in %** (kg verschiedener Übungen lassen sich nicht addieren), **Top-Aufsteiger**,
   Kraft im Vergleich, PRs pro Woche und Tage seit dem letzten PR. Pro Übung: geschätztes 1RM, Rep-Maxima,
