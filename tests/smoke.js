@@ -867,6 +867,20 @@ async function muskelFlow(page) {
   const sentences = t => t.replace(ABBR, m => m.replace(/\./g, '·')).replace(/\d\.\d/g, 'x').split(/[.!?…](?:\s|$)/).filter(x => x.trim().length > 2).length;
   const long = [...infos].filter(t => sentences(t) > 2 || t.length > 150);
   check(infos.size > 40 && !long.length, `Erklärungen im (i): höchstens 2 kurze Sätze (${infos.size} geprüft)`, long.slice(0, 3).join(' | '));
+  // Muskel-Liste unter der Heatmap: eingeklappt, „Alle Muskeln“ klappt auf, bleibt nach dem Neu-Zeichnen offen
+  const reg = await page.evaluate(async () => {
+    const wait = ms => new Promise(r => setTimeout(r, ms));
+    UI.regOpen = false; UI.progSub = 'muscles'; App.go('progress', { instant: true }); App.renderCurrent(); await wait(300);
+    const list = () => document.querySelector('#regList'), btn = () => document.querySelector('[data-act="regToggle"]');
+    const zu = list().hidden && btn().getAttribute('aria-expanded') === 'false' && !list().offsetParent;
+    btn().click(); await wait(100);
+    const auf = !list().hidden && btn().getAttribute('aria-expanded') === 'true' && list().querySelectorAll('.reg-item').length > 10;
+    App.renderCurrent(); await wait(200);
+    const bleibt = !list().hidden && btn().classList.contains('open');
+    btn().click(); await wait(100);
+    return { zu, auf, bleibt, wiederZu: list().hidden && UI.regOpen === false };
+  });
+  check(reg.zu && reg.auf && reg.bleibt && reg.wiederZu, 'Muskel-Liste unter der Heatmap: eingeklappt, „Alle Muskeln“ klappt auf und wieder zu, Zustand bleibt', JSON.stringify(reg));
 }
 
 /* ---------- Prüfbericht 1.33.8: jeder der 18 Befunde (T01–T18) bleibt behoben ---------- */

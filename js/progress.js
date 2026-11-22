@@ -1141,7 +1141,8 @@ ProgressViews.muscles = body => {
         <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn('Deine Muskeln, eingefärbt nach Sätzen pro Woche. Antippen zeigt Details.')}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
         <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 50%, var(--mus-off)) 20%, var(--accent) 50%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
-        <div class="reg-list mt-12">${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
+        <button type="button" class="reg-toggle${UI.regOpen ? ' open' : ''}" data-act="regToggle" aria-expanded="${!!UI.regOpen}" aria-controls="regList"><span>Alle Muskeln</span>${icon('chevD')}</button>
+        <div class="reg-list mt-8" id="regList"${UI.regOpen ? '' : ' hidden'}>${regList.map(k => `<button class="reg-item" data-act="muscleTap" data-m="${k}"><span class="reg-dot" style="background:${regionColor(rpw(k))}"></span><span class="reg-name">${esc(REGIONS[k][0])}</span><b>${nf(rpw(k), 1)}</b><i style="--w:${Math.min(100, rpw(k) / 20 * 100)}%"></i></button>`).join('')}</div>
       </div>
       ${cb.card({ id: 'm2', wide: true, title: 'Sätze pro Muskelgruppe / Woche', size: 'lg', info: 'Sätze pro Woche je Muskel, blass heißt mitgeholfen (zählt halb). Ab 4 wächst ein Muskel messbar, über 20 kaum noch mehr.',
         factory: () => {
@@ -1190,6 +1191,15 @@ ProgressViews.muscles = body => {
   cb.mountAll();
 };
 Changes.muscleSel = el => { UI.muscleSel = el.value; saveUI(); App.renderCurrent(); };
+/* Muskel-Liste unter der Heatmap: ein-/ausklappen, Zustand bleibt gemerkt */
+Actions.regToggle = el => {
+  UI.regOpen = !UI.regOpen; saveUI();
+  const list = $('#regList'); if (!list) return;
+  list.hidden = !UI.regOpen;
+  el.classList.toggle('open', UI.regOpen);
+  el.setAttribute('aria-expanded', String(UI.regOpen));
+  if (UI.regOpen) fx(list, 'fx-up');
+};
 Actions.muscleTap = el => {
   const k = el.dataset.m;
   const reg = REGIONS[k]; if (!reg) return;

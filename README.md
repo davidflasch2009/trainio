@@ -494,7 +494,8 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 - Über 320 Übungen inkl. Maschinen, Kabel, Multipresse (Smith Machine), Plate-Loaded, Kettlebell, Core & Cardio –
   gängige englische Gerätenamen sind als Suchbegriffe hinterlegt. Bestehende Konten bekommen
   neue Übungen automatisch ergänzt.
-- Body-Heatmap mit 36 Muskelregionen plus sortierte Regionen-Liste, u. a. Brust oben/mitte/unten,
+- Body-Heatmap mit 36 Muskelregionen plus sortierte Regionen-Liste (eingeklappt unter „Alle Muskeln“, der Zustand
+  bleibt gemerkt), u. a. Brust oben/mitte/unten,
   Sägemuskel, vordere/seitliche/hintere Schulter, Rotatorenmanschette, Bizeps & Brachialis,
   Trizeps langer/seitlicher Kopf, Unterarm-Beuger/-Strecker, Trapez oben/mitte/unten, Rhomboiden,
   Latissimus, Teres, obere/untere Bauchmuskeln, Rectus femoris / Vastus lateralis / Vastus medialis,
