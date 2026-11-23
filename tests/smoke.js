@@ -161,6 +161,13 @@ async function mobileFlow(page) {
 
   // Scheibenrechner über ⋯ an der Übung → zeigt Satz 2
   await page.click('#tab-training [data-act="exMenu"][data-ei="0"]');
+  const menu = page.locator('.modal-wrap:not(.closing) .modal');
+  check(await menu.locator('.list > button[data-k="warm"]').isVisible(), 'Aufwärmsätze direkt im Übungsmenü erreichbar');
+  check(await menu.locator('button[data-k]:visible, summary:visible').count() <= 6 && !await menu.locator('[data-k="del"]').isVisible(), 'Übungsmenü startet kompakt, Entfernen ist eingeklappt');
+  await menu.locator('summary').filter({ hasText: 'Übung verwalten' }).click();
+  check(await menu.locator('[data-k="del"]').isVisible(), 'Übung verwalten zeigt Entfernen');
+  await menu.locator('summary').filter({ hasText: 'Sätze & Pause' }).click();
+  check(!await menu.locator('[data-k="del"]').isVisible(), 'Beim Gruppenwechsel schließt die vorherige Gruppe');
   await page.click('.modal [data-k="plates"]');
   await pause(page);
   const pl = await page.evaluate(() => ({ ctx: (document.querySelector('.modal .pl-ctx') || {}).innerText || '', total: (document.querySelector('.modal #plT') || {}).value }));
@@ -614,6 +621,7 @@ async function formFixFlow(page) {
   await pause(page, 500);
   await page.click('#tab-training [data-act="exMenu"][data-ei="0"]');
   await pause(page, 400);
+  await page.locator('.modal summary').filter({ hasText: 'Notizen & Technik' }).click();
   await page.click('.modal [data-k="fix"]');
   await pause(page, 400);
   await page.fill('#pdInput', 'tiefer, Rücken gerade');
@@ -779,7 +787,7 @@ async function anzeigeFlow(page) {
     const tab = document.querySelector('#tab-training');
     const menu = [];
     const orig = window.actionMenu;
-    window.actionMenu = async (t, items) => { menu.push(...items.filter(Boolean).map(i => i.key)); return null; };
+    window.actionMenu = async (t, items) => { menu.push(...items.filter(Boolean).flatMap(i => i.items || [i]).filter(Boolean).map(i => i.key)); return null; };
     await Actions.woMore(); await Actions.exMenu({ dataset: { ei: 0 } });
     window.actionMenu = orig;
     return { note: tab.innerText.includes('Schulterblätter zusammen'), up: /82,5 kg ↑/.test(tab.innerText), detailed: !!tab.querySelector('.set-head .rpe-h, .wo-strip, .ex-goal, .set-panel'),

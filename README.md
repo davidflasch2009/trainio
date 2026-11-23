@@ -197,13 +197,16 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
 - **Im Workout** öffnet er sich mit dem **aktuellen Satz** (erster offener Satz der Übung): Ist bei Bankdrücken
   Satz 1 erledigt, steht sofort das Gewicht von Satz 2 drin – eingetragen, sonst wie im Feld vorgeschlagen
   (letztes Mal, Ziel, Satz davor). Mit ‹ › wechselst du den Satz, „… für Satz 2 übernehmen“ trägt ein
-  geändertes Gewicht direkt ein. Gilt für ⋯ an der Übung, „Scheiben“ am Satz und **Mehr → Tools**, solange ein
+  geändertes Gewicht direkt ein. Gilt für ⋯ → „Sätze & Pause“ an der Übung, „Scheiben“ am Satz und **Mehr → Tools**, solange ein
   Workout läuft.
 
 ## Workout-Eingabe
 
-- **Eine klare Eingabe:** pro Satz nur Gewicht, Wdh. und Haken; Ziel, Aufwärmen, Scheiben, Drop-Satz,
-  Notizen usw. hinter dem ⋯-Menü der Übung. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
+- **Eine klare Eingabe:** pro Satz nur Gewicht, Wdh. und Haken. Über ⋯ lassen sich Aufwärmsätze hinzufügen,
+  das Trainingsziel ändern und Werte vom letzten Mal übernehmen (wenn verfügbar). „Details & Verlauf“ steht unter
+  „Übung verwalten“. Weitere Aktionen stehen unter
+  „Sätze & Pause“, „Notizen & Technik“ und „Übung verwalten“. Bei Cardio gibt es die Gruppen „Notizen“ und
+  „Übung verwalten“. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
   RPE eingetragen hat, bekommt automatisch die RPE-Spalte (Mehr → Workout → RPE-Spalte).
 - **Eigene Zahlentastatur** (Handy/Tablet mit Touch): Ein Tipp auf Gewicht, Wdh., Sekunden oder einen Cardio-Wert
   öffnet statt der Handy-Tastatur eine große Zahlentastatur:
@@ -227,7 +230,7 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
   Wer lieber alles direkt als Text vorausgefüllt haben will: **Mehr → Workout → Werte als Text vorausfüllen**.
 - **Einseitige Übungen (links/rechts)**: z. B. Bulgarian Split Squat oder einarmiges Rudern. Pro Satz
   gibt es dann ein Feld für links und eins für rechts – rechts leer lassen = wie links. Einstellbar im
-  Workout über ⋯ → „Einseitig", in „Meine Workouts" über den L/R-Schalter und beim Bearbeiten einer Übung.
+  Workout über ⋯ → „Sätze & Pause“ → „Einseitig", in „Meine Workouts" über den L/R-Schalter und beim Bearbeiten einer Übung.
   Volumen zählt beide Seiten, Kraftwerte (e1RM, PRs) die schwächere Seite.
 - **Nur aktuelle Übung offen** (Standard): fertige und kommende Übungen sind zugeklappt
   (Name + Sätze bzw. Ziel). Ist eine Übung fertig, klappt sie zu und die nächste öffnet sich;
@@ -290,7 +293,7 @@ abschaltbar unter Mehr → Tabs & Funktionen („Herz & Ausdauer“).
 ## Form-Fix
 
 Wer bewusst mit weniger Gewicht trainiert, um die Technik zu verbessern (z. B. 80 statt 90 kg, dafür sauber), wird
-dafür nicht bestraft: im Workout bei der Übung **⋯ → Form-Fix** (optional mit Notiz, z. B. „tiefer, Rücken gerade“).
+dafür nicht bestraft: im Workout bei der Übung **⋯ → Notizen & Technik → Form-Fix** (optional mit Notiz, z. B. „tiefer, Rücken gerade“).
 - **Workout-Score:** Die Übung zählt in diesem Workout neutral („gleich geblieben“) statt als Rückschritt.
 - **PRs starten neu:** Das Workout mit dem Form-Fix setzt neue Startwerte, danach wird jede Steigerung wieder als PR
   gefeiert (82,5 kg mit guter Form = PR). Die alten Bestwerte bleiben als „vor Form-Fix“ auf der Übungs-Seite sichtbar.
@@ -334,7 +337,7 @@ bricht ab. Gilt in der Listen-Ansicht und bei Cardio-Abschnitten.
 
 ## Dauerhafte Übungs-Notiz
 
-Im Workout über ⋯ → **„Dauerhafte Notiz“** (oder in den Übungs-Details) z. B. „Sitzhöhe 4, Griff eng“ hinterlegen.
+Im Workout in der Notizgruppe unter ⋯ → **„Dauerhafte Notiz“** (oder in den Übungs-Details) z. B. „Sitzhöhe 4, Griff eng“ hinterlegen.
 Die Notiz hängt an der Übung und erscheint als 📌-Hinweis in jedem zukünftigen Workout – antippen zum Ändern.
 „Notiz nur für heute“ gilt weiterhin nur für das aktuelle Workout.
 
@@ -404,7 +407,7 @@ Jeder Punkt bekommt ✓ oder ⚠, bei ⚠ mit einem konkreten Tipp (z. B. „Ca.
 
 ## Im Workout
 
-- **Drop-Satz:** ⋯ an der Übung → „Drop-Satz hinzufügen“ hängt einen Satz mit „D“ an, Gewicht ca. 20 % unter
+- **Drop-Satz:** ⋯ an der Übung → „Sätze & Pause“ → „Drop-Satz hinzufügen“ hängt einen Satz mit „D“ an, Gewicht ca. 20 % unter
   dem letzten Satz (abgerundet aufs Gewichts-Inkrement). „Bis zum Muskelversagen“ gibt es über die Satznummer.
 - **Workout beenden:** Sobald alle Sätze abgehakt sind, erscheint unten ein großer „Workout beenden“-Knopf
   mit automatischem Scrollen dorthin.

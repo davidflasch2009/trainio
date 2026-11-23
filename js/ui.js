@@ -372,7 +372,13 @@ function actionMenu(title, items) {
           ${cls ? icon('chevR', 'li-chev') : ''}
         </button>`;
         // Hervorgehobene Einträge (z. B. heutiges Workout) abgesetzt über der Liste
-        return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${solo.map((it, i) => row(it, `am-solo fx-up${feat.length || i ? ' mt-8' : ''}`)).join('')}${rest.length ? `<div class="list fx-stagger${feat.length || solo.length ? ' mt-12' : ''}">${rest.map(it => row(it)).join('')}</div>` : ''}`;
+        const menuItem = it => {
+          if (!it.items) return row(it);
+          const children = it.items.filter(Boolean);
+          if (!children.length) return '';
+          return `<details class="am-group" name="am-sections"><summary class="list-item" tabindex="0"><span class="li-icon">${icon(it.icon)}</span><span class="li-main"><span class="li-title">${esc(it.label)}</span></span>${icon('chevD', 'li-chev')}</summary>${children.map(child => row(child)).join('')}</details>`;
+        };
+        return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${solo.map((it, i) => row(it, `am-solo fx-up${feat.length || i ? ' mt-8' : ''}`)).join('')}${rest.length ? `<div class="list fx-stagger${feat.length || solo.length ? ' mt-12' : ''}">${rest.map(menuItem).join('')}</div>` : ''}`;
       })(),
       onClose: () => resolve(res)
     });

@@ -1089,23 +1089,30 @@ Actions.setMenu = async el => {
 const fixTxt = en => `${icon('refresh').replace('<svg', '<svg width="13" height="13" style="vertical-align:-2px"')} Form-Fix${en.formFix.note ? ': ' + esc(en.formFix.note) : ''} – ab hier neu gezählt`;
 Actions.exMenu = async el => {
   const w = Workout.cur(); const ei = +el.dataset.ei; const en = w.entries[ei];
-  const isCardio = Ex.type(Ex.get(en.exerciseId)) === 'cardio';
+  const type = Ex.type(Ex.get(en.exerciseId));
+  const isCardio = type === 'cardio';
   const k = await actionMenu(en.exerciseName, [
-    !isCardio && { key: 'goal', label: 'Ziel: Sätze, Wdh., Gewicht, Pause', icon: 'target' },
+    F('f_warmup') && type === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
+    !isCardio && { key: 'goal', label: 'Trainingsziel ändern', icon: 'target' },
     canFillAny(en, lastSessionFor(en.exerciseId, w)) && { key: 'fill', label: 'Letztes Mal übernehmen', icon: 'fillIn' },
-    F('f_warmup') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'warm', label: 'Aufwärmsätze hinzufügen', icon: 'flame' },
-    F('f_setTypes') && !isCardio && { key: 'drop', label: 'Drop-Satz hinzufügen', icon: 'arrowDown' },
-    F('f_plates') && Ex.type(Ex.get(en.exerciseId)) === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
-    !isCardio && { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', icon: 'swap' },
-    { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', icon: 'flag' },
-    { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', icon: 'note' },
-    !isCardio && { key: 'fix', label: en.formFix ? 'Form-Fix entfernen' : 'Form-Fix', icon: 'refresh' },
-    !isCardio && { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
-    { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
-    ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },
-    ei < w.entries.length - 1 && { key: 'down', label: 'Nach unten', icon: 'arrowDown' },
-    { key: 'info', label: 'Übungs-Details & Verlauf', icon: 'chart' },
-    { key: 'del', label: 'Übung entfernen', icon: 'trash', danger: true }
+    !isCardio && { label: 'Sätze & Pause', icon: 'layers', items: [
+      F('f_setTypes') && { key: 'drop', label: 'Drop-Satz hinzufügen', icon: 'arrowDown' },
+      F('f_plates') && type === 'kg' && { key: 'plates', label: 'Scheibenrechner', icon: 'plate' },
+      { key: 'rest', label: 'Pausenzeit ändern', sub: `aktuell ${fmtClock(en.target.restSec || S().defaultRestSec)}`, icon: 'timer' },
+      { key: 'uni', label: en.uni ? 'Beidseitig erfassen' : 'Einseitig: links & rechts', icon: 'swap' }
+    ] },
+    { label: isCardio ? 'Notizen' : 'Notizen & Technik', icon: 'note', items: [
+      { key: 'note', label: en.note ? 'Notiz für heute bearbeiten' : 'Notiz nur für heute', icon: 'note' },
+      { key: 'pin', label: pinNote(en.exerciseId) ? 'Dauerhafte Notiz bearbeiten' : 'Dauerhafte Notiz', icon: 'flag' },
+      !isCardio && { key: 'fix', label: en.formFix ? 'Form-Fix entfernen' : 'Form-Fix', icon: 'refresh' }
+    ] },
+    { label: 'Übung verwalten', icon: 'sliders', items: [
+      { key: 'info', label: 'Details & Verlauf', icon: 'chart' },
+      { key: 'swap', label: 'Übung ersetzen', icon: 'swap' },
+      ei > 0 && { key: 'up', label: 'Nach oben', icon: 'arrowUp' },
+      ei < w.entries.length - 1 && { key: 'down', label: 'Nach unten', icon: 'arrowDown' },
+      { key: 'del', label: 'Übung entfernen', icon: 'trash', danger: true }
+    ] }
   ]);
   if (!k) return;
   if (k === 'goal') return openGoalEditor(ei);
