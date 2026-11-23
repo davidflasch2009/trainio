@@ -954,6 +954,14 @@ async function muskelFlow(page) {
     return { zu, auf, bleibt, wiederZu: list().hidden && UI.regOpen === false };
   });
   check(reg.zu && reg.auf && reg.bleibt && reg.wiederZu, 'Muskel-Liste unter der Heatmap: eingeklappt, „Alle Muskeln“ klappt auf und wieder zu, Zustand bleibt', JSON.stringify(reg));
+  const weekMap = await page.evaluate(() => {
+    const mapped = new Set([...document.querySelectorAll('.body-map .mus')].map(p => p.dataset.m));
+    const monday = dayNum('2026-11-23');
+    const first = heatmapWeek(monday).from;
+    return Object.keys(REGIONS).every(k => mapped.has(k)) && first === monday &&
+      heatmapWeek(monday - 1).from === monday - 7 && heatmapWeek(monday + 6).from === monday;
+  });
+  check(weekMap, 'Heatmap: alle Regionen antippbar, Wochenwechsel am Montag');
 }
 
 /* ---------- Prüfbericht 1.33.8: jeder der 18 Befunde (T01–T18) bleibt behoben ---------- */

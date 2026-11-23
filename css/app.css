@@ -1297,12 +1297,10 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .body-map { display: flex; justify-content: center; gap: 6px; }
 .body-map svg { width: 50%; max-width: 260px; height: auto; overflow: visible; }
 .body-map .base { fill: var(--fig); stroke: var(--fig-line); stroke-width: 1.4; stroke-linejoin: round; }
-.body-map .base-fill { fill: var(--fig); stroke: var(--fig); stroke-width: .6; }
 .body-map .mus { stroke: var(--fig-line); stroke-width: 1.1; stroke-linejoin: round; cursor: pointer; transition: opacity .15s, filter .15s; }
 .body-map .mus:hover { filter: brightness(1.12); }
 .body-map .mus.sel { stroke: var(--text); stroke-width: 2; }
-.body-map .mlines { fill: none; stroke: var(--fig-line); stroke-width: .8; stroke-linecap: round; opacity: .65; pointer-events: none; }
-.body-map text { fill: var(--text-faint); font-size: 11px; font-weight: var(--fw-b); text-anchor: middle; }
+.body-map text { fill: var(--text-faint); font-size: 36px; font-weight: var(--fw-b); text-anchor: middle; }
 .reg-toggle { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; margin: 12px auto 0; padding: 0 12px 0 16px; border: 0; border-radius: 999px; background: var(--surface-2); color: var(--text-dim); font: inherit; font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .reg-toggle svg { width: 18px; height: 18px; transition: transform .25s var(--ease-ios); }
 .reg-toggle.open svg { transform: rotate(180deg); }

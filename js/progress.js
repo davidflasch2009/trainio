@@ -1000,85 +1000,49 @@ function exRegions(ex) {
   return out;
 }
 
-/* Körper-Grafik 200×440 – linke Bildhälfte definiert, rechte gespiegelt */
-const BODY = {
-  // Silhouette (linke Hälfte, Mittellinie x=100)
-  sil: 'M100 58L92 58C92 65 91 70 88 73C82 77 74 79 68 82C60 85 55 92 53 102C51 112 51 122 50 132C49 142 47 150 45 158C42 172 39 188 37 202C36 208 35 212 34 216C30 220 25 226 23 234C22 240 25 243 28 241L31 235C31 241 33 247 36 247C38 247 39 244 39 240L39 247C40 250 44 250 44 246L43 238C45 241 48 240 47 236L46 226C47 221 47 217 46 213C48 202 51 188 54 175C56 167 58 159 60 151C62 140 64 129 66 119C69 131 72 144 74 156C75 168 74 182 72 196C70 210 69 226 70 244C71 264 74 284 77 300C76 314 74 328 75 344C77 362 81 378 83 392C82 398 78 404 76 410C82 415 92 415 96 410C96 402 95 396 94 390C95 374 96 356 95 338C94 322 95 310 96 300C98 280 99 256 99 232L100 222Z',
-  head: '<ellipse cx="100" cy="36" rx="16" ry="20"/><path d="M84 38c-3 0-4 6-1 10l2 1zM116 38c3 0 4 6 1 10l-2 1z"/>',
+/* Zusätzliche Teilregionen innerhalb der Atlas-Konturen (linke Körperhälfte). */
+const BODY_SECTIONS = {
   front: {
-    single: {
-      bauch_o: ['M90 124h9v16h-9z', 'M101 124h9v16h-9z', 'M90 142h9v17h-9z', 'M101 142h9v17h-9z'],
-      bauch_u: ['M90 161h9v16h-9z', 'M101 161h9v16h-9z', 'M90 179h9v34c-4-1-7-8-9-18z', 'M101 179h9v16c-2 10-5 17-9 18z']
-    },
-    paired: {
-      trap_o: ['M91 63C89 70 84 75 76 79L95 80C94 74 93 68 91 63Z'],
-      delt_s: ['M68 82C60 84 54 92 52 104C51 112 52 120 55 127C57 116 59 106 62 98C64 92 66 87 68 82Z'],
-      delt_v: ['M69 82C66 88 63 96 62 104C60 112 58 120 56 127C62 123 66 116 68 108C70 100 72 92 75 84Z'],
-      brust_o: ['M99 82L76 84C73 88 71 92 70 96C79 93 89 92 99 93Z'],
-      brust_m: ['M99 94.5C89 93.5 79 94.5 70 97.5C68.5 101 68 105 68 108C78 106.5 89 107.5 99 109.5Z'],
-      brust_u: ['M99 111C89 109 78 108 68 109.5C68 113 70 116 74 119C82 124 92 124 99 121Z'],
-      serratus: ['M71 119L81 122L76 127Z', 'M72 128L81 131L77 136Z', 'M73 137L80 140L76 145Z'],
-      bizeps: ['M56 124C53 133 51.5 141 51 147C54 150 58 149 60 145C62 137 64 129 66 120C62 120 58 121 56 124Z'],
-      brachialis: ['M51 149C50.5 151 50.2 153 50 154.5C54 158 58 156 60 150L60 147C58 151 54 152 51 149Z',
-        'M46 158C42 170 40 180 39 188C42 186 45 180 48 172C50 166 53 162 55 160C51 157 48 157 46 158Z'],
-      trizeps_s: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
-      unterarm_f: ['M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z',
-        'M39.5 191C42 188 44.5 184 47 179C45.5 187 43.5 195 42 203L37 200C37.8 197 38.6 194 39.5 191Z'],
-      obliques: ['M83 123L88 125L88 193C83 190 79 187 76 183C76 169 75 157 75 147C78 137 80 129 83 123Z'],
-      hueftbeuger: ['M77 192C83 197 89 205 93 214L89 219C84 210 79 202 75 197Z'],
-      abduktoren: ['M74 194C71.5 198 70.5 203 71 208L74 211C75.5 206 75.5 200 74.5 196Z'],
-      quad_vl: ['M73 212C70 230 70 256 74 280C76 290 78 296 80 301L83 299C80 281 78 257 79 233C79 225 77 218 73 212Z'],
-      quad_rf: ['M80 220C79 244 80 268 84 293L90 297C92 273 92 247 90 227C87 223 83 221 80 220Z'],
-      quad_vm: ['M92 262C90 274 90 286 92 297L97 301C99 291 99 279 97 266Z'],
-      adduktoren: ['M89 214L99 223L99 257C96 247 93 237 90 227Z'],
-      tibialis: ['M78 316C76 334 78 352 82 370L85 368C83 350 82 332 83 314Z'],
-      waden: ['M88 314C93 328 95 344 93 362L90 366C90 348 89 330 86 316Z'],
-      soleus: ['M90 369C92 375 93 381 92.5 387L89 386C88 380 88 375 88.5 370Z']
-    },
-    // Konturen & Faserlinien (nur Linien)
-    lines: ['M84 303a5 6 0 1 0 10 0a5 6 0 1 0-10 0', 'M80 88l10 2M76 101l16 0M75 114l17-1', 'M58 92l6 10M55 102l5 10',
-      'M80 236l3 40M86 232l1 44', 'M94 64l-1 12', 'M96 214l-6-7', 'M57 130l2 12']
+    brust_m: { brust_o: 'M230 290H380V348Q310 334 248 371Z', brust_u: 'M240 412Q299 426 371 398V451H240Z' },
+    delt_v: { delt_s: 'M180 294H242Q213 335 211 403H180Z' }
   },
   back: {
-    single: {
-      ruecken_u: ['M93 154C91 168 91 184 92 199L99 201V151Z', 'M107 154C109 168 109 184 108 199L101 201V151Z']
-    },
-    paired: {
-      trap_o: ['M100 58L92 58C90 67 84 74 70 82C79 84 89 86 100 88Z'],
-      trap_m: ['M100 89.5C89 87.5 80 86 72 84C74 87 77 90 81 92.5C88 97 94 103 100 110Z'],
-      trap_u: ['M100 112C94 105 88 99 82 95C86 108 92 126 100 150Z'],
-      delt_h: ['M70 82C62 84 55 92 53 104C52 112 53 120 56 127C59 118 62 110 66 103C68 98 69 93 70 89Z'],
-      rotatoren: ['M71 90C69 96 68 101 68 106C71 110 76 112 82 113C81 107 80 100 79.5 94C77 92.5 74 91 71 90Z'],
-      rhomboiden: ['M81 95C82 102 83 109 84 115C86 116 88 116 90 115C88 108 85 101 81 95Z'],
-      teres: ['M67.5 109C66.5 113 66.3 117 66.8 121C72 122 78 120 84 117C79 116 73 114 67.5 109Z'],
-      lat: ['M67 124C70 134 74 146 77 158C80 172 86 184 96 192L99 181C98 167 96 155 93 144C90 134 88 126 86 120C80 123 73 125 67 124Z'],
-      trizeps_l: ['M56 124C53 134 51 146 50 154C54 158 58 156 60 150C62 140 64 130 66 120C62 120 58 121 56 124Z'],
-      trizeps_s: ['M53 106C51 118 50 130 48 146L50 154C51 140 53 130 56 124C54 118 53 112 53 106Z'],
-      unterarm_e: ['M46 158C42 172 39 186 37 200L42 203C45 189 49 175 55 160C51 157 48 157 46 158Z', 'M56 160C51 176 47 191 43 205L37 213L45 214C48 202 52 186 59 157Z'],
-      abduktoren: ['M76 192C73 198 72 206 74 214C78 208 84 203 90 199C86 195 81 193 76 192Z'],
-      gluteus: ['M74 215C72 229 76 242 86 248C94 252 99 246 99 236V203C92 203 84 207 78 211Z'],
-      hamstrings_l: ['M74 252C72 270 74 288 78 302L86 304C84 286 84 268 86 254Z'],
-      hamstrings_m: ['M87 254C86 272 88 290 90 304L97 302C99 286 99 270 98 254Z'],
-      waden: ['M76 314C72 328 73 344 80 356C84 344 86 328 86 314Z', 'M87 314C87 330 89 346 93 358C98 346 98 330 95 316Z'],
-      soleus: ['M80 358C81 368 83 378 85 386L93 386C94 376 94 368 93 360C90 364 86 364 80 358Z']
-    },
-    lines: ['M88 140l6 18M82 150l8 20', 'M58 96l6 8M56 104l6 10', 'M80 270l2 26M92 268l1 28', 'M80 232c4 4 10 6 16 6', 'M72 98l7 8']
+    trap_m: { trap_o: 'M980 275H1090V348Q1040 324 980 324Z', trap_u: 'M975 357Q1020 375 1090 400V487H975Z' },
+    rotatoren: { rhomboiden: 'M1004 304H1050V416H1032Q1021 362 1004 343Z' }
   }
 };
 function bodySvg(view, valueOf, labelOf) {
-  const v = BODY[view];
-  const mus = (m, d) => {
-    const val = valueOf(m);
-    const name = typeof REGIONS !== 'undefined' && REGIONS[m] ? REGIONS[m][0] : m;
-    return `<path class="mus" d="${d}" fill="${val.color}" data-act="muscleTap" data-m="${esc(m)}" role="button" aria-label="${esc(name)}: ${esc(labelOf(m))}"><title>${esc(name)}: ${esc(labelOf(m))}</title></path>`;
-  };
-  const half = Object.entries(v.paired).map(([m, ds]) => ds.map(d => mus(m, d)).join('')).join('') + `<g class="mlines">${v.lines.map(d => `<path d="${d}"/>`).join('')}</g>`;
-  const single = Object.entries(v.single).map(([m, ds]) => ds.map(d => mus(m, d)).join('')).join('');
-  return `<svg viewBox="14 0 172 440" role="img" aria-label="Muskel-Heatmap ${view === 'front' ? 'vorne' : 'hinten'}">
-    <g class="base">${BODY.head}<path d="${BODY.sil}"/><path d="${BODY.sil}" transform="matrix(-1 0 0 1 200 0)"/></g>
-    <g class="base-fill"><path d="${BODY.sil}"/><path d="${BODY.sil}" transform="matrix(-1 0 0 1 200 0)"/></g>
-    ${half}<g transform="matrix(-1 0 0 1 200 0)">${half}</g>${single}
-    <text x="100" y="434">${view === 'front' ? 'Vorne' : 'Hinten'}</text></svg>`;
+  const v = BODY_MAP[view], front = view === 'front', axis = front ? 364 : 1084;
+  const id = 'body-' + view;
+  const defs = [];
+  const neutral = d => `<path d="${d}" fill="url(#${id}-neutral)"/>`;
+  function muscle(k, d, clip = '') {
+    const label = esc(REGIONS[k][0] + ': ' + labelOf(k));
+    return `<path class="mus" data-act="muscleTap" data-m="${k}" d="${d}" fill="url(#${id}-${k})" ${clip} role="button" aria-label="${label}"><title>${label}</title></path>`;
+  }
+  const gradient = (key, color) => `<radialGradient id="${id}-${key}" cx="43%" cy="38%" r="74%"><stop stop-color="color-mix(in srgb,${color} 82%,white)"/><stop offset=".55" stop-color="${color}"/><stop offset="1" stop-color="color-mix(in srgb,${color} 78%,var(--fig-line))"/></radialGradient>`;
+  const half = Object.entries(v.paired).map(([k, paths]) => paths.map(d => {
+    if (k === 'neutral') return neutral(d);
+    let result = muscle(k, d);
+    for (const [part, mask] of Object.entries(BODY_SECTIONS[view][k] || {})) {
+      defs.push(`<clipPath id="${id}-cut-${part}"><path d="${mask}"/></clipPath>`);
+      result += muscle(part, d, `clip-path="url(#${id}-cut-${part})"`);
+    }
+    return result;
+  }).join('')).join('');
+  return `<svg viewBox="${axis - 340} 75 680 1340" role="img" aria-label="Muskel-Heatmap ${front ? 'vorne' : 'hinten'}">
+    <defs>${gradient('neutral', 'var(--fig)')}${Object.keys(REGIONS).map(k => gradient(k, valueOf(k).color)).join('')}${defs.join('')}</defs>
+    <path class="base" d="${v.outline}"/>${v.common.map(neutral).join('')}
+    ${half}<g transform="translate(${2 * axis} 0) scale(-1 1)">${half}</g>
+    <text x="${axis}" y="1400">${front ? 'Vorne' : 'Hinten'}</text></svg>`;
+}
+
+function heatmapWeek(today = todayDN()) {
+  return { from: weekStartDN(today), to: today };
+}
+let heatmapWeekTimer;
+function refreshHeatmapWeek() {
+  if (App.tab === 'progress' && UI.progSub === 'muscles') App.renderCurrent();
 }
 
 /** Gewichtete Sätze pro Region in den Workouts eines Zeitraums */
@@ -1131,15 +1095,17 @@ ProgressViews.muscles = body => {
   const variety = MUSCLES.map(m => [m, new Set(rows.flatMap(w => w.ex.filter(id => isPrimary(id, m)))).size]);
   const donutData = MUSCLES.map(m => [m, setsM[m]]).filter(x => x[1] > 0).sort((a, b) => b[1] - a[1]);
   const top7 = donutData.slice(0, 7), rest = sum(donutData.slice(7).map(x => x[1]));
-  const rSets = regionSets(rows);
-  const rpw = k => rSets[k] / nWeeks;
+  const rSets = regionSets(Analytics.rowsIn(heatmapWeek()));
+  clearTimeout(heatmapWeekTimer);
+  heatmapWeekTimer = setTimeout(refreshHeatmapWeek, parseISO(dnToISO(weekStartDN(todayDN()) + 7)).getTime() - Date.now() + 50);
+  const rpw = k => rSets[k];
   const regList = Object.keys(REGIONS).sort((a, b) => rpw(b) - rpw(a));
   const ratioBadge = (v, lo, hi) => v == null ? '' : v < lo || v > hi ? `<span class="badge warn">${icon('warn')} Dysbalance</span>` : `<span class="badge accent">${icon('check')} ausgewogen</span>`;
   const cb = chartBuilder();
   body.innerHTML = `
     <div class="charts-grid">
       <div class="chart-card wide">
-        <div class="cc-head"><span class="cc-title">Body-Heatmap</span>${infoBtn('Deine Muskeln, eingefärbt nach Sätzen pro Woche. Antippen zeigt Details.')}</div>
+        <div class="cc-head"><span class="cc-title">Body-Heatmap · Diese Woche</span>${infoBtn('Gewichtete Arbeitssätze seit Wochenbeginn, unabhängig vom Zeitraum oben. Antippen zeigt die Übungen.')}</div>
         <div class="body-map mt-8">${bodySvg('front', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}${bodySvg('back', k => ({ color: regionColor(rpw(k)) }), k => `${nf(rpw(k), 1)} Sätze/Woche`)}</div>
         <div class="row mt-8 tiny dim"><span>0</span><span class="heat-scale" style="background:linear-gradient(90deg, var(--mus-off), color-mix(in srgb, var(--accent) 50%, var(--mus-off)) 20%, var(--accent) 50%, color-mix(in srgb, var(--mus-hi) 65%, var(--accent)))"></span><span>20+ Sätze/Woche</span></div>
         <button type="button" class="reg-toggle${UI.regOpen ? ' open' : ''}" data-act="regToggle" aria-expanded="${!!UI.regOpen}" aria-controls="regList"><span>Alle Muskeln</span>${icon('chevD')}</button>
@@ -1204,25 +1170,19 @@ Actions.regToggle = el => {
 Actions.muscleTap = el => {
   const k = el.dataset.m;
   const reg = REGIONS[k]; if (!reg) return;
-  const r = Analytics.range();
-  const rows = Analytics.rowsIn(r);
-  const nWeeks = Math.max(1, r.len / 7);
+  const rows = Analytics.rowsIn(heatmapWeek());
   const exCount = {};
   for (const w of rows) for (const [id, n] of Object.entries(w.exSetsW || {})) { const wt = exRegions(Ex.get(id))[k]; if (wt) exCount[id] = (exCount[id] || 0) + n * wt; }
   const sets = sum(Object.values(exCount));
-  const pw = sets / nWeeks;
-  const status = pw < 4 ? ['', 'wenig – reicht eher zum Halten'] : pw < 10 ? ['accent', 'wirksam – der Muskel wächst messbar'] : pw <= 20 ? ['accent', 'viel – mehr Wachstum, jeder Satz bringt etwas weniger'] : ['accent', 'sehr viel – kaum Zusatznutzen, mehr Ermüdung'];
   $$('.body-map .mus').forEach(p => p.classList.toggle('sel', p.dataset.m === k));
   const lib = Store.all('exercises').filter(e => exRegions(e)[k] === 1 && !exCount[e.id]).slice(0, 8);
   Modal.open({
     title: reg[0], size: 'sm',
     body: `<p class="small dim">Gehört zur Gruppe <b>${esc(reg[1])}</b></p>
-      <div class="pr-grid mt-12" style="grid-template-columns:repeat(2,1fr)">
-        <div class="pr-box"><span>Sätze/Woche</span><b>${nf(pw, 1)}</b></div>
-        <div class="pr-box"><span>Sätze im Zeitraum</span><b>${nf(sets, 1)}</b></div>
+      <div class="pr-grid mt-12" style="grid-template-columns:1fr">
+        <div class="pr-box"><span>Sätze diese Woche</span><b>${nf(sets, 1)}</b></div>
       </div>
-      <p class="mt-12"><span class="badge ${status[0]}">${esc(status[1])}</span></p>
-      <h4 class="mt-16 mb-8">Übungen im Zeitraum</h4>
+      <h4 class="mt-16 mb-8">Übungen diese Woche</h4>
       ${Object.keys(exCount).length ? `<div class="list">${Object.entries(exCount).sort((a, b) => b[1] - a[1]).map(([id, n]) => `<button class="list-item" data-act="openExercise" data-id="${esc(id)}"><span class="li-main"><span class="li-title">${esc(Ex.name(id))}</span><div class="li-sub">${exRegions(Ex.get(id))[k] === 1 ? 'Hauptmuskel' : 'Hilfsmuskel'}</div></span><span class="dim small">${nf(n, 1)} Sätze</span>${icon('chevR', 'li-chev')}</button>`).join('')}</div>` : '<p class="dim small">Keine im Zeitraum.</p>'}
       ${lib.length ? `<h4 class="mt-16 mb-8">Übungen für diesen Muskel</h4><div class="chips wrap">${lib.map(e => `<button class="chip" data-act="openExercise" data-id="${esc(e.id)}">${esc(e.name)}</button>`).join('')}</div>` : ''}`,
     onClose: () => $$('.body-map .mus.sel').forEach(p => p.classList.remove('sel'))
