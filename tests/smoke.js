@@ -685,10 +685,31 @@ async function anzeigeFlow(page) {
   // 2. Reine Cardio-Workouts erscheinen nicht als 0 kg
   const cv = await page.evaluate(() => { const ix = Analytics.cur(); return { cardio: ix.rows.some(r => r.id === 'az3' && r.cardioOnly), total: scopeItems(ix, 'total').map(x => x.ton) }; });
   check(cv.cardio && cv.total.length === 2 && cv.total.every(t => t > 0), 'Volumen pro Workout: reine Cardio-Workouts zählen nicht mit (keine Punkte auf der Nulllinie)', JSON.stringify(cv));
+  const months = await page.evaluate(() => {
+    const rows = Analytics.cur().rows;
+    const run = rows.find(r => r.id === 'az3');
+    const step = { ...run, cBy: { ex_stepper: { sec: 1800, km: 0 } }, cKm: 0 };
+    return historyMonthSummary([run, run]) === '2 Läufe · ' + fmtKm(10)
+      && historyMonthSummary([step]) === '1 Workout · ' + fmtDur(1800)
+      && historyMonthSummary(rows) === '3 Workouts · ' + fmtTon(sum(rows.map(r => r.ton)));
+  });
+  check(months, 'Monatsüberschrift für Laufstrecke, Cardiozeit und gemischtes Training');
   await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress'); });
   await pause(page, 600);
   const h7 = await page.evaluate(() => [...document.querySelectorAll('#tab-progress .heat7 button')].map(b => b.getAttribute('aria-label')).join(' | '));
   check(/Cardio/.test(h7) && !/\b0\s?kg/.test(h7), '„Letzte 7 Tage“: ein Cardio-Tag heißt „Cardio“ statt „0 kg“ (Vorlesetext)', h7);
+  await page.waitForFunction(() => !!Charts.get('setsw')?.factory);
+  const setStats = await page.evaluate(() => {
+    const chart = Charts.get('setsw').factory();
+    const points = chart.data.datasets[0].data;
+    const card = document.querySelector('#cv-setsw').closest('.chart-card');
+    const table = document.createElement('div');
+    table.innerHTML = chartTable(chart);
+    return points.length === 2 && points.every(p => p.y === 3)
+      && card.querySelector('.cc-big b').textContent === nf(3, 1)
+      && table.querySelectorAll('tbody tr').length === 2;
+  });
+  check(setStats, 'Sätze pro Workout: Cardio aus Kurve, Durchschnitt und Vollbild-Tabelle ausgenommen');
   const h7txt = await page.evaluate(() => document.querySelector('#tab-progress .heat7').innerText.replace(/\s+/g, ' ').trim());
   check(!/kg|\dt\b|Cardio/.test(h7txt), '„Letzte 7 Tage“: in den Kästchen nur der Wochentag, keine Mini-Werte', h7txt);
   // Kraftzuwachs robust (bestes e1RM je Woche, Median der ersten gegen gleitenden Median der letzten Wochen):
@@ -792,6 +813,39 @@ async function anzeigeFlow(page) {
     return out;
   });
   check(!see.length, 'Workout-Kopf auf dem Handy in allen Designs deckend (nichts scheint durch)', see.join(', '));
+  const timed = await page.evaluate(() => {
+    const work = { durationSec: 45, done: true };
+    Store.put('workouts', 'timed_detail', { name: 'Core', date: isoDate(), durationSec: 300, entries: [
+      { exerciseId: 'ex_plank', sets: [work, work, work, { durationSec: 60, warmup: true }, { durationSec: 80, done: false }] },
+      { exerciseId: 'ex_side_plank', uni: true, sets: [{ durationSec: 20, durationSecR: 30, weightKg: 5 }, { durationSec: 15, durationSecR: 25 }] }
+    ] });
+    openWorkoutDetail('timed_detail');
+    return [...document.querySelectorAll('.modal-wrap:not(.closing) .table-wrap')].map(wrap => ({
+      title: wrap.parentElement.querySelector('.row .tiny').textContent,
+      cols: [...wrap.querySelectorAll('th')].map(th => th.textContent).join('|'),
+      aligned: [...wrap.querySelectorAll('tbody tr')].every(tr => tr.cells.length === wrap.querySelectorAll('th').length)
+    }));
+  });
+  check(timed.length === 2 && timed[0].title === '3 × 45 s' && timed[0].cols === 'Satz|Zeit'
+    && timed[1].title === '90 s gesamt' && timed[1].cols === 'Satz|Zeit L/R|kg' && timed.every(t => t.aligned),
+    'Zeitübungen: nur Arbeitssätze summiert, beide Seiten und Zusatzgewicht berücksichtigt', JSON.stringify(timed));
+  const photos = await page.evaluate(async () => {
+    const wo = { name: 'Cardio', date: isoDate(), durationSec: 1800, entries: [
+      { exerciseId: 'ex_stepper', sets: [{ durationSec: 1800, done: true }] }
+    ] };
+    Store.put('workouts', 'share_time', wo);
+    const proto = CanvasRenderingContext2D.prototype, draw = proto.fillText;
+    const labels = [];
+    proto.fillText = function (label, ...args) { labels.push(String(label).toLowerCase()); return draw.call(this, label, ...args); };
+    try {
+      const time = await shareImage({ ...wo, id: 'share_time' });
+      const timeOnly = time.size > 0 && labels.includes('cardio') && !labels.includes('distanz');
+      labels.length = 0;
+      const run = await shareImage({ ...Store.raw('workouts', 'az3'), id: 'az3' });
+      return timeOnly && run.size > 0 && labels.includes('distanz');
+    } finally { proto.fillText = draw; }
+  });
+  check(photos, 'Teilen-Bild: Distanz nur mit aufgezeichneter Strecke');
   await page.evaluate(() => Workout.discard ? Workout.discard() : null);
 }
 
@@ -1309,7 +1363,8 @@ async function rueckgaengigFlow(page) {
   await pause(page, 300);
   const pr0 = await json('prs', 'ex_bankdruecken');
   await page.evaluate(() => openWorkoutDetail('u_wo')); await pause(page, 400);
-  await del();
+  await page.click('.modal [data-x="edit"]');
+  await page.click('.modal [data-k="del"]');
   await pause(page, 300);
   const wo1 = await page.evaluate(() => ({ gone: !Store.raw('workouts', 'u_wo'), modal: !!document.querySelector('.modal-wrap:not(.closing)') }));
   const prDel = await json('prs', 'ex_bankdruecken');

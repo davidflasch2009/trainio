@@ -415,6 +415,9 @@ Workout öffnen (z. B. unter „Letzte Workouts") → **Bearbeiten**:
 - **Datum, Uhrzeit & Dauer** – auch Name, Körpergewicht und Notiz. Datum/Uhrzeit oder Dauer kann man
   im Workout-Detail auch direkt antippen.
 - **Sätze & Übungen** – öffnet das Workout im Editor (Gewichte, Wiederholungen, Übungen).
+- **Workout löschen** – entfernt die Einheit aus dem Verlauf. Über „Rückgängig“ in der Meldung lassen sich die Einheit und ihre Bestwerte wiederherstellen.
+
+Bei Zeitübungen wie Planks zeigt das Workout-Detail die abgeschlossenen Arbeitssätze als „3 × 45 s“ oder bei verschiedenen Haltezeiten als Gesamtzeit. Die Tabelle zeigt Zeit und gegebenenfalls Zusatzgewicht. In reinen Cardio-Monaten fasst der Verlauf die erfasste Strecke oder, wenn keine Strecke vorliegt, die Cardiozeit zusammen. Auch das Teilen-Bild zeigt die Distanz nur bei erfasster Strecke.
 
 ## Körper-Tab
 

@@ -738,6 +738,15 @@ async function saveAsTemplate(entries, name) {
 }
 
 /* ---------- Verlauf + Kalender ---------- */
+function historyMonthSummary(rows) {
+  const count = rows.length;
+  const workouts = count === 1 ? '1 Workout' : count + ' Workouts';
+  if (!rows.every(r => r.cardioOnly)) return workouts + ' · ' + fmtTon(sum(rows.map(r => r.ton)));
+  const runs = rows.every(r => Object.keys(r.cBy).every(id => ['ex_laufen', 'ex_laufen_draussen', 'ex_laufband', 'ex_sprints'].includes(id)));
+  const label = runs ? (count === 1 ? '1 Lauf' : count + ' Läufe') : workouts;
+  const km = sum(rows.map(r => r.cKm));
+  return label + ' · ' + (km ? fmtKm(km) : fmtDur(sum(rows.map(r => r.cSec))));
+}
 function renderHistory(el) {
   const ix = Analytics.cur();
   const rows = ix.rows.slice().reverse();
@@ -778,7 +787,7 @@ function renderHistory(el) {
       <div class="cal">${heads.map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>
     </div>
     ${groups.length ? groups.slice(0, UI.histMore ? 999 : 6).map(g => `
-      <div class="section-head"><h4>${parseISO(g.k + '-01').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${g.items.length} Workouts · ${fmtTon(sum(g.items.map(x => x.ton)))}</span></div>
+      <div class="section-head"><h4>${parseISO(g.k + '-01').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${historyMonthSummary(g.items)}</span></div>
       <div class="col">${g.items.map(miniWorkoutCard).join('')}</div>`).join('')
       + (groups.length > 6 && !UI.histMore ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">Ältere Monate anzeigen</button>` : '')
     : `<div class="card mt-16">${emptyState('history', 'Noch kein Verlauf', 'Abgeschlossene Workouts erscheinen hier.')}</div>`}`;
@@ -821,6 +830,18 @@ Actions.histMore = () => { UI.histMore = true; App.renderCurrent(); };
 
 /* ---------- Workout-Detail ---------- */
 Actions.openWorkout = el => openWorkoutDetail(el.dataset.id);
+function timedSetSummary(sets, uni) {
+  const times = sets.filter(s => s.done !== false && !s.warmup && (s.durationSec > 0 || s.durationSecR > 0))
+    .map(s => {
+      const left = Number(s.durationSec) || 0;
+      const right = Number(s.durationSecR ?? left);
+      if (uni || s.durationSecR != null) return { label: left + '/' + right + ' s', total: left + right };
+      return { label: left + ' s', total: left };
+    });
+  if (!times.length) return '';
+  if (times.every(t => t.label === times[0].label)) return times.length + ' × ' + times[0].label;
+  return sum(times.map(t => t.total)) + ' s gesamt';
+}
 function openWorkoutDetail(id) {
   const wo = Store.raw('workouts', id);
   if (!wo) return toast('Workout nicht gefunden', 'error');
@@ -855,18 +876,19 @@ function openWorkoutDetail(id) {
             </tbody></table></div>` : ''}</div>`;
         }
         const isSec = Ex.type(ex) === 'sec';
+        const sets = en.sets || [];
+        const weighted = isSec && sets.some(s => s.weightKg > 0);
         return `<div class="mt-16">
           <div class="row between"><button class="link-btn" style="padding:0;min-height:32px;color:var(--text)" data-act="openExercise" data-id="${esc(en.exerciseId)}"><b>${esc(Ex.entryName(en))}</b>${en.uni ? ' <span class="badge">L/R</span>' : ''}${en.formFix ? ' <span class="badge warn">Form-Fix</span>' : ''}</button>
-          <span class="tiny dim">${fmtTon(sum((en.sets || []).filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
+          <span class="tiny dim">${isSec ? timedSetSummary(sets, en.uni) : fmtTon(sum(sets.filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
           ${en.formFix && en.formFix.note ? `<div class="tiny dim">${esc(en.formFix.note)}</div>` : ''}
-          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th><th class="r">${isSec ? '' : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th>${hasRpe ? '<th class="r">RPE</th>' : ''}<th class="r">e1RM</th></tr></thead><tbody>
+          <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th>${isSec && !weighted ? '' : `<th class="r">${weighted ? unit() : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th>`}${hasRpe ? '<th class="r">RPE</th>' : ''}${isSec ? '' : '<th class="r">e1RM</th>'}</tr></thead><tbody>
           ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}${s.fix && !s.warmup ? ' <span class="badge warn" style="padding:1px 5px">Form-Fix</span>' : ''}</td>
-            <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td><td class="r">${isSec ? (s.weightKg ? fmtW(s.weightKg) : '') : repsTxt(s)}</td>${hasRpe ? `<td class="r">${s.rpe ?? '–'}</td>` : ''}
-            <td class="r dim">${!isSec && !s.fix && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td></tr>`).join('')}
+            <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td>${isSec && !weighted ? '' : `<td class="r">${weighted ? (s.weightKg ? wNum(s.weightKg) : '–') : repsTxt(s)}</td>`}${hasRpe ? `<td class="r">${s.rpe ?? '–'}</td>` : ''}
+            ${isSec ? '' : `<td class="r dim">${!s.fix && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td>`}</tr>`).join('')}
           </tbody></table></div></div>`;
       }).join('')}`,
-    foot: `<button class="btn btn-danger-ghost" data-x="del" aria-label="Löschen" style="flex:0 0 auto">${icon('trash')}</button>
-      <button class="btn btn-secondary" data-x="share" aria-label="Teilen" title="Teilen" style="flex:0 0 auto">${icon('share')}</button>
+    foot: `<button class="btn btn-secondary" data-x="share" aria-label="Teilen" title="Teilen" style="flex:0 0 auto">${icon('share')}</button>
       <button class="btn btn-secondary" data-x="edit" style="flex:1 1 auto;padding:0 12px">Bearbeiten</button>
       <button class="btn btn-primary" data-x="repeat" style="flex:1 1 auto;padding:0 12px">Wiederholen</button>`
   });
@@ -874,18 +896,20 @@ function openWorkoutDetail(id) {
   m.el.addEventListener('click', async e => {
     const b = e.target.closest('[data-x]');
     if (!b) return;
-    if (b.dataset.x === 'del') {
-      m.dismiss();
-      withUndo(`${woTitle(wo)} vom ${fmtDate(wo.date, { day: 'numeric', month: 'numeric' })} gelöscht`, { docs: [['workouts', id]],
-        run: () => { Store.del('workouts', id); PR.recalcAll(); }, after: () => PR.recalcAll() });
-    } else if (b.dataset.x === 'meta') editMeta();
+    if (b.dataset.x === 'meta') editMeta();
     else if (b.dataset.x === 'edit') {
       const k = await actionMenu('Workout bearbeiten', [
         { key: 'meta', label: 'Datum, Uhrzeit & Dauer', icon: 'calendar' },
-        { key: 'sets', label: 'Sätze & Übungen', icon: 'dumbbell' }
+        { key: 'sets', label: 'Sätze & Übungen', icon: 'dumbbell' },
+        { key: 'del', label: 'Workout löschen', icon: 'trash', danger: true }
       ]);
       if (k === 'meta') editMeta();
       else if (k === 'sets') { m.dismiss(); Workout.load(wo, { edit: true }); }
+      else if (k === 'del') {
+        m.dismiss();
+        withUndo(`${woTitle(wo)} vom ${fmtDate(wo.date, { day: 'numeric', month: 'numeric' })} gelöscht`, { docs: [['workouts', id]],
+          run: () => { Store.del('workouts', id); PR.recalcAll(); }, after: () => PR.recalcAll() });
+      }
     }
     else if (b.dataset.x === 'repeat') { m.dismiss(); Workout.load(wo); }
     else if (b.dataset.x === 'share') shareWorkout({ ...wo, id });
@@ -1082,7 +1106,7 @@ async function shareImage(wo) {
   // Platz vorab planen: passen alle Übungen, wird übriger Raum gleichmäßig auf die Abstände verteilt
   const items = (wo.entries || []).map(en => ({ en, b: shareBest(en) })).filter(i => i.b);
   const dense = items.length > 5;   // viele Übungen: alles etwas kompakter
-  const gap = 20, tw = (W - 2 * P - gap * 3) / 4, th = dense ? 140 : 164, tr = Math.round(26 * rs);
+  const gap = 20, th = dense ? 140 : 164, tr = Math.round(26 * rs);
   const foot = H - 150, rowH = dense ? 84 : 90, pad = 34, headH = 62, rTop = dense ? 40 : 60, rBot = dense ? 50 : 70;
   // Ring wird kleiner, damit bis zu 8 Übungen Platz haben
   const want = items.length ? pad * 2 + headH + Math.min(8, items.length) * rowH : 0;
@@ -1112,9 +1136,10 @@ async function shareImage(wo) {
   // Kennzahlen
   const cardio = row && row.cardioOnly;
   const tiles = cardio
-    ? [['Dauer', fmtDur(wo.durationSec)], ['Cardio', fmtDur(row.cSec)], ['Distanz', row.cKm ? fmtKm(row.cKm) : '–'], ['Übungen', String((wo.entries || []).length)]]
+    ? [...(wo.durationSec ? [['Dauer', fmtDur(wo.durationSec)]] : []), ...(row.cSec ? [['Cardio', fmtDur(row.cSec)]] : []), ...(row.cKm ? [['Distanz', fmtKm(row.cKm)]] : []), ['Übungen', String((wo.entries || []).length)]]
     : [['Dauer', fmtDur(wo.durationSec)], ['Volumen', fmtTon(row ? row.ton : 0)], ['Sätze', String(row ? row.sets : 0)],
-       F('f_prs') ? ['PRs', String(prIds.size)] : ['Ø RPE', row && row.avgRpe ? nf(row.avgRpe, 1) : '–']];
+       ...(F('f_prs') ? [['PRs', String(prIds.size)]] : row && row.avgRpe ? [['Ø RPE', nf(row.avgRpe, 1)]] : [])];
+  const tw = (W - 2 * P - gap * (tiles.length - 1)) / tiles.length;
   tiles.forEach(([l, val], i) => {
     const tx = P + i * (tw + gap);
     if (design === 'plakat') { x.fillStyle = C.text; x.fillRect(tx, y, tw, 5); }

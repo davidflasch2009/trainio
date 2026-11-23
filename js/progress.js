@@ -379,6 +379,7 @@ function renderMoreStats(el) {
   const ix = Analytics.cur();
   const r = Analytics.range();
   const rows = Analytics.rowsIn(r);
+  const strengthRows = rows.filter(w => !w.cardioOnly);
   const c = chartColors();
   const t = todayDN();
   const cb = chartBuilder();
@@ -420,8 +421,8 @@ function renderMoreStats(el) {
     </div>
     ${cb.card({ id: 'durh', title: 'Workout-Dauer', info: 'Verteilung der Workout-Dauer im Zeitraum (Minuten).', big: durs.length ? nf(avg(durs), 0) : '–', small: 'min Ø',
       factory: () => durs.length ? barChart(bins.map(b => b[2]), [barDS('Workouts', bins.map(([a, z]) => durs.filter(d => d >= a && d < z).length), c.accent)], { tooltipFmt: v => `${v} Workouts` }) : null })}
-    ${cb.card({ id: 'setsw', title: 'Sätze pro Workout', info: 'Anzahl erledigter Arbeitssätze je Workout.', big: rows.length ? nf(avg(rows.map(w => w.sets)), 1) : '–', small: 'Ø',
-      factory: () => rows.length > 1 ? timeLine([lineDS('Sätze', rows.map(w => ({ x: w.dn, y: w.sets })), c.accent)], { tooltipFmt: v => nf(v, 0) }) : null })}
+    ${cb.card({ id: 'setsw', title: 'Sätze pro Workout', info: 'Erledigte Arbeitssätze je Krafttraining. Bei gemischten Einheiten zählen die Kraftsätze.', big: strengthRows.length ? nf(avg(strengthRows.map(w => w.sets)), 1) : '–', small: 'Ø',
+      factory: () => strengthRows.length ? timeLine([lineDS('Sätze', strengthRows.map(w => ({ x: w.dn, y: w.sets })), c.accent)], { tooltipFmt: v => nf(v, 0) }) : null })}
     ${cb.card({ id: 'prm', title: 'PRs pro Monat', info: 'Neue e1RM-Rekorde pro Monat in den letzten 12 Monaten.', big: sum(prMonth), small: 'PRs in 12 Monaten',
       factory: () => barChart(months12.map(k => MONTHS[+k.slice(5) - 1]), [barDS('PRs', prMonth, c.accent)], { tooltipFmt: v => `${v} PRs`, running: 11 }) })}
     <div class="chart-card">
