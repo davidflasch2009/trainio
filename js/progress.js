@@ -1015,12 +1015,11 @@ function bodySvg(view, valueOf, labelOf) {
   const v = BODY_MAP[view], front = view === 'front', axis = front ? 364 : 1084;
   const id = 'body-' + view;
   const defs = [];
-  const neutral = d => `<path d="${d}" fill="url(#${id}-neutral)"/>`;
+  const neutral = d => `<path d="${d}" fill="var(--fig)"/>`;
   function muscle(k, d, clip = '') {
     const label = esc(REGIONS[k][0] + ': ' + labelOf(k));
-    return `<path class="mus" data-act="muscleTap" data-m="${k}" d="${d}" fill="url(#${id}-${k})" ${clip} role="button" aria-label="${label}"><title>${label}</title></path>`;
+    return `<path class="mus" data-act="muscleTap" data-m="${k}" d="${d}" fill="${valueOf(k).color}" ${clip} role="button" aria-label="${label}"><title>${label}</title></path>`;
   }
-  const gradient = (key, color) => `<radialGradient id="${id}-${key}" cx="43%" cy="38%" r="74%"><stop stop-color="color-mix(in srgb,${color} 82%,white)"/><stop offset=".55" stop-color="${color}"/><stop offset="1" stop-color="color-mix(in srgb,${color} 78%,var(--fig-line))"/></radialGradient>`;
   const half = Object.entries(v.paired).map(([k, paths]) => paths.map(d => {
     if (k === 'neutral') return neutral(d);
     let result = muscle(k, d);
@@ -1031,7 +1030,7 @@ function bodySvg(view, valueOf, labelOf) {
     return result;
   }).join('')).join('');
   return `<svg viewBox="${axis - 340} 75 680 1340" role="img" aria-label="Muskel-Heatmap ${front ? 'vorne' : 'hinten'}">
-    <defs>${gradient('neutral', 'var(--fig)')}${Object.keys(REGIONS).map(k => gradient(k, valueOf(k).color)).join('')}${defs.join('')}</defs>
+    <defs>${defs.join('')}</defs>
     <path class="base" d="${v.outline}"/>${v.common.map(neutral).join('')}
     ${half}<g transform="translate(${2 * axis} 0) scale(-1 1)">${half}</g>
     <text x="${axis}" y="1400">${front ? 'Vorne' : 'Hinten'}</text></svg>`;
