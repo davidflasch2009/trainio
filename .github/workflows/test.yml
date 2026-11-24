@@ -1,4 +1,5 @@
-# Smoke-Test bei jedem Push: lädt die App im Browser und klickt die wichtigsten Wege durch (tests/smoke.js)
+# Tests bei jedem Push: prüft die Dateien und klickt die wichtigsten Wege der App im Browser durch (tests/run.js) –
+# in Chromium und in WebKit (der Engine von Safari auf dem iPhone)
 name: Test
 on:
   push:
@@ -12,7 +13,11 @@ on:
 jobs:
   smoke:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        browser: [chromium, webkit]
     steps:
       - uses: actions/checkout@v4
         with:
@@ -22,11 +27,13 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
+      - run: npx playwright install --with-deps ${{ matrix.browser }}
       - run: npm test
+        env:
+          BROWSER: ${{ matrix.browser }}
       - name: Screenshots bei Fehlern
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: screenshots
+          name: screenshots-${{ matrix.browser }}
           path: tests/screenshots/

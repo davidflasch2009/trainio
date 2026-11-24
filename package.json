@@ -3,7 +3,7 @@
   "private": true,
   "description": "Nur für Tests – die App selbst braucht keinen Build-Step",
   "scripts": {
-    "test": "node tests/smoke.js"
+    "test": "node tests/run.js"
   },
   "devDependencies": {
     "chart.js": "4.4.4",
