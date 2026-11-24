@@ -23,10 +23,10 @@ function staticChecks() {
   check(version && vs.length && vs.every(v => v === version), `?v= in index.html passt zur App-Version (${version})`, [...new Set(vs)].join(', '));
   check(/const CACHE = 'gymlog-v\d+';/.test(read('sw.js')), 'sw.js hat einen Cache-Namen');
   const sw = read('sw.js');
-  check(sw.includes("if (!TESTVERSION && url.href.startsWith(TEST_PATH)) return;") && !/caches\.open\(CACHE\)/.test(sw) && sw.includes('k.startsWith(PREFIX) && k !== CACHE_NAME'),
-    'sw.js: Testversion hat eigene Caches, die echte App lässt /test/ aus');
+  check(/const OLD = k => \(k\.startsWith\('gymlog-'\) && k !== CACHE_NAME\) \|\| k\.startsWith\('trainio-test-'\);/.test(sw) && sw.includes('keys.filter(OLD)'),
+    'sw.js: löscht alte eigene Caches und die der früheren Testversion');
   check(!/'gymlog\.(?!')/.test(read('js/ui.js') + read('js/store.js') + read('js/more.js')) && /localStorage\.getItem\(P \+ 'look'\)/.test(index),
-    'Speicher-Schlüssel kommen aus LS bzw. P (Testversion getrennt)');
+    'Speicher-Schlüssel kommen aus LS bzw. P');
   const icons = (read('js/core.js').match(/const APP_ICONS = \[([^\]]*)\]/) || [])[1] || '';
   const n = (icons.match(/'\d+'/g) || []).length;
   const dirs = fs.readdirSync(path.join(ROOT, 'icons')).filter(d => /^\d+$/.test(d));

@@ -19,7 +19,7 @@ const PhotoDB = (() => {
     if (dbp) return dbp;
     dbp = new Promise((res, rej) => {
       if (!('indexedDB' in window)) return rej(new Error('IndexedDB nicht verfügbar'));
-      const r = indexedDB.open(TESTVERSION ? 'trainio-test-photos' : 'gymlog-photos', 1);
+      const r = indexedDB.open('gymlog-photos', 1);
       r.onupgradeneeded = () => r.result.createObjectStore('photos');
       r.onsuccess = () => res(r.result);
       r.onerror = () => rej(r.error);
@@ -524,7 +524,6 @@ const Auth = (() => {
   const HANDLED = ['auth/account-exists-with-different-credential', 'auth/credential-already-in-use', 'auth/email-already-in-use',
     'auth/provider-already-linked', 'auth/operation-not-allowed', 'auth/unauthorized-domain', 'auth/network-request-failed'];
   const configured = () => {
-    if (TESTVERSION) return false;   // Testversion: nie mit Firebase verbinden
     const k = String(FIREBASE_CONFIG.apiKey || '');
     return !!k && !k.startsWith('DEINE') && !String(FIREBASE_CONFIG.projectId || '').startsWith('DEIN');
   };

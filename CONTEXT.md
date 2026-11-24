@@ -28,11 +28,6 @@ _Avoid_: Primärfarbe, Hauptfarbe
 Die Unterseite ganz am Ende der Darstellung, in der man die Vorgaben eines Designs (Ecken, Schrift, Dichte, Tab-Leiste, eigene Akzentfarbe) übersteuert – für jedes Design einzeln.
 _Avoid_: Experten-Einstellungen, Erweitert, Feinschliff
 
-**Testversion**:
-Der Umbau unter …/trainio/test/ mit Beispieldaten und eigenem Speicher, zum Ausprobieren vor dem Release. Nicht die
-echte App, getrennt von Davids Daten.
-_Avoid_: Vorschau (so heißt die Vorschau oben in Darstellung), Beta, Staging
-
 ## Auswertung
 
 **Workout-Score**:

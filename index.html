@@ -22,8 +22,7 @@
 <script>
   // Darstellung vor dem ersten Paint setzen (verhindert Flackern) – Cache aus applyTheme()
   (function () {
-    // Testversion unter …/test/: eigener Speicher (wie TESTVERSION in js/core.js)
-    var P = /\/test\/(index\.html)?$/.test(location.pathname) ? 'trainio-test.' : 'gymlog.';
+    var P = 'gymlog.';   // wie LS_PREFIX in js/core.js
     try {
       var d = document.documentElement, L = JSON.parse(localStorage.getItem(P + 'look') || 'null') || {};
       var t = L.theme || localStorage.getItem(P + 'theme') || 'dark', h = new Date().getHours();
@@ -58,7 +57,7 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/app.css?v=1.37.14">
+<link rel="stylesheet" href="css/app.css?v=1.37.15">
 </head>
 <body>
 <!-- Himmel für das Design „Tag & Nacht" (js/sky.js malt Farben, Sonne, Mond; sonst ausgeblendet). Berge wie Sky-HILLS -->
@@ -94,34 +93,33 @@
 <div id="popover" class="popover" hidden></div>
 <noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.37.14"></script>
-<script src="js/core.js?v=1.37.14"></script>
-<script src="js/seeds.js?v=1.37.14"></script>
-<script src="js/store.js?v=1.37.14"></script>
-<script src="js/ui.js?v=1.37.14"></script>
-<script src="js/sky.js?v=1.37.14"></script>
-<script src="js/motion.js?v=1.37.14"></script>
-<script src="js/analytics.js?v=1.37.14"></script>
-<script src="js/workout.js?v=1.37.14"></script>
-<script src="js/start.js?v=1.37.14"></script>
-<script src="js/training.js?v=1.37.14"></script>
-<script src="js/history.js?v=1.37.14"></script>
-<script src="js/workout-ui.js?v=1.37.14"></script>
-<script src="js/workout-actions.js?v=1.37.14"></script>
-<script src="js/workout-summary.js?v=1.37.14"></script>
-<script src="js/keypad.js?v=1.37.14"></script>
-<script src="js/exercises.js?v=1.37.14"></script>
-<script src="js/charts.js?v=1.37.14"></script>
-<script src="js/body-map.js?v=1.37.14"></script>
-<script src="js/progress.js?v=1.37.14"></script>
-<script src="js/progress-strength.js?v=1.37.14"></script>
-<script src="js/progress-muscles.js?v=1.37.14"></script>
-<script src="js/progress-cardio.js?v=1.37.14"></script>
-<script src="js/progress-body.js?v=1.37.14"></script>
-<script src="js/heart.js?v=1.37.14"></script>
-<script src="js/more.js?v=1.37.14"></script>
-<script src="js/import.js?v=1.37.14"></script>
-<script src="js/testversion.js?v=1.37.14"></script>
-<script src="js/boot.js?v=1.37.14"></script>
+<script src="js/config.js?v=1.37.15"></script>
+<script src="js/core.js?v=1.37.15"></script>
+<script src="js/seeds.js?v=1.37.15"></script>
+<script src="js/store.js?v=1.37.15"></script>
+<script src="js/ui.js?v=1.37.15"></script>
+<script src="js/sky.js?v=1.37.15"></script>
+<script src="js/motion.js?v=1.37.15"></script>
+<script src="js/analytics.js?v=1.37.15"></script>
+<script src="js/workout.js?v=1.37.15"></script>
+<script src="js/start.js?v=1.37.15"></script>
+<script src="js/training.js?v=1.37.15"></script>
+<script src="js/history.js?v=1.37.15"></script>
+<script src="js/workout-ui.js?v=1.37.15"></script>
+<script src="js/workout-actions.js?v=1.37.15"></script>
+<script src="js/workout-summary.js?v=1.37.15"></script>
+<script src="js/keypad.js?v=1.37.15"></script>
+<script src="js/exercises.js?v=1.37.15"></script>
+<script src="js/charts.js?v=1.37.15"></script>
+<script src="js/body-map.js?v=1.37.15"></script>
+<script src="js/progress.js?v=1.37.15"></script>
+<script src="js/progress-strength.js?v=1.37.15"></script>
+<script src="js/progress-muscles.js?v=1.37.15"></script>
+<script src="js/progress-cardio.js?v=1.37.15"></script>
+<script src="js/progress-body.js?v=1.37.15"></script>
+<script src="js/heart.js?v=1.37.15"></script>
+<script src="js/more.js?v=1.37.15"></script>
+<script src="js/import.js?v=1.37.15"></script>
+<script src="js/boot.js?v=1.37.15"></script>
 </body>
 </html>

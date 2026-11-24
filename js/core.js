@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.37.14',
+  version: '1.37.15',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -21,11 +21,7 @@ const CDN = {
   jspdf: 'https://cdn.jsdelivr.net/npm/jspdf@2.5.2/dist/jspdf.umd.min.js'
 };
 
-/* Testversion des Umbaus unter …/test/ (docs/redesign/ANFORDERUNGEN.md, Abschnitt 8): eigener Speicher, eigene
-   Fotos-Datenbank, kein Firebase, Beispieldaten (js/testversion.js). Unter der normalen Adresse bleibt alles wie immer.
-   Dieselbe Regel steht im Skript oben in index.html und in sw.js. */
-const TESTVERSION = /\/test\/(index\.html)?$/.test(location.pathname);
-const LS_PREFIX = TESTVERSION ? 'trainio-test.' : 'gymlog.';
+const LS_PREFIX = 'gymlog.';   // gleicher Präfix im Skript oben in index.html
 const LS = {
   data: LS_PREFIX + 'v1',
   settings: LS_PREFIX + 'settings',

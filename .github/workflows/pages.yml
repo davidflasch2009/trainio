@@ -1,11 +1,9 @@
-# Veröffentlicht Trainio auf GitHub Pages: main wie bisher unter …/trainio/ und den Umbau (Zweig redesign) als
-# Testversion unter …/trainio/test/ (docs/redesign/ANFORDERUNGEN.md, Abschnitt 8).
-# Wirkt erst, wenn in den Repo-Einstellungen unter Pages die Quelle auf „GitHub Actions“ steht – vorher läuft die
-# Action durch, ohne etwas zu veröffentlichen, und die Seite kommt wie bisher direkt aus main.
+# Veröffentlicht Trainio auf GitHub Pages (…/trainio/) – erst nach grünen Tests, und zwar genau den getesteten Stand.
+# Wirkt nur, wenn in den Repo-Einstellungen unter Pages die Quelle auf „GitHub Actions“ steht.
 name: Pages
 on:
   push:
-    branches: [main, redesign]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
@@ -15,27 +13,12 @@ concurrency:
   group: pages
   cancel-in-progress: false
 jobs:
-  # Push auf redesign: Veröffentlichen darf nur main (Schutzregel der Umgebung github-pages) → Lauf auf main anstoßen,
-  # der main und redesign zusammen baut
-  relay:
-    if: github.ref == 'refs/heads/redesign'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: write
-    steps:
-      - name: Veröffentlichung auf main anstoßen
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh workflow run pages.yml --ref main --repo "${{ github.repository }}"
-  # Erst testen, dann veröffentlichen – und zwar genau den getesteten Stand (github.sha), nicht einen neueren
   test:
-    if: github.ref != 'refs/heads/redesign'
     uses: ./.github/workflows/test.yml
     with:
       ref: ${{ github.sha }}
   build:
     needs: test
-    if: github.ref != 'refs/heads/redesign'
     runs-on: ubuntu-latest
     outputs:
       enabled: ${{ steps.mode.outputs.enabled }}
@@ -49,28 +32,15 @@ jobs:
           echo "Pages-Quelle: $t"
           if [ "$t" = workflow ]; then echo "enabled=true" >> "$GITHUB_OUTPUT"
           else echo "enabled=false" >> "$GITHUB_OUTPUT"; echo "::notice::Pages-Quelle steht noch nicht auf „GitHub Actions“ – nichts veröffentlicht."; fi
-      - name: Echte App (main)
+      - name: App (main)
         if: steps.mode.outputs.enabled == 'true'
         uses: actions/checkout@v4
         with:
           ref: ${{ github.sha }}
           path: site
-      - name: Gibt es den Zweig redesign?
-        if: steps.mode.outputs.enabled == 'true'
-        id: redesign
-        working-directory: site
-        run: |
-          if git ls-remote --exit-code --heads origin redesign > /dev/null; then echo "exists=true" >> "$GITHUB_OUTPUT"
-          else echo "exists=false" >> "$GITHUB_OUTPUT"; echo "::notice::Zweig redesign gibt es noch nicht – nur die echte App."; fi
-      - name: Testversion (redesign) nach test/
-        if: steps.redesign.outputs.exists == 'true'
-        uses: actions/checkout@v4
-        with:
-          ref: redesign
-          path: site/test
       - name: Ohne Entwicklungs-Dateien
         if: steps.mode.outputs.enabled == 'true'
-        run: rm -rf site/tests site/tools site/node_modules site/test/tests site/test/tools site/test/node_modules site/test/test
+        run: rm -rf site/tests site/tools site/node_modules site/docs site/.github
       - if: steps.mode.outputs.enabled == 'true'
         uses: actions/upload-pages-artifact@v3
         with:

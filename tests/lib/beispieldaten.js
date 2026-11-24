@@ -1,11 +1,7 @@
-/* Trainio – Testversion des Umbaus (…/test/)
-   Teil der App: alle js/*.js-Dateien teilen sich einen gemeinsamen Gültigkeitsbereich und werden
-   in der Reihenfolge aus index.html geladen.
-   Nur aktiv, wenn TESTVERSION (js/core.js) gilt: Dort hat die App eigenen Speicher, kein Firebase und startet mit
-   Beispieldaten – 10 Wochen Push/Pull/Beine, Körpergewicht und eine Bulk-Phase. Siehe docs/redesign/ANFORDERUNGEN.md. */
+/* Beispieldaten für Tests: 10 Wochen Push/Pull/Beine, Körpergewicht und eine Bulk-Phase – immer gleich (fester Zufall).
+   Läuft in der Seite (page.addScriptTag), danach: await Beispieldaten.load(). Löscht vorher alle Daten der Seite. */
 'use strict';
-
-const Testversion = (() => {
+window.Beispieldaten = (() => {
   const WEEKS = 10;
   // Tag: [Name, Wochentag (0 = Mo), Übungen: [ID, Wdh.-Bereich, Startgewicht kg, Steigerung alle 2 Wochen]]
   const DAYS = [
@@ -59,11 +55,11 @@ const Testversion = (() => {
       put('progress', 'bw_bsp_' + n, { date, bodyWeightKg: Math.round((76 + 0.03 * n + (rnd() - 0.5) * 0.8) * 10) / 10, bodyFatPct: null,
         measurements: null, photoUrl: null, photoId: null, notes: '', createdAt: t, updatedAt: t });
     }
-    return { ops, settings: { activePlanId: 'plan_bsp', testSeeded: true,
+    return { ops, settings: { activePlanId: 'plan_bsp',
       phases: [{ id: 'ph_bsp', name: 'Bulk', type: 'bulk', from: isoDate(start), to: '', rateMin: null, rateMax: null }] } };
   }
 
-  /** Alles in der Testversion löschen und die Beispieldaten neu anlegen (Einstellungen wie Design bleiben). */
+  /** Alles löschen und die Beispieldaten neu anlegen (Einstellungen wie Design bleiben). */
   async function load() {
     Workout.discard();
     const ops = [];
@@ -76,26 +72,5 @@ const Testversion = (() => {
     await PR.recalcAll();
   }
 
-  /** Erster Start der Testversion: Beispieldaten anlegen */
-  async function boot() {
-    if (TESTVERSION && !S().testSeeded) await load();
-  }
-
-  const card = (cls = '') => `<div class="card ${cls}">
-      <div class="acc-card">
-        <div class="avatar">${icon('refresh')}</div>
-        <div class="grow"><div class="bold">Testversion</div><div class="small dim">Beispieldaten, getrennt von deinen echten Daten</div></div>
-      </div>
-      <button class="btn btn-secondary btn-block mt-12" data-act="testReload">Beispieldaten neu laden</button>
-    </div>`;
-
-  return { boot, load, card };
+  return { build, load };
 })();
-
-Actions.testReload = async () => {
-  if (!await confirmDialog({ title: 'Beispieldaten neu laden?', text: 'Alles in der Testversion wird zurückgesetzt. Deine echten Daten bleiben unberührt.', okLabel: 'Neu laden' })) return;
-  await Testversion.load();
-  try { localStorage.removeItem(LS.ui); } catch (e) {}
-  toast('Beispieldaten neu geladen', 'success');
-  App.go('start');
-};

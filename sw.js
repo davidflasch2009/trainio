@@ -3,13 +3,10 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v113';
-/* Testversion des Umbaus unter …/test/ (eine zweite Kopie der App auf derselben Domain): Sie bekommt eigene Caches.
-   Die echte App lässt alles unter /test/ in Ruhe und löscht nur ihre eigenen Caches. Gleiche Regel wie in js/core.js. */
-const TESTVERSION = /\/test\/sw\.js$/.test(self.location.pathname);
-const PREFIX = TESTVERSION ? 'trainio-test-' : 'gymlog-';
-const CACHE_NAME = PREFIX + CACHE.slice('gymlog-'.length);
-const TEST_PATH = new URL('test/', self.registration.scope).href;
+const CACHE = 'gymlog-v114';
+const CACHE_NAME = CACHE;
+/* Früher gab es unter …/test/ eine Testversion mit eigenen Caches (trainio-test-…) – die räumt die App mit weg */
+const OLD = k => (k.startsWith('gymlog-') && k !== CACHE_NAME) || k.startsWith('trainio-test-');
 
 const APP_SHELL = ['./', './index.html', './manifest.json', './icon.svg',
   ...['icon-512.png', 'icon-maskable-192.png', 'icon-maskable-512.png', 'apple-touch-icon.png', 'manifest.json'].map(f => './icons/1/' + f),
@@ -49,7 +46,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
-    await Promise.all(keys.filter(k => k.startsWith(PREFIX) && k !== CACHE_NAME).map(k => caches.delete(k)));
+    await Promise.all(keys.filter(OLD).map(k => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -63,7 +60,6 @@ self.addEventListener('fetch', event => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (bypass(url)) return;
-  if (!TESTVERSION && url.href.startsWith(TEST_PATH)) return;   // Testversion: gehört ihrem eigenen Service Worker
 
   // Navigation (HTML): network-first, Fallback auf Cache
   if (req.mode === 'navigate') {

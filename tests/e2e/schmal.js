@@ -5,8 +5,10 @@ const { check, pause, noViewError, appErrors, touch, swipe, round1, SHOTS, ROOT,
 /** T13: 320 px breit, Text XL, Dichte luftig, hoher Kontrast – in jedem Design ragt nichts über den Rand */
 async function schmalFlow(page) {
   console.log('Schmales Display (320 × 700, Text XL)');
-  await page.goto(new URL(page.url()).origin + '/test/', { waitUntil: 'domcontentloaded' });
-  await page.waitForFunction(() => typeof App !== 'undefined' && document.querySelector('.tab.active') && document.querySelector('.tab.active').innerText.trim());
+  // mit Beispieldaten, damit jede Ansicht gut gefüllt ist
+  await page.addScriptTag({ path: path.join(ROOT, 'tests', 'lib', 'beispieldaten.js') });
+  const n = await page.evaluate(async () => { await Beispieldaten.load(); App.renderCurrent(); return { wo: Store.all('workouts').length, bw: Store.all('progress').length, prs: Store.all('prs').length }; });
+  check(n.wo >= 20 && n.bw >= 20 && n.prs > 10, `Beispieldaten geladen (${n.wo} Workouts, ${n.bw}× Gewicht)`, JSON.stringify(n));
   await pause(page, 500);
   const bad = await page.evaluate(async () => {
     const wait = ms => new Promise(r => setTimeout(r, ms));

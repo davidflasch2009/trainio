@@ -70,13 +70,28 @@ function guardIOSHistory() {
   });
 }
 
+/* Früher gab es unter …/test/ eine Testversion (eigener Speicher, eigener Service Worker). Falls sie auf diesem Gerät
+   geöffnet wurde: ihre Reste einmal wegräumen. Die echten Daten (gymlog.…) bleiben unberührt. */
+function cleanupTestversion() {
+  try {
+    const old = [];
+    for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith('trainio-test.')) old.push(k); }
+    old.forEach(k => localStorage.removeItem(k));
+  } catch (e) {}
+  try { if (window.indexedDB) indexedDB.deleteDatabase('trainio-test-photos'); } catch (e) {}
+  try { if (window.caches) caches.keys().then(ks => ks.filter(k => k.startsWith('trainio-test-')).forEach(k => caches.delete(k))).catch(() => {}); } catch (e) {}
+  try {
+    if (navigator.serviceWorker && navigator.serviceWorker.getRegistrations)
+      navigator.serviceWorker.getRegistrations().then(rs => rs.filter(r => /\/test\/$/.test(r.scope)).forEach(r => r.unregister())).catch(() => {});
+  } catch (e) {}
+}
+
 async function boot() {
   await Store.boot();
   applyTheme();
   const st = S().startTab;
   if (st && st !== 'last' && Views[st]) App.tab = st;
   if (Store.owner() === 'local') ensureSeeds();
-  await Testversion.boot();   // nur unter …/test/: Beispieldaten beim ersten Start
   Store.subscribe('*', cs => { if (cs.includes('meta')) applyTheme(); scheduleRender(); });
   Store.onSync(() => { renderNav(); if (App.tab === 'more') scheduleRender(); });
   // Fortschritt startet mit dem eingestellten Zeitraum (sonst zuletzt gewählter)
@@ -101,6 +116,7 @@ async function boot() {
   window.addEventListener('offline', () => { wasOffline = true; toast('Offline – alles wird lokal gespeichert und später synchronisiert', 'warn', { cat: 'sync' }); });
   window.addEventListener('online', () => { if (wasOffline) toast('Wieder online', 'success', { cat: 'sync' }); wasOffline = false; });
   registerSW();
+  cleanupTestversion();
   guardIOSHistory();
   Auth.init();
 }

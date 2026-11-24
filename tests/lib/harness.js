@@ -23,7 +23,7 @@ function serve() {
     const srv = http.createServer((req, res) => {
       let p = decodeURIComponent(new URL(req.url, 'http://x').pathname);
       if (overrides[p] != null) { res.writeHead(200, { 'Content-Type': TYPES[path.extname(p)] || 'text/plain' }); return res.end(overrides[p]); }
-      if (p.startsWith('/test/')) p = p.slice(5);   // Testversion: dieselben Dateien unter /test/ (wie auf GitHub Pages)
+      if (p.startsWith('/test/')) p = p.slice(5);   // für tests/e2e/altlasten.js: die frühere Testversion unter /test/ nachstellen
       if (p.endsWith('/')) p += 'index.html';
       const f = path.join(ROOT, p);
       if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); return res.end(); }
