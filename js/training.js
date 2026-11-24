@@ -738,14 +738,10 @@ async function saveAsTemplate(entries, name) {
 }
 
 /* ---------- Verlauf + Kalender ---------- */
+let historyMonths = 1;
 function historyMonthSummary(rows) {
   const count = rows.length;
-  const workouts = count === 1 ? '1 Workout' : count + ' Workouts';
-  if (!rows.every(r => r.cardioOnly)) return workouts + ' · ' + fmtTon(sum(rows.map(r => r.ton)));
-  const runs = rows.every(r => Object.keys(r.cBy).every(id => ['ex_laufen', 'ex_laufen_draussen', 'ex_laufband', 'ex_sprints'].includes(id)));
-  const label = runs ? (count === 1 ? '1 Lauf' : count + ' Läufe') : workouts;
-  const km = sum(rows.map(r => r.cKm));
-  return label + ' · ' + (km ? fmtKm(km) : fmtDur(sum(rows.map(r => r.cSec))));
+  return count === 1 ? '1 Workout' : count + ' Workouts';
 }
 function renderHistory(el) {
   const ix = Analytics.cur();
@@ -767,13 +763,22 @@ function renderHistory(el) {
     const act = !has ? 'disabled' : has.length === 1 ? `data-act="openWorkout" data-id="${esc(has[0].id)}"` : `data-act="calDay" data-date="${iso}"`;
     cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${act} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}${has ? `<span class="cal-dots">${'<i></i>'.repeat(Math.min(3, has.length))}${has.length > 3 ? '<b>+</b>' : ''}</span>` : ''}</button>`;
   }
-  // Gruppierung nach Monat
-  const groups = [];
+  // Nur der aktuelle Monat; ältere Monate werden einzeln darunter aufgeklappt.
+  const byMonth = {};
   for (const r of rows) {
     const k = r.date.slice(0, 7);
-    if (!groups.length || groups[groups.length - 1].k !== k) groups.push({ k, items: [] });
-    groups[groups.length - 1].items.push(r);
+    (byMonth[k] || (byMonth[k] = [])).push(r);
   }
+  const currentMonth = t.getFullYear() * 12 + t.getMonth();
+  const oldest = rows.length ? parseISO(rows[rows.length - 1].date) : t;
+  const monthCount = Math.max(1, currentMonth - (oldest.getFullYear() * 12 + oldest.getMonth()) + 1);
+  const shown = Math.min(historyMonths, monthCount);
+  const groups = Array.from({ length: shown }, (_, i) => {
+    const date = new Date(t.getFullYear(), t.getMonth() - i, 1);
+    const k = isoDate(date).slice(0, 7);
+    return { k, items: byMonth[k] || [] };
+  });
+  const previous = new Date(t.getFullYear(), t.getMonth() - shown, 1);
   el.innerHTML = `
     <div class="card">
       <div class="row between mb-8 cal-head">
@@ -786,10 +791,10 @@ function renderHistory(el) {
       </div>
       <div class="cal">${heads.map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>
     </div>
-    ${groups.length ? groups.slice(0, UI.histMore ? 999 : 6).map(g => `
+    ${rows.length ? groups.map(g => `
       <div class="section-head"><h4>${parseISO(g.k + '-01').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${historyMonthSummary(g.items)}</span></div>
-      <div class="col">${g.items.map(miniWorkoutCard).join('')}</div>`).join('')
-      + (groups.length > 6 && !UI.histMore ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">Ältere Monate anzeigen</button>` : '')
+      <div class="col" data-history-month="${g.k}">${g.items.length ? g.items.map(miniWorkoutCard).join('') : '<p class="small dim">Keine Workouts in diesem Monat.</p>'}</div>`).join('')
+      + (shown < monthCount ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">${MONTHS_LONG[previous.getMonth()]} aufklappen</button>` : '')
     : `<div class="card mt-16">${emptyState('history', 'Noch kein Verlauf', 'Abgeschlossene Workouts erscheinen hier.')}</div>`}`;
 }
 Actions.calNav = el => {
@@ -826,7 +831,7 @@ Actions.calDay = async el => {
   }));
   if (k) openWorkoutDetail(k);
 };
-Actions.histMore = () => { UI.histMore = true; App.renderCurrent(); };
+Actions.histMore = () => { historyMonths++; App.renderCurrent(); };
 
 /* ---------- Workout-Detail ---------- */
 Actions.openWorkout = el => openWorkoutDetail(el.dataset.id);
@@ -883,7 +888,7 @@ function openWorkoutDetail(id) {
           <span class="tiny dim">${isSec ? timedSetSummary(sets, en.uni) : fmtTon(sum(sets.filter(s => s.done !== false && !s.warmup).map(setVol)))}</span></div>
           ${en.formFix && en.formFix.note ? `<div class="tiny dim">${esc(en.formFix.note)}</div>` : ''}
           <div class="table-wrap"><table class="tbl"><thead><tr><th>Satz</th><th class="r">${isSec ? (en.uni ? 'Zeit L/R' : 'Zeit') : unit()}</th>${isSec && !weighted ? '' : `<th class="r">${weighted ? unit() : en.uni ? 'Wdh. L/R' : 'Wdh.'}</th>`}${hasRpe ? '<th class="r">RPE</th>' : ''}${isSec ? '' : '<th class="r">e1RM</th>'}</tr></thead><tbody>
-          ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? '<span class="warn-text bold">W</span>' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}${s.fix && !s.warmup ? ' <span class="badge warn" style="padding:1px 5px">Form-Fix</span>' : ''}</td>
+          ${(en.sets || []).map((s, i) => `<tr style="${s.done === false ? 'opacity:.45' : ''}"><td>${s.warmup ? 'W' : i + 1 - (en.sets.slice(0, i).filter(x => x.warmup).length)}${!s.warmup && KIND_LABEL[s.kind] ? ` <span class="badge ${s.kind === 'fail' ? 'danger' : 'info'}" style="height:18px">${KIND_LABEL[s.kind]}</span>` : ''}${s.done === false ? ' <span class="tiny">(offen)</span>' : ''}${s.fix && !s.warmup ? ' <span class="badge warn" style="padding:1px 5px">Form-Fix</span>' : ''}</td>
             <td class="r">${isSec ? secTxt(s) : wNum(s.weightKg)}</td>${isSec && !weighted ? '' : `<td class="r">${weighted ? (s.weightKg ? wNum(s.weightKg) : '–') : repsTxt(s)}</td>`}${hasRpe ? `<td class="r">${s.rpe ?? '–'}</td>` : ''}
             ${isSec ? '' : `<td class="r dim">${!s.fix && e1rm(s.weightKg, repsOf(s)) ? wNum(e1rm(s.weightKg, repsOf(s))) : '–'}</td>`}</tr>`).join('')}
           </tbody></table></div></div>`;

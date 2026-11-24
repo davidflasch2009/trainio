@@ -674,6 +674,98 @@ async function desktopFlow(page) {
 }
 
 /* Anzeige-Fehler aus der Bestandsaufnahme (docs/redesign/bestandsaufnahme.md, H4–H6) */
+async function verlaufFlow(page) {
+  console.log('Verlauf: Monate einzeln aufklappen');
+  await page.clock.setFixedTime(new Date('2026-01-15T12:00:00Z'));
+  await page.evaluate(async () => {
+    const dates = [...Array(8).fill('2026-01-10'), '2025-12-12', '2025-10-09'];
+    await Store.batch(dates.map((date, i) => ({ type: 'put', coll: 'workouts', id: 'hist_' + i, doc: {
+      date, name: 'Verlauf ' + i, startedAt: +parseISO(date) + i * 1000, durationSec: 1800,
+      entries: [{ exerciseId: 'ex_bankdruecken', sets: [
+        { weightKg: 20, reps: 10, warmup: true, done: true },
+        { weightKg: 60, reps: 8, done: true }
+      ] }]
+    } })));
+    UI.trainSub = 'history';
+    UI.calMonth = null;
+    App.go('training', { instant: true });
+  });
+  await pause(page);
+  const state = () => page.evaluate(() => ({
+    months: [...document.querySelectorAll('[data-history-month]')].map(e => e.dataset.historyMonth),
+    ids: [...document.querySelectorAll('[data-history-month] .mini-wo')].map(e => e.dataset.id),
+    next: document.querySelector('[data-act="histMore"]')?.textContent,
+    summaries: [...document.querySelectorAll('#trainBody .section-head .tiny')].map(e => e.textContent)
+  }));
+  let s = await state();
+  check(s.months.join() === '2026-01' && s.ids.length === 8 && s.next === 'Dezember aufklappen' && s.summaries.join() === '8 Workouts',
+    'Zunächst nur der aktuelle Monat, alle acht Workouts und Vormonat-Button (Jahreswechsel)', JSON.stringify(s));
+
+  await page.click('[data-history-month] [data-id="hist_7"]');
+  await pause(page);
+  const detail = await page.evaluate(() => {
+    const cells = [...document.querySelectorAll('.modal .tbl tbody tr td:first-child')];
+    return cells.map(c => {
+      const style = getComputedStyle(c.firstElementChild || c);
+      return { text: c.textContent, color: style.color, weight: style.fontWeight };
+    });
+  });
+  check(detail.length === 2 && detail[0].text === 'W' && detail[1].text === '1'
+    && detail[0].color === detail[1].color && detail[0].weight === detail[1].weight,
+    'Workout-Detail: W hat dieselbe Schriftfarbe und -stärke wie die Satznummer', JSON.stringify(detail));
+  await page.evaluate(() => Modal.closeAll());
+  await pause(page);
+
+  await page.locator('[data-act="histMore"]').scrollIntoViewIfNeeded();
+  const scrollBefore = await page.evaluate(() => Scroll.y);
+  await page.click('[data-act="histMore"]');
+  await pause(page);
+  s = await state();
+  const scrollAfter = await page.evaluate(() => Scroll.y);
+  check(s.months.join() === '2026-01,2025-12' && s.ids.length === 9 && s.next === 'November aufklappen'
+    && Math.abs(scrollAfter - scrollBefore) < 2,
+    'Ein Klick ergänzt Dezember, behält Januar und Scrollposition und bietet November an', JSON.stringify({ ...s, scrollBefore, scrollAfter }));
+  await page.click('[data-act="histMore"]');
+  s = await state();
+  check(s.months.join() === '2026-01,2025-12,2025-11' && s.ids.length === 9 && s.next === 'Oktober aufklappen'
+    && /Keine Workouts/.test(await page.locator('[data-history-month="2025-11"]').innerText()),
+    'Leerer November wird nicht übersprungen und bietet den nächsten Monat an', JSON.stringify(s));
+  await page.click('[data-act="histMore"]');
+  s = await state();
+  check(s.months.join() === '2026-01,2025-12,2025-11,2025-10' && s.ids.length === 10 && new Set(s.ids).size === 10 && !s.next,
+    'Beim ältesten Monat endet das Aufklappen; kein Workout fehlt oder ist doppelt', JSON.stringify(s));
+
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('[data-history-month]');
+  s = await state();
+  check(s.months.join() === '2026-01' && s.next === 'Dezember aufklappen', 'Nach Neuladen startet der Verlauf wieder beim aktuellen Monat', JSON.stringify(s));
+  await page.click('[data-act="calNav"][data-d="-1"]');
+  await page.click('.cal [data-id="hist_8"]');
+  await pause(page);
+  check(/Verlauf 8/.test(await page.locator('.modal').innerText()) && (await state()).months.join() === '2026-01',
+    'Kalender öffnet ein älteres Workout direkt, ohne den Verlauf aufzuklappen');
+  await page.evaluate(() => Modal.closeAll());
+  await pause(page);
+  await page.click('[data-act="calNav"][data-d="1"]');
+  await page.click('.cal [data-act="calDay"]');
+  await pause(page);
+  check(await page.locator('.modal [data-k^="hist_"]').count() === 8, 'Kalender bietet weiterhin alle Workouts desselben Tages zur Auswahl');
+  await page.evaluate(() => Modal.closeAll());
+  await page.evaluate(async () => {
+    await Store.batch(Store.all('workouts').filter(w => w.date.startsWith('2026-01')).map(w => ({ type: 'del', coll: 'workouts', id: w.id })));
+    App.renderCurrent();
+  });
+  s = await state();
+  check(s.months.join() === '2026-01' && !s.ids.length && s.summaries.join() === '0 Workouts' && s.next === 'Dezember aufklappen',
+    'Ohne Workouts im aktuellen Monat bleiben ältere Monate erreichbar', JSON.stringify(s));
+  await page.evaluate(async () => {
+    await Store.batch(Store.all('workouts').map(w => ({ type: 'del', coll: 'workouts', id: w.id })));
+    App.renderCurrent();
+  });
+  check(/Noch kein Verlauf/.test(await page.locator('#trainBody').innerText()) && !(await state()).next, 'Ohne gespeicherte Workouts kein endloses Aufklappen');
+  check(!page.errors.length && !(await appErrors(page)).length, 'Verlauf ohne JavaScript-Fehler', page.errors.join(' | '));
+}
+
 async function anzeigeFlow(page) {
   console.log('Anzeige-Fehler');
   await page.evaluate(async () => {
@@ -697,11 +789,11 @@ async function anzeigeFlow(page) {
     const rows = Analytics.cur().rows;
     const run = rows.find(r => r.id === 'az3');
     const step = { ...run, cBy: { ex_stepper: { sec: 1800, km: 0 } }, cKm: 0 };
-    return historyMonthSummary([run, run]) === '2 Läufe · ' + fmtKm(10)
-      && historyMonthSummary([step]) === '1 Workout · ' + fmtDur(1800)
-      && historyMonthSummary(rows) === '3 Workouts · ' + fmtTon(sum(rows.map(r => r.ton)));
+    return historyMonthSummary([run, run]) === '2 Workouts'
+      && historyMonthSummary([step]) === '1 Workout'
+      && historyMonthSummary(rows) === '3 Workouts';
   });
-  check(months, 'Monatsüberschrift für Laufstrecke, Cardiozeit und gemischtes Training');
+  check(months, 'Monatsüberschrift zeigt nur die Workoutanzahl, auch bei Cardio');
   await page.evaluate(() => { UI.progSub = 'overview'; App.go('progress'); });
   await pause(page, 600);
   const h7 = await page.evaluate(() => [...document.querySelectorAll('#tab-progress .heat7 button')].map(b => b.getAttribute('aria-label')).join(' | '));
@@ -1630,7 +1722,7 @@ async function schmalFlow(page) {
   const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
   const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
   const only = (process.env.ONLY || '').split(',').filter(Boolean);   // ONLY=anzeige,kleintext: nur diese Abläufe
-  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [befundeFlow, { width: 390, height: 844 }, 'befunde'], [tastaturFlow, { width: 390, height: 844 }, 'tastatur'], [rueckgaengigFlow, { width: 390, height: 844 }, 'rueckgaengig'], [kleintextFlow, { width: 390, height: 844 }, 'kleintext'], [schmalFlow, { width: 320, height: 700 }, 'schmal'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
+  for (const [flow, viewport, name] of [[mobileFlow, { width: 390, height: 844 }, 'handy'], [dataFlow, { width: 390, height: 844 }, 'daten'], [iphoneFlow, { width: 390, height: 844 }, 'iphone'], [heartFlow, { width: 390, height: 844 }, 'herz'], [formFixFlow, { width: 390, height: 844 }, 'formfix'], [anzeigeFlow, { width: 390, height: 844 }, 'anzeige'], [verlaufFlow, { width: 390, height: 844 }, 'verlauf'], [muskelFlow, { width: 390, height: 844 }, 'muskel'], [testversionFlow, { width: 390, height: 844 }, 'testversion'], [befundeFlow, { width: 390, height: 844 }, 'befunde'], [tastaturFlow, { width: 390, height: 844 }, 'tastatur'], [rueckgaengigFlow, { width: 390, height: 844 }, 'rueckgaengig'], [kleintextFlow, { width: 390, height: 844 }, 'kleintext'], [schmalFlow, { width: 320, height: 700 }, 'schmal'], [desktopFlow, { width: 1280, height: 800 }, 'desktop']]) {
     if (only.length && !only.includes(name)) continue;
     let page = null;
     try {
