@@ -7,10 +7,10 @@ const path = require('path');
 const ROOT = path.resolve(__dirname, '..', '..');
 const SHOTS = path.join(__dirname, '..', 'screenshots');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
-const state = { failed: 0 };
+const state = { failed: 0, messages: [] };
 function check(cond, msg, detail) {
   if (cond) console.log('  ✓ ' + msg);
-  else { state.failed++; console.log('  ✗ ' + msg + (detail ? `\n      ${detail}` : '')); }
+  else { state.failed++; state.messages.push(msg + (detail ? ' – ' + detail : '')); console.log('  ✗ ' + msg + (detail ? `\n      ${detail}` : '')); }
   return !!cond;
 }
 

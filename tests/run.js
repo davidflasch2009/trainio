@@ -44,6 +44,8 @@ const FLOWS = [
   }
   await browser.close();
   srv.close();
+  // auf GitHub: Fehler als Hinweis am Lauf (auch ohne Anmeldung lesbar)
+  if (state.failed && process.env.GITHUB_ACTIONS) console.log(`::error title=${state.failed} Prüfung(en) fehlgeschlagen (${ENGINE})::` + state.messages.join('\n').slice(0, 30000).replace(/%/g, '%25').replace(/\r/g, '').replace(/\n/g, '%0A'));
   console.log(state.failed ? `\n${state.failed} Prüfung(en) fehlgeschlagen` : '\nAlles in Ordnung');
   process.exit(state.failed ? 1 : 0);
 })();
