@@ -1,6 +1,6 @@
 'use strict';
 const path = require('path');
-const { check, pause, noViewError, appErrors, touch, swipe, round1, SHOTS, ROOT, read } = require('../lib/harness');
+const { check, pause, noViewError, appErrors, engine, touch, swipe, round1, SHOTS, ROOT, read } = require('../lib/harness');
 
 /* Anzeige-Fehler aus der Bestandsaufnahme (docs/redesign/bestandsaufnahme.md, H4–H6) */
 async function historyNavigationChecks(page, kind) {
@@ -30,7 +30,9 @@ async function historyNavigationChecks(page, kind) {
     await new Promise(r => setTimeout(r, 250));
     return { initial, middle, end: month.getBoundingClientRect().height, focus: document.activeElement?.dataset.act };
   }, { action, root });
-  check(motion.initial < motion.middle && motion.middle < motion.end && motion.focus === action,
+  // WebKit-Tests laufen ohne CSS-Übergänge (tests/lib/harness.js) – dort nur der Fokus
+  const slides = engine(page) !== 'chromium' || (motion.initial < motion.middle && motion.middle < motion.end);
+  check(slides && motion.focus === action,
     `${kind}: neuer Monat gleitet auf, Tastaturfokus bleibt am Monatsbutton`, JSON.stringify(motion));
   await page.click(`[data-act="${sub}"][data-v="${other}"]`);
   await page.click(`[data-act="${sub}"][data-v="${current}"]`);

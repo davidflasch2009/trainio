@@ -14,6 +14,10 @@ const flow = name => require('./e2e/' + name);
 
 const IPHONE = 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_6 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.6 Mobile/15E148 Safari/604.1';
 const HANDY = { width: 390, height: 844 };
+/* In WebKit (Linux) nicht nachstellbar – dort nur in Chromium:
+   tastatur: ein simuliertes Antippen löst in WebKit unter Linux keinen Klick aus (auf dem iPhone schon)
+   offline:  WebKit in Playwright kann mit Service Worker nicht offline neu laden */
+const NUR_CHROMIUM = ['tastatur', 'offline'];
 /* Abläufe in fester Reihenfolge: [Name = Datei in tests/e2e/, Bildschirm, Touch] */
 const FLOWS = [
   ['handy', HANDY, true], ['daten', HANDY, false], ['iphone', HANDY, true], ['herz', HANDY, true], ['formfix', HANDY, true],
@@ -31,6 +35,7 @@ const FLOWS = [
   const only = (process.env.ONLY || '').split(',').filter(Boolean);   // ONLY=anzeige,kleintext: nur diese Abläufe
   for (const [name, viewport, touch] of FLOWS) {
     if (only.length && !only.includes(name)) continue;
+    if (ENGINE !== 'chromium' && NUR_CHROMIUM.includes(name)) { console.log(`(${name}: nur in Chromium)`); continue; }
     let page = null;
     try {
       page = await openApp(browser, base, viewport, touch, name === 'iphone' ? IPHONE : undefined, { serviceWorkers: name === 'offline' ? 'allow' : 'block' });

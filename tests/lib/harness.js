@@ -41,8 +41,13 @@ async function openApp(browser, base, viewport, touch = false, userAgent = undef
   const chartJs = path.join(ROOT, 'node_modules', 'chart.js', 'dist', 'chart.umd.js');
   await ctx.route(url => !url.href.startsWith(base), r => /\/chart\.js@/.test(r.request().url()) && fs.existsSync(chartJs)
     ? r.fulfill({ path: chartJs, contentType: 'text/javascript' }) : r.abort());
-  // WebKit unter Linux stürzt ohne Soundkarte beim Abspielen ab (GStreamer) – dort gibt es im Test keinen Ton
-  if (browser.browserType().name() === 'webkit') await ctx.addInitScript(() => { window.AudioContext = window.webkitAudioContext = function () { throw new Error('kein Ton im Test'); }; });
+  // WebKit unter Linux (ohne Grafikkarte, Software-Rendering) stürzt bei CSS-Übergängen zufällig ab – das iPhone nicht.
+  // Darum dort ohne transition; Animationen und alles andere laufen normal.
+  if (browser.browserType().name() === 'webkit') await ctx.addInitScript(() => document.addEventListener('DOMContentLoaded', () => {
+    const st = document.createElement('style');
+    st.textContent = '*, *::before, *::after { transition: none !important; }';
+    document.head.appendChild(st);
+  }));
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   page.errors = [];
@@ -60,8 +65,10 @@ const noViewError = page => page.evaluate(() => !document.querySelector('.tab.ac
 const appErrors = page => page.evaluate(() => ErrLog.all().map(e => e.msg || e.message || String(e)));
 /** Ein Touch-Ereignis (touchStart/touchMove/touchEnd, points = [{ x, y }]). Chromium: echter Touch über CDP.
     Andere Engines (WebKit): TouchEvents per JavaScript am Element unter dem ersten Finger – ohne natives Scrollen. */
+/** Browser-Engine der Seite: 'chromium' oder 'webkit' */
+const engine = page => page.context().browser().browserType().name();
 async function touch(page, type, points = []) {
-  if (page.context().browser().browserType().name() === 'chromium') {
+  if (engine(page) === 'chromium') {
     const cdp = page.cdp || (page.cdp = await page.context().newCDPSession(page));
     return cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : points });
   }
@@ -87,4 +94,4 @@ async function swipe(page, x1, x2, y) {
   await page.waitForTimeout(600);
 }
 
-module.exports = { overrides, ROOT, SHOTS, read, state, check, serve, openApp, pause, round1, noViewError, appErrors, touch, swipe };
+module.exports = { overrides, ROOT, SHOTS, read, state, check, serve, openApp, pause, round1, noViewError, appErrors, engine, touch, swipe };

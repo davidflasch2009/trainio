@@ -534,7 +534,10 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/boot.js` | Start der App |
 | `sw.js` | Service Worker (Offline-Cache) |
 | `tools/release.py` | Version für ein Deploy hochsetzen (siehe unten) |
-| `tests/smoke.js` | Automatischer Test im Browser (`npm test`, läuft auch bei jedem Push auf GitHub) |
+| `tests/run.js` | Automatischer Test (`npm test`, läuft auch bei jedem Push auf GitHub): startet die Abläufe der Reihe nach |
+| `tests/static.js` | Prüfungen ohne Browser: Syntax, Versionen, App-Icons, Kontrast |
+| `tests/e2e/*.js` | Je ein Ablauf im Browser, z. B. `verlauf.js`, `tastatur.js`, `offline.js` |
+| `tests/lib/harness.js` | Gemeinsame Test-Hilfen: Prüfen, lokaler Webserver, App öffnen, Touch |
 | `package.json` | Nur für den Test (Playwright) – die App selbst braucht keinen Build |
 | `manifest.json` | PWA-Manifest |
 | `icon.svg` | Logo „Progress-Kettlebell“ als Vektor (Favicon) |
@@ -661,8 +664,15 @@ Der Service Worker läuft nur über `http://localhost` oder `https://`, nicht ü
 npm install                        # einmalig
 npx playwright install chromium    # einmalig
 npm test
-ONLY=tastatur,kleintext npm test   # nur einzelne Abläufe im Browser
+ONLY=tastatur,kleintext npm test   # nur einzelne Abläufe (Dateinamen aus tests/e2e/)
+BROWSER=webkit npm test            # in WebKit, der Engine von Safari (einmalig: npx playwright install --with-deps webkit)
 ```
+
+Auf GitHub laufen alle Abläufe in **Chromium und WebKit**; veröffentlicht wird nur, wenn beide grün sind.
+WebKit unter Linux läuft ohne Grafikkarte – dort sind CSS-Übergänge im Test aus (sonst stürzt es zufällig ab), und
+`tastatur` sowie `offline` laufen nur in Chromium (simuliertes Tippen bzw. Offline mit Service Worker gehen dort nicht).
+`offline` prüft mit echtem Service Worker: Start ohne Netz, Update beim Start und „Neue Version verfügbar → Neu laden“,
+jeweils ohne Datenverlust.
 
 Prüft Syntax, Versionen und App-Icons und klickt die App im Browser durch (Handy- und Desktop-Größe):
 alle Tabs, Workout starten, Satz abhaken, Pausen-Timer, Scheibenrechner, Workout speichern mit Score, Fortschritt,
