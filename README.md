@@ -590,6 +590,7 @@ nicht nachträglich verknüpfen (Daten würden sonst vermischt).
 
 1. Repo → **Settings → Pages** → *Source* → **GitHub Actions**. Die Action `.github/workflows/pages.yml`
    veröffentlicht bei jedem Push `main` und – falls vorhanden – den Zweig `redesign` als Testversion.
+   Vorher laufen die Tests (`test.yml`) für genau diesen Stand – schlagen sie fehl, bleibt die alte Version online.
 2. Live-URL: `https://davidflasch2009.github.io/trainio/`
    Testversion des Umbaus: `https://davidflasch2009.github.io/trainio/test/`
 3. Änderungen veröffentlichen:

@@ -27,7 +27,14 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh workflow run pages.yml --ref main --repo "${{ github.repository }}"
+  # Erst testen, dann veröffentlichen – und zwar genau den getesteten Stand (github.sha), nicht einen neueren
+  test:
+    if: github.ref != 'refs/heads/redesign'
+    uses: ./.github/workflows/test.yml
+    with:
+      ref: ${{ github.sha }}
   build:
+    needs: test
     if: github.ref != 'refs/heads/redesign'
     runs-on: ubuntu-latest
     outputs:
@@ -46,7 +53,7 @@ jobs:
         if: steps.mode.outputs.enabled == 'true'
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
           path: site
       - name: Gibt es den Zweig redesign?
         if: steps.mode.outputs.enabled == 'true'

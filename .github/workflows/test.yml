@@ -3,12 +3,20 @@ name: Test
 on:
   push:
   pull_request:
+  # Auch von der Pages-Action aufrufbar: veröffentlicht wird nur, wenn diese Tests grün sind
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        default: ''
 jobs:
   smoke:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.sha }}
       - uses: actions/setup-node@v4
         with:
           node-version: 22
