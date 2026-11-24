@@ -521,8 +521,12 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/sky.js` | Design „Tag & Nacht“: Sonnenstand, Phasen, Himmel (Sonne, Mond, Sterne), Zeitraffer |
 | `js/analytics.js` | Übungs-Helfer, Auswertungen, Rekorde |
 | `js/workout.js` | Workout-Engine (aktives Workout) |
-| `js/training.js` | Start-Tab + Training-Tab (Pläne, Verlauf, Workout-Detail, Teilen) |
-| `js/workout-ui.js` | Aktives Workout: Ansicht & Bedienung, Abschluss mit Score |
+| `js/start.js` | Start-Tab (Dashboard, Kacheln, Workout starten) und Ziele pro Übung |
+| `js/training.js` | Training-Tab: Workouts, Trainingsplan, Plan-Analyse |
+| `js/history.js` | Verlauf: Monate, Kalender, Workout-Detail, Teilen |
+| `js/workout-ui.js` | Aktives Workout: Ansicht (Sätze, Cardio, Fokus, Übersicht, Ziel-Editor) |
+| `js/workout-actions.js` | Aktives Workout: Bedienung (Eingaben, Haken, Menüs, Wischgesten, Abschluss) |
+| `js/workout-summary.js` | Aktives Workout: Zusammenfassung und Score |
 | `js/keypad.js` | Eigene Zahlentastatur im Workout (Touch): Ziffern, ± je Feld, Weiter/Abhaken |
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
