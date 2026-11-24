@@ -674,6 +674,56 @@ async function desktopFlow(page) {
 }
 
 /* Anzeige-Fehler aus der Bestandsaufnahme (docs/redesign/bestandsaufnahme.md, H4–H6) */
+async function historyNavigationChecks(page, kind) {
+  const workout = kind === 'workout';
+  const tab = workout ? 'training' : 'progress', action = workout ? 'histMore' : 'bodyHistMore';
+  const sub = workout ? 'trainSub' : 'progSub', current = workout ? 'history' : 'body', other = workout ? 'plans' : 'overview';
+  const root = workout ? '#workoutHistory' : '#bodyHistory';
+  const reset = async () => {
+    await page.click('#bottomNav [data-tab="start"]');
+    await page.click(`#bottomNav [data-tab="${tab}"]`);
+  };
+  await reset();
+  check(await page.locator(root + ' .history-month').count() === 1, `${kind}: Haupttab wechseln schließt ältere Monate`);
+  const clean = await page.locator(`[data-act="${action}"]`).evaluate(b => {
+    const s = getComputedStyle(b);
+    return s.backgroundColor === 'rgba(0, 0, 0, 0)' && s.borderTopWidth === '0px' && !!b.querySelector('svg') && getComputedStyle(b, '::before').content === 'none';
+  });
+  check(clean, `${kind}: Monatsbutton nur Text und Pfeil, ohne Fläche, Rahmen oder Linien`);
+  await page.locator(`[data-act="${action}"]`).scrollIntoViewIfNeeded();
+  const motion = await page.evaluate(async ({ action, root }) => {
+    const b = document.querySelector(`[data-act="${action}"]`);
+    b.focus({ preventScroll: true }); b.click();
+    const month = document.querySelector(root + ' .history-month:last-of-type');
+    const initial = month.getBoundingClientRect().height;
+    await new Promise(r => setTimeout(r, 100));
+    const middle = month.getBoundingClientRect().height;
+    await new Promise(r => setTimeout(r, 250));
+    return { initial, middle, end: month.getBoundingClientRect().height, focus: document.activeElement?.dataset.act };
+  }, { action, root });
+  check(motion.initial < motion.middle && motion.middle < motion.end && motion.focus === action,
+    `${kind}: neuer Monat gleitet auf, Tastaturfokus bleibt am Monatsbutton`, JSON.stringify(motion));
+  await page.click(`[data-act="${sub}"][data-v="${other}"]`);
+  await page.click(`[data-act="${sub}"][data-v="${current}"]`);
+  check(await page.locator(root + ' .history-month').count() === 1, `${kind}: Untertab wechseln schließt ältere Monate`);
+  await page.click(`[data-act="${action}"]`);
+  await pause(page, 350);
+  const y = await page.locator(root + ' .section-head').first().evaluate(el => {
+    el.scrollIntoView({ block: 'center' });
+    const r = el.getBoundingClientRect(); return r.top + r.height / 2;
+  });
+  await swipe(page, 60, 320, y);
+  const changed = await page.evaluate(([sub, current]) => UI[sub] !== current, [sub, current]);
+  await page.click(`[data-act="${sub}"][data-v="${current}"]`);
+  check(changed && await page.locator(root + ' .history-month').count() === 1, `${kind}: Untertab per Wischgeste wechseln schließt ältere Monate`);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await page.click(`[data-act="${action}"]`);
+  check(await page.locator(root + ' .history-month').count() === 2 && !await page.locator(root + ' .revealing').count(),
+    `${kind}: bei reduzierter Bewegung öffnet der Monat sofort ohne Animation`);
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await pause(page, 350);   // Tab-Auswahl wird verzögert gespeichert; danach darf der Test neu laden.
+}
+
 async function verlaufFlow(page) {
   console.log('Verlauf: Monate einzeln aufklappen');
   await page.clock.setFixedTime(new Date('2026-01-15T12:00:00Z'));
@@ -735,6 +785,7 @@ async function verlaufFlow(page) {
   check(s.months.join() === '2026-01,2025-12,2025-11,2025-10' && s.ids.length === 10 && new Set(s.ids).size === 10 && !s.next,
     'Beim ältesten Monat endet das Aufklappen; kein Workout fehlt oder ist doppelt', JSON.stringify(s));
 
+  await historyNavigationChecks(page, 'workout');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('[data-history-month]');
   s = await state();
@@ -810,6 +861,7 @@ async function koerperVerlaufFlow(page) {
   s = await state();
   check(s.months.join() === '2026-01,2025-12,2025-11,2025-10' && s.ids.length === 4 && new Set(s.ids).size === 4 && !s.next,
     'Körper-Verlauf endet beim ältesten Monat, alle Einträge genau einmal', JSON.stringify(s));
+  await historyNavigationChecks(page, 'body');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#bodyHistory');
   s = await state();
@@ -1794,7 +1846,7 @@ async function schmalFlow(page) {
     if (only.length && !only.includes(name)) continue;
     let page = null;
     try {
-      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige' || name === 'tastatur', name === 'iphone' ? IPHONE : undefined);
+      page = await openApp(browser, base, viewport, name === 'handy' || name === 'iphone' || name === 'herz' || name === 'formfix' || name === 'anzeige' || name === 'tastatur' || name === 'verlauf' || name === 'koerperverlauf', name === 'iphone' ? IPHONE : undefined);
       await flow(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';

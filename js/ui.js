@@ -416,6 +416,28 @@ function fx(el, cls) {
 }
 /** Volle Animationen? (Einstellung „Animationen: Voll" und kein „Bewegung reduzieren" im System) */
 const motionFull = () => S().motion === 'full' && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+/** Gemeinsamer Monats-Schalter für Workout- und Körper-Verlauf. */
+const historyMoreButton = (month, action) => month ? `<button type="button" class="history-more" data-act="${action}"><span>${MONTHS_LONG[month.getMonth()]} aufklappen</span>${icon('chevD')}</button>` : '';
+function revealHistoryMonth(root, html) {
+  if (!root) return;
+  const hadFocus = root.contains(document.activeElement);
+  root.innerHTML = html;
+  const month = root.querySelector('.history-month:last-of-type'), button = root.querySelector('.history-more');
+  if (month && motionFull()) {
+    month.classList.add('revealing');
+    void month.offsetHeight;
+    month.classList.add('open');
+    if (button) button.classList.add('revealing');
+    setTimeout(() => {
+      month.classList.remove('revealing', 'open');
+      if (button) button.classList.remove('revealing');
+    }, 300);
+  }
+  if (hadFocus) {
+    const target = button || (month && month.querySelector('button'));
+    if (target) target.focus({ preventScroll: true });
+  }
+}
 /** Zahlen hochzählen: die Zahl am Anfang des ersten Textknotens läuft von 0 auf ihren Wert („8,4 t", „1.234 kg", „12") */
 function countUp(els, dur = 700, delay = 0) {
   if (!motionFull()) return;
@@ -439,7 +461,7 @@ function countUp(els, dur = 700, delay = 0) {
 }
 const COUNT_SEL = '.stat-value, .cc-big > b';
 /* Ansicht wechseln (Segment, Chips, Unter-Tabs): Inhalt unter dem Schalter sanft einblenden */
-const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'kraftScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'histMore', 'setSeg']);
+const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'kraftScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'setSeg']);
 function fxSwap(act, v) {
   const sel = `[data-act="${act}"]${v != null ? `[data-v="${CSS.escape(v)}"]` : ''}`;
   let n = $(`#view ${sel}`);

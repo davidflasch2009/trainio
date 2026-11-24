@@ -368,8 +368,10 @@ Actions.showHistory = () => { UI.trainSub = 'history'; App.go('training'); };
    9. View: Training (Pläne, Verlauf, aktives Workout)
    ========================================================================== */
 Views.training = {
+  leave() { historyMonths = 1; },
   render(el) {
     const w = Workout.cur();
+    if (w || UI.trainSub !== 'history') historyMonths = 1;
     if (w) return renderActiveWorkout(el, w);
     el.innerHTML = `
       ${tabsHtml([['plans', 'Pläne'], ['history', 'Verlauf']], UI.trainSub === 'history' ? 'history' : 'plans', 'trainSub', 'trainBody', 'Training', 'seg mb-12')}
@@ -745,7 +747,6 @@ function historyMonthSummary(rows) {
 }
 function renderHistory(el) {
   const ix = Analytics.cur();
-  const rows = ix.rows.slice().reverse();
   const t = new Date();
   const [cy, cm] = (UI.calMonth || `${t.getFullYear()}-${t.getMonth()}`).split('-').map(Number);
   const first = new Date(cy, cm, 1);
@@ -763,7 +764,6 @@ function renderHistory(el) {
     const act = !has ? 'disabled' : has.length === 1 ? `data-act="openWorkout" data-id="${esc(has[0].id)}"` : `data-act="calDay" data-date="${iso}"`;
     cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${act} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}${has ? `<span class="cal-dots">${'<i></i>'.repeat(Math.min(3, has.length))}${has.length > 3 ? '<b>+</b>' : ''}</span>` : ''}</button>`;
   }
-  const { groups, previous } = historyMonthPage(rows, historyMonths);
   el.innerHTML = `
     <div class="card">
       <div class="row between mb-8 cal-head">
@@ -776,11 +776,16 @@ function renderHistory(el) {
       </div>
       <div class="cal">${heads.map(h => `<span class="cal-h">${h}</span>`).join('')}${cells}</div>
     </div>
-    ${rows.length ? groups.map(g => `
+    <div id="workoutHistory">${workoutHistoryHtml()}</div>`;
+}
+function workoutHistoryHtml() {
+  const rows = Analytics.cur().rows.slice().reverse();
+  if (!rows.length) return `<div class="card mt-16">${emptyState('history', 'Noch kein Verlauf', 'Abgeschlossene Workouts erscheinen hier.')}</div>`;
+  const { groups, previous } = historyMonthPage(rows, historyMonths);
+  return groups.map(g => `<section class="history-month"><div class="history-month-content">
       <div class="section-head"><h4>${parseISO(g.k + '-01').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${historyMonthSummary(g.items)}</span></div>
-      <div class="col" data-history-month="${g.k}">${g.items.length ? g.items.map(miniWorkoutCard).join('') : '<p class="small dim">Keine Workouts in diesem Monat.</p>'}</div>`).join('')
-      + (previous ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">${MONTHS_LONG[previous.getMonth()]} aufklappen</button>` : '')
-    : `<div class="card mt-16">${emptyState('history', 'Noch kein Verlauf', 'Abgeschlossene Workouts erscheinen hier.')}</div>`}`;
+      <div class="col" data-history-month="${g.k}">${g.items.length ? g.items.map(miniWorkoutCard).join('') : '<p class="small dim">Keine Workouts in diesem Monat.</p>'}</div>
+    </div></section>`).join('') + historyMoreButton(previous, 'histMore');
 }
 Actions.calNav = el => {
   const t = new Date();
@@ -816,7 +821,7 @@ Actions.calDay = async el => {
   }));
   if (k) openWorkoutDetail(k);
 };
-Actions.histMore = () => { historyMonths++; App.renderCurrent(); };
+Actions.histMore = () => { historyMonths++; revealHistoryMonth($('#workoutHistory'), workoutHistoryHtml()); };
 
 /* ---------- Workout-Detail ---------- */
 Actions.openWorkout = el => openWorkoutDetail(el.dataset.id);

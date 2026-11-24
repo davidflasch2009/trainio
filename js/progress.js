@@ -23,6 +23,7 @@ const progSubs = () => PROG_SUBS.filter(([k]) => k === 'overview' || F('f_' + k)
 Views.progress = {
   render(el) {
     if (!progSubs().some(x => x[0] === UI.progSub)) UI.progSub = 'overview';
+    if (UI.progSub !== 'body') bodyHistoryMonths = 1;
     const r = Analytics.range();
     el.innerHTML = `
       <div class="prog-controls">
@@ -56,7 +57,7 @@ function applyDefaultPeriod() {
   const v = defaultPeriod();
   if (v && UI.period !== v) { UI.period = v; saveUI(); }
 }
-Views.progress.leave = applyDefaultPeriod;   // beim nächsten Öffnen ist wieder der Standard gewählt
+Views.progress.leave = () => { bodyHistoryMonths = 1; applyDefaultPeriod(); };   // beim nächsten Öffnen wieder Standard-Zeitraum und aktueller Monat
 Actions.progSub = el => { UI.progSub = el.dataset.v; saveUI(); App.renderCurrent(); };
 Actions.period = async el => {
   const v = el.dataset.v;
@@ -1395,19 +1396,18 @@ function bodyHistoryHtml() {
   const rows = Store.all('progress').filter(p => isISO(p.date)).sort((a, b) => b.date.localeCompare(a.date) || (b.createdAt || 0) - (a.createdAt || 0));
   if (!rows.length) return `<div class="card">${emptyState('scale', 'Noch keine Einträge', 'Trag oben dein Gewicht ein – der Verlauf entsteht automatisch.')}</div>`;
   const { groups, previous } = historyMonthPage(rows, bodyHistoryMonths);
-  return groups.map(g => `
+  return groups.map(g => `<section class="history-month"><div class="history-month-content">
     <div class="section-head"><h4>${fmtDate(g.k + '-01', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${g.items.length === 1 ? '1 Eintrag' : g.items.length + ' Einträge'}</span></div>
     <div class="list" data-body-history-month="${g.k}">${g.items.length ? g.items.map(p => `<button class="list-item" data-act="bodyEdit" data-id="${esc(p.id)}">
       <span class="li-icon">${icon(p.photoId && F('f_photos') ? 'camera' : 'scale')}</span>
       <span class="li-main"><span class="li-title">${esc(fmtDate(p.date, { weekday: 'short', day: '2-digit', month: '2-digit', year: 'numeric' }))}</span>
       <div class="li-sub">${[p.bodyWeightKg ? fmtW(p.bodyWeightKg) : '', F('f_bodyFat') && p.bodyFatPct ? nf(p.bodyFatPct, 1) + ' % KFA' : '', F('f_measures') && p.measurements ? MEASURES.filter(([k]) => p.measurements[k]).length + ' Umfänge' : '', p.notes ? esc(p.notes) : ''].filter(Boolean).join(' · ') || '–'}</div></span>
-      ${icon('chevR', 'li-chev')}</button>`).join('') : '<p class="small dim">Keine Einträge in diesem Monat.</p>'}</div>`).join('')
-    + (previous ? `<button class="btn btn-secondary btn-block mt-16" data-act="bodyHistMore">${MONTHS_LONG[previous.getMonth()]} aufklappen</button>` : '');
+      ${icon('chevR', 'li-chev')}</button>`).join('') : '<p class="small dim">Keine Einträge in diesem Monat.</p>'}</div>
+    </div></section>`).join('') + historyMoreButton(previous, 'bodyHistMore');
 }
 Actions.bodyHistMore = () => {
   bodyHistoryMonths++;
-  const el = $('#bodyHistory');
-  if (el) el.innerHTML = bodyHistoryHtml();
+  revealHistoryMonth($('#bodyHistory'), bodyHistoryHtml());
 };
 /* Körpergewicht: plausible Spanne in kg – gilt für jede Einheit gleich (erst umrechnen, dann prüfen) */
 const BW_MIN_KG = 20, BW_MAX_KG = 400;
