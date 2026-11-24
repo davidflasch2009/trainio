@@ -41,11 +41,14 @@ async function openApp(browser, base, viewport, touch = false, userAgent = undef
   const chartJs = path.join(ROOT, 'node_modules', 'chart.js', 'dist', 'chart.umd.js');
   await ctx.route(url => !url.href.startsWith(base), r => /\/chart\.js@/.test(r.request().url()) && fs.existsSync(chartJs)
     ? r.fulfill({ path: chartJs, contentType: 'text/javascript' }) : r.abort());
+  // WebKit unter Linux stürzt ohne Soundkarte beim Abspielen ab (GStreamer) – dort gibt es im Test keinen Ton
+  if (browser.browserType().name() === 'webkit') await ctx.addInitScript(() => { window.AudioContext = window.webkitAudioContext = function () { throw new Error('kein Ton im Test'); }; });
   const page = await ctx.newPage();
   page.setDefaultTimeout(8000);
   page.errors = [];
   page.on('pageerror', e => page.errors.push(e.message));
-  page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|ERR_FAILED|net::/.test(m.text())) page.errors.push(m.text()); });
+  page.on('crash', () => page.errors.push('Browser-Seite abgestürzt'));
+  page.on('console', m => { if (m.type() === 'error' && !/Failed to load resource|Failed to preconnect|ERR_FAILED|net::/.test(m.text())) page.errors.push(m.text()); });
   await page.goto(base + '/', { waitUntil: 'domcontentloaded' });
   await page.waitForFunction(() => typeof App !== 'undefined' && document.querySelector('#tab-' + App.tab).innerHTML.length > 0, null, { timeout: 10000 });
   await page.waitForTimeout(400);
@@ -66,11 +69,14 @@ async function touch(page, type, points = []) {
     const name = { touchStart: 'touchstart', touchMove: 'touchmove', touchEnd: 'touchend' }[type];
     if (name === 'touchstart') window.__touchTarget = document.elementFromPoint(points[0].x, points[0].y) || document.body;
     const target = window.__touchTarget || document.body;
+    // WebKit ohne Touch-Bildschirm kennt keinen Touch-Konstruktor → einfache Objekte mit denselben Feldern
     const list = (name === 'touchend' ? window.__lastTouch || [] : points).map((p, i) =>
-      new Touch({ identifier: i, target, clientX: p.x, clientY: p.y, pageX: p.x + scrollX, pageY: p.y + scrollY }));
+      ({ identifier: i, target, clientX: p.x, clientY: p.y, pageX: p.x + scrollX, pageY: p.y + scrollY, screenX: p.x, screenY: p.y }));
     if (name !== 'touchend') window.__lastTouch = points;
-    target.dispatchEvent(new TouchEvent(name, { bubbles: true, cancelable: true, composed: true,
-      touches: name === 'touchend' ? [] : list, targetTouches: name === 'touchend' ? [] : list, changedTouches: list }));
+    const ev = new Event(name, { bubbles: true, cancelable: true, composed: true });
+    for (const [k, v] of [['touches', name === 'touchend' ? [] : list], ['targetTouches', name === 'touchend' ? [] : list], ['changedTouches', list]])
+      Object.defineProperty(ev, k, { value: v });
+    target.dispatchEvent(ev);
   }, [type, points]);
 }
 /** Wischgeste mit dem Finger */

@@ -105,10 +105,12 @@ async function verlaufFlow(page) {
     && Math.abs(scrollAfter - scrollBefore) < 2,
     'Ein Klick ergänzt Dezember, behält Januar und Scrollposition und bietet November an', JSON.stringify({ ...s, scrollBefore, scrollAfter }));
   await page.click('[data-act="histMore"]');
+  await pause(page);
   s = await state();
+  const nov = await page.locator('[data-history-month="2025-11"]').evaluate(e => ({ inner: e.innerText, text: e.textContent }));
   check(s.months.join() === '2026-01,2025-12,2025-11' && s.ids.length === 9 && s.next === 'Oktober aufklappen'
-    && /Keine Workouts/.test(await page.locator('[data-history-month="2025-11"]').innerText()),
-    'Leerer November wird nicht übersprungen und bietet den nächsten Monat an', JSON.stringify(s));
+    && /Keine Workouts/.test(nov.inner),
+    'Leerer November wird nicht übersprungen und bietet den nächsten Monat an', JSON.stringify({ ...s, nov }));
   await page.click('[data-act="histMore"]');
   s = await state();
   check(s.months.join() === '2026-01,2025-12,2025-11,2025-10' && s.ids.length === 10 && new Set(s.ids).size === 10 && !s.next,
