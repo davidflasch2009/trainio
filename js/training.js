@@ -763,22 +763,7 @@ function renderHistory(el) {
     const act = !has ? 'disabled' : has.length === 1 ? `data-act="openWorkout" data-id="${esc(has[0].id)}"` : `data-act="calDay" data-date="${iso}"`;
     cells += `<button class="${has ? 'has' : ''} ${iso === isoDate() ? 'today' : ''}" ${act} aria-label="${d}. ${has ? has.map(x => x.name).join(', ') : 'kein Training'}">${d}${has ? `<span class="cal-dots">${'<i></i>'.repeat(Math.min(3, has.length))}${has.length > 3 ? '<b>+</b>' : ''}</span>` : ''}</button>`;
   }
-  // Nur der aktuelle Monat; ältere Monate werden einzeln darunter aufgeklappt.
-  const byMonth = {};
-  for (const r of rows) {
-    const k = r.date.slice(0, 7);
-    (byMonth[k] || (byMonth[k] = [])).push(r);
-  }
-  const currentMonth = t.getFullYear() * 12 + t.getMonth();
-  const oldest = rows.length ? parseISO(rows[rows.length - 1].date) : t;
-  const monthCount = Math.max(1, currentMonth - (oldest.getFullYear() * 12 + oldest.getMonth()) + 1);
-  const shown = Math.min(historyMonths, monthCount);
-  const groups = Array.from({ length: shown }, (_, i) => {
-    const date = new Date(t.getFullYear(), t.getMonth() - i, 1);
-    const k = isoDate(date).slice(0, 7);
-    return { k, items: byMonth[k] || [] };
-  });
-  const previous = new Date(t.getFullYear(), t.getMonth() - shown, 1);
+  const { groups, previous } = historyMonthPage(rows, historyMonths);
   el.innerHTML = `
     <div class="card">
       <div class="row between mb-8 cal-head">
@@ -794,7 +779,7 @@ function renderHistory(el) {
     ${rows.length ? groups.map(g => `
       <div class="section-head"><h4>${parseISO(g.k + '-01').toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</h4><span class="tiny dim">${historyMonthSummary(g.items)}</span></div>
       <div class="col" data-history-month="${g.k}">${g.items.length ? g.items.map(miniWorkoutCard).join('') : '<p class="small dim">Keine Workouts in diesem Monat.</p>'}</div>`).join('')
-      + (shown < monthCount ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">${MONTHS_LONG[previous.getMonth()]} aufklappen</button>` : '')
+      + (previous ? `<button class="btn btn-secondary btn-block mt-16" data-act="histMore">${MONTHS_LONG[previous.getMonth()]} aufklappen</button>` : '')
     : `<div class="card mt-16">${emptyState('history', 'Noch kein Verlauf', 'Abgeschlossene Workouts erscheinen hier.')}</div>`}`;
 }
 Actions.calNav = el => {

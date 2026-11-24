@@ -8,7 +8,7 @@
    ========================================================================== */
 const APP = {
   name: 'Trainio',
-  version: '1.37.8',
+  version: '1.37.9',
   repo: 'https://github.com/davidflasch2009/trainio',
   contact: 'https://github.com/davidflasch2009/trainio/issues'
 };
@@ -227,6 +227,23 @@ const fmtDateLong = s => parseISO(s).toLocaleDateString('de-DE', { weekday: 'lon
 const fmtDateShort = s => parseISO(s).toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit' });
 const WD_SHORT = ['So', 'Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa'];
 const MONTHS = ['Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dez'];
+
+/** Verlauf ab dem aktuellen Monat, ältere Monate einzeln. rows: neueste Einträge zuerst. */
+function historyMonthPage(rows, visibleMonths) {
+  const now = new Date(), byMonth = {};
+  for (const row of rows) {
+    const k = row.date.slice(0, 7);
+    (byMonth[k] || (byMonth[k] = [])).push(row);
+  }
+  const oldest = rows.length ? parseISO(rows[rows.length - 1].date) : now;
+  const monthCount = Math.max(1, (now.getFullYear() - oldest.getFullYear()) * 12 + now.getMonth() - oldest.getMonth() + 1);
+  const shown = Math.min(visibleMonths, monthCount);
+  const groups = Array.from({ length: shown }, (_, i) => {
+    const k = isoDate(new Date(now.getFullYear(), now.getMonth() - i, 1)).slice(0, 7);
+    return { k, items: byMonth[k] || [] };
+  });
+  return { groups, previous: shown < monthCount ? new Date(now.getFullYear(), now.getMonth() - shown, 1) : null };
+}
 
 function fmtClock(sec) {
   sec = Math.max(0, Math.floor(sec));
