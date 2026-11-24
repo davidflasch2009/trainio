@@ -526,7 +526,11 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | `js/keypad.js` | Eigene Zahlentastatur im Workout (Touch): Ziffern, ± je Feld, Weiter/Abhaken |
 | `js/exercises.js` | Übungs-Auswahl, Tools, Übungs-Bibliothek |
 | `js/charts.js` | Diagramm-Bausteine (Chart.js) |
-| `js/progress.js` | Fortschritt-Tab |
+| `js/progress.js` | Fortschritt-Tab: Rahmen, Zeitraum, Phasen, Übersicht, Meilensteine |
+| `js/progress-strength.js` | Fortschritt: Kraft und Volumen |
+| `js/progress-muscles.js` | Fortschritt: Muskeln (Regionen, Körperkarte, Sätze pro Woche) |
+| `js/progress-cardio.js` | Fortschritt: Cardio |
+| `js/progress-body.js` | Fortschritt: Körper (Gewicht, Wochenziel, CSV-Import, Körpermaße, Fotos) |
 | `js/heart.js` | Herz & Ausdauer: Ruhepuls, VO2max, Pulszonen, Intervall-Timer, Herz-Plan |
 | `js/more.js` | Mehr-Tab: Gruppen-Seiten, Einstellungs-Suche, Konto, Daten (Export CSV/PDF/JSON) |
 | `js/import.js` | Arrow-Import |
