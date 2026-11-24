@@ -4,6 +4,10 @@ const path = require('path');
 const { execFileSync } = require('child_process');
 const { check, read, ROOT } = require('./lib/harness');
 
+/** Alle Styles in der Ladereihenfolge aus index.html (wie der Browser sie sieht) */
+const cssFiles = () => [...read('index.html').matchAll(/<link rel="stylesheet" href="(css\/[^"?]+)\?v=[^"]+">/g)].map(m => m[1]);
+const allCss = () => cssFiles().map(read).join('\n');
+
 /* ---------- 1. Dateien: Syntax, Versionen, App-Icons ---------- */
 function staticChecks() {
   console.log('Dateien');
@@ -18,6 +22,9 @@ function staticChecks() {
   const loaded = [...index.matchAll(/<script src="js\/([^"?]+)\?v=[^"]+"><\/script>/g)].map(m => m[1]);
   check(jsFiles.every(f => loaded.includes(f)), 'jede js/*.js wird in index.html geladen', jsFiles.filter(f => !loaded.includes(f)).join(', '));
   check(loaded.every(f => jsFiles.includes(f)), 'jede Datei aus index.html existiert', loaded.filter(f => !jsFiles.includes(f)).join(', '));
+  const cssOnDisk = fs.readdirSync(path.join(ROOT, 'css')).filter(f => f.endsWith('.css')).map(f => 'css/' + f);
+  check(cssOnDisk.every(f => cssFiles().includes(f)) && cssFiles().every(f => cssOnDisk.includes(f)), 'jede css/*.css wird in index.html geladen und existiert',
+    cssOnDisk.filter(f => !cssFiles().includes(f)).concat(cssFiles().filter(f => !cssOnDisk.includes(f))).join(', '));
   const version = (read('js/core.js').match(/version: '([^']+)'/) || [])[1];
   const vs = [...index.matchAll(/(?:src|href)="(?:css|js)\/[^"?]+\?v=([^"]+)"/g)].map(m => m[1]);
   check(version && vs.length && vs.every(v => v === version), `?v= in index.html passt zur App-Version (${version})`, [...new Set(vs)].join(', '));
@@ -35,7 +42,7 @@ function staticChecks() {
   check(read('sw.js').includes(`length: ${n} }`), 'App-Icons: Anzahl in sw.js passt');
   check(index.includes(`/^[2-${n}]$/`), 'App-Icons: erlaubte Nummern in index.html passen');
   // In Chromium nicht nachstellbar, darum nur statisch: ohne diese Regel endet die Tab-Leiste auf iOS 26 zu hoch
-  check(/@media \(display-mode: standalone\) \{\s*html \{ min-height: min\(100lvh, calc\(100% \+ env\(safe-area-inset-top\)\)\); \}/.test(read('css/app.css')),
+  check(/@media \(display-mode: standalone\) \{\s*html \{ min-height: min\(100lvh, calc\(100% \+ env\(safe-area-inset-top\)\)\); \}/.test(allCss()),
     'iOS-26-Fix: Seite als installierte App mindestens bildschirmhoch');
 }
 
@@ -43,7 +50,7 @@ function staticChecks() {
 /** Kontrast (WCAG): Textfarben jedes Designzustands gegen Seite, Karte und zweite Fläche */
 function contrastChecks() {
   console.log('Kontrast der Designs');
-  const css = read('css/app.css');
+  const css = allCss();
   const hex = h => { h = h.replace('#', ''); if (h.length === 3) h = h.split('').map(c => c + c).join(''); return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16)); };
   const parse = v => { v = v.trim(); if (v.startsWith('#')) return { c: hex(v), a: 1 }; const m = v.match(/^rgba?\(([^)]+)\)$/); if (!m) return null; const p = m[1].split(',').map(parseFloat); return { c: p.slice(0, 3), a: p[3] == null ? 1 : p[3] }; };
   const over = (t, u) => t.c.map((v, i) => v * t.a + u[i] * (1 - t.a));

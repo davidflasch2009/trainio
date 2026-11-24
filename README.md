@@ -3,7 +3,7 @@
 link: https://davidflasch2009.github.io/trainio/
 
 Workout-Tracker, Trainingsplan-Builder und Progress-Tracker als PWA ohne Build-Step
-(`index.html` + `css/app.css` + `js/*.js`, direkt so auslieferbar).
+(`index.html` + `css/*.css` + `js/*.js`, direkt so auslieferbar).
 
 - Läuft sofort im **lokalen Modus** (Daten im Browser), auch ohne Firebase. In mehreren Tabs gleichzeitig offen?
   Kein Problem – Änderungen aus allen Tabs werden zusammengeführt, keiner überschreibt den anderen.
@@ -512,7 +512,13 @@ bzw. gestrichelt und zählt nicht in Durchschnittslinien – so sieht eine halbe
 | Datei | Zweck |
 | --- | --- |
 | `index.html` | Grundgerüst; lädt CSS + Skripte (Reihenfolge wichtig) |
-| `css/app.css` | alle Styles (Designs, Hell/Dunkel, Layout) |
+| `css/tokens.css` | Design-Tokens: Farben, Schrift, Maße – Grundwerte und je Design |
+| `css/base.css` | Basis und App-Layout (Tab-Leiste mobil, Seitenleiste ab 900 px) |
+| `css/components.css` | Komponenten: Karten, Knöpfe, Listen, Menüs, Toasts, Pausen-Leiste … |
+| `css/screens.css` | Ansichten: Start, Training, Workout, Übungen, Fortschritt, Verlauf, Mehr |
+| `css/designs.css` | Design-Materialien je Design, Nutzer-Feinanpassung, Design-Auswahl |
+| `css/motion.css` | Bewegung: Rückmeldung bei Berührung, Seitenwechsel, Sheets |
+| `css/heart-keypad.css` | Herz & Ausdauer, eigene Zahlentastatur im Workout |
 | `js/config.js` | Firebase-Konfiguration |
 | `js/core.js` | Konstanten, App-Version, Hilfsfunktionen |
 | `js/seeds.js` | Übungs-Bibliothek (Seed-Daten) |

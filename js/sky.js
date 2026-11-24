@@ -10,7 +10,7 @@ const Sky = (() => {
   const PHASES = ['dawn', 'day', 'dusk', 'night'];
   const NAME = { dawn: 'Dämmerung', day: 'Tag', dusk: 'Sonnenuntergang', night: 'Nacht' };
   const THEME = { dawn: 'light', day: 'light', dusk: 'dark', night: 'dark' };
-  // Text- und Nebentext-Farbe je Phase – wie --text/--text-dim in css/app.css (für die Lesbarkeit des Himmels)
+  // Text- und Nebentext-Farbe je Phase – wie --text/--text-dim in css/tokens.css (für die Lesbarkeit des Himmels)
   const INK = { dawn: ['#251d36', '#574c6c'], day: ['#0f2236', '#44607a'], dusk: ['#fff3ea', '#e2c6c0'], night: ['#eaf0fb', '#a9b6d0'] };
   const MIN = 6e4, HOUR = 36e5, DAY = 864e5;
 

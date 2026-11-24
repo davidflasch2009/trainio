@@ -1,0 +1,319 @@
+/* Trainio – Design-Tokens: Farben, Schrift, Maße – Grundwerte und je Design
+   Alle css/*.css werden in der Reihenfolge aus index.html geladen – spätere Regeln gewinnen bei Gleichstand. */
+/* ==========================================================================
+   1. Design-Tokens
+   Jedes Design definiert ein komplettes Farb-Set für Hell UND Dunkel:
+   [data-design="…"][data-theme="light|dark"]. Die Selektoren hängen bewusst
+   nicht an :root – so funktionieren sie auch in den Vorschau-Kacheln.
+   Nutzer-Overrides (Ecken, Schrift, Dichte …) stehen ganz am Ende als
+   :root[data-…] und gewinnen dadurch immer.
+   ========================================================================== */
+:root {
+  --nav-h: 60px;
+  --nav-space: calc(var(--nav-h) + env(safe-area-inset-bottom));
+  --fs: 1;            /* Textgröße (Nutzer) */
+  --rs: 1;            /* Eckenradius-Faktor (Design / Nutzer) */
+  --bw: 1px;          /* Rahmenstärke (Design) */
+  --card-shadow: none;
+  --glass-blur: 22px;
+  --radius: calc(14px * var(--rs));
+  --radius-sm: calc(8px * var(--rs));
+  --radius-lg: calc(20px * var(--rs));
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: var(--font);
+  --font-num: var(--font);
+  --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --title-transform: none;
+  --title-spacing: -.02em;
+  --fw-x: 700;        /* Überschriften & Zahlen */
+  --fw-b: 600;        /* Buttons, Labels, Hervorhebungen */
+}
+/* Design mit bewusst schwerer Typo */
+/* Kategorische Diagramm-Farben (validierte Reihenfolge) – je Modus */
+[data-theme="dark"] {
+  --c1: #3987e5; --c2: #d95926; --c3: #199e70; --c4: #c98500;
+  --c5: #d55181; --c6: #008300; --c7: #9085e9; --c8: #e66767;
+  color-scheme: dark;
+}
+[data-theme="light"] {
+  --c1: #2a78d6; --c2: #eb6834; --c3: #1baf7a; --c4: #eda100;
+  --c5: #e87ba4; --c6: #008300; --c7: #4a3aa7; --c8: #e34948;
+  color-scheme: light;
+}
+
+/* ---------- Trainio (Standard): Nachtblau & Kreide wie ein Vereinstrikot, Gold für Rekorde ---------- */
+[data-design="gymlog"] {
+  --rs: .62;
+  --font-num: "Saira Semi Condensed", var(--font);
+  --font-display: "Saira Semi Condensed", var(--font);
+  --title-spacing: -.005em;
+}
+[data-design="gymlog"][data-theme="dark"] {
+  --bg: #0c111c; --surface: #151b2a; --surface-2: #1d2436; --surface-3: #283044;
+  --border: #222a3d; --border-strong: #343d55;
+  --text: #f2eee3; --text-dim: #b3b1ac; --text-faint: #9b9a97;
+  --accent: #ece6d3; --accent-dim: #5d5a50; --accent-text: #e8e1cb; --accent-ink: #111726; --accent-soft: rgba(236, 230, 211, .11);
+  --danger: #f2555a; --danger-soft: rgba(242, 85, 90, .13); --warning: #f0a531; --warning-soft: rgba(240, 165, 49, .13);
+  --success: #e8e1cb; --info: #5ba4f5;
+  --gold: #d6b25e; --gold-soft: rgba(214, 178, 94, .13); --stripe: rgba(236, 230, 211, .055);
+  --shadow: 0 18px 48px rgba(0, 0, 0, .55), 0 2px 8px rgba(0, 0, 0, .3); --grid: #1d2435;
+  --card-shadow: none;
+}
+[data-design="gymlog"][data-theme="light"] {
+  --bg: #f2f4f8; --surface: #ffffff; --surface-2: #ebeef4; --surface-3: #dde1ea;
+  --border: #dfe3eb; --border-strong: #c5cbd8;
+  --text: #111726; --text-dim: #4d5567; --text-faint: #5c6478;
+  --accent: #1b2848; --accent-dim: #a7b1ca; --accent-text: #1b2848; --accent-ink: #ffffff; --accent-soft: rgba(27, 40, 72, .07);
+  --danger: #c8383e; --danger-soft: rgba(210, 58, 64, .09); --warning: #996100; --warning-soft: rgba(217, 138, 0, .11);
+  --success: #1b2848; --info: #296cc9;
+  --gold: #8a6614; --gold-soft: rgba(138, 102, 20, .1); --stripe: rgba(27, 40, 72, .04);
+  --shadow: 0 18px 48px rgba(16, 24, 40, .13), 0 2px 8px rgba(16, 24, 40, .05); --grid: #e6e9ef;
+  --card-shadow: none;
+}
+
+/* ---------- Liquid Glass: transluzentes Material über Wallpaper (iOS 26) ---------- */
+[data-design="glass"] {
+  --rs: 1.3;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", system-ui, "Helvetica Neue", Arial, sans-serif;
+  --font-num: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, "Segoe UI Variable Display", system-ui, sans-serif;
+}
+[data-design="glass"][data-theme="light"] {
+  --bg: #eef1f8; --surface: rgba(255, 255, 255, .56); --surface-2: rgba(118, 118, 138, .12); --surface-3: rgba(118, 118, 138, .2);
+  --border: rgba(60, 60, 90, .12); --border-strong: rgba(60, 60, 90, .22);
+  --text: #0a0a14; --text-dim: #45465a; --text-faint: #626375;
+  --accent: #0071e3; --accent-dim: rgba(0, 113, 227, .5); --accent-text: #0061ca; --accent-ink: #ffffff; --accent-soft: rgba(0, 122, 255, .14);
+  --danger: #c4221b; --danger-soft: rgba(255, 59, 48, .14); --warning: #995204; --warning-soft: rgba(255, 149, 0, .16);
+  --success: #197439; --info: #0261cb;
+  --shadow: 0 30px 80px rgba(20, 24, 60, .22), 0 8px 24px rgba(20, 24, 60, .1); --grid: rgba(60, 60, 90, .1);
+  --glass: rgba(255, 255, 255, .5); --glass-sheen: rgba(255, 255, 255, .55); --glass-sheet: rgba(247, 248, 253, .8);
+  --glass-bar: rgba(246, 247, 252, .66); --glass-hi: rgba(255, 255, 255, .95); --glass-lo: rgba(255, 255, 255, .3);
+  --glass-edge: rgba(255, 255, 255, .45);
+  --glass-rim: linear-gradient(150deg, rgba(255,255,255,.98), rgba(255,255,255,.4) 24%, rgba(255,255,255,.1) 50%, rgba(255,255,255,.32) 76%, rgba(255,255,255,.85));
+  --glass-shadow: 0 10px 34px rgba(34, 42, 90, .1), 0 1px 3px rgba(34, 42, 90, .06);
+  --glass-btn: rgba(255, 255, 255, .62); --glass-btn-hover: rgba(255, 255, 255, .88); --glass-lens: rgba(255, 255, 255, .8);
+  --glass-knob: #ffffff; --glass-off: rgba(120, 120, 138, .22);
+}
+[data-design="glass"][data-theme="dark"] {
+  --bg: #06070f; --surface: rgba(40, 42, 64, .46); --surface-2: rgba(255, 255, 255, .08); --surface-3: rgba(255, 255, 255, .14);
+  --border: rgba(255, 255, 255, .09); --border-strong: rgba(255, 255, 255, .17);
+  --text: #f5f6fb; --text-dim: #b6b8ca; --text-faint: #9396a6;
+  --accent: #0a6ee6; --accent-dim: rgba(10, 110, 230, .6); --accent-text: #5eb0ff; --accent-ink: #ffffff; --accent-soft: rgba(10, 132, 255, .24);
+  --danger: #ff6258; --danger-soft: rgba(255, 69, 58, .22); --warning: #ffb340; --warning-soft: rgba(255, 159, 10, .2);
+  --success: #32d25a; --info: #64b5ff;
+  --shadow: 0 30px 80px rgba(0, 0, 0, .6), 0 8px 24px rgba(0, 0, 0, .4); --grid: rgba(255, 255, 255, .08);
+  --glass: rgba(44, 46, 70, .42); --glass-sheen: rgba(255, 255, 255, .08); --glass-sheet: rgba(26, 28, 42, .8);
+  --glass-bar: rgba(16, 18, 30, .6); --glass-hi: rgba(255, 255, 255, .26); --glass-lo: rgba(255, 255, 255, .05);
+  --glass-edge: rgba(255, 255, 255, .08);
+  --glass-rim: linear-gradient(150deg, rgba(255,255,255,.42), rgba(255,255,255,.12) 24%, rgba(255,255,255,.03) 50%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.3));
+  --glass-shadow: 0 12px 38px rgba(0, 0, 0, .42), 0 1px 3px rgba(0, 0, 0, .3);
+  --glass-btn: rgba(255, 255, 255, .1); --glass-btn-hover: rgba(255, 255, 255, .17); --glass-lens: rgba(255, 255, 255, .16);
+  --glass-knob: rgba(255, 255, 255, .28); --glass-off: rgba(120, 120, 138, .36);
+}
+/* Wallpaper für Liquid Glass – je Motiv hell & dunkel */
+[data-design="glass"][data-theme="light"], [data-theme="light"][data-wall="aurora"] {
+  --wall: radial-gradient(62% 48% at 8% 6%, rgba(118,176,255,.62), transparent 70%), radial-gradient(52% 44% at 96% 14%, rgba(255,160,205,.55), transparent 70%),
+    radial-gradient(58% 50% at 86% 92%, rgba(150,232,208,.55), transparent 70%), radial-gradient(62% 54% at 4% 96%, rgba(196,172,255,.58), transparent 70%),
+    radial-gradient(40% 34% at 50% 50%, rgba(255,236,190,.35), transparent 70%), linear-gradient(160deg, #f3f5fb, #e8ecf6);
+}
+[data-design="glass"][data-theme="dark"], [data-theme="dark"][data-wall="aurora"] {
+  --wall: radial-gradient(62% 48% at 8% 4%, rgba(58,96,255,.34), transparent 70%), radial-gradient(52% 44% at 98% 14%, rgba(168,64,200,.22), transparent 70%),
+    radial-gradient(58% 50% at 88% 94%, rgba(16,160,170,.22), transparent 70%), radial-gradient(62% 54% at 2% 98%, rgba(100,64,240,.24), transparent 70%),
+    linear-gradient(160deg, #080a18, #04050b);
+}
+[data-theme="light"][data-wall="ocean"] {
+  --wall: radial-gradient(60% 50% at 10% 8%, rgba(56,189,248,.6), transparent 70%), radial-gradient(55% 45% at 92% 20%, rgba(45,212,191,.5), transparent 70%),
+    radial-gradient(60% 55% at 80% 95%, rgba(59,130,246,.5), transparent 70%), radial-gradient(50% 45% at 5% 90%, rgba(165,243,252,.6), transparent 70%), linear-gradient(170deg, #eefaff, #e2f0fb);
+}
+[data-theme="dark"][data-wall="ocean"] {
+  --wall: radial-gradient(60% 50% at 10% 6%, rgba(14,116,144,.55), transparent 70%), radial-gradient(55% 45% at 95% 18%, rgba(13,148,136,.4), transparent 70%),
+    radial-gradient(60% 55% at 82% 96%, rgba(29,78,216,.45), transparent 70%), radial-gradient(50% 45% at 4% 92%, rgba(8,145,178,.35), transparent 70%), linear-gradient(170deg, #03121c, #020910);
+}
+[data-theme="light"][data-wall="sunset"] {
+  --wall: radial-gradient(60% 50% at 8% 6%, rgba(251,146,60,.55), transparent 70%), radial-gradient(55% 45% at 94% 16%, rgba(244,114,182,.55), transparent 70%),
+    radial-gradient(60% 55% at 84% 94%, rgba(167,139,250,.5), transparent 70%), radial-gradient(55% 50% at 6% 94%, rgba(253,224,71,.5), transparent 70%), linear-gradient(165deg, #fff6ef, #fbeaf2);
+}
+[data-theme="dark"][data-wall="sunset"] {
+  --wall: radial-gradient(60% 50% at 8% 4%, rgba(234,88,12,.45), transparent 70%), radial-gradient(55% 45% at 96% 16%, rgba(219,39,119,.42), transparent 70%),
+    radial-gradient(60% 55% at 86% 96%, rgba(109,40,217,.42), transparent 70%), radial-gradient(55% 50% at 4% 96%, rgba(202,138,4,.3), transparent 70%), linear-gradient(165deg, #1a0a10, #0c0509);
+}
+[data-theme="light"][data-wall="forest"] {
+  --wall: radial-gradient(60% 50% at 10% 8%, rgba(74,222,128,.5), transparent 70%), radial-gradient(55% 45% at 92% 18%, rgba(163,230,53,.45), transparent 70%),
+    radial-gradient(60% 55% at 82% 94%, rgba(20,184,166,.45), transparent 70%), radial-gradient(55% 50% at 6% 94%, rgba(187,247,208,.65), transparent 70%), linear-gradient(165deg, #f1fbf3, #e6f5ea);
+}
+[data-theme="dark"][data-wall="forest"] {
+  --wall: radial-gradient(60% 50% at 10% 6%, rgba(22,163,74,.42), transparent 70%), radial-gradient(55% 45% at 95% 18%, rgba(101,163,13,.32), transparent 70%),
+    radial-gradient(60% 55% at 84% 96%, rgba(13,148,136,.38), transparent 70%), radial-gradient(55% 50% at 4% 94%, rgba(21,128,61,.3), transparent 70%), linear-gradient(165deg, #04140a, #020a05);
+}
+[data-theme="light"][data-wall="graphite"] {
+  --wall: radial-gradient(60% 50% at 10% 8%, rgba(148,163,184,.5), transparent 70%), radial-gradient(55% 45% at 92% 20%, rgba(203,213,225,.7), transparent 70%),
+    radial-gradient(60% 55% at 82% 94%, rgba(100,116,139,.35), transparent 70%), linear-gradient(165deg, #f5f6f8, #e7e9ee);
+}
+[data-theme="dark"][data-wall="graphite"] {
+  --wall: radial-gradient(60% 50% at 10% 6%, rgba(100,116,139,.35), transparent 70%), radial-gradient(55% 45% at 94% 18%, rgba(71,85,105,.4), transparent 70%),
+    radial-gradient(60% 55% at 84% 96%, rgba(148,163,184,.18), transparent 70%), linear-gradient(165deg, #0d0f13, #050608);
+}
+/* [data-theme] erhöht die Spezifität: sonst gewinnt bei Liquid Glass die Standard-Aurora („lila") */
+[data-theme][data-wall="accent"] {
+  --wall: radial-gradient(60% 50% at 8% 6%, color-mix(in srgb, var(--accent) 55%, transparent), transparent 70%),
+    radial-gradient(55% 45% at 95% 16%, color-mix(in srgb, var(--accent) 30%, transparent), transparent 70%),
+    radial-gradient(60% 55% at 85% 95%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 70%),
+    linear-gradient(165deg, var(--bg), color-mix(in srgb, var(--accent) 10%, var(--bg)));
+}
+
+
+/* ---------- Pure: reines Schwarz & Weiß, klare Flächen, Akzent nur wo nötig ---------- */
+[data-design="pure"] {
+  --rs: 1.15;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable Display", "Segoe UI", Roboto, system-ui, sans-serif;
+  --font-num: var(--font-display);
+  --title-spacing: -.03em;
+  /* Haupt-Buttons schwarz/weiß – eine eigene Akzentfarbe überschreibt das (accentCss) */
+  --btn-bg: var(--text); --btn-fg: var(--bg);
+}
+[data-design="pure"][data-theme="light"] {
+  --bg: #ffffff; --surface: #f5f5f7; --surface-2: #e9e9ed; --surface-3: #dcdce1;
+  --border: #e2e2e7; --border-strong: #c7c7cc;
+  --text: #1d1d1f; --text-dim: #67676b; --text-faint: #67676b;
+  --accent: #0071e3; --accent-dim: #80b8f1; --accent-text: #0065ca; --accent-ink: #ffffff; --accent-soft: rgba(0, 113, 227, .09);
+  --danger: #d10115; --danger-soft: rgba(215, 0, 21, .08); --warning: #a35201; --warning-soft: rgba(201, 104, 0, .1);
+  --success: #237638; --info: #0466ca;
+  --shadow: 0 24px 60px rgba(0, 0, 0, .14), 0 2px 10px rgba(0, 0, 0, .05); --grid: #ececf0;
+  --knob: #ffffff; --on: #34c759; --field: #ffffff;
+}
+[data-design="pure"][data-theme="dark"] {
+  --bg: #000000; --surface: #161618; --surface-2: #232326; --surface-3: #2f2f33;
+  --border: #262629; --border-strong: #3a3a3e;
+  --text: #f5f5f7; --text-dim: #a1a1a6; --text-faint: #8c8c90;
+  --accent: #0973de; --accent-dim: #1b5fa3; --accent-text: #4da3ff; --accent-ink: #ffffff; --accent-soft: rgba(10, 132, 255, .16);
+  --danger: #ff453a; --danger-soft: rgba(255, 69, 58, .15); --warning: #ffb340; --warning-soft: rgba(255, 179, 64, .14);
+  --success: #30d158; --info: #64b5ff;
+  --shadow: 0 24px 60px rgba(0, 0, 0, .8), 0 0 0 1px #222225; --grid: #1e1e21;
+  --knob: #48484c; --on: #30d158; --field: #232326;
+}
+
+
+
+/* ---------- Plakat: Schweizer Sportplakat – Raster, Grotesk, Schwarz/Weiß & Signalrot ----------
+   Echte Helvetica Neue auf iPhone/Mac (vorinstalliert), sonst Archivo. Keine Karten, keine Schatten,
+   keine Verläufe: Flächen werden durch Linien gegliedert, Zahlen stehen groß, Rot nur für Aktionen. */
+[data-design="plakat"] {
+  --rs: 0;
+  --font: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --font-display: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --font-num: "Helvetica Neue", Helvetica, "Archivo", Arial, sans-serif;
+  --title-spacing: -.035em;
+  --fw-x: 700; --fw-b: 600;
+  --rule: 2px;
+}
+[data-design="plakat"][data-theme="light"] {
+  --bg: #ffffff; --surface: #ffffff; --surface-2: #f0f0ee; --surface-3: #e0e0dd;
+  --border: #e3e3e0; --border-strong: #111111;
+  --text: #111111; --text-dim: #575754; --text-faint: #6c6c69;
+  --accent: #e2001a; --accent-dim: #f3a1aa; --accent-text: #c50017; --accent-ink: #ffffff; --accent-soft: rgba(226, 0, 26, .07);
+  --danger: #b00014; --danger-soft: rgba(176, 0, 20, .08); --warning: #965800; --warning-soft: rgba(150, 88, 0, .09);
+  --success: #1b7a3c; --info: #1d4fbf;
+  --shadow: 0 18px 44px rgba(0, 0, 0, .16), 0 0 0 1px rgba(0, 0, 0, .08); --grid: #ebebe8;
+  --card-shadow: none;
+  --c1: var(--accent); --c2: #111111; --c3: #8c8c88; --c4: #1d4fbf; --c5: #f0b400; --c6: #1b7a3c; --c7: #5a5a57; --c8: #f29aa4;
+}
+[data-design="plakat"][data-theme="dark"] {
+  --bg: #0b0b0b; --surface: #0b0b0b; --surface-2: #1a1a19; --surface-3: #2a2a28;
+  --border: #252524; --border-strong: #f1f1ec;
+  --text: #f1f1ec; --text-dim: #a5a5a0; --text-faint: #848480;
+  --accent: #e02533; --accent-dim: #7d1520; --accent-text: #ff4f5c; --accent-ink: #ffffff; --accent-soft: rgba(255, 42, 58, .13);
+  --danger: #ff6a6a; --danger-soft: rgba(255, 106, 106, .14); --warning: #f2b23c; --warning-soft: rgba(242, 178, 60, .13);
+  --success: #4fc27c; --info: #74a0ff;
+  --shadow: 0 18px 44px rgba(0, 0, 0, .75), 0 0 0 1px #2a2a28; --grid: #1c1c1b;
+  --card-shadow: none;
+  --c1: var(--accent); --c2: #f1f1ec; --c3: #8c8c88; --c4: #74a0ff; --c5: #ffc83a; --c6: #4fc27c; --c7: #c2c2bc; --c8: #ff9aa3;
+}
+
+/* ---------- Fokus: schwarz-weiß und ruhig ----------
+   Nur Schwarz, Weiß und Grau (auch Knöpfe und Diagramme), Systemschrift, keine Effekte. Farbe tragen nur Signale:
+   Rot/Grün für schlechter/besser und Fehler. Im Workout zählt die aktuelle Übung (Spotlight, siehe unten). */
+[data-design="fokus"][data-theme="dark"] {
+  --bg: #000000; --surface: #0e0e0e; --surface-2: #1a1a1a; --surface-3: #262626;
+  --border: #1c1c1c; --border-strong: #333333;
+  --text: #f5f5f5; --text-dim: #8e8e8e; --text-faint: #848484;
+  --accent: #ffffff; --accent-dim: #4a4a4a; --accent-text: #ffffff; --accent-ink: #000000; --accent-soft: rgba(255, 255, 255, .08);
+  --danger: #ff5a5a; --danger-soft: rgba(255, 90, 90, .14); --warning: #f2b23c; --warning-soft: rgba(242, 178, 60, .12);
+  --success: #3fcf86; --info: #d4d4d4;
+  --shadow: 0 24px 60px rgba(0, 0, 0, .8), 0 0 0 1px #262626; --grid: #161616;
+  --card-shadow: none;
+  --c1: #ffffff; --c2: #9e9e9e; --c3: #626262; --c4: #d6d6d6; --c5: #7d7d7d; --c6: #474747; --c7: #bdbdbd; --c8: #8c8c8c;
+}
+[data-design="fokus"][data-theme="light"] {
+  --bg: #f2f2f2; --surface: #ffffff; --surface-2: #f0f0f0; --surface-3: #e2e2e2;
+  --border: #e6e6e6; --border-strong: #c4c4c4;
+  --text: #0a0a0a; --text-dim: #6b6b6b; --text-faint: #6b6b6b;
+  --accent: #0a0a0a; --accent-dim: #bdbdbd; --accent-text: #0a0a0a; --accent-ink: #ffffff; --accent-soft: rgba(0, 0, 0, .06);
+  --danger: #ce2929; --danger-soft: rgba(212, 42, 42, .08); --warning: #9a5a00; --warning-soft: rgba(154, 90, 0, .09);
+  --success: #157a46; --info: #3d3d3d;
+  --shadow: 0 24px 60px rgba(0, 0, 0, .16), 0 0 0 1px rgba(0, 0, 0, .06); --grid: #ededed;
+  --card-shadow: none;
+  --c1: #0a0a0a; --c2: #6e6e6e; --c3: #a8a8a8; --c4: #3d3d3d; --c5: #8a8a8a; --c6: #c6c6c6; --c7: #525252; --c8: #b3b3b3;
+}
+
+/* ---------- Tag & Nacht: der Himmel als Hintergrund – vier Phasen statt Hell/Dunkel ----------
+   data-phase (dawn, day, dusk, night) setzt js/sky.js nach dem Sonnenstand, data-theme folgt (hell bei Dämmerung
+   und Tag, dunkel bei Sonnenuntergang und Nacht). Flächen sind leicht durchscheinend, dahinter liegt der Himmel (#sky).
+   --sk-*: Himmelsfarben der Phasenmitte – gelten bis js/sky.js sie minutengenau setzt, und in der Vorschau.
+   --text/--text-dim jeder Phase stehen auch in js/sky.js (INK): danach richtet sich die Lesbarkeit des Himmels. */
+[data-design="sky"] {
+  --rs: 1.45;
+  --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  --font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --font-num: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --title-spacing: -.01em;
+  --fw-x: 650; --fw-b: 600;
+}
+[data-design="sky"][data-phase="dawn"] {
+  --bg: #efe5ef; --surface: rgba(255, 251, 252, .74); --surface-2: rgba(96, 70, 130, .08); --surface-3: rgba(96, 70, 130, .15);
+  --border: rgba(96, 70, 130, .12); --border-strong: rgba(96, 70, 130, .26);
+  --text: #251d36; --text-dim: #574c6c; --text-faint: #695f7d;
+  --accent: #c6476c; --accent-dim: #eba3b9; --accent-text: #b2325a; --accent-ink: #ffffff; --accent-soft: rgba(220, 79, 120, .13);
+  --danger: #be283d; --danger-soft: rgba(196, 40, 61, .1); --warning: #975204; --warning-soft: rgba(160, 86, 0, .11);
+  --success: #29714b; --info: #4d5bbd;
+  --shadow: 0 24px 60px rgba(60, 40, 100, .24), 0 6px 18px rgba(60, 40, 100, .12); --grid: rgba(96, 70, 130, .1);
+  --bar: rgba(250, 243, 248, .62); --sheet: rgba(250, 245, 249, .9); --tip: rgba(252, 248, 251, .97);
+  --edge: rgba(255, 255, 255, .72); --soft: 0 12px 32px -14px rgba(90, 60, 130, .34); --knob: #ffffff;
+  --sk-top: #e6e7f3; --sk-up: #eeebf6; --sk-low: #f0adbb; --sk-hor: #ffd0a4; --sk-far: #a6a1cb; --sk-near: #8f8ab9; --sk-cloud: #ffd9df;
+}
+[data-design="sky"][data-phase="day"] {
+  --bg: #e1effb; --surface: rgba(255, 255, 255, .76); --surface-2: rgba(30, 80, 140, .07); --surface-3: rgba(30, 80, 140, .13);
+  --border: rgba(30, 80, 140, .11); --border-strong: rgba(30, 80, 140, .24);
+  --text: #0f2236; --text-dim: #44607a; --text-faint: #536a7f;
+  --accent: #f59e0b; --accent-dim: #f7cd84; --accent-text: #985700; --accent-ink: #2b1700; --accent-soft: rgba(245, 158, 11, .17);
+  --danger: #bd342b; --danger-soft: rgba(208, 54, 42, .1); --warning: #995604; --warning-soft: rgba(163, 90, 0, .11);
+  --success: #1c7548; --info: #1d66bf;
+  --shadow: 0 24px 60px rgba(20, 60, 120, .22), 0 6px 18px rgba(20, 60, 120, .1); --grid: rgba(30, 80, 140, .09);
+  --bar: rgba(240, 248, 255, .62); --sheet: rgba(243, 249, 255, .9); --tip: rgba(248, 252, 255, .97);
+  --edge: rgba(255, 255, 255, .78); --soft: 0 12px 32px -14px rgba(20, 70, 140, .3); --knob: #ffffff;
+  --sk-top: #cfe5fa; --sk-up: #d4e9fb; --sk-low: #a6d2f8; --sk-hor: #e0f0ff; --sk-far: #a6c0dc; --sk-near: #8fabcd; --sk-cloud: #ffffff;
+}
+[data-design="sky"][data-phase="dusk"] {
+  --bg: #24142f; --surface: rgba(40, 20, 48, .68); --surface-2: rgba(255, 220, 205, .08); --surface-3: rgba(255, 220, 205, .14);
+  --border: rgba(255, 214, 196, .12); --border-strong: rgba(255, 214, 196, .24);
+  --text: #fff3ea; --text-dim: #e2c6c0; --text-faint: #ad919c;
+  --accent: #ff8a4c; --accent-dim: #8f4a3c; --accent-text: #ffa877; --accent-ink: #2a0f00; --accent-soft: rgba(255, 138, 76, .2);
+  --danger: #ff6b6b; --danger-soft: rgba(255, 107, 107, .16); --warning: #ffc04d; --warning-soft: rgba(255, 192, 77, .15);
+  --success: #5fd08a; --info: #8fb0ff;
+  --shadow: 0 24px 60px rgba(10, 0, 20, .55), 0 6px 18px rgba(10, 0, 20, .35); --grid: rgba(255, 214, 196, .09);
+  --bar: rgba(38, 18, 44, .62); --sheet: rgba(42, 22, 48, .92); --tip: rgba(46, 24, 52, .97);
+  --edge: rgba(255, 220, 200, .14); --soft: 0 14px 34px -14px rgba(10, 0, 20, .6); --knob: rgba(255, 236, 226, .2);
+  --sk-top: #1f193f; --sk-up: #4a2249; --sk-low: #5e2b30; --sk-hor: #7c4c27; --sk-far: #4d2e53; --sk-near: #301c43; --sk-cloud: #7a4442;
+}
+[data-design="sky"][data-phase="night"] {
+  --bg: #070d1c; --surface: rgba(16, 24, 50, .72); --surface-2: rgba(200, 215, 255, .07); --surface-3: rgba(200, 215, 255, .13);
+  --border: rgba(200, 215, 255, .1); --border-strong: rgba(200, 215, 255, .2);
+  --text: #eaf0fb; --text-dim: #a9b6d0; --text-faint: #838fa9;
+  --accent: #8fb3ff; --accent-dim: #3c5285; --accent-text: #a8c4ff; --accent-ink: #08122a; --accent-soft: rgba(143, 179, 255, .18);
+  --danger: #ff6b7a; --danger-soft: rgba(255, 107, 122, .15); --warning: #ffc24d; --warning-soft: rgba(255, 194, 77, .14);
+  --success: #5fd08a; --info: #8fb3ff;
+  --shadow: 0 24px 60px rgba(0, 0, 10, .6), 0 6px 18px rgba(0, 0, 10, .4); --grid: rgba(200, 215, 255, .08);
+  --bar: rgba(10, 16, 36, .62); --sheet: rgba(14, 20, 42, .92); --tip: rgba(16, 22, 46, .97);
+  --edge: rgba(200, 215, 255, .12); --soft: 0 14px 34px -14px rgba(0, 0, 10, .7); --knob: rgba(220, 230, 255, .2);
+  --sk-top: #04070f; --sk-up: #08122a; --sk-low: #0f1f3d; --sk-hor: #19294b; --sk-far: #0d1630; --sk-near: #060b1c; --sk-cloud: #1c2747;
+}
