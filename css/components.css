@@ -11,7 +11,9 @@
 .card-head h3 { flex: 1; min-width: 0; }
 .card-title { font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); color: var(--text-dim); display: flex; align-items: center; gap: 6px; }
 .section-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 26px 0 10px; }
-.section-head:first-child { margin-top: 6px; }
+/* erste Überschrift eines Bereichs dicht nach oben – nicht in den Monatsblöcken des Verlaufs (dort normaler Abstand,
+   z. B. zum Kalender); :where hält die Spezifität wie bisher */
+.section-head:first-child:not(:where(.history-month-content > *)) { margin-top: 6px; }
 /* Schmale Displays mit großer Schrift: Aktionen rutschen in die nächste Zeile statt über den Rand */
 .section-head { flex-wrap: wrap; row-gap: 4px; }
 .section-head > * { min-width: 0; }

@@ -14,6 +14,9 @@ async function historyNavigationChecks(page, kind) {
   };
   await reset();
   check(await page.locator(root + ' .history-month').count() === 1, `${kind}: Haupttab wechseln schließt ältere Monate`);
+  // Abstand über der ersten Monatsüberschrift wie bei jedem Abschnitt (nicht dicht am Kalender bzw. an der Karte darüber)
+  const gap = await page.locator(root + ' .section-head').first().evaluate(h => parseFloat(getComputedStyle(h).marginTop));
+  check(gap >= 18, `${kind}: Abstand über der ersten Monatsüberschrift (${gap} px)`);
   const clean = await page.locator(`[data-act="${action}"]`).evaluate(b => {
     const s = getComputedStyle(b);
     return s.backgroundColor === 'rgba(0, 0, 0, 0)' && s.borderTopWidth === '0px' && !!b.querySelector('svg') && getComputedStyle(b, '::before').content === 'none';
