@@ -2,7 +2,7 @@
 const path = require('path');
 const { check, pause, noViewError, appErrors, engine, touch, swipe, round1, SHOTS, ROOT, read } = require('../lib/harness');
 
-/* Anzeige-Fehler aus der Bestandsaufnahme (docs/redesign/bestandsaufnahme.md, H4–H6) */
+/* Anzeige-Fehler aus einer früheren Bestandsaufnahme (H4–H6) */
 async function historyNavigationChecks(page, kind) {
   const workout = kind === 'workout';
   const tab = workout ? 'training' : 'progress', action = workout ? 'histMore' : 'bodyHistMore';

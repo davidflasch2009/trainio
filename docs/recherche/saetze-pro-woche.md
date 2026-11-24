@@ -6,8 +6,7 @@
 - **Baut auf:** [trainio-score.md](trainio-score.md), Abschnitte 2 und 3. Was dort stand, wurde nachgeprüft (siehe
   „Abgleich mit der ersten Recherche“ am Ende).
 - **Betrifft:** Diagramm „Sätze pro Muskelgruppe / Woche“, Karte „Vernachlässigte Muskelgruppen“, Region-Popup der
-  Körperkarte (`js/progress.js`, `ProgressViews.muscles`) und den Teil „Trainingsreiz“ des Trainio-Scores
-  ([ANFORDERUNGEN.md](../ANFORDERUNGEN.md), Abschnitt 6).
+  Körperkarte (`js/progress-muscles.js`, `ProgressViews.muscles`) und den Teil „Trainingsreiz“ des Trainio-Scores.
 
 ## Wie diese Recherche entstanden ist (bitte zuerst lesen)
 

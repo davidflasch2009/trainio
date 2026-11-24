@@ -1,8 +1,7 @@
 # Recherche: Kraft- und Muskelentwicklung aus Workouts und Körpergewicht schätzen
 
-- **Ticket:** [08 – Recherche Trainio-Score](../tickets/08-recherche-score.md) · Grundlage für [09 – Trainio-Score: die Formel](../tickets/09-score-formel.md)
 - **Stand:** 11.11.2026
-- **Begriffe:** Trainio-Score, Workout-Score, Phase – siehe [CONTEXT.md](../../../CONTEXT.md)
+- **Begriffe:** Trainio-Score, Workout-Score, Phase – siehe [CONTEXT.md](../../CONTEXT.md)
 
 ## Wie diese Recherche entstanden ist (bitte zuerst lesen)
 
@@ -371,8 +370,7 @@ Woche oder eine robuste Trendgerade.
 
 ## Was das für die Formel heißt
 
-> **Alles Folgende sind Vorschläge.** Die Entscheidung fällt im Ticket
-> [„Trainio-Score: die Formel“](../tickets/09-score-formel.md).
+> **Alles Folgende sind Vorschläge.** Umgesetzt ist, was in `js/progress-strength.js` und `js/analytics.js` steht.
 
 ### Bestandteile und Gewichtung (Vorschlag)
 

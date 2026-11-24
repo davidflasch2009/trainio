@@ -2,7 +2,7 @@
 const path = require('path');
 const { check, pause, noViewError, appErrors, touch, swipe, round1, SHOTS, ROOT, read } = require('../lib/harness');
 
-/* Sätze pro Muskel und Woche – Bereiche nach der Recherche (docs/redesign/recherche/saetze-pro-woche.md) */
+/* Sätze pro Muskel und Woche – Bereiche nach der Recherche (docs/recherche/saetze-pro-woche.md) */
 async function muskelFlow(page) {
   console.log('Sätze pro Muskel');
   await page.evaluate(async () => {
@@ -44,7 +44,7 @@ async function muskelFlow(page) {
     return { hb: Store.raw('exercises', 'ex_kniebeuge').muscleGroups.join(','), lb: Store.raw('exercises', 'ex_kniebeuge_lowbar').muscleGroups.join(','), v: S().seedVersion };
   });
   check(sq.hb === 'Quadrizeps,Gesäß' && sq.lb === 'Quadrizeps,Gesäß,Beinbeuger,Waden' && sq.v >= 6, 'Kniebeuge: unterer Rücken entfernt, selbst geänderte Übungen bleiben unberührt', JSON.stringify(sq));
-  // Wenig Text: jede Erklärung im (i) hat höchstens 2 kurze Sätze (docs/redesign/ANFORDERUNGEN.md, Abschnitt 2)
+  // Wenig Text: jede Erklärung im (i) hat höchstens 2 kurze Sätze
   const infos = new Set();
   const grab = async () => (await page.evaluate(() => [...document.querySelectorAll('[data-info]')].map(b => b.dataset.info))).forEach(t => infos.add(t));
   await page.evaluate(() => Store.saveSettings({ f_bodyFat: true, f_measures: true }));

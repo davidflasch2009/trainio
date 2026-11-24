@@ -19,7 +19,7 @@ const gainPts = (ix, id, r) => sinceFix(ix.sessions[id] || [], r.to).filter(s =>
    2. Bezug (= 100 %) ist der Median der ersten k Wochenwerte (k = 2, ab 6 Wochen 3) – die Kurve steht dort auf 100 %,
    3. danach gleitender Median der letzten k Wochenwerte.
    Früher: bestes e1RM bis zum Tag ÷ erste Session. So ein laufendes Maximum steigt schon durch Tagesform-Schwankungen
-   (σ 2–4 %) um 3–6 % (docs/redesign/recherche/trainio-score.md, Abschnitt 5). null bei weniger als GAIN_MIN_WEEKS Wochen. */
+   (σ 2–4 %) um 3–6 % (docs/recherche/trainio-score.md, Abschnitt 5). null bei weniger als GAIN_MIN_WEEKS Wochen. */
 function robustSeries(pts) {
   const wk = [];
   for (const s of pts) {

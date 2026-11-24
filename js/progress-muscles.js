@@ -170,7 +170,7 @@ function regionSets(rows) {
   return out;
 }
 /* Sätze pro Muskel und Woche (direkt 1, mitgeholfen ½) – Bereiche nach der Forschung, siehe
-   docs/redesign/recherche/saetze-pro-woche.md: ab etwa 4 wächst ein Muskel messbar, mehr bringt mehr mit abnehmendem
+   docs/recherche/saetze-pro-woche.md: ab etwa 4 wächst ein Muskel messbar, mehr bringt mehr mit abnehmendem
    Ertrag, über etwa 20 kaum Zusatznutzen. Eine feste Obergrenze ist nicht belegt (deshalb keine Warnfarbe). */
 const volBand = v => v < 4 ? 'wenig' : v < 10 ? 'wirksam' : v <= 20 ? 'viel' : 'sehr viel';
 const volBandLines = c => [{ value: 4, label: 'wirksam', color: c.dim }, { value: 10, label: 'viel', color: c.dim }, { value: 20, label: 'sehr viel', color: c.dim }];

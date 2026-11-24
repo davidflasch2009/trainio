@@ -364,7 +364,7 @@ const SEED_EXERCISES_3 = [
 const EX_PREFIX = 'ex_';
 const SEED_VERSION = 8;
 /* Korrigierte Muskeln (v6): Bei Kniebeugen wachsen Beinbeuger praktisch nicht mit (Kubo 2019), der untere Rücken hält
-   nur – siehe docs/redesign/recherche/saetze-pro-woche.md. Alte Liste → neue Liste, nur wenn niemand sie geändert hat. */
+   nur – siehe docs/recherche/saetze-pro-woche.md. Alte Liste → neue Liste, nur wenn niemand sie geändert hat. */
 const SEED_MUSCLE_FIX = {
   ex_kniebeuge: [['Quadrizeps', 'Gesäß', 'Unterer Rücken'], ['Quadrizeps', 'Gesäß']],
   ex_kniebeuge_lowbar: [['Quadrizeps', 'Gesäß', 'Beinbeuger', 'Unterer Rücken'], ['Quadrizeps', 'Gesäß']],
