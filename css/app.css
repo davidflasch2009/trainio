@@ -1306,7 +1306,7 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .body-map .mus:hover { filter: brightness(1.12); }
 .body-map .mus.sel { stroke: var(--text); stroke-width: 2; }
 .body-map text { fill: var(--text-faint); font-size: 36px; font-weight: var(--fw-b); text-anchor: middle; }
-.reg-toggle { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; margin: 12px auto 0; padding: 0 12px 0 16px; border: 0; border-radius: 999px; background: var(--surface-2); color: var(--text-dim); font: inherit; font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.reg-toggle { display: flex; align-items: center; justify-content: center; gap: 4px; min-height: 36px; margin: 12px auto 0; padding: 0 12px 0 16px; border: 0; border-radius: 0; background: none; color: var(--text-dim); font: inherit; font-size: calc(13px * var(--fs)); font-weight: var(--fw-b); cursor: pointer; -webkit-tap-highlight-color: transparent; }
 .reg-toggle svg { width: 18px; height: 18px; transition: transform .25s var(--ease-ios); }
 .reg-toggle.open svg { transform: rotate(180deg); }
 .reg-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr)); gap: 4px 14px; }
