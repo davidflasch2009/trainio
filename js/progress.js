@@ -66,28 +66,22 @@ Actions.progSub = el => { UI.progSub = el.dataset.v; saveUI(); App.renderCurrent
 const phaseDates = ph => ph.to ? `${fmtDate(ph.from)} – ${fmtDate(ph.to)}` : `seit ${fmtDate(ph.from)}`;
 Actions.choosePeriod = async () => {
   const r = Analytics.range(), current = r.all ? 'all' : UI.period;
-  const weeks = Math.round(r.len / 7);
   const sel = key => key === current;
-  const mark = on => on ? `<span class="period-check">${icon('check')}</span>` : '';
+  const SHORT = { '4w': '4 W', '3m': '3 M', '6m': '6 M', '1y': '1 J', all: 'Alles', custom: 'Eigener…' };
+  // Phasen schlicht: Punkt in Typfarbe und Name; nur die gewählte ist fett und hat den Stift zum Bearbeiten
   const phaseRows = phases().map(ph => {
-    const key = 'ph:' + ph.id, on = sel(key), [type, color] = PHASE_TYPES[ph.type] || ['Phase', 'var(--accent)'];
+    const key = 'ph:' + ph.id, on = sel(key), color = PHASE_TYPES[ph.type]?.[1] || 'var(--accent)';
     return `<div class="period-ph" style="--phase-color:${color}">
-      <button class="period-row" data-k="${key}" aria-pressed="${on}"><i aria-hidden="true"></i>
-        <span class="grow"><strong>${esc(ph.name)}</strong><small>${type} · ${phaseDates(ph)}${on ? ` · ${weeks} ${weeks === 1 ? 'Woche' : 'Wochen'}` : ''}</small></span>${mark(on)}</button>
-      <button class="btn-icon" data-k="edit:${ph.id}" aria-label="Phase „${esc(ph.name)}“ bearbeiten">${icon('edit')}</button></div>`;
+      <button class="period-row" data-k="${key}" aria-pressed="${on}" aria-label="${esc(ph.name)}, ${phaseDates(ph)}"><i aria-hidden="true"></i><span class="grow">${esc(ph.name)}</span></button>
+      ${on ? `<button class="btn-icon" data-k="edit:${ph.id}" aria-label="Phase „${esc(ph.name)}“ bearbeiten">${icon('edit')}</button>` : ''}</div>`;
   }).join('');
   let v = await new Promise(resolve => {
     const m = Modal.open({
       title: 'Zeitraum wählen', size: 'sm', onClose: resolve,
-      body: `<h4 class="period-h">Feste Zeiträume</h4>
-        <div class="period-presets">${PERIODS.filter(([key]) => key !== 'custom').map(([key, label]) =>
-          `<button data-k="${key}" aria-pressed="${sel(key)}">${label}</button>`).join('')}</div>
-        <h4 class="period-h">Eigener Zeitraum</h4>
-        <button class="period-row" data-k="custom" aria-pressed="${sel('custom')}">${icon('calendar')}
-          <span class="grow"><strong>${r.custom ? rangeLabel(r) : 'Von – bis wählen'}</strong>${r.custom ? '<small>Tippen zum Ändern</small>' : ''}</span>${r.custom ? mark(true) : icon('chevR')}</button>
-        <h4 class="period-h">Trainingsphasen</h4>
+      body: `<div class="period-presets">${PERIODS.map(([key, label]) =>
+          `<button data-k="${key}" aria-pressed="${sel(key)}" aria-label="${key === 'custom' && r.custom ? `${label}: ${rangeLabel(r)}` : label}">${SHORT[key]}</button>`).join('')}</div>
         <div class="period-phases">${phaseRows}
-          <button class="period-row period-add" data-k="new">${icon('plus')}<span class="grow">Phase anlegen</span></button></div>`
+          <button class="period-row period-add" data-k="new">${icon('plus')}<span class="grow">Neue Phase</span></button></div>`
     });
     m.body.addEventListener('click', e => {
       const b = e.target.closest('[data-k]');

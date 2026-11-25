@@ -311,9 +311,10 @@ dafür nicht bestraft: im Workout bei der Übung **⋯ → Notizen & Technik →
 
 - **Fortschritt:** Der aktive Tab ist fett und unterstrichen. Unter den Tabs öffnet die Zeile „Zeitraum“ die
   Auswahl für feste Zeiträume, einen eigenen Datumsbereich oder eine Trainingsphase. Beim Tabwechsel bleibt die Auswahl erhalten.
-- **Phasen** (Fortschritt → Zeitraum → Trainingsphasen → Phase anlegen): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
-  Eine gewählte Phase begrenzt die Auswertungen auf ihren Zeitraum. Die Zeitraumwahl zeigt drei Abschnitte – feste Zeiträume,
-  eigener Zeitraum und Trainingsphasen. Phasen lassen sich dort direkt antippen, der Stift daneben bearbeitet sie; die Auswahl trägt einen Haken.
+- **Phasen** (Fortschritt → Zeitraum → Neue Phase): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
+  Eine gewählte Phase begrenzt die Auswertungen auf ihren Zeitraum. Die Zeitraumwahl ist schlicht wie die Tab-Zeile:
+  oben eine Zeile 4 W · 3 M · 6 M · 1 J · Alles · Eigener…, darunter die Phasen mit farbigem Punkt. Die Auswahl ist fett;
+  nur die gewählte Phase hat den Stift zum Bearbeiten.
 - **Kraftziele** (Start → „+ Ziel“) in zwei Arten:
   - **Gewicht × Wdh.**, z. B. Bankdrücken 8 × 100 kg: erreicht, sobald ein echter Arbeitssatz mit mindestens
     100 kg und 8 Wdh. dabei ist (100 × 7 oder 95 × 10 zählen nicht). Fortschritt = schwerster Satz mit 8+ Wdh.
@@ -428,7 +429,7 @@ Bei Zeitübungen wie Planks zeigt das Workout-Detail die abgeschlossenen Arbeits
 
 Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
 Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
-**Wochenziel:** Pro Phase (Fortschritt → Zeitraum → Trainingsphasen → Phase anlegen: Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
+**Wochenziel:** Pro Phase (Fortschritt → Zeitraum → Neue Phase: Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
 („Wochenziel festlegen": Zunehmen / Abnehmen / Halten) legst du fest, wie stark sich dein Wochendurchschnitt
 verändern darf, z. B. 0 bis +200 g. In „Veränderung pro Woche" sind Wochen im Bereich grün, darüber oder
 darunter orange; ein blasses Band zeigt den erlaubten Bereich. In einer Phase gilt deren Bereich, sonst die

@@ -418,25 +418,19 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .prog-period-value { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .prog-period i { width: 8px; height: 8px; border-radius: 50%; flex: none; }
 .prog-period svg { width: 14px; height: 14px; color: var(--text-dim); }
-.period-h { margin: 18px 0 8px; }
-.period-h:first-child { margin-top: 2px; }
-.period-presets { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 7px; }
-.period-presets button { grid-column: span 2; min-height: 44px; padding: 4px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); font-size: calc(14px * var(--fs)); }
-.period-presets button:nth-last-child(-n+2) { grid-column: span 3; }
-.period-presets button[aria-pressed="true"] { background: var(--text); color: var(--bg); font-weight: var(--fw-b); }
-.period-phases { display: flex; flex-direction: column; gap: 6px; }
-.period-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 52px; padding: 8px 12px; background: var(--surface); border: 1px solid var(--border-strong); border-radius: var(--radius-sm); text-align: left; color: var(--text); }
-.period-row > svg { flex: none; width: 18px; height: 18px; color: var(--text-dim); }
-.period-row strong { display: block; overflow-wrap: anywhere; }
-.period-row small { display: block; color: var(--text-dim); font-size: calc(12.5px * var(--fs)); }
-.period-row[aria-pressed="true"] { border-color: var(--text); box-shadow: inset 0 0 0 1px var(--text); }
-.period-check { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; background: var(--text); color: var(--bg); }
-.period-check svg { width: 15px; height: 15px; }
+/* Zeitraumwahl schlicht wie die Tab-Zeile: eine Zeile Text, die Auswahl fett und in voller Schriftfarbe */
+.period-presets { display: flex; justify-content: space-between; gap: 2px; margin: 0 -4px; }
+.period-presets button { min-height: 44px; padding: 0 4px; background: transparent; border: 0; color: var(--text-dim); font-size: calc(14px * var(--fs)); white-space: nowrap; }
+.period-presets button[aria-pressed="true"] { color: var(--text); font-weight: var(--fw-b); }
+.period-phases { margin-top: 12px; padding-top: 4px; border-top: 1px solid var(--border); }
+.period-row { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 46px; padding: 0 2px; background: transparent; border: 0; text-align: left; color: var(--text-dim); font-size: calc(15px * var(--fs)); }
+.period-row span { overflow-wrap: anywhere; }
+.period-row[aria-pressed="true"] { color: var(--text); font-weight: var(--fw-b); }
+.period-row > svg { flex: none; width: 18px; height: 18px; margin: 0 -3px; }
 .period-ph { display: flex; align-items: center; gap: 4px; }
 .period-ph .period-row { flex: 1; min-width: 0; }
-.period-ph i { flex: none; width: 10px; height: 10px; background: var(--phase-color); border-radius: 50%; }
-.period-ph .period-row[aria-pressed="true"] { border-color: var(--phase-color); box-shadow: inset 0 0 0 1px var(--phase-color); background: color-mix(in srgb, var(--phase-color) 10%, var(--surface)); }
-.period-add { background: transparent; border-style: dashed; color: var(--text-dim); font-weight: var(--fw-b); }
+.period-ph .btn-icon { margin-right: -10px; }
+.period-ph i { flex: none; width: 8px; height: 8px; background: var(--phase-color); border-radius: 50%; }
 .chart-card { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); padding: 14px 14px 12px; min-width: 0; display: flex; flex-direction: column; box-shadow: var(--card-shadow); }
 .chart-card .cc-head { display: flex; align-items: center; gap: 4px; }
 .chart-card .cc-title { font-size: calc(14px * var(--fs)); font-weight: 650; flex: 1; min-width: 0; display: flex; align-items: center; gap: 7px; }

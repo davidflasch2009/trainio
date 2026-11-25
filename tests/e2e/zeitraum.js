@@ -14,9 +14,9 @@ module.exports = async function zeitraum(page) {
   };
   await period.click();
   await dialog.waitFor({ state: 'visible' });
-  check(await dialog.locator('.period-presets button').count() === 5 && await dialog.locator('[aria-pressed="true"]').count() === 1
-    && (await dialog.locator('h4').allInnerTexts()).join('|').toLowerCase() === 'feste zeiträume|eigener zeitraum|trainingsphasen'
-    && await dialog.locator('[data-k="new"]').isVisible(), 'Drei Abschnitte: fünf feste Zeiträume, eigener Zeitraum, Phasen mit „Phase anlegen“; genau eine aktive Taste');
+  check(await dialog.locator('.period-presets button').count() === 6 && await dialog.locator('[aria-pressed="true"]').count() === 1
+    && await dialog.locator('h4').count() === 0 && await dialog.locator('[data-k="new"]').isVisible(),
+    'Schlicht: sechs Zeiträume in einer Zeile ohne Überschriften, „Neue Phase“ darunter, genau eine Auswahl');
   await dialog.locator('[data-k="4w"]').click();
   await page.getByRole('tab', { name: 'Kraft', exact: true }).click();
   check((await period.innerText()).includes('4 Wochen') && await page.evaluate(() => Analytics.range().len === 28),
@@ -55,9 +55,9 @@ module.exports = async function zeitraum(page) {
   await period.click();
   await dialog.waitFor({ state: 'visible' });
   const picked = dialog.locator('[aria-pressed="true"]');
-  check(await picked.count() === 1 && (await picked.innerText()).includes('Bulk <A>') && await picked.locator('.period-check').count() === 1
-    && await dialog.getByRole('button', { name: 'Phase „Bulk <A>“ bearbeiten' }).isVisible(),
-    'Gewählte Phase ist in der Liste mit Haken markiert und hat einen Bearbeitungsstift, kein fester Zeitraum ist markiert',
+  check(await picked.count() === 1 && (await picked.innerText()).trim() === 'Bulk <A>'
+    && await dialog.locator('[data-k^="edit:"]').count() === 1 && await dialog.getByRole('button', { name: 'Phase „Bulk <A>“ bearbeiten' }).isVisible(),
+    'Gewählte Phase: nur der Name, Stift nur bei ihr, kein fester Zeitraum markiert',
     `${await picked.count()} · ${await picked.first().innerText().catch(() => '')}`);
   const errors = await page.evaluate(() => {
     const root = document.documentElement;
@@ -72,8 +72,9 @@ module.exports = async function zeitraum(page) {
         const active = bar.querySelector('[aria-selected="true"]');
         const box = bar.getBoundingClientRect(), tab = active.getBoundingClientRect();
         const sheet = document.querySelector('.modal-wrap:not(.closing) .modal-body');
-        const rows = [...sheet.querySelectorAll('.period-presets button')].map(b => b.offsetTop);
-        if (sheet.scrollWidth > sheet.clientWidth || rows[0] !== rows[2] || rows[3] !== rows[4] || rows[0] >= rows[3]) {
+        const presets = sheet.querySelector('.period-presets');
+        const rows = [...presets.querySelectorAll('button')].map(b => b.offsetTop);
+        if (sheet.scrollWidth > sheet.clientWidth || presets.scrollWidth > presets.clientWidth + 1 || rows.some(y => y !== rows[0])) {
           results.push(design.id + '/' + mode + ': Zeitraumfenster');
         }
         if (getComputedStyle(bar).borderBottomWidth !== '1px' || getComputedStyle(bar).borderTopWidth !== '0px'
