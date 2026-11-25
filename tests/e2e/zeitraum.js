@@ -9,13 +9,13 @@ module.exports = async function zeitraum(page) {
     // Nach dem Speichern laufen Dialogende und das Neuzeichnen der Einstellungen noch aus.
     await page.locator('.modal-wrap.closing').first().waitFor({ state: 'detached' });
     await period.click();
-    if (key === 'new' || key.startsWith('ph:')) await dialog.getByRole('button', { name: 'Trainingsphasen verwalten' }).click();
     await dialog.locator(`[data-k="${key}"]`).click();
   };
   await period.click();
   await dialog.waitFor({ state: 'visible' });
   check(await dialog.locator('.period-presets button').count() === 5 && await dialog.locator('[aria-pressed="true"]').count() === 1
-    && await dialog.locator('.period-phase').count() === 0, 'Ohne Phase: fünf feste Zeiträume und genau eine aktive Taste');
+    && (await dialog.locator('h4').allInnerTexts()).join('|').toLowerCase() === 'feste zeiträume|eigener zeitraum|trainingsphasen'
+    && await dialog.locator('[data-k="new"]').isVisible(), 'Drei Abschnitte: fünf feste Zeiträume, eigener Zeitraum, Phasen mit „Phase anlegen“; genau eine aktive Taste');
   await dialog.locator('[data-k="4w"]').click();
   await page.getByRole('tab', { name: 'Kraft', exact: true }).click();
   check((await period.innerText()).includes('4 Wochen') && await page.evaluate(() => Analytics.range().len === 28),
@@ -40,11 +40,11 @@ module.exports = async function zeitraum(page) {
   await dialog.locator('#phFrom').fill('2025-02-01');
   await dialog.getByText('Speichern', { exact: true }).click();
   check((await period.innerText()).includes('Bulk <A> · seit 01.02.25'), 'Neue Phase wird mit Name und Start ausgewählt');
-  await choose('edit');
+  const phase = await page.evaluate(() => UI.period);
+  await choose('edit:' + phase.slice(3));
   await dialog.locator('#phTo').fill('2025-03-01');
   await dialog.getByText('Speichern', { exact: true }).click();
   check((await period.innerText()).includes('01.02.25 – 01.03.25'), 'Bearbeitete Phase zeigt das Enddatum');
-  const phase = await page.evaluate(() => UI.period);
   await choose('all');
   await choose(phase);
   check(await page.evaluate(() => Analytics.range().phase?.name === 'Bulk <A>'), 'Bestehende Phase erneut auswählbar');
@@ -52,8 +52,12 @@ module.exports = async function zeitraum(page) {
   await page.setViewportSize({ width: 320, height: 700 });
   await page.getByRole('tab', { name: 'Körper', exact: true }).click();
   await period.click();
-  check(await dialog.locator('.period-phase strong').innerText() === 'Bulk <A>' && await dialog.locator('[aria-pressed="true"]').count() === 0,
-    'Gewählte Phase erscheint oben mit Bearbeitungsstift, kein fester Zeitraum ist markiert');
+  await dialog.waitFor({ state: 'visible' });
+  const picked = dialog.locator('[aria-pressed="true"]');
+  check(await picked.count() === 1 && (await picked.innerText()).includes('Bulk <A>') && await picked.locator('.period-check').count() === 1
+    && await dialog.getByRole('button', { name: 'Phase „Bulk <A>“ bearbeiten' }).isVisible(),
+    'Gewählte Phase ist in der Liste mit Haken markiert und hat einen Bearbeitungsstift, kein fester Zeitraum ist markiert',
+    `${await picked.count()} · ${await picked.first().innerText().catch(() => '')}`);
   const errors = await page.evaluate(() => {
     const root = document.documentElement;
     const results = [];
