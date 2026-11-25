@@ -7,9 +7,13 @@ module.exports = async function zeitraum(page) {
   const dialog = page.locator('.modal-wrap:not(.closing) .modal');
   const choose = async key => {
     await period.click();
+    if (key === 'new' || key.startsWith('ph:')) await dialog.getByRole('button', { name: 'Trainingsphasen verwalten' }).click();
     await dialog.locator(`[data-k="${key}"]`).click();
   };
-  await choose('4w');
+  await period.click();
+  check(await dialog.locator('.period-presets button').count() === 5 && await dialog.locator('[aria-pressed="true"]').count() === 1
+    && await dialog.locator('.period-phase').count() === 0, 'Ohne Phase: fünf feste Zeiträume und genau eine aktive Taste');
+  await dialog.locator('[data-k="4w"]').click();
   await page.getByRole('tab', { name: 'Kraft', exact: true }).click();
   check((await period.innerText()).includes('4 Wochen') && await page.evaluate(() => Analytics.range().len === 28),
     'Fester Zeitraum bleibt beim Wechsel auf Kraft erhalten');
@@ -44,6 +48,9 @@ module.exports = async function zeitraum(page) {
 
   await page.setViewportSize({ width: 320, height: 700 });
   await page.getByRole('tab', { name: 'Körper', exact: true }).click();
+  await period.click();
+  check(await dialog.locator('.period-phase strong').innerText() === 'Bulk <A>' && await dialog.locator('[aria-pressed="true"]').count() === 0,
+    'Gewählte Phase erscheint oben mit Bearbeitungsstift, kein fester Zeitraum ist markiert');
   const errors = await page.evaluate(() => {
     const root = document.documentElement;
     const results = [];
@@ -56,6 +63,11 @@ module.exports = async function zeitraum(page) {
         const bar = document.querySelector('.prog-controls');
         const active = bar.querySelector('[aria-selected="true"]');
         const box = bar.getBoundingClientRect(), tab = active.getBoundingClientRect();
+        const sheet = document.querySelector('.modal-wrap:not(.closing) .modal-body');
+        const rows = [...sheet.querySelectorAll('.period-presets button')].map(b => b.offsetTop);
+        if (sheet.scrollWidth > sheet.clientWidth || rows[0] !== rows[2] || rows[3] !== rows[4] || rows[0] >= rows[3]) {
+          results.push(design.id + '/' + mode + ': Zeitraumfenster');
+        }
         if (getComputedStyle(bar).borderBottomWidth !== '1px' || getComputedStyle(bar).borderTopWidth !== '0px'
           || getComputedStyle(active, '::after').height !== '3px' || active.dataset.v !== 'body'
           || tab.left < box.left - 1 || tab.right > box.right + 1 || bar.scrollWidth > bar.clientWidth
@@ -65,6 +77,7 @@ module.exports = async function zeitraum(page) {
     return results;
   });
   check(!errors.length, 'Alle Designs und Himmelsphasen bei 320 px: aktiver Tab sichtbar, Linie unter der Auswahl', errors.join(', '));
+  await dialog.getByRole('button', { name: 'Schließen' }).click();
   await page.evaluate(() => { UI.period = 'ph:geloescht'; App.renderCurrent(); });
   check((await period.innerText()).includes('Alles') && await page.evaluate(() => Analytics.range().all),
     'Früher gespeicherte, inzwischen gelöschte Phase zeigt den tatsächlich ausgewerteten Zeitraum');
