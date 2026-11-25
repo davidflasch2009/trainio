@@ -4,13 +4,16 @@ const { check, appErrors } = require('../lib/harness');
 module.exports = async function zeitraum(page) {
   await page.evaluate(() => App.go('progress', { instant: true }));
   const period = page.locator('.prog-period');
-  const dialog = page.locator('.modal-wrap:not(.closing) .modal');
+  const dialog = page.locator('.modal-wrap.open .modal');
   const choose = async key => {
+    // Nach dem Speichern laufen Dialogende und das Neuzeichnen der Einstellungen noch aus.
+    await page.locator('.modal-wrap.closing').first().waitFor({ state: 'detached' });
     await period.click();
     if (key === 'new' || key.startsWith('ph:')) await dialog.getByRole('button', { name: 'Trainingsphasen verwalten' }).click();
     await dialog.locator(`[data-k="${key}"]`).click();
   };
   await period.click();
+  await dialog.waitFor({ state: 'visible' });
   check(await dialog.locator('.period-presets button').count() === 5 && await dialog.locator('[aria-pressed="true"]').count() === 1
     && await dialog.locator('.period-phase').count() === 0, 'Ohne Phase: fünf feste Zeiträume und genau eine aktive Taste');
   await dialog.locator('[data-k="4w"]').click();
