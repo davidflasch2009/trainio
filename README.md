@@ -427,14 +427,15 @@ Bei Zeitübungen wie Planks zeigt das Workout-Detail die abgeschlossenen Arbeits
 
 ## Körper-Tab
 
-Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
+Standardmäßig nur das **Gewicht**: Schnelleingabe für heute (nur Feld und „Speichern“; ein neuer Wert ersetzt den von heute),
+andere Tage über „+ Eintrag“ am Verlauf, Verlauf mit 7-Tage-Durchschnitt, Trend pro
 Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
 **Wochenziel:** Pro Phase (Fortschritt → Zeitraum → Neue Phase: Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
 („Wochenziel festlegen": Zunehmen / Abnehmen / Halten) legst du fest, wie stark sich dein Wochendurchschnitt
 verändern darf, z. B. 0 bis +200 g. In „Veränderung pro Woche" sind Wochen im Bereich grün, darüber oder
 darunter orange; ein blasses Band zeigt den erlaubten Bereich. In einer Phase gilt deren Bereich, sonst die
 allgemeine Einstellung.
-**Gewicht importieren:** Körper-Tab → „CSV importieren" (oder Mehr → Daten → Gewicht importieren). Funktioniert
+**Gewicht importieren:** Mehr → Daten → Gewicht importieren. Funktioniert
 mit CSV-Exporten aus Waagen-/Gewichts-Apps wie Better Weight, Withings oder Libra – Datum- und Gewichtsspalte
 werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau mit Zeitraum, vorhandene Tage
 werden übersprungen oder auf Wunsch überschrieben; „Letzten Import rückgängig machen" nimmt alles wieder zurück.

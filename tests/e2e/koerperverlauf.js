@@ -23,6 +23,15 @@ async function koerperVerlaufFlow(page) {
   check(s.months.join() === '2026-01' && s.ids.join() === 'body_hist_0,body_hist_1' && s.next === 'Dezember aufklappen'
     && !await page.locator('[data-act="bodyCfg"]').count() && !/Anzeige anpassen/.test(await page.locator('#progBody').innerText()),
     'Körper: nur aktueller Monat, neueste Messung zuerst, kein „Anzeige anpassen“', JSON.stringify(s));
+  const quick = await page.locator('.bw-quick').innerText();
+  check(!/Anderes Datum|CSV|Gewicht heute|ersetzt/.test(quick) && await page.locator('.bw-quick #bwQuick').count() === 1,
+    'Gewicht-Karte: nur Feld, Einheit und Speichern – kein Zusatztext', quick);
+  await page.locator('.section-head [data-act="bodyNew"]').click();
+  const form = page.locator('.modal-wrap.open .modal').getByText('Neuer Körper-Eintrag');
+  await form.waitFor({ state: 'visible', timeout: 3000 }).catch(() => {});
+  check(await form.isVisible(), '„+ Eintrag“ am Verlauf öffnet den Eintrag für ein anderes Datum');
+  await page.locator('.modal-wrap.open').getByRole('button', { name: 'Schließen' }).click();
+  await page.locator('.modal-wrap.closing').first().waitFor({ state: 'detached' }).catch(() => {});
   await page.locator('[data-act="bodyHistMore"]').scrollIntoViewIfNeeded();
   await pause(page);
   const before = await page.evaluate(() => { window.bodyChartBefore = document.querySelector('#cv-b1'); return Scroll.y; });

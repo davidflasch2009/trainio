@@ -38,21 +38,15 @@ ProgressViews.body = body => {
   const rules = wkDiff.map(x => rateRuleAt(x.w));
   const rateHit = wkDiff.filter((x, i) => rules[i] && x.d >= rules[i].lo - 1e-6 && x.d <= rules[i].hi + 1e-6).length;
   const startR = bwR[0], minR = bwR.length ? bwR.reduce((m, p) => p.kg < m.kg ? p : m) : null, maxR = bwR.length ? bwR.reduce((m, p) => p.kg > m.kg ? p : m) : null;
-  const todayEntry = P.find(p => p.date === isoDate() && p.bodyWeightKg > 0);
   const signW = d => (d > 0.005 ? '+' : d < -0.005 ? '−' : '±') + nf(Math.abs(toU(d)), Math.abs(d) < 1 ? 2 : 1) + ' ' + unit();
   const statRow = (l, v, sub = '') => `<div class="ratio-row"><span class="grow">${l}</span><b>${v}</b>${sub ? `<span class="tiny dim">${sub}</span>` : ''}</div>`;
   const cb = chartBuilder();
   body.innerHTML = `
     <div class="card mt-12 bw-quick">
-      <div class="small dim">${todayEntry ? `Heute: ${fmtW(todayEntry.bodyWeightKg)} – neuer Wert ersetzt ihn` : 'Gewicht heute'}</div>
-      <div class="row mt-8">
+      <div class="row">
         <input class="input" id="bwQuick" inputmode="decimal" placeholder="${latest ? esc(inputW(latest.kg)) : 'z. B. 82,5'}" aria-label="Gewicht heute in ${unit()}" enterkeyhint="done">
         <span class="dim">${unit()}</span>
         <button class="btn btn-primary" data-act="bwQuickSave">${icon('check')} Speichern</button>
-      </div>
-      <div class="row between mt-4">
-        <button class="link-btn" data-act="bodyNew" style="padding:6px 0;min-height:32px">Anderes Datum${F('f_bodyFat') || F('f_measures') || F('f_photos') ? ' oder mehr Werte' : ''} eintragen</button>
-        <button class="link-btn" data-act="bwImport" style="padding:6px 0;min-height:32px">${icon('upload').replace('<svg', '<svg width="15" height="15" style="vertical-align:-3px"')} CSV importieren</button>
       </div>
     </div>
     <div class="charts-grid">
@@ -129,7 +123,7 @@ ProgressViews.body = body => {
         ${photos.length ? `<div class="photo-strip mt-8">${photos.map(p => `<button data-act="photoCompare" data-id="${esc(p.id)}"><img src="${p.data}" alt="Foto vom ${esc(fmtDate(p.date))}" loading="lazy">${esc(fmtDate(p.date))}</button>`).join('')}</div>` : '<p class="dim small mt-8">Noch keine Fotos – füge beim nächsten Eintrag eins hinzu.</p>'}
       </div>` : ''}
     </div>
-    <div class="section-head"><h2>Verlauf</h2></div>
+    <div class="section-head"><h2>Verlauf</h2><button class="btn btn-ghost btn-sm" data-act="bodyNew">${icon('plus')}Eintrag</button></div>
     <div id="bodyHistory">${bodyHistoryHtml()}</div>`;
   cb.mountAll();
 };
