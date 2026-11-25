@@ -7,7 +7,7 @@
 /* ==========================================================================
    14. View: Fortschritt (Analytics-Zentrale)
    ========================================================================== */
-const PERIODS = [['4w', '4W'], ['3m', '3M'], ['6m', '6M'], ['1y', '1J'], ['all', 'Alles'], ['custom', 'Custom']];
+const PERIODS = [['4w', '4 Wochen'], ['3m', '3 Monate'], ['6m', '6 Monate'], ['1y', '1 Jahr'], ['all', 'Alles'], ['custom', 'Eigener Zeitraum']];
 /* ---------- Funktionen ein-/ausschalten ---------- */
 const FEATURES = [
   ['Navigation', [['f_exercises', 'Übungen-Tab', 'Bibliothek als eigener Tab (Übungen bleiben im Workout wählbar)'], ['f_progress', 'Fortschritt-Tab', 'Statistiken & Diagramme']]],
@@ -26,19 +26,22 @@ Views.progress = {
     if (!progSubs().some(x => x[0] === UI.progSub)) UI.progSub = 'overview';
     if (UI.progSub !== 'body') bodyHistoryMonths = 1;
     const r = Analytics.range();
+    const periodKey = r.all ? 'all' : UI.period;
+    const label = r.phase ? `${r.phase.name} · ${phaseDates(r.phase)}`
+      : r.custom ? rangeLabel(r) : PERIODS.find(([key]) => key === periodKey)[1];
     el.innerHTML = `
       <div class="prog-controls">
-        ${tabsHtml(progSubs(), UI.progSub, 'progSub', 'progBody', 'Fortschritt', 'seg tabs')}
-        <div class="row pc-row">
-          <div class="chips grow pc-chips phase-chips">${PERIODS.map(([k, l]) => `<button class="chip sm ${UI.period === k ? 'active' : ''}" data-act="period" data-v="${k}">${l}${k === 'custom' && UI.period === 'custom' && r.custom ? ` ${fmtDN(r.from, { day: '2-digit', month: '2-digit' })}–${fmtDN(r.to, { day: '2-digit', month: '2-digit' })}` : ''}</button>`).join('')}<span class="pc-sep" aria-hidden="true"></span>${phases().map(ph => { const on = UI.period === 'ph:' + ph.id; return `<button class="chip sm phase ${on ? 'active' : ''}" data-act="period" data-v="ph:${esc(ph.id)}" style="--ph:${PHASE_TYPES[ph.type] ? PHASE_TYPES[ph.type][1] : 'var(--accent)'}"><i></i>${esc(ph.name)}</button>${on ? `<button class="chip sm" data-act="phaseEdit" data-id="${esc(ph.id)}" aria-label="Phase bearbeiten">${icon('edit')}</button>` : ''}`; }).join('')}<button class="chip sm ghost" data-act="phaseEdit">${icon('plus')} Phase</button></div>
-          <div class="seg sm" style="flex:0 0 auto" aria-label="Einheit"><button class="${unit() === 'kg' ? 'active' : ''}" data-act="unitSet" data-v="kg">kg</button><button class="${unit() === 'lb' ? 'active' : ''}" data-act="unitSet" data-v="lb">lb</button></div>
-        </div>
-        ${r.phase ? `<div class="tiny dim pc-phase">${esc(PHASE_TYPES[r.phase.type] ? PHASE_TYPES[r.phase.type][0] : 'Phase')} · seit ${fmtDate(r.phase.from)}${r.phase.to ? ' bis ' + fmtDate(r.phase.to) : ' (läuft)'} · ${Math.round(r.len / 7)} Wochen</div>` : ''}
+        ${tabsHtml(progSubs(), UI.progSub, 'progSub', 'progBody', 'Fortschritt', 'prog-tabs')}
+        <button type="button" class="prog-period" data-act="choosePeriod" aria-haspopup="dialog">
+          <span class="dim">Zeitraum</span>
+          ${r.phase ? `<i aria-hidden="true" style="background:${PHASE_TYPES[r.phase.type]?.[1] || 'var(--accent)'}"></i>` : ''}
+          <span class="prog-period-value">${esc(label)}</span>${icon('chevD')}
+        </button>
       </div>
       <div id="progBody" ${tabPanelAttrs('progBody', UI.progSub)}></div>`;
     updateTopH();
-    // Aktiven Zeitraum/Tab in den scrollbaren Leisten sichtbar halten
-    $$('.pc-chips, .prog-controls .seg.tabs', el).forEach(c => { const a = $('.active', c); if (a && c.scrollWidth > c.clientWidth) c.scrollLeft = a.offsetLeft - c.offsetLeft - c.clientWidth / 2 + a.offsetWidth / 2; });
+    const tabs = $('.prog-tabs', el), active = $('.active', tabs);
+    if (tabs.scrollWidth > tabs.clientWidth) tabs.scrollLeft = active.offsetLeft + (active.offsetWidth - tabs.clientWidth) / 2;
     const body = $('#progBody', el);
     // Körper und Herz gehen auch ohne Workouts (Gewicht, Ruhepuls)
     if (!Analytics.cur().rows.length && UI.progSub !== 'body' && !(UI.progSub === 'cardio' && F('f_heart'))) {
@@ -60,8 +63,25 @@ function applyDefaultPeriod() {
 }
 Views.progress.leave = () => { bodyHistoryMonths = 1; applyDefaultPeriod(); };   // beim nächsten Öffnen wieder Standard-Zeitraum und aktueller Monat
 Actions.progSub = el => { UI.progSub = el.dataset.v; saveUI(); App.renderCurrent(); };
-Actions.period = async el => {
-  const v = el.dataset.v;
+const phaseDates = ph => ph.to ? `${fmtDate(ph.from)} – ${fmtDate(ph.to)}` : `seit ${fmtDate(ph.from)}`;
+Actions.choosePeriod = async () => {
+  const r = Analytics.range(), current = r.all ? 'all' : UI.period;
+  const options = PERIODS.map(([key, label]) => ({
+    key, label, icon: key === current ? 'check' : 'calendar',
+    sub: key === current ? (r.custom ? rangeLabel(r) : 'Ausgewählt') : ''
+  }));
+  for (const ph of phases()) {
+    const key = 'ph:' + ph.id;
+    const type = PHASE_TYPES[ph.type]?.[0] || 'Phase';
+    const sub = key === current ? `Ausgewählt · ${type} · ${phaseDates(ph)} · ${Math.round(r.len / 7)} Wochen` : `${type} · ${phaseDates(ph)}`;
+    options.push({ key, label: ph.name, sub, icon: key === current ? 'check' : 'calendar' });
+  }
+  if (r.phase) options.push({ key: 'edit', label: 'Phase bearbeiten', sub: r.phase.name, icon: 'edit' });
+  options.push({ key: 'new', label: 'Phase anlegen', icon: 'plus' });
+  const v = await actionMenu('Zeitraum wählen', options);
+  if (!v) return;
+  if (v === 'new' || v === 'edit') return Actions.phaseEdit({ dataset: { id: v === 'edit' ? r.phase.id : '' } });
+
   if (v === 'custom') {
     const t = isoDate();
     const from = UI.customFrom || dnToISO(todayDN() - 60);
@@ -88,7 +108,6 @@ Actions.period = async el => {
   saveUI();
   App.renderCurrent();
 };
-Actions.unitSet = el => { Store.saveSettings({ unit: el.dataset.v }); };
 
 /* ---------- Phasen: benannte Zeiträume (Bulk, Cut, Erhalt …) ---------- */
 const PHASE_TYPES = { bulk: ['Bulk', '#22c55e'], cut: ['Cut', '#f97316'], maintain: ['Erhalt', '#3b82f6'], other: ['Sonstiges', '#a855f7'] };

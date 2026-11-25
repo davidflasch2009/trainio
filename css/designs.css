@@ -238,8 +238,6 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="plakat"] .week-dots i { border-radius: calc(3.5px * var(--rs)); }
 [data-design="plakat"] .week-dots i.on { background: var(--text); }
 [data-design="plakat"] .week-dots i.today { box-shadow: 0 0 0 2px var(--accent); }
-/* Fortschritt-Leiste oben: flacher Block mit Linien statt schwebender Karte */
-[data-design="plakat"] .prog-controls { border-radius: 0; box-shadow: none; background: var(--bg); -webkit-backdrop-filter: none; backdrop-filter: none; border: 0 !important; border-top: var(--rule) solid var(--text) !important; border-bottom: 1px solid var(--border) !important; padding: 8px 0; }
 /* Werkzeuge: Scheibenrechner-Knöpfe, Scheiben-Chips und Ruhepuls-Tippfläche folgen den Ecken statt fester Kreise */
 [data-design="plakat"] .pl-step { border-radius: calc(14px * var(--rs)); background: transparent; border: 1.5px solid var(--text); }
 [data-design="plakat"] :is(.pl-chip, .plate-pick .pp) { border-radius: calc(12px * var(--rs)); }
@@ -379,7 +377,7 @@ h1, .topbar-title { text-transform: var(--title-transform); letter-spacing: var(
 [data-design="sky"] .topbar.scrolled { background: color-mix(in srgb, var(--sk-top) 72%, transparent); -webkit-backdrop-filter: blur(20px) saturate(160%); backdrop-filter: blur(20px) saturate(160%); border-bottom-color: transparent; }
 [data-design="sky"] #sbShade, [data-design="sky"] .edge-sb { background: linear-gradient(to bottom, color-mix(in srgb, var(--sk-top) 90%, transparent) 0%, color-mix(in srgb, var(--sk-top) 70%, transparent) 55%, transparent 100%); }
 [data-design="sky"] .wo-head { background: var(--sk-top) !important; }
-[data-design="sky"] .prog-controls { background: var(--tip); border-color: var(--edge) !important; box-shadow: var(--soft); }
+[data-design="sky"] .prog-controls { background: var(--tip); border-color: var(--edge); }
 [data-design="sky"] .bottom-nav { background: var(--bar); border-color: var(--edge); -webkit-backdrop-filter: blur(24px) saturate(170%); backdrop-filter: blur(24px) saturate(170%); }
 [data-design="sky"][data-nav="floating"] .bottom-nav { box-shadow: var(--soft), inset 0 1px 0 var(--edge); }
 [data-design="sky"] .nav-btn { isolation: isolate; }

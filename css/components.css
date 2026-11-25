@@ -149,7 +149,6 @@
 .seg button { flex: 1 0 auto; min-height: 38px; padding: 0 12px; border: 0; border-radius: calc(9px * var(--rs)); background: transparent; color: var(--text-dim); font-weight: var(--fw-b); font-size: calc(13.5px * var(--fs)); white-space: nowrap; }
 .seg button.active { background: var(--surface); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.25); }
 [data-theme="light"] .seg button.active { box-shadow: 0 1px 3px rgba(16,24,40,.12); }
-.seg.tabs button { flex: 1 1 auto; padding: 0 6px; font-size: calc(13px * var(--fs)); }
 .chip.sm { min-height: 34px; padding: 0 12px; font-size: calc(13px * var(--fs)); }
 .seg.fit button { flex: 1 1 0; min-width: 0; white-space: normal; line-height: 1.15; padding: 4px 6px; }
 .seg.sm button { min-height: 32px; font-size: calc(12.5px * var(--fs)); padding: 0 10px; }
@@ -164,8 +163,6 @@
 
 /* Listen */
 .list { background: var(--surface); border: var(--bw) solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--card-shadow); }
-.phase-chips .chip.phase i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--ph); margin-right: 2px; }
-.phase-chips .chip.phase.active { background: color-mix(in srgb, var(--ph) 22%, var(--surface)); border-color: var(--ph); color: var(--text); }
 .chip.ghost { background: transparent; border-style: dashed; }
 .goal-item { display: flex; flex-direction: column; gap: 6px; width: 100%; text-align: left; background: none; border: 0; padding: 10px 0; color: inherit; font: inherit; border-bottom: var(--bw) solid var(--border); }
 .goal-item:last-child { border-bottom: 0; }

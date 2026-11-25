@@ -309,9 +309,10 @@ dafür nicht bestraft: im Workout bei der Übung **⋯ → Notizen & Technik →
 
 ## Phasen & Ziele
 
-- **Phasen** (Fortschritt → „+ Phase“): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
-  Jede Phase ist ein eigener Zeitraum-Chip – alle Auswertungen gelten dann genau für diese Zeit
-  (z. B. „Bulk 2026“ seit 1. Juli). Bearbeiten über den Stift neben der aktiven Phase.
+- **Fortschritt:** Der aktive Tab ist fett und unterstrichen. Unter den Tabs öffnet die Zeile „Zeitraum“ die
+  Auswahl für feste Zeiträume, einen eigenen Datumsbereich oder eine Trainingsphase. Beim Tabwechsel bleibt die Auswahl erhalten.
+- **Phasen** (Fortschritt → Zeitraum → Phase anlegen): Name, Typ (Bulk / Cut / Erhalt / Sonstiges), Start und optional Ende.
+  Eine gewählte Phase begrenzt die Auswertungen auf ihren Zeitraum. Über „Phase bearbeiten“ in derselben Auswahl kannst du sie ändern.
 - **Kraftziele** (Start → „+ Ziel“) in zwei Arten:
   - **Gewicht × Wdh.**, z. B. Bankdrücken 8 × 100 kg: erreicht, sobald ein echter Arbeitssatz mit mindestens
     100 kg und 8 Wdh. dabei ist (100 × 7 oder 95 × 10 zählen nicht). Fortschritt = schwerster Satz mit 8+ Wdh.
@@ -426,7 +427,7 @@ Bei Zeitübungen wie Planks zeigt das Workout-Detail die abgeschlossenen Arbeits
 
 Standardmäßig nur das **Gewicht**: Schnelleingabe für heute, Verlauf mit 7-Tage-Durchschnitt, Trend pro
 Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woche und Kennzahlen im Zeitraum.
-**Wochenziel:** Pro Phase (Fortschritt → „+ Phase": Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
+**Wochenziel:** Pro Phase (Fortschritt → Zeitraum → Phase anlegen: Bulk, Cut, Erhalt …) oder allgemein im Körper-Tab
 („Wochenziel festlegen": Zunehmen / Abnehmen / Halten) legst du fest, wie stark sich dein Wochendurchschnitt
 verändern darf, z. B. 0 bis +200 g. In „Veränderung pro Woche" sind Wochen im Bereich grün, darüber oder
 darunter orange; ein blasses Band zeigt den erlaubten Bereich. In einer Phase gilt deren Bereich, sonst die

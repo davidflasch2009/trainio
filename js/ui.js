@@ -461,7 +461,7 @@ function countUp(els, dur = 700, delay = 0) {
 }
 const COUNT_SEL = '.stat-value, .cc-big > b';
 /* Ansicht wechseln (Segment, Chips, Unter-Tabs): Inhalt unter dem Schalter sanft einblenden */
-const SWAP_ACTS = new Set(['trainSub', 'progSub', 'period', 'volScope', 'kraftScope', 'unitSet', 'kraftEx', 'exCat', 'exEq', 'woView', 'setSeg']);
+const SWAP_ACTS = new Set(['trainSub', 'progSub', 'volScope', 'kraftScope', 'kraftEx', 'exCat', 'exEq', 'woView', 'setSeg']);
 function fxSwap(act, v) {
   const sel = `[data-act="${act}"]${v != null ? `[data-v="${CSS.escape(v)}"]` : ''}`;
   let n = $(`#view ${sel}`);
