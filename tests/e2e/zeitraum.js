@@ -1,5 +1,6 @@
 'use strict';
-const { check, appErrors } = require('../lib/harness');
+const path = require('path');
+const { check, appErrors, ROOT } = require('../lib/harness');
 
 module.exports = async function zeitraum(page) {
   await page.evaluate(() => App.go('progress', { instant: true }));
@@ -88,5 +89,16 @@ module.exports = async function zeitraum(page) {
   await page.evaluate(() => { UI.period = 'ph:geloescht'; App.renderCurrent(); });
   check((await period.innerText()).includes('Alles') && await page.evaluate(() => Analytics.range().all),
     'Früher gespeicherte, inzwischen gelöschte Phase zeigt den tatsächlich ausgewerteten Zeitraum');
+  // mit Beispieldaten, damit die Seite lang genug zum Scrollen ist
+  await page.addScriptTag({ path: path.join(ROOT, 'tests', 'lib', 'beispieldaten.js') });
+  await page.evaluate(async () => { await Beispieldaten.load(); UI.progSub = 'overview'; App.renderCurrent(); });
+  await page.evaluate(() => { Scroll.el.scrollTop = 600; });
+  await page.waitForFunction(() => Scroll.y > 300);
+  const covered = await page.evaluate(() => [[160, 2], [160, 12], [2, 30], [innerWidth - 3, 30]]
+    .every(([x, y]) => document.elementFromPoint(x, y)?.closest('.prog-controls, .topbar')));
+  const edges = await page.evaluate(() => { const b = document.querySelector('.prog-controls').getBoundingClientRect(); return Math.round(b.left) === 0 && Math.round(b.right) === innerWidth; });
+  check(edges, 'Fortschritt-Leiste reicht von ganz links bis ganz rechts');
+  await page.evaluate(() => Scroll.to(0));
+  check(covered, 'Beim Scrollen deckt die Leiste den Bereich bis zum oberen Rand ab – kein Inhalt scheint darüber durch');
   check(!(await appErrors(page)).length && !page.errors.length, 'Zeitraumwahl ohne JavaScript-Fehler', page.errors.join(', '));
 };

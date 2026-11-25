@@ -400,7 +400,12 @@ button.score-ring { display: block; border: 0; background: none; padding: 0; col
 .muscle-pick { display: flex; flex-wrap: wrap; gap: 6px; }
 
 /* Fortschritt */
-.prog-controls { position: sticky; top: calc(env(safe-area-inset-top) + 16px); z-index: 30; background: var(--bg); border-bottom: 1px solid var(--border-strong); }
+/* Leiste reicht bis an den oberen Rand (auch hinter die Statusleiste) und über die ganze Breite,
+   damit gescrollter Inhalt nirgends darüber oder daneben durchscheint. Innen bleibt der Seitenabstand der Ansicht. */
+.prog-controls { --pc-l: max(16px, env(safe-area-inset-left)); --pc-r: max(16px, env(safe-area-inset-right));
+  position: sticky; top: 0; z-index: 30; margin: calc(-16px - env(safe-area-inset-top)) calc(-1 * var(--pc-r)) 0 calc(-1 * var(--pc-l));
+  padding: calc(env(safe-area-inset-top) + 16px) var(--pc-r) 0 var(--pc-l); background: var(--bg); border-bottom: 1px solid var(--border-strong); }
+@media (min-width: 900px) { .prog-controls { --pc-l: 28px; --pc-r: 28px; } }
 .prog-tabs { position: relative; display: flex; justify-content: space-between; overflow-x: auto; scrollbar-width: none; }
 .prog-tabs::-webkit-scrollbar { display: none; }
 .prog-tabs button, .prog-period { border: 0; background: transparent; min-height: 44px; font-size: calc(13px * var(--fs)); }
