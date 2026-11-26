@@ -230,6 +230,8 @@ button.list-item.pressed, .list-item.clickable.pressed { background: var(--surfa
 .banner .pulse { width: 10px; height: 10px; border-radius: 50%; background: var(--accent-ink); animation: pulse 1.4s infinite; }
 @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .25; } }
 @media (min-width: 900px) { .banner { margin-left: 28px; margin-right: 28px; } }
+/* Banner liegt über der Fortschritt-Leiste: die reicht bis an den oberen Rand und würde es sonst verdecken */
+#banner { position: relative; z-index: 31; }
 
 /* Empty-State */
 .empty { text-align: center; padding: 32px 16px; color: var(--text-dim); }

@@ -101,5 +101,21 @@ module.exports = async function zeitraum(page) {
   check(edges, 'Fortschritt-Leiste reicht von ganz links bis ganz rechts');
   await page.evaluate(() => Scroll.to(0));
   check(covered, 'Beim Scrollen deckt die Leiste den Bereich bis zum oberen Rand ab – kein Inhalt scheint darüber durch');
+  // Läuft ein Workout, steht das Banner „Workout läuft – fortsetzen“ über der Leiste und ist ganz sichtbar
+  await page.evaluate(() => { Workout.start({ name: 'Banner-Test', entries: [] }); App.go('progress', { instant: true }); });
+  await page.waitForSelector('#banner .banner');
+  const banner = await page.evaluate(() => {
+    document.querySelectorAll('#toastRoot > *').forEach(t => t.remove());   // Meldung „gestartet“ läge sonst darüber
+    // iPhone nachstellen: Statusleiste 59 px – die Leiste reicht dann um so viel weiter nach oben und überlappt das Banner
+    const bar = document.querySelector('.prog-controls');
+    Object.assign(bar.style, { marginTop: 'calc(-16px - 59px)', paddingTop: 'calc(59px + 16px)' });
+    document.querySelector('#topbar').style.height = '59px';
+    const b = document.querySelector('#banner .banner').getBoundingClientRect();
+    return [[b.left + 20, b.top + 3], [b.left + b.width / 2, b.top + b.height / 2], [b.right - 20, b.bottom - 3]].map(([x, y]) => {
+      const e = document.elementFromPoint(x, y);
+      return e?.closest('#banner') ? 'ok' : `${e?.className || e?.tagName}@${Math.round(y)}`;
+    }).join(','); });
+  check(banner === 'ok,ok,ok', 'Laufendes Workout: Banner über der Fortschritt-Leiste ganz sichtbar (auch mit iPhone-Statusleiste)', banner);
+  await page.evaluate(() => { document.querySelector('#topbar').style.height = ''; Workout.discard(); App.renderCurrent(); });
   check(!(await appErrors(page)).length && !page.errors.length, 'Zeitraumwahl ohne JavaScript-Fehler', page.errors.join(', '));
 };
