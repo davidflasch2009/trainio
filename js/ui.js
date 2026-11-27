@@ -780,6 +780,17 @@ function ensureFont(href) {
 let _lookSig = '';
 /** Kartenfarbe des Designs im aktuellen Modus bzw. in der aktuellen Phase (Tag & Nacht) */
 const lookSurf = D => D.surf[D.phased ? Sky.phase() : resolvedTheme()];
+/** Hintergrund- und Akzentfarbe, wie sie gerade zu sehen sind (aufgelöst) → [bg, fg] oder null, solange die Styles fehlen */
+function launchColors() {
+  const probe = document.createElement('i');
+  probe.style.cssText = 'position:absolute;visibility:hidden;color:var(--accent-text);background-color:var(--bg)';
+  document.body.appendChild(probe);
+  const cs = getComputedStyle(probe), fg = cs.color, bodyBg = getComputedStyle(document.body).backgroundColor;
+  const bg = /^rgba?\(\d+, \d+, \d+\)$/.test(bodyBg) ? bodyBg : cs.backgroundColor;
+  probe.remove();
+  const solid = c => /^rgb\(\d+, \d+, \d+\)$/.test(c);
+  return solid(bg) && solid(fg) && cssVar('--accent-text') ? [bg, fg] : null;
+}
 /** Alle Darstellungs-Einstellungen auf <html> anwenden → true, wenn sich sichtbar etwas geändert hat */
 function applyTheme() {
   const s = S();
@@ -797,9 +808,19 @@ function applyTheme() {
   fonts.forEach(ensureFont);
   const meta = $('meta[name="theme-color"]');
   if (meta) { const bg = cssVar('--bg'); meta.setAttribute('content', /^#/.test(bg) ? bg : (mode === 'light' ? '#f3f5f8' : '#0b0d10')); }
+  // Farben für den Ladebildschirm (Startskript in index.html): Hintergrund und Akzent des Designs, je Modus bzw. Phase.
+  // Gemessen wird nur der aktuelle Modus; die anderen bleiben aus früheren Starts, solange Design und Farbe gleich sind.
+  const launchKey = D.phased ? Sky.phase() : mode, launchSig = [D.id, accent, s.contrast ? 1 : 0, attrs['data-wall'] || ''].join('|');
+  let launch = {};
+  try { const old = JSON.parse(localStorage.getItem(LS.look) || 'null'); if (old?.launchSig === launchSig && old.launch) launch = old.launch; } catch (e) {}
+  const launchNow = launchColors();
+  if (launchNow) launch = { ...launch, [launchKey]: launchNow };
+  // auch nach dem Laden der Styles: Ladebildschirm behält bis zum Ausblenden exakt diese Farben
+  if (launchNow) { root.style.setProperty('--launch-bg', launchNow[0]); root.style.setProperty('--launch-fg', launchNow[1]); }
   try {
     localStorage.setItem(LS.theme, s.theme);
     localStorage.setItem(LS.look, JSON.stringify({
+      launch, launchSig,
       theme: s.theme, attrs,
       // je Modus – bei Tag & Nacht zusätzlich je Phase; sky = Phasen-Grenzen von heute (Minuten) fürs Startskript
       accent: accent ? Object.fromEntries((D.phased ? [...Sky.PHASES, 'light', 'dark'] : ['light', 'dark']).map(k => [k, accentCss(accent, Sky.THEME[k] || k, D.surf[k])])) : null,

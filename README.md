@@ -61,7 +61,7 @@ kleiner; was nicht passt, steht als „+ N weitere“. In der Vorschau: **Bild t
 
 ## App-Start
 
-Während die App lädt, macht eine kleine Strichfigur Klimmzüge. Mit reduzierter oder ausgeschalteter Bewegung steht sie still. Sobald die lokale Ansicht bereit ist, verschwindet sie. Nach vollständiger Offline-Installation öffnet Trainio die gespeicherte Startseite direkt, auch bei schwacher Verbindung.
+Während die App lädt, macht eine kleine Strichfigur Klimmzüge. Mit reduzierter oder ausgeschalteter Bewegung steht sie still. Der Ladebildschirm hat den Hintergrund deines Designs, die Figur die Akzentfarbe – so gibt es beim Erscheinen der App keinen Farbsprung. Die Farben merkt sich die App beim Start je Hell/Dunkel bzw. Tageszeit (Tag & Nacht); beim allerersten Start ist er schlicht dunkel oder hell. Sobald die lokale Ansicht bereit ist, verschwindet sie. Nach vollständiger Offline-Installation öffnet Trainio die gespeicherte Startseite direkt, auch bei schwacher Verbindung.
 
 ## Meldungen
 
