@@ -800,7 +800,7 @@ function applyTheme() {
   try {
     localStorage.setItem(LS.theme, s.theme);
     localStorage.setItem(LS.look, JSON.stringify({
-      theme: s.theme, attrs, fonts,
+      theme: s.theme, attrs,
       // je Modus – bei Tag & Nacht zusätzlich je Phase; sky = Phasen-Grenzen von heute (Minuten) fürs Startskript
       accent: accent ? Object.fromEntries((D.phased ? [...Sky.PHASES, 'light', 'dark'] : ['light', 'dark']).map(k => [k, accentCss(accent, Sky.THEME[k] || k, D.surf[k])])) : null,
       sky: D.phased ? Sky.bounds() : null,

@@ -3,7 +3,7 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v124';
+const CACHE = 'gymlog-v125';
 const CACHE_NAME = CACHE;
 /* Früher gab es unter …/test/ eine Testversion mit eigenen Caches (trainio-test-…) – die räumt die App mit weg */
 const OLD = k => (k.startsWith('gymlog-') && k !== CACHE_NAME) || k.startsWith('trainio-test-');
@@ -61,23 +61,13 @@ self.addEventListener('fetch', event => {
   const url = new URL(req.url);
   if (bypass(url)) return;
 
-  // Navigation (HTML): network-first, Fallback auf Cache
+  // Nur die App-Startseite aus dem Cache genau dieses Releases öffnen.
+  // Der neue Worker lädt beim Installieren die nächste Version vollständig.
   if (req.mode === 'navigate') {
-    event.respondWith((async () => {
-      try {
-        const res = await fetch(req);
-        if (res.ok) {
-          const cache = await caches.open(CACHE_NAME);
-          cache.put('./index.html', res.clone());
-        }
-        return res;
-      } catch (err) {
-        return (await caches.match(req, { ignoreSearch: true }))
-          || (await caches.match('./index.html'))
-          || (await caches.match('./'))
-          || Response.error();
-      }
-    })());
+    const scope = new URL(self.registration.scope);
+    if (url.origin === scope.origin && (url.pathname === scope.pathname || url.pathname === scope.pathname + 'index.html')) {
+      event.respondWith(caches.open(CACHE_NAME).then(async cache => (await cache.match('./index.html')) || fetch(req)));
+    }
     return;
   }
 

@@ -59,6 +59,10 @@ Dauer, Volumen, Sätze, PRs und je Übung der beste Satz – PRs mit Pokal. Bei 
 kleiner; was nicht passt, steht als „+ N weitere“. In der Vorschau: **Bild teilen** (Teilen-Menü, dort auch
 „Bild sichern“) bzw. **Bild speichern**, wo der Browser keine Bilder teilen kann, oder **Als Text** (wie bisher).
 
+## App-Start
+
+Während die App lädt, macht eine kleine Strichfigur Klimmzüge. Mit reduzierter oder ausgeschalteter Bewegung steht sie still. Sobald die lokale Ansicht bereit ist, verschwindet sie. Nach vollständiger Offline-Installation öffnet Trainio die gespeicherte Startseite direkt, auch bei schwacher Verbindung.
+
 ## Meldungen
 
 Unter **Mehr → Meldungen → Meldungen anzeigen** lassen sich alle kurzen Meldungen am oberen Bildschirmrand ausschalten, auch im Workout. Damit entfällt auch der Knopf „Rückgängig“ in den Meldungen. Bei eingeschalteten Meldungen gibt es Gruppen für Bestätigungen

@@ -22,6 +22,15 @@ async function offlineFlow(page) {
     // Daten anlegen und sichern
     await page.evaluate(() => { Store.put('templates', 'tpl_offline', { name: 'Offline-Test', exercises: [], createdAt: Date.now() }); Store.flushLocal(); });
 
+    // Auch mit Internet muss die installierte App die zum aktiven Worker passende Startseite nehmen.
+    overrides['/index.html'] = '<!doctype html><title>Andere Serverversion</title>';
+    try {
+      await page.goto(new URL('index.html?startprobe', page.url()).href, { waitUntil: 'domcontentloaded' });
+      await ready(page);
+      check(await page.title() === 'Trainio' && await page.evaluate(() => !!Store.get('templates', 'tpl_offline')),
+        'Installierter Start mit URL-Parameter nutzt die gespeicherte Version und den lokalen Datenbestand');
+    } finally { delete overrides['/index.html']; }
+
     // ohne Netz neu starten
     await ctx.setOffline(true);
     await page.reload({ waitUntil: 'domcontentloaded' });

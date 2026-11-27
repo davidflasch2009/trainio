@@ -87,6 +87,7 @@ function cleanupTestversion() {
 }
 
 async function boot() {
+  await LaunchScreen.stylesReady();
   await Store.boot();
   applyTheme();
   const st = S().startTab;
@@ -118,6 +119,7 @@ async function boot() {
   registerSW();
   cleanupTestversion();
   guardIOSHistory();
+  LaunchScreen.finish();
   Auth.init();
 }
-boot();
+boot().catch(err => { LaunchScreen.fail(); console.error('Trainio-Start:', err); });

@@ -21,7 +21,7 @@ const HANDY = { width: 390, height: 844 };
 const NUR_CHROMIUM = ['tastatur', 'offline', 'altlasten'];
 /* Abläufe in fester Reihenfolge: [Name = Datei in tests/e2e/, Bildschirm, Touch] */
 const FLOWS = [
-  ['handy', HANDY, true], ['daten', HANDY, false], ['iphone', HANDY, true], ['herz', HANDY, true], ['formfix', HANDY, true],
+  ['appstart', HANDY, false], ['handy', HANDY, true], ['daten', HANDY, false], ['iphone', HANDY, true], ['herz', HANDY, true], ['formfix', HANDY, true],
   ['anzeige', HANDY, true], ['zeitraum', HANDY, true], ['verlauf', HANDY, true], ['koerperverlauf', HANDY, true], ['muskel', HANDY, false],
   ['befunde', HANDY, false], ['tastatur', HANDY, true], ['rueckgaengig', HANDY, false],
   ['kleintext', HANDY, false], ['offline', HANDY, false], ['altlasten', HANDY, false], ['schmal', { width: 320, height: 700 }, false], ['desktop', { width: 1280, height: 800 }, false]];

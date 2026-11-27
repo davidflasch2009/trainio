@@ -5,7 +5,7 @@ const { execFileSync } = require('child_process');
 const { check, read, ROOT } = require('./lib/harness');
 
 /** Alle Styles in der Ladereihenfolge aus index.html (wie der Browser sie sieht) */
-const cssFiles = () => [...read('index.html').matchAll(/<link rel="stylesheet" href="(css\/[^"?]+)\?v=[^"]+">/g)].map(m => m[1]);
+const cssFiles = () => [...read('index.html').matchAll(/<link (?:media="print" )?rel="stylesheet" href="(css\/[^"?]+)\?v=[^"]+">/g)].map(m => m[1]);
 const allCss = () => cssFiles().map(read).join('\n');
 
 /* ---------- 1. Dateien: Syntax, Versionen, App-Icons ---------- */

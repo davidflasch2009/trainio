@@ -30,7 +30,7 @@
       else if (t === 'time') t = h >= 19 || h < 7 ? 'dark' : 'light';
       else if (t !== 'light') t = 'dark';
       var a = L.attrs || {}, ph = null;
-      if (a['data-design'] && !/^(gymlog|glass|pure|plakat|fokus|sky)$/.test(a['data-design'])) { a['data-design'] = 'gymlog'; L.fonts = []; }
+      if (a['data-design'] && !/^(gymlog|glass|pure|plakat|fokus|sky)$/.test(a['data-design'])) a['data-design'] = 'gymlog';
       // Tag & Nacht: Phase aus den Sonnenzeiten des letzten Starts (Minuten ab Mitternacht) – Hell/Dunkel folgt der Phase
       if (a['data-design'] === 'sky') {
         var b = L.sky, mm = h * 60 + new Date().getMinutes();
@@ -40,7 +40,6 @@
       d.setAttribute('data-theme', t);
       for (var k in a) if (a[k] != null) d.setAttribute(k, a[k]);
       d.style.cssText = (L.accent ? L.accent[ph || t] || '' : '') + (L.extra || '');
-      (L.fonts || []).forEach(function (f) { var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = f; l.crossOrigin = 'anonymous'; document.head.appendChild(l); });
     } catch (e) {}
     // App-Icon: ?icon=N (aus „Auf dem Home-Bildschirm übernehmen") oder gespeicherte Wahl – vor „Zum Home-Bildschirm"
     try {
@@ -57,15 +56,84 @@
     } catch (e) {}
   })();
 </script>
-<link rel="stylesheet" href="css/tokens.css?v=1.38.0">
-<link rel="stylesheet" href="css/base.css?v=1.38.0">
-<link rel="stylesheet" href="css/components.css?v=1.38.0">
-<link rel="stylesheet" href="css/screens.css?v=1.38.0">
-<link rel="stylesheet" href="css/designs.css?v=1.38.0">
-<link rel="stylesheet" href="css/motion.css?v=1.38.0">
-<link rel="stylesheet" href="css/heart-keypad.css?v=1.38.0">
+<style>
+  #launchScreen { position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; background: var(--bg, #0b0b0c); color: var(--text, #eee); font: 16px system-ui, sans-serif; }
+  [data-theme="light"] #launchScreen { background: var(--bg, #fafafa); color: var(--text, #242425); }
+  #launchScreen svg { width: 110px; height: auto; }
+  #launchScreen ~ :not(script, noscript) { visibility: hidden !important; }
+  #launchScreen p { text-align: center; padding: 16px; }
+  #launchScreen button { display: block; margin: 12px auto 0; padding: 10px 16px; font: inherit; }
+</style>
 </head>
 <body>
+<div id="launchScreen" role="status" aria-label="Trainio wird geöffnet">
+  <svg aria-hidden="true" viewBox="0 0 54 60" fill="none" stroke="currentColor" stroke-width="1.23" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M5 13h44"/>
+    <path class="launch-arms" d="M17 13L20 21L27 28L34 21L37 13"/>
+    <g class="launch-body"><circle cx="27" cy="22" r="3.6"/><path d="M27 26v12m0 0-4 13m4-13 4 13"/></g>
+  </svg>
+</div>
+<noscript><style>#launchScreen { display: none }</style><p>Trainio benötigt JavaScript.</p></noscript>
+<script>
+  // Ohne externe Dateien zeichnen, damit die Figur schon während des Downloads läuft.
+  const LaunchScreen = (() => {
+    const screen = document.getElementById('launchScreen');
+    const arms = screen.querySelector('.launch-arms'), body = screen.querySelector('.launch-body');
+    const reduced = matchMedia('(prefers-reduced-motion: reduce)');
+    const start = performance.now();
+    let frame, failed = false;
+    function draw(time) {
+      const still = reduced.matches || document.documentElement.hasAttribute('data-motion');
+      const lift = still ? 10 : 7 * (1 - Math.cos((time - start) * 2 * Math.PI / 1600));
+      // Hände bleiben auf der Stange. Die beiden gleich langen Armsegmente treffen sich am Ellbogen.
+      const shoulder = 28 - lift, dy = shoulder - 13, distance = Math.hypot(10, dy);
+      const bend = Math.sqrt(9.5 ** 2 - distance ** 2 / 4);
+      const x = 22 - dy * bend / distance, y = (13 + shoulder) / 2 + 10 * bend / distance;
+      arms.setAttribute('d', `M17 13L${x} ${y}L27 ${shoulder}L${54 - x} ${y}L37 13`);
+      body.setAttribute('transform', `translate(0 ${-lift})`);
+      if (!still) frame = requestAnimationFrame(draw);
+    }
+    function fail() {
+      if (failed || !screen.isConnected) return;
+      failed = true;
+      cancelAnimationFrame(frame);
+      screen.removeAttribute('aria-label');
+      screen.innerHTML = '<p>Trainio konnte nicht vollständig geladen werden.<button type="button">Erneut versuchen</button></p>';
+      screen.querySelector('button').onclick = () => location.reload();
+    }
+    function assetError(e) {
+      const el = e.target;
+      if (el.matches?.('link[href^="css/"], script[src^="js/"]')) fail();
+    }
+    document.addEventListener('error', assetError, true);
+    draw(start);
+    return {
+      async stylesReady() {
+        const links = [...document.querySelectorAll('link[rel="stylesheet"][href^="css/"]')];
+        await Promise.all(links.map(link => link.sheet || failed ? null : new Promise(resolve => {
+          link.addEventListener('load', resolve, { once: true });
+          link.addEventListener('error', resolve, { once: true });
+        })));
+        if (failed) throw new Error('Startdateien fehlen');
+        links.forEach(link => { link.media = 'all'; });
+      },
+      finish() {
+        cancelAnimationFrame(frame);
+        document.removeEventListener('error', assetError, true);
+        screen.remove();
+      },
+      fail
+    };
+  })();
+</script>
+<!-- Styles parallel laden. Vor dem ersten Rendern aktiviert boot.js sie in dieser Reihenfolge. -->
+<link media="print" rel="stylesheet" href="css/tokens.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/base.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/components.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/screens.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/designs.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/motion.css?v=1.39.0">
+<link media="print" rel="stylesheet" href="css/heart-keypad.css?v=1.39.0">
 <!-- Himmel für das Design „Tag & Nacht" (js/sky.js malt Farben, Sonne, Mond; sonst ausgeblendet). Berge wie Sky-HILLS -->
 <div id="sky" aria-hidden="true">
   <div class="sky-grad"></div>
@@ -97,35 +165,35 @@
 <div id="modalRoot"></div>
 <div id="toastRoot" aria-live="polite"></div>
 <div id="popover" class="popover" hidden></div>
-<noscript><div style="padding:24px">Trainio benötigt JavaScript.</div></noscript>
+
 <!-- App-Code: Reihenfolge ist wichtig. Bei jedem Deploy ?v= anpassen (tools/release.py) -->
-<script src="js/config.js?v=1.38.0"></script>
-<script src="js/core.js?v=1.38.0"></script>
-<script src="js/seeds.js?v=1.38.0"></script>
-<script src="js/store.js?v=1.38.0"></script>
-<script src="js/ui.js?v=1.38.0"></script>
-<script src="js/sky.js?v=1.38.0"></script>
-<script src="js/motion.js?v=1.38.0"></script>
-<script src="js/analytics.js?v=1.38.0"></script>
-<script src="js/workout.js?v=1.38.0"></script>
-<script src="js/start.js?v=1.38.0"></script>
-<script src="js/training.js?v=1.38.0"></script>
-<script src="js/history.js?v=1.38.0"></script>
-<script src="js/workout-ui.js?v=1.38.0"></script>
-<script src="js/workout-actions.js?v=1.38.0"></script>
-<script src="js/workout-summary.js?v=1.38.0"></script>
-<script src="js/keypad.js?v=1.38.0"></script>
-<script src="js/exercises.js?v=1.38.0"></script>
-<script src="js/charts.js?v=1.38.0"></script>
-<script src="js/body-map.js?v=1.38.0"></script>
-<script src="js/progress.js?v=1.38.0"></script>
-<script src="js/progress-strength.js?v=1.38.0"></script>
-<script src="js/progress-muscles.js?v=1.38.0"></script>
-<script src="js/progress-cardio.js?v=1.38.0"></script>
-<script src="js/progress-body.js?v=1.38.0"></script>
-<script src="js/heart.js?v=1.38.0"></script>
-<script src="js/more.js?v=1.38.0"></script>
-<script src="js/import.js?v=1.38.0"></script>
-<script src="js/boot.js?v=1.38.0"></script>
+<script src="js/config.js?v=1.39.0"></script>
+<script src="js/core.js?v=1.39.0"></script>
+<script src="js/seeds.js?v=1.39.0"></script>
+<script src="js/store.js?v=1.39.0"></script>
+<script src="js/ui.js?v=1.39.0"></script>
+<script src="js/sky.js?v=1.39.0"></script>
+<script src="js/motion.js?v=1.39.0"></script>
+<script src="js/analytics.js?v=1.39.0"></script>
+<script src="js/workout.js?v=1.39.0"></script>
+<script src="js/start.js?v=1.39.0"></script>
+<script src="js/training.js?v=1.39.0"></script>
+<script src="js/history.js?v=1.39.0"></script>
+<script src="js/workout-ui.js?v=1.39.0"></script>
+<script src="js/workout-actions.js?v=1.39.0"></script>
+<script src="js/workout-summary.js?v=1.39.0"></script>
+<script src="js/keypad.js?v=1.39.0"></script>
+<script src="js/exercises.js?v=1.39.0"></script>
+<script src="js/charts.js?v=1.39.0"></script>
+<script src="js/body-map.js?v=1.39.0"></script>
+<script src="js/progress.js?v=1.39.0"></script>
+<script src="js/progress-strength.js?v=1.39.0"></script>
+<script src="js/progress-muscles.js?v=1.39.0"></script>
+<script src="js/progress-cardio.js?v=1.39.0"></script>
+<script src="js/progress-body.js?v=1.39.0"></script>
+<script src="js/heart.js?v=1.39.0"></script>
+<script src="js/more.js?v=1.39.0"></script>
+<script src="js/import.js?v=1.39.0"></script>
+<script src="js/boot.js?v=1.39.0"></script>
 </body>
 </html>
