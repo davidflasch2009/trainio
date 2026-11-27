@@ -9,6 +9,7 @@ const SHOTS = path.join(__dirname, '..', 'screenshots');
 const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8');
 const state = { failed: 0, messages: [] };
 function check(cond, msg, detail) {
+  state.last = msg;   // letzte Prüfung – nennt bei einem abgebrochenen Ablauf die Stelle davor
   if (cond) console.log('  ✓ ' + msg);
   else { state.failed++; state.messages.push(msg + (detail ? ' – ' + detail : '')); console.log('  ✗ ' + msg + (detail ? `\n      ${detail}` : '')); }
   return !!cond;

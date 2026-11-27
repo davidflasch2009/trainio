@@ -38,12 +38,14 @@ const FLOWS = [
     if (only.length && !only.includes(name)) continue;
     if (ENGINE !== 'chromium' && NUR_CHROMIUM.includes(name)) { console.log(`(${name}: nur in Chromium)`); continue; }
     let page = null;
+    state.last = '';
     try {
       page = await openApp(browser, base, viewport, touch, name === 'iphone' ? IPHONE : undefined, { serviceWorkers: name === 'offline' || name === 'altlasten' ? 'allow' : 'block' });
       await flow(name)(page);
     } catch (e) {
       const js = page && page.errors.length ? ` · JS-Fehler: ${page.errors.join(' | ')}` : '';
-      check(false, `Ablauf „${name}" abgebrochen`, e.message.split('\n')[0] + js);
+      const after = state.last ? ` · zuletzt geprüft: „${state.last}"` : ' · vor der ersten Prüfung';
+      check(false, `Ablauf „${name}" abgebrochen`, e.message.split('\n')[0] + after + js);
     }
     if (state.failed && page) { fs.mkdirSync(SHOTS, { recursive: true }); await page.screenshot({ path: path.join(SHOTS, (ENGINE === 'chromium' ? '' : ENGINE + '-') + name + '.png') }).catch(() => {}); }
     if (page) await page.context().close();
