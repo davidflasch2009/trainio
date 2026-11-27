@@ -42,7 +42,7 @@ if (window.visualViewport) visualViewport.addEventListener('resize', () => setTi
 
 /* ---------- Toasts ---------- */
 /* Meldungs-Gruppen, einzeln schaltbar unter Mehr → Meldungen. Fehler/Warnungen, Meldungen mit Knopf (z. B.
-   „Rückgängig") und cat: 'always' kommen immer. Ohne Angabe: 'pr' bei PR-Toasts, sonst 'confirm'. */
+   „Rückgängig") und cat: 'always' folgen nur dem Hauptschalter. Ohne Angabe: 'pr' bei PR-Toasts, sonst 'confirm'. */
 const TOAST_CATS = [
   ['confirm', 'Bestätigungen', '„Gespeichert", „Gelöscht", „Dupliziert" …'],
   ['workout', 'Workout-Ablauf', '„… gestartet", „Übung abgeschlossen", „Pause vorbei" …'],
@@ -73,7 +73,7 @@ function toastCat(type, opts) {
 }
 function toast(msg, type = 'info', opts = {}) {
   const root = $('#toastRoot');
-  if (!root) return;
+  if (!root || S().toastsEnabled === false) return;
   const cat = toastCat(type, opts);
   if (cat !== 'always' && S()['toast_' + cat] === false) return;
   const ic = { success: 'checkCircle', error: 'xCircle', warn: 'warn', info: 'info', pr: 'trophy' }[type] || 'info';
@@ -376,7 +376,7 @@ function actionMenu(title, items) {
           if (!it.items) return row(it);
           const children = it.items.filter(Boolean);
           if (!children.length) return '';
-          return `<details class="am-group" name="am-sections"><summary class="list-item" tabindex="0"><span class="li-icon">${icon(it.icon)}</span><span class="li-main"><span class="li-title">${esc(it.label)}</span></span>${icon('chevD', 'li-chev')}</summary>${children.map(child => row(child)).join('')}</details>`;
+          return `<details class="am-group" name="am-sections"><summary class="list-item" tabindex="0"><span class="li-icon">${icon(it.icon)}</span><span class="li-main"><span class="li-title">${esc(it.label)}</span></span>${icon('chevD', 'li-chev')}</summary><div class="am-children">${children.map(child => row(child)).join('')}</div></details>`;
         };
         return `${feat.map(it => row(it, 'am-featured fx-up')).join('')}${solo.map((it, i) => row(it, `am-solo fx-up${feat.length || i ? ' mt-8' : ''}`)).join('')}${rest.length ? `<div class="list fx-stagger${feat.length || solo.length ? ' mt-12' : ''}">${rest.map(menuItem).join('')}</div>` : ''}`;
       })(),

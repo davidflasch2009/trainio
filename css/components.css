@@ -186,7 +186,17 @@
 .am-group > summary { cursor: pointer; list-style: none; border-bottom: 0; }
 .am-group > summary::-webkit-details-marker { display: none; }
 .am-group[open] > summary .li-chev { transform: rotate(180deg); }
-.am-group > button.list-item { padding-inline-start: 26px; background: var(--surface-2); }
+/* Die native Aufklappgruppe behält Tastaturbedienung und Einzelauswahl. */
+@supports selector(details::details-content) {
+  .am-group::details-content { display: grid; grid-template-rows: 0fr; }
+  .am-group[open]::details-content { grid-template-rows: 1fr; }
+  .am-children { min-height: 0; overflow: hidden; }
+  @media (prefers-reduced-motion: no-preference) {
+    :root:not([data-motion]) .am-group::details-content { transition: grid-template-rows .22s ease, content-visibility .22s allow-discrete; }
+    :root:not([data-motion]) .am-group > summary .li-chev { transition: transform .22s ease; }
+  }
+}
+.am-children > button.list-item { padding-inline-start: 26px; background: var(--surface-2); }
 button.list-item.pressed, .list-item.clickable.pressed { background: var(--surface-2); }
 .list-item.clickable { cursor: pointer; }
 .list-item .li-icon { width: 36px; height: 36px; border-radius: calc(10px * var(--rs)); display: flex; align-items: center; justify-content: center; background: var(--surface-2); color: var(--text-dim); flex-shrink: 0; }

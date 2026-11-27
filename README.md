@@ -61,9 +61,9 @@ kleiner; was nicht passt, steht als „+ N weitere“. In der Vorschau: **Bild t
 
 ## Meldungen
 
-Kurze Meldungen oben im Bildschirm lassen sich unter **Mehr → Meldungen** je Gruppe abschalten: Bestätigungen
+Unter **Mehr → Meldungen → Meldungen anzeigen** lassen sich alle kurzen Meldungen am oberen Bildschirmrand ausschalten, auch im Workout. Damit entfällt auch der Knopf „Rückgängig“ in den Meldungen. Bei eingeschalteten Meldungen gibt es Gruppen für Bestätigungen
 („Gespeichert", „Gelöscht" … – standardmäßig aus), Workout-Ablauf, PRs & Ziele, Verbindung & Sync, App-Updates.
-Fehler, Hinweise („Bitte ein Gewicht eintragen") und Meldungen mit Knopf („Rückgängig") kommen immer. Jede Meldung
+Fehler, Hinweise („Bitte ein Gewicht eintragen") und Meldungen mit Knopf („Rückgängig") sind bei eingeschaltetem Hauptschalter gruppenunabhängig sichtbar. Jede Meldung
 schließt sich per Antippen oder **Wegwischen** (nach oben oder zur Seite; kurzes Ziehen federt zurück).
 
 **Rückgängig statt Rückfrage** (wie bei iOS): Löschen und Zurücksetzen passiert sofort, die Meldung bietet einige
@@ -206,7 +206,7 @@ Kacheln mit Ziel springen beim Antippen in den passenden Fortschritt-Bereich.
   das Trainingsziel ändern und Werte vom letzten Mal übernehmen (wenn verfügbar). „Details & Verlauf“ steht unter
   „Übung verwalten“. Weitere Aktionen stehen unter
   „Sätze & Pause“, „Notizen & Technik“ und „Übung verwalten“. Bei Cardio gibt es die Gruppen „Notizen“ und
-  „Übung verwalten“. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
+  „Übung verwalten“. Die Gruppen gleiten beim Öffnen und Schließen kurz auf und zu, wenn volle Animationen aktiviert sind. Die frühere „ausführliche Eingabe“ gibt es nicht mehr – wer dort
   RPE eingetragen hat, bekommt automatisch die RPE-Spalte (Mehr → Workout → RPE-Spalte).
 - **Eigene Zahlentastatur** (Handy/Tablet mit Touch): Ein Tipp auf Gewicht, Wdh., Sekunden oder einen Cardio-Wert
   öffnet statt der Handy-Tastatur eine große Zahlentastatur:

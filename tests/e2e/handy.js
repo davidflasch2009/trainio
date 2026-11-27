@@ -65,8 +65,11 @@ async function mobileFlow(page) {
   check(await menu.locator('.list > button[data-k="warm"]').isVisible(), 'Aufwärmsätze direkt im Übungsmenü erreichbar');
   check(await menu.locator('button[data-k]:visible, summary:visible').count() <= 6 && !await menu.locator('[data-k="del"]').isVisible(), 'Übungsmenü startet kompakt, Entfernen ist eingeklappt');
   await menu.locator('summary').filter({ hasText: 'Übung verwalten' }).click();
-  check(await menu.locator('[data-k="del"]').isVisible(), 'Übung verwalten zeigt Entfernen');
+  await menu.locator('[data-k="del"]').waitFor({ state: 'visible' });
+  const slide = await menu.locator('.am-group[open]').evaluate(group => getComputedStyle(group, '::details-content').transitionProperty);
+  check(slide.includes('grid-template-rows'), 'Übung verwalten fährt die Einträge mit einem Höhenübergang aus', slide);
   await menu.locator('summary').filter({ hasText: 'Sätze & Pause' }).click();
+  await menu.locator('[data-k="del"]').waitFor({ state: 'hidden' });
   check(!await menu.locator('[data-k="del"]').isVisible(), 'Beim Gruppenwechsel schließt die vorherige Gruppe');
   await page.click('.modal [data-k="plates"]');
   await pause(page);

@@ -113,6 +113,23 @@ async function rueckgaengigFlow(page) {
   check(await page.evaluate(() => JSON.stringify(Workout.cur())) === w0 && await page.evaluate(() => App.tab === 'training'), 'Rückgängig: Workout genau wie vorher, zurück im Training');
   await page.evaluate(() => Workout.discard());
 
+  await page.evaluate(() => openMoreSub('toasts'));
+  const master = page.locator('.switch:has(input[data-k="toastsEnabled"])');
+  await master.click();
+  const silent = await page.evaluate(async () => {
+    Workout.start({ templateId: 'u_tpl' });
+    await Actions.woCancel();
+    toast('Prüfung', 'warn');
+    return !Workout.cur() && S().toastsEnabled === false && !document.querySelector('#toastRoot .toast');
+  });
+  check(silent, 'Meldungen aus: Workout starten und abbrechen, auch Rückgängig und Hinweise bleiben ausgeblendet');
+  await page.reload();
+  await page.evaluate(() => openMoreSub('toasts'));
+  check(!await master.locator('input').isChecked(), 'Meldungsschalter bleibt nach Neuladen aus');
+  await master.click();
+  check(await page.evaluate(() => { toast('Wieder aktiv', 'warn'); return !!document.querySelector('#toastRoot .toast.warn') && !S().toast_confirm; }),
+    'Wiedereinschalten zeigt Meldungen mit den bisherigen Gruppen-Einstellungen');
+
   // Unumkehrbares fragt weiter nach
   await page.evaluate(() => { Actions.deleteAll(); });
   const wipe = await page.evaluate(() => typeof Actions.deleteAll);

@@ -126,8 +126,9 @@ function moreGroups() {
       ] },
     lookGroup(s),
     { id: 'toasts', title: 'Meldungen', ic: 'info',
-      intro: 'Kurze Meldungen oben im Bildschirm. Fehler und Meldungen mit Knopf (z. B. „Rückgängig“) kommen immer.',
-      sections: [['', TOAST_CATS.map(([k, t, sub]) => mi(t, sub, toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]] },
+      intro: 'Kurze Meldungen am oberen Bildschirmrand, auch während eines Workouts.',
+      sections: [['', [mi('Meldungen anzeigen', 'Aus blendet auch Fehler und den Knopf „Rückgängig“ aus.', toggleCtl('toastsEnabled'), 'alle meldungen workout ausschalten')]],
+        ...(s.toastsEnabled === false ? [] : [['Gruppen', TOAST_CATS.map(([k, t, sub]) => mi(t, sub, toggleCtl('toast_' + k), 'meldung hinweis toast benachrichtigung nervt'))]])] },
     { id: 'features', title: 'Tabs & Funktionen', ic: 'sliders', val: hidden ? `${hidden} ausgeblendet` : '',
       intro: 'Schalte aus, was du nicht brauchst – die App wird dadurch schlanker. Deine Daten bleiben immer erhalten.',
       sections: FEATURES.map(([g, items], i) => [g, [...items.map(([k, l, sub]) => mi(esc(l), sub || '', toggleCtl(k), 'funktion ausblenden einblenden')), ...(i === 0 ? libRow : [])]]) },
@@ -467,6 +468,7 @@ Changes.setToggle = async el => {
     if (p !== 'granted') toast('Benachrichtigungen wurden nicht erlaubt – Hinweis kommt nur in der App', 'warn');
   }
   Store.saveSettings({ [k]: el.checked });
+  if (k === 'toastsEnabled' && !el.checked) $('#toastRoot').replaceChildren();
   if (k === 'wakeLock') { if (el.checked && Workout.cur()) WakeLock.request(); else if (!el.checked) WakeLock.release(); }
 };
 // Standard-Wdh. für neue Übungen: Zahl oder Bereich („10", „8-12")
