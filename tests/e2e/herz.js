@@ -64,6 +64,9 @@ async function heartFlow(page) {
   await pause(page);
   await page.evaluate(() => { Store.saveSettings({ finishConfirm: 'never' }); Actions.woFinish(); });
   await pause(page, 700);
+  const abschluss = page.locator('.modal-wrap.open .modal');
+  check(/Workout gespeichert/.test(await abschluss.innerText()) && await abschluss.locator('.score-ring, .score-more').count() === 0,
+    'Reines Cardio wird ohne Workout-Score abgeschlossen');
   await page.evaluate(() => Modal.closeAll());
   await pause(page, 300);
   const saved = await page.evaluate(() => { const w = Store.all('workouts')[0]; const en = w && w.entries[0]; return { en: en && { effort: en.effort, hr: en.hr, hiit: en.hiit }, week: Heart.planWeek() }; });

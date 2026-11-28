@@ -3,7 +3,7 @@
    WICHTIG: Bei JEDEM Deploy `python3 tools/release.py <version>` ausführen – zählt CACHE hoch und
    setzt ?v=<version> an CSS/JS in index.html. Sonst zeigt das iPhone ggf. noch alte Assets.
    ========================================================================== */
-const CACHE = 'gymlog-v127';
+const CACHE = 'gymlog-v128';
 const CACHE_NAME = CACHE;
 /* Früher gab es unter …/test/ eine Testversion mit eigenen Caches (trainio-test-…) – die räumt die App mit weg */
 const OLD = k => (k.startsWith('gymlog-') && k !== CACHE_NAME) || k.startsWith('trainio-test-');

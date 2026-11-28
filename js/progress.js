@@ -295,7 +295,7 @@ ProgressViews.overview = body => {
         const rS = Analytics.range(), sOf = rs => rs.map(x => ({ x, s: Analytics.score(x.id) })).filter(o => o.s);
         const cur = sOf(Analytics.rowsIn(rS)), prv = sOf(Analytics.rowsIn(Analytics.prevRange(rS)));
         const a = cur.length ? avg(cur.map(o => o.s.score)) : null, b = prv.length ? avg(prv.map(o => o.s.score)) : null;
-        return cb.card({ id: 'score', wide: true, title: 'Workout-Score', info: 'Die Bewertung jedes Workouts von 0 bis 100. Punkte: einzelne Workouts, Linie: Ø der letzten 3 Wochen.',
+        return cb.card({ id: 'score', wide: true, title: 'Workout-Score', info: 'Bewertung der Kraftübungen pro Workout von 0 bis 100. Punkte: einzelne Workouts, Linie: Ø der letzten 3 Wochen.',
           big: a != null ? nf(a, 0) : '–', small: 'Ø im Zeitraum', delta: a != null && b != null ? deltaHtml(a, b, { fmt: d => (d > 0 ? '+' : '') + nf(d, 0) }) : '',
           factory: () => {
             if (cur.length < 2) return null;

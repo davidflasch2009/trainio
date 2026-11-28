@@ -144,12 +144,13 @@ function moreTile(k, ix, t, cw) {
 }
 /** Ø Workout-Score der letzten 4 Wochen + letzter Score */
 function scoreTile(ix, t) {
-  const sc = ix.rows.filter(r => r.dn > t - 28).map(r => Analytics.score(r.id)).filter(Boolean).map(s => s.score);
-  const last = ix.rows.length ? Analytics.score(ix.rows[ix.rows.length - 1].id) : null;
+  const rows = ix.rows.filter(Analytics.hasScore);
+  const sc = rows.filter(r => r.dn > t - 28).map(r => Analytics.score(r.id)).filter(Boolean).map(s => s.score);
+  const last = rows[rows.length - 1];
   return `<div class="stat">
-    <div class="stat-label">${icon('target')} Ø Score ${infoBtn('Durchschnittlicher Workout-Score (0–100) der letzten 4 Wochen. Wie er sich zusammensetzt, steht nach jedem Workout unter dem Ring.')}</div>
+    <div class="stat-label">${icon('target')} Ø Score ${infoBtn('Durchschnittlicher Workout-Score der letzten 4 Wochen. Für die Bewertung zählen die Kraftübungen.')}</div>
     <div class="stat-value">${sc.length ? nf(avg(sc), 0) : '–'}</div>
-    <div class="stat-sub">${last ? `letztes Workout: ${last.score}` : 'noch kein Workout'}</div>
+    <div class="stat-sub">${last ? `letzter Score: ${Analytics.score(last.id).score}` : 'noch kein Score'}</div>
   </div>`;
 }
 function miniWorkoutCard(r) {

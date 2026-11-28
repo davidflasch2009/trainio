@@ -48,6 +48,27 @@ async function anzeigeFlow(page) {
   check(setStats, 'Sätze pro Workout: Cardio aus Kurve, Durchschnitt und Vollbild-Tabelle ausgenommen');
   const h7txt = await page.evaluate(() => document.querySelector('#tab-progress .heat7').innerText.replace(/\s+/g, ' ').trim());
   check(!/kg|\dt\b|Cardio/.test(h7txt), '„Letzte 7 Tage“: in den Kästchen nur der Wochentag, keine Mini-Werte', h7txt);
+  const cardioScore = await page.evaluate(async () => {
+    const ix = Analytics.cur(), letzter = Analytics.score('az2').score;
+    const nurCardio = Analytics.score('az3') === null;
+    const kachel = scoreTile(ix, todayDN());
+    const kurve = Charts.get('score').factory().data.datasets[0].data;
+    const rad = Store.raw('workouts', 'az3'), bank = Store.raw('workouts', 'az2');
+    await Store.put('workouts', 'az_mix', { ...bank, date: isoDate(), startedAt: Date.now() });
+    const kraft = Analytics.score('az_mix');
+    const kurz = { ...rad.entries[0], sets: [{ durationSec: 600, distKm: 1, done: true }] };
+    await Store.put('workouts', 'az_mix', { entries: [...bank.entries, kurz] });
+    const gemischt = Analytics.score('az_mix');
+    await Store.del('workouts', 'az_mix');
+    return {
+      nurCardio, letzterAngezeigt: kachel.includes('letzter Score: ' + letzter), punkte: kurve.length,
+      kraft: kraft?.score, gemischt: gemischt?.score
+    };
+  });
+  check(cardioScore.nurCardio && cardioScore.letzterAngezeigt && cardioScore.punkte === 2,
+    'Reines Cardio bleibt aus Score-Verlauf und letztem Score heraus', JSON.stringify(cardioScore));
+  check(Number.isFinite(cardioScore.kraft) && cardioScore.kraft === cardioScore.gemischt,
+    'Ein kurzer Lauf nach dem Kraftteil ändert die Bewertung nicht', JSON.stringify(cardioScore));
   // Kraftzuwachs robust (bestes e1RM je Woche, Median der ersten gegen gleitenden Median der letzten Wochen):
   // Tagesform-Schwankungen (σ 3 %) ohne echten Fortschritt ergeben ≈ 0 % – je Übung im Mittel und im verketteten Index
   // der Karte „Kraftzuwachs“. Das frühere laufende Maximum gegen die erste Session zeigt bei denselben Daten ≈ +6 %.

@@ -31,7 +31,7 @@ _Avoid_: Experten-Einstellungen, Erweitert, Feinschliff
 ## Auswertung
 
 **Workout-Score**:
-Die Bewertung eines einzelnen Workouts von 0 bis 100 (Fortschritt zum letzten Mal, Erledigt, Anstrengung, PR-Bonus).
+Die Bewertung des Kraftteils eines einzelnen Workouts von 0 bis 100 (Fortschritt zum letzten Mal, Erledigt, Anstrengung, PR-Bonus).
 _Avoid_: Score (ohne Zusatz)
 
 **Trainio-Score**:

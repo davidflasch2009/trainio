@@ -33,13 +33,16 @@ Rand transparent), `icon-maskable-192.png`, `icon-maskable-512.png` (vollflächi
 
 ## Workout-Score
 
-Nach jedem Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
+Kraftworkouts erhalten einen Workout-Score. Cardio-Einheiten bleiben ohne Bewertung.
+Bei gemischten Workouts zählen nur die Kraftübungen.
+
+Nach einem bewerteten Workout füllt sich ein Ring in der Akzentfarbe, in der Mitte zählt der **Score (0–100)** hoch –
 je höher der Score, desto länger dauert es und desto stärker bremst die Zahl am Ende ab. **Bei 100** wird der
 Ring golden, leuchtet auf und die Zahl springt, dazu Konfetti und Vibration (im Workout-Detail nur der
 Gold-Ring). Im Ring steht nur die Zahl. **Ring antippen** klappt die Aufschlüsselung auf (eingeklappt sieht man
 Dauer, Volumen, Sätze und RPE):
-- **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen; Cardio: Distanz
-  und Dauer). Deutlich besser (≥ +2,5 %) volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
+- **Fortschritt (45):** pro Übung der Vergleich mit dem letzten Mal (60 % e1RM + 40 % Volumen). Deutlich besser (≥ +2,5 %)
+  volle Punkte, etwas besser 85 %, gleich 60 %, etwas schlechter 35 %,
   bis −8 % 15 %, darunter 0. Ein besseres e1RM zählt mindestens wie „gleich“.
 - **Erledigt (35):** erledigte Arbeitssätze ÷ geplante.
 - **Anstrengung (20):** RPE je Satz, volle Punkte bei RPE 7–9.
@@ -47,7 +50,7 @@ Dauer, Volumen, Sätze und RPE):
   Wiederholungen) erscheinen in der Liste „Neue PRs“, zählen aber nicht für den Bonus.
 
 Fehlt ein Teil (kein Vergleich, kein RPE), wird auf 100 hochgerechnet. Der Score wird aus den gespeicherten
-Workouts berechnet – auch alte und importierte haben einen. Zu sehen beim Abschluss, im Workout-Detail und als
+Workouts berechnet – das gilt auch für alte und importierte Einheiten. Zu sehen beim Abschluss, im Workout-Detail und als
 Verlauf in Fortschritt → Übersicht („Workout-Score“).
 
 ## Workout teilen
