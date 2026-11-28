@@ -438,7 +438,8 @@ Woche, optionales **Zielgewicht** (mit geschätztem Datum), Veränderung pro Woc
 („Wochenziel festlegen": Zunehmen / Abnehmen / Halten) legst du fest, wie stark sich dein Wochendurchschnitt
 verändern darf, z. B. 0 bis +200 g. In „Veränderung pro Woche" sind Wochen im Bereich grün, darüber oder
 darunter orange; ein blasses Band zeigt den erlaubten Bereich. In einer Phase gilt deren Bereich, sonst die
-allgemeine Einstellung.
+allgemeine Einstellung. Ein Tipp auf den angezeigten Bereich öffnet das dazugehörige Ziel. Während einer Phase
+mit eigenem Bereich erreichst du das allgemeine Wochenziel über die zweite Schaltfläche.
 **Gewicht importieren:** Mehr → Daten → Gewicht importieren. Funktioniert
 mit CSV-Exporten aus Waagen-/Gewichts-Apps wie Better Weight, Withings oder Libra – Datum- und Gewichtsspalte
 werden erkannt (Semikolon/Komma, deutsches Dezimalkomma, kg oder lb). Vorschau mit Zeitraum, vorhandene Tage

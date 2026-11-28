@@ -34,7 +34,11 @@ ProgressViews.body = body => {
   const wk = [...weeks.entries()].sort((x, y) => x[0] - y[0]).map(([w, v]) => ({ w, kg: avg(v) }));
   const wkDiff = wk.map((x, i) => i ? { w: x.w, d: x.kg - wk[i - 1].kg, gap: x.w - wk[i - 1].w } : null).filter(x => x && x.gap <= 14 && x.w >= weekStartDN(r.from) && x.w <= r.to);
   // Wochenziel: Bereich je Woche (Phase oder allgemein) und Treffer
-  const rateNow = rateRuleAt(weekStartDN(todayDN()));
+  const rate = rateRuleAt(weekStartDN(r.to));
+  const ratePhase = rate?.phase;
+  const rateName = ratePhase?.name || RATE_GOALS.find(([key]) => key === rate?.type)?.[1] || 'Ziel';
+  const rateLabel = rate ? `${rateName}: ${rateText(rate.lo, rate.hi)}` : 'Wochenziel festlegen';
+  const rateAction = ratePhase ? `data-act="phaseEdit" data-id="${esc(ratePhase.id)}" data-keep-period="1"` : 'data-act="bwRateSet"';
   const rules = wkDiff.map(x => rateRuleAt(x.w));
   const rateHit = wkDiff.filter((x, i) => rules[i] && x.d >= rules[i].lo - 1e-6 && x.d <= rules[i].hi + 1e-6).length;
   const startR = bwR[0], minR = bwR.length ? bwR.reduce((m, p) => p.kg < m.kg ? p : m) : null, maxR = bwR.length ? bwR.reduce((m, p) => p.kg > m.kg ? p : m) : null;
@@ -64,8 +68,11 @@ ProgressViews.body = body => {
           return timeLine(ds, { legend: true, tooltipFmt: v => nf(v, 1) + ' ' + unit(), thresholds: goal ? { axis: 'y', lines: [{ value: toU(goal), label: 'Ziel', color: c.dim }] } : null,
             yMin: Math.floor(Math.min(...ys) - .5), yMax: Math.ceil(Math.max(...ys) + .5) });
         } })}
-      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: rateNow || rules.some(Boolean) ? 'Wochendurchschnitt gegen die Vorwoche. Grün: im Bereich deines Wochenziels (blasses Band), orange: außerhalb.' : 'Wochendurchschnitt gegen die Vorwoche. Blau: abgenommen, orange: zugenommen.',
-        top: `<div class="row mt-8"><button class="chip sm" data-act="bwRateSet">${icon('target')} ${rateNow ? `${rateNow.phase ? esc(rateNow.phase.name) : esc((RATE_GOALS.find(x => x[0] === rateNow.type) || [0, 'Ziel'])[1])}: ${esc(rateText(rateNow.lo, rateNow.hi))}` : 'Wochenziel festlegen'}</button></div>`,
+      ${cb.card({ id: 'b5', wide: true, title: 'Veränderung pro Woche', info: rate || rules.some(Boolean) ? 'Wochendurchschnitt gegen die Vorwoche. Grün: im Bereich deines Wochenziels (blasses Band), orange: außerhalb.' : 'Wochendurchschnitt gegen die Vorwoche. Blau: abgenommen, orange: zugenommen.',
+        top: `<div class="row wrap mt-8">
+          <button class="chip sm" ${rateAction}>${icon('target')} ${esc(rateLabel)}</button>
+          ${ratePhase ? '<button class="chip sm" data-act="bwRateSet">Allgemeines Wochenziel</button>' : ''}
+        </div>`,
         big: wkDiff.length ? signW(wkDiff[wkDiff.length - 1].d) : '–', small: wkDiff.length ? 'letzte Woche' : 'mind. 2 Wochen mit Einträgen nötig',
         sub: rules.some(Boolean) ? `${rateHit} von ${rules.filter(Boolean).length} Wochen im Bereich` : '',
         factory: () => {
@@ -163,14 +170,11 @@ Actions.bwQuickSave = () => {
 Actions.bwRateSet = () => {
   const g = S().bwRate || {};
   let type = g.type || (g.min != null ? 'maintain' : '');
-  const cur = rateRuleAt(weekStartDN(todayDN()));
   const sug = RATE_DEFAULTS[type || 'bulk'];
   const m = Modal.open({
-    title: 'Wochenziel Gewicht', size: 'sm',
-    info: 'Erlaubte Veränderung deines Wochendurchschnitts zur Vorwoche. Im Diagramm „Veränderung pro Woche“ sind Wochen in diesem Bereich grün, darüber oder darunter orange.',
+    title: 'Allgemeines Wochenziel', size: 'sm',
+    info: 'Erlaubte Veränderung deines Wochendurchschnitts zur Vorwoche. Sie gilt für alle Wochen ohne eigenes Phasenziel. Im Diagramm „Veränderung pro Woche“ sind Wochen in diesem Bereich grün, darüber oder darunter orange.',
     body: `<div class="stack">
-      ${cur && cur.phase ? `<div class="card small">Gerade gilt die Phase <b>${esc(cur.phase.name)}</b> (${esc(rateText(cur.lo, cur.hi))}). Diese Einstellung gilt für Wochen ohne Phase mit Bereich.
-        <button class="link-btn mt-4" style="padding:0;min-height:30px" data-x="phase">Phase bearbeiten</button></div>` : ''}
       <div class="seg" id="rtType">${RATE_GOALS.map(([k, l]) => `<button data-t="${k}" class="${type === k ? 'active' : ''}">${l}</button>`).join('')}<button data-t="" class="${!type ? 'active' : ''}">Kein Ziel</button></div>
       <div id="rtBox" ${type ? '' : 'hidden'}>${rateFields(g.min, g.max, [rateToInput(sug[0]), rateToInput(sug[1])])}</div>
     </div>`,
@@ -181,7 +185,6 @@ Actions.bwRateSet = () => {
     const t = e.target.closest('[data-t]');
     if (t) { applyRateDefault(m.el, type || null, t.dataset.t || 'other'); type = t.dataset.t; $$('#rtType button', m.el).forEach(x => x.classList.toggle('active', x === t)); $('#rtBox', m.el).hidden = !type; return; }
     const b = e.target.closest('[data-x]'); if (!b) return;
-    if (b.dataset.x === 'phase') { m.close(); Actions.phaseEdit({ dataset: { id: cur.phase.id } }); return; }
     if (b.dataset.x === 'ok') {
       if (!type) Store.saveSettings({ bwRate: null });
       else {

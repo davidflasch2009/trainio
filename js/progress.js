@@ -198,7 +198,7 @@ Actions.phaseEdit = el => {
       if (rt === false) return;
       d.rateMin = rt ? rt[0] : null; d.rateMax = rt ? rt[1] : null;
       Store.saveSettings({ phases: [...list, d] });
-      UI.period = 'ph:' + d.id; saveUI();
+      if (!el.dataset.keepPeriod) { UI.period = 'ph:' + d.id; saveUI(); }
       toast(old ? 'Phase gespeichert' : `Phase „${d.name}" angelegt`, 'success');
     }
     m.close();

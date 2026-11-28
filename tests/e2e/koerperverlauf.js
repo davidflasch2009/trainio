@@ -56,6 +56,25 @@ async function koerperVerlaufFlow(page) {
   s = await state();
   check(s.months.join() === '2026-01,2025-12,2025-11,2025-10' && s.ids.length === 4 && new Set(s.ids).size === 4 && !s.next,
     'Körper-Verlauf endet beim ältesten Monat, alle Einträge genau einmal', JSON.stringify(s));
+  await page.evaluate(() => Store.saveSettings({
+    bwRate: { type: 'bulk', min: 0, max: .3 },
+    phases: [{ id: 'gewicht', name: 'Aufbau', type: 'bulk', from: '2026-01-12', to: '', rateMin: 0, rateMax: .2 }]
+  }));
+  await page.getByRole('button', { name: 'Aufbau: 0 g bis +200 g' }).click();
+  await page.fill('#rtMin', '100');
+  await page.fill('#rtMax', '250');
+  await page.click('.modal [data-x="ok"]');
+  await page.getByRole('button', { name: 'Aufbau: +100 g bis +250 g' }).waitFor();
+  await page.waitForFunction(() => Chart.getChart('cv-b5')?.config.options.plugins.rangeBand?.ranges.at(-1)?.[0] === .1);
+  const ziel = await page.evaluate(() => {
+    const bereiche = Chart.getChart('cv-b5').config.options.plugins.rangeBand.ranges;
+    return { bereiche, allgemein: S().bwRate, zeitraum: UI.period };
+  });
+  check(ziel.bereiche.at(-1)[1] === .25 && ziel.bereiche.at(-2)[1] === .3 && ziel.allgemein.max === .3 && ziel.zeitraum === 'all',
+    'Das angezeigte Phasenziel ändert sein Diagrammband, frühere Wochen behalten das allgemeine Ziel', JSON.stringify(ziel));
+  await page.getByRole('button', { name: 'Allgemeines Wochenziel' }).click();
+  check(await page.locator('.modal-wrap.open #rtMax').inputValue() === '300', 'Das allgemeine Wochenziel bleibt separat bearbeitbar');
+  await page.click('.modal-wrap.open [data-x="c"]');
   await historyNavigationChecks(page, 'body');
   await page.reload({ waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#bodyHistory');
